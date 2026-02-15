@@ -4,6 +4,7 @@
 
 import type { ProfileRepository } from '$lib/domain/profile/profile.repository.js';
 import type { NewProfile, Profile } from '$lib/domain/profile/profile.js';
+import type { UserRole } from '$lib/domain/user/user.js';
 import { getDatabase } from './db.js';
 
 export function createProfileStore(): ProfileRepository {
@@ -16,6 +17,25 @@ export function createProfileStore(): ProfileRepository {
 		async getById(id: string): Promise<Profile | null> {
 			const db = await getDatabase();
 			return db.profiles.getById<Profile>(id);
+		},
+
+		async getByOwnerId(ownerId: string, ownerType?: UserRole): Promise<Profile[]> {
+			const db = await getDatabase();
+			const profiles = await db.profiles.query<Profile>('ownerId', ownerId);
+			if (ownerType) {
+				return profiles.filter((p) => p.ownerType === ownerType);
+			}
+			return profiles;
+		},
+
+		async getByCreatorPageId(creatorPageId: string): Promise<Profile[]> {
+			const db = await getDatabase();
+			return db.profiles.query<Profile>('creatorPageId', creatorPageId);
+		},
+
+		async getByCategoryId(categoryId: string): Promise<Profile[]> {
+			const db = await getDatabase();
+			return db.profiles.query<Profile>('categoryId', categoryId);
 		},
 
 		async create(data: NewProfile): Promise<Profile> {

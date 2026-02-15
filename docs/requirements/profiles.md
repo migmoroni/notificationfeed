@@ -2,29 +2,39 @@
 
 ## Definição
 
-Profile é a entidade central do Notfeed. Representa uma identidade do usuário que agrega múltiplas Fonts (fontes de dados).
+Profile é uma identidade temática ou editorial que agrupa Fonts. Pode ser criado por UserConsumer (standalone, para feeds manuais de terceiros) ou por UserCreator (standalone ou vinculado a uma CreatorPage).
 
 ## Propriedades
 
 | Campo | Tipo | Obrigatório | Descrição |
 |---|---|---|---|
 | `id` | string (UUID) | Sim (auto) | Identificador único |
-| `name` | string | Sim | Nome de exibição |
-| `avatarUrl` | string | Não | URL do avatar |
+| `ownerType` | `'consumer' \| 'creator'` | Sim | Quem criou o profile |
+| `ownerId` | string (UUID) | Sim | Referência ao UserConsumer ou UserCreator |
+| `creatorPageId` | string (UUID) | Não | CreatorPage à qual pertence (null = standalone) |
+| `title` | string [1..100] | Sim | Nome do profile |
+| `tags` | string[] | Não | Tags descritivas |
+| `avatar` | ImageAsset (WEBP, ≤512×512) | Não | Imagem de avatar |
+| `categoryId` | string | Sim | Referência a Category sublevel (depth ≥ 1) |
+| `defaultEnabled` | boolean | Sim | Estado padrão para novos consumers |
 | `createdAt` | Date | Sim (auto) | Data de criação |
 | `updatedAt` | Date | Sim (auto) | Última atualização |
 
 ## Regras de negócio
 
-- Um usuário pode ter múltiplos Profiles (ex: "Pessoal", "Trabalho", "Tech News").
-- Cada Profile possui suas próprias Fonts independentes.
+- Profile sempre tem um owner (`ownerId` + `ownerType`).
+- Se `ownerType = 'consumer'`, `creatorPageId` é obrigatoriamente null.
+- Se `ownerType = 'creator'`, `creatorPageId` pode apontar para uma CreatorPage do mesmo creator.
+- Somente o owner pode editar/deletar o Profile e gerenciar suas Fonts.
+- Pertence a exatamente uma Category sublevel.
 - Deletar um Profile deleta em cascata todas as suas Fonts e posts associados.
-- O nome do Profile deve ter entre 1 e 100 caracteres.
+- Title deve ter entre 1 e 100 caracteres.
+- Pode ser ativado/desativado pelo UserConsumer (via ConsumerState, sem excluir).
 
 ## Funcionalidades (MVP)
 
-- [ ] Listar todos os profiles
-- [ ] Criar novo profile
-- [ ] Editar profile (nome, avatar)
-- [ ] Deletar profile (com confirmação)
-- [ ] Trocar entre profiles ativos
+- [ ] Listar profiles (do consumer e de CreatorPages seguidas)
+- [ ] Criar profile (consumer: standalone; creator: standalone ou em Page)
+- [ ] Editar profile (title, avatar, tags, category)
+- [ ] Deletar profile (com confirmação e cascade)
+- [ ] Ativar/desativar profile (consumer)

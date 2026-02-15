@@ -1,9 +1,16 @@
 /**
- * Font — a data source bound to a Profile.
+ * Font — a technical distribution channel bound to a Profile.
  *
  * Encapsulates protocol-specific configuration (Nostr relay, RSS URL, Atom URL).
- * Each Font knows how to describe where to fetch data from.
+ * Inherits its Category from the parent Profile — never has its own.
+ *
+ * Invariants:
+ * - Always belongs to exactly one Profile. Orphan fonts are forbidden.
+ * - Category is derived from the parent Profile (not stored).
+ * - Can be enabled/disabled by UserConsumer (via ConsumerState).
  */
+
+import type { ImageAsset } from '../shared/image-asset.js';
 
 export type FontProtocol = 'nostr' | 'rss' | 'atom';
 
@@ -25,11 +32,22 @@ export type FontConfig = FontNostrConfig | FontRssConfig | FontAtomConfig;
 
 export interface Font {
 	id: string;
+
+	/** Profile this font belongs to (mandatory) */
 	profileId: string;
-	label: string;
+
+	title: string;
+	tags: string[];
+
+	/** Avatar image (WEBP, max 512x512) */
+	avatar: ImageAsset | null;
+
 	protocol: FontProtocol;
 	config: FontConfig;
-	enabled: boolean;
+
+	/** Default enabled state for new consumers */
+	defaultEnabled: boolean;
+
 	createdAt: Date;
 	updatedAt: Date;
 }

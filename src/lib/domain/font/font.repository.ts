@@ -11,4 +11,5 @@ export interface FontRepository {
 	create(font: NewFont): Promise<Font>;
 	update(id: string, data: Partial<NewFont>): Promise<Font>;
 	delete(id: string): Promise<void>;
+	deleteByProfileId(profileId: string): Promise<void>;
 }

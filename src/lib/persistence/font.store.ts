@@ -53,6 +53,14 @@ export function createFontStore(): FontRepository {
 		async delete(id: string): Promise<void> {
 			const db = await getDatabase();
 			await db.fonts.delete(id);
+		},
+
+		async deleteByProfileId(profileId: string): Promise<void> {
+			const db = await getDatabase();
+			const fonts = await db.fonts.query<Font>('profileId', profileId);
+			for (const font of fonts) {
+				await db.fonts.delete(font.id);
+			}
 		}
 	};
 }

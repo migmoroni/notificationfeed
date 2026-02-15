@@ -8,8 +8,12 @@
 import { detectPlatform } from '$lib/platform/capabilities.js';
 
 export interface Database {
+	users: TableOps;
+	creatorPages: TableOps;
 	profiles: TableOps;
 	fonts: TableOps;
+	categories: TableOps;
+	consumerStates: TableOps;
 	posts: TableOps;
 }
 
@@ -39,18 +43,43 @@ export async function getDatabase(): Promise<Database> {
 
 async function initIndexedDB(): Promise<Database> {
 	return new Promise((resolve, reject) => {
-		const request = indexedDB.open('notfeed', 1);
+		const request = indexedDB.open('notfeed', 2);
 
 		request.onupgradeneeded = () => {
 			const idb = request.result;
 
+			if (!idb.objectStoreNames.contains('users')) {
+				const userStore = idb.createObjectStore('users', { keyPath: 'id' });
+				userStore.createIndex('role', 'role', { unique: false });
+			}
+
+			if (!idb.objectStoreNames.contains('creatorPages')) {
+				const cpStore = idb.createObjectStore('creatorPages', { keyPath: 'id' });
+				cpStore.createIndex('ownerId', 'ownerId', { unique: false });
+			}
+
 			if (!idb.objectStoreNames.contains('profiles')) {
-				idb.createObjectStore('profiles', { keyPath: 'id' });
+				const profileStore = idb.createObjectStore('profiles', { keyPath: 'id' });
+				profileStore.createIndex('ownerId', 'ownerId', { unique: false });
+				profileStore.createIndex('creatorPageId', 'creatorPageId', { unique: false });
+				profileStore.createIndex('categoryId', 'categoryId', { unique: false });
 			}
 
 			if (!idb.objectStoreNames.contains('fonts')) {
 				const fontStore = idb.createObjectStore('fonts', { keyPath: 'id' });
 				fontStore.createIndex('profileId', 'profileId', { unique: false });
+			}
+
+			if (!idb.objectStoreNames.contains('categories')) {
+				const catStore = idb.createObjectStore('categories', { keyPath: 'id' });
+				catStore.createIndex('parentId', 'parentId', { unique: false });
+				catStore.createIndex('origin', 'origin', { unique: false });
+				catStore.createIndex('ownerId', 'ownerId', { unique: false });
+			}
+
+			if (!idb.objectStoreNames.contains('consumerStates')) {
+				const csStore = idb.createObjectStore('consumerStates', { keyPath: 'entityId' });
+				csStore.createIndex('entityType', 'entityType', { unique: false });
 			}
 
 			if (!idb.objectStoreNames.contains('posts')) {
@@ -63,8 +92,12 @@ async function initIndexedDB(): Promise<Database> {
 		request.onsuccess = () => {
 			const idb = request.result;
 			resolve({
+				users: createIndexedDBTable(idb, 'users'),
+				creatorPages: createIndexedDBTable(idb, 'creatorPages'),
 				profiles: createIndexedDBTable(idb, 'profiles'),
 				fonts: createIndexedDBTable(idb, 'fonts'),
+				categories: createIndexedDBTable(idb, 'categories'),
+				consumerStates: createIndexedDBTable(idb, 'consumerStates'),
 				posts: createIndexedDBTable(idb, 'posts')
 			});
 		};
