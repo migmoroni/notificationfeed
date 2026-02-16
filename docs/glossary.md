@@ -22,3 +22,8 @@
 | **Tauri** | Framework para criar aplicações desktop nativas usando web technologies + Rust. |
 | **Relay** | Servidor Nostr que armazena e retransmite eventos. Fonts Nostr se conectam a relays via WebSocket. |
 | **Blossom** | Protocolo para armazenamento de arquivos vinculado a identidades Nostr. Usado para sincronizar CreatorPages online. |
+| **PriorityLevel** | Nível de prioridade definido pelo consumer (1=alta, 2=média, 3=baixa). `null` = herdar do nível pai. Cadeia: Font→Profile→CreatorPage→3. |
+| **LayoutMode** | Modo de layout adaptativo (`compact` para mobile/janela pequena, `expanded` para desktop/janela grande). Determinado pelo store `layout.svelte.ts` a partir de `window.innerWidth` (breakpoint: 900px). |
+| **InputCapability** | Tipo de input detectado (`touch`, `pointer`, `hybrid`). Refinamento para interações — não altera o layout mode. |
+| **Favorito** | Flag booleana em `ConsumerState` que marca uma entidade (Page/Profile/Font) para acesso rápido na lista de favoritos. |
+| **FeedSorter** | Algoritmo de ordenação do feed: agrupa por prioridade (1→2→3), ordena por data dentro de cada grupo. Posts de prioridade alta sempre aparecem antes, mesmo que mais antigos. |

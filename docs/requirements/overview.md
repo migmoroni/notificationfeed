@@ -53,3 +53,6 @@ Notfeed é um cliente de agregação de informação focado em feeds e notifica�
 10. Timeline unificada com scroll infinito
 11. Marcar posts como lidos
 12. PWA instalável com suporte offline básico
+13. Feed prioritizado (3 níveis de prioridade com herança Font→Profile→Page)
+14. Lista de favoritos (marcar Page/Profile/Font como favorito)
+15. Layout adaptativo (compact para mobile, expanded para desktop — sem rebuild)

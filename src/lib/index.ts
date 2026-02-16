@@ -21,7 +21,17 @@ export type { Category, NewCategory, CategoryOrigin } from './domain/category/ca
 // Domain — Shared Value Objects
 export type { ImageAsset, ImageSlot, AcceptedImageFormat } from './domain/shared/image-asset.js';
 export type { FollowRef, FollowTargetType, FollowSource } from './domain/shared/follow-ref.js';
-export type { ConsumerState, ConsumerEntityType } from './domain/shared/consumer-state.js';
+export type { ConsumerState, ConsumerEntityType, PriorityLevel } from './domain/shared/consumer-state.js';
+
+// Domain — Services
+export { resolveEffectivePriority, buildStateMap, buildPriorityMap } from './domain/shared/priority-resolver.js';
+export type { PriorityContext } from './domain/shared/priority-resolver.js';
+export { sortByPriority } from './domain/shared/feed-sorter.js';
+export type { SortedPost } from './domain/shared/feed-sorter.js';
+
+// Layout
+export { layout, initLayout } from './stores/layout.svelte.js';
+export type { LayoutMode, LayoutState, InputCapability } from './stores/layout.svelte.js';
 
 // Normalization
 export type { CanonicalPost } from './normalization/canonical-post.js';

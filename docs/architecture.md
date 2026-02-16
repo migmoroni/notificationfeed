@@ -71,3 +71,15 @@
 **Contexto**: Consumers precisam ativar/desativar entidades individuais e organizar em custom categories sem alterar os dados do Creator.  
 **Decisão**: `ConsumerState` — value object que registra overrides locais (`enabled`, `customCategoryId`) por entidade (CreatorPage, Profile, Font).  
 **Consequência**: Dados do Creator ficam imutáveis. Toda personalização é armazenada como estado local do Consumer.
+
+## ADR-013: Layout adaptativo via store reativo (não CSS-only)
+
+**Contexto**: O app roda em mobile (PWA/TWA), desktop (Tauri/browser), e tablets. Precisamos de UI diferente mas sem builds separados ou UA parsing.  
+**Decisão**: Store reativo `layout.svelte.ts` com `$state` (Svelte 5). Detecção baseada em `window.innerWidth` (< 900px = compact, ≥ 900px = expanded). `pointer: coarse` e `hover: none` refinam mas nunca substituem a largura. Atualiza via `resize`, `orientationchange`, e `matchMedia.change`.  
+**Consequência**: Uma única fonte de verdade. Componentes consomem `layout.mode` — nunca recalculam. Tailwind breakpoints complementam para detalhes visuais, mas o store governa a estrutura (sidebar vs bottom-nav, grid vs stack).
+
+## ADR-014: Feed prioritizado com herança de prioridade (Consumer-scoped)
+
+**Contexto**: Consumers precisam controlar a relevância de fontes no feed sem alterar dados do Creator.  
+**Decisão**: `ConsumerState` ganha `priority: PriorityLevel | null` (1=alta, 2=média, 3=baixa) e `favorite: boolean`. Cadeia de herança: Font → Profile → CreatorPage → 3 (default). `null` = herdar. O feed agrupa por prioridade e ordena por data dentro de cada grupo.  
+**Consequência**: Posts de prioridade 1 sempre aparecem antes de prioridade 2, independente da data. Toda personalização é per-consumer, armazenada em `ConsumerState`.
