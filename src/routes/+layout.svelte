@@ -1,10 +1,27 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { layout, initLayout } from '$lib/stores/layout.svelte.js';
+	import Newspaper from '@lucide/svelte/icons/newspaper';
+	import Search from '@lucide/svelte/icons/search';
+	import Star from '@lucide/svelte/icons/star';
+	import Settings from '@lucide/svelte/icons/settings';
 
 	let { children } = $props();
+
+	const navItems = [
+		{ href: '/', label: 'Feed', icon: Newspaper },
+		{ href: '/browse', label: 'Browse', icon: Search },
+		{ href: '/favorites', label: 'Favorites', icon: Star },
+		{ href: '/settings', label: 'Settings', icon: Settings }
+	] as const;
+
+	function isActive(href: string): boolean {
+		const path = page.url.pathname;
+		return href === '/' ? path === '/' : path.startsWith(href);
+	}
 
 	onMount(() => {
 		const cleanup = initLayout();
@@ -26,34 +43,17 @@
 				<span class="text-lg font-bold tracking-tight">Notfeed</span>
 			</div>
 			<nav class="flex flex-col gap-1 p-3">
-				<a
-					href="/"
-					class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-				>
-					<span class="text-base" aria-hidden="true">📰</span>
-					Feed
-				</a>
-				<a
-					href="/browse"
-					class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-				>
-					<span class="text-base" aria-hidden="true">🔍</span>
-					Browse
-				</a>
-				<a
-					href="/favorites"
-					class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-				>
-					<span class="text-base" aria-hidden="true">⭐</span>
-					Favorites
-				</a>
-				<a
-					href="/settings"
-					class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-				>
-					<span class="text-base" aria-hidden="true">⚙️</span>
-					Settings
-				</a>
+				{#each navItems as item}
+					<a
+						href={item.href}
+						class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {isActive(item.href)
+							? 'bg-sidebar-accent text-sidebar-accent-foreground'
+							: 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'}"
+					>
+						<item.icon class="size-5" />
+						{item.label}
+					</a>
+				{/each}
 			</nav>
 		</aside>
 
@@ -71,34 +71,17 @@
 				class="shrink-0 flex items-center justify-around border-t border-border bg-background"
 				style="height: 56px; padding-bottom: env(safe-area-inset-bottom);"
 			>
-				<a
-					href="/"
-					class="flex flex-col items-center justify-center gap-0.5 py-1 text-xs text-muted-foreground"
-				>
-					<span class="text-lg" aria-hidden="true">📰</span>
-					Feed
-				</a>
-				<a
-					href="/browse"
-					class="flex flex-col items-center justify-center gap-0.5 py-1 text-xs text-muted-foreground"
-				>
-					<span class="text-lg" aria-hidden="true">🔍</span>
-					Browse
-				</a>
-				<a
-					href="/favorites"
-					class="flex flex-col items-center justify-center gap-0.5 py-1 text-xs text-muted-foreground"
-				>
-					<span class="text-lg" aria-hidden="true">⭐</span>
-					Favorites
-				</a>
-				<a
-					href="/settings"
-					class="flex flex-col items-center justify-center gap-0.5 py-1 text-xs text-muted-foreground"
-				>
-					<span class="text-lg" aria-hidden="true">⚙️</span>
-					Settings
-				</a>
+				{#each navItems as item}
+					<a
+						href={item.href}
+						class="flex flex-col items-center justify-center gap-0.5 py-1 text-xs {isActive(item.href)
+							? 'text-foreground'
+							: 'text-muted-foreground'}"
+					>
+						<item.icon class="size-6" />
+						{item.label}
+					</a>
+				{/each}
 			</nav>
 		</div>
 	{/if}

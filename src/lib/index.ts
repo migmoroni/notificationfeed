@@ -33,6 +33,20 @@ export type { SortedPost } from './domain/shared/feed-sorter.js';
 export { layout, initLayout } from './stores/layout.svelte.js';
 export type { LayoutMode, LayoutState, InputCapability } from './stores/layout.svelte.js';
 
+// Stores — Consumer
+export { consumer } from './stores/consumer.svelte.js';
+
+// Stores — Feed
+export { feed } from './stores/feed.svelte.js';
+
+// Stores — Browse
+export { browse } from './stores/browse.svelte.js';
+export type { BrowseEntity } from './stores/browse.svelte.js';
+
+// Stores — Favorites
+export { favorites } from './stores/favorites.svelte.js';
+export type { FavoriteItem } from './stores/favorites.svelte.js';
+
 // Normalization
 export type { CanonicalPost } from './normalization/canonical-post.js';
 

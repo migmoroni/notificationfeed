@@ -27,39 +27,39 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 
 ---
 
-## Fase 1 — Componentes UI + Svelte Stores Reativos
+## Fase 1 — Componentes UI + Svelte Stores Reativos ✅
 
 > Instalar shadcn-svelte, criar stores reativos, substituir placeholders por ícones.
 
 ### Tarefas
 
-- [ ] Instalar componentes shadcn-svelte:
+- [x] Instalar componentes shadcn-svelte:
   ```bash
   npx shadcn-svelte@latest add button card badge input select dialog separator tabs sheet
   ```
-- [ ] Substituir emojis no layout por ícones Lucide (`House`, `Search`, `Star`, `Settings`)
-- [ ] Criar `src/lib/stores/consumer.svelte.ts`
+- [x] Substituir emojis no layout por ícones Lucide (`Newspaper`, `Search`, `Star`, `Settings`)
+- [x] Criar `src/lib/stores/consumer.svelte.ts`
   - `$state` com UserConsumer ativo
   - Wraps `user-consumer.store.ts`
   - Actions: `init()`, `setPriority()`, `setFavorite()`, `toggleEnabled()`
-- [ ] Criar `src/lib/stores/feed.svelte.ts`
+- [x] Criar `src/lib/stores/feed.svelte.ts`
   - `$state` com posts carregados
   - `$derived` com posts priorizados (usa `buildPriorityMap` + `sortByPriority`)
   - Actions: `loadFeed()`, `markRead()`, `refreshFeed()`
-- [ ] Criar `src/lib/stores/browse.svelte.ts`
+- [x] Criar `src/lib/stores/browse.svelte.ts`
   - `$state` com categories e resultados de navegação
   - Actions: `loadCategories()`, `selectCategory()`, `searchEntities()`
-- [ ] Criar `src/lib/stores/favorites.svelte.ts`
+- [x] Criar `src/lib/stores/favorites.svelte.ts`
   - `$derived` filtrando ConsumerState onde `favorite === true`
   - Resolve entidades referenciadas (Page/Profile/Font)
-- [ ] Criar `src/lib/utils/mock-data.ts` — dados fake para desenvolvimento
-- [ ] Instalar vitest + @testing-library/svelte
+- [x] Criar `src/lib/utils/mock-data.ts` — dados fake para desenvolvimento
+- [x] Instalar vitest + jsdom
   ```bash
-  npm install -D vitest @testing-library/svelte jsdom
+  npm install -D vitest jsdom
   ```
-- [ ] Configurar `vitest.config.ts`
-- [ ] Testes unitários: `priority-resolver.test.ts`, `feed-sorter.test.ts`
-- [ ] `npm run build` limpo
+- [x] Configurar `vitest.config.ts`
+- [x] Testes unitários: `priority-resolver.test.ts` (13 tests), `feed-sorter.test.ts` (6 tests)
+- [x] `npm run build` limpo + `npm run test:run` (19/19 pass)
 
 ### Entregáveis
 
