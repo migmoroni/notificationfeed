@@ -48,11 +48,11 @@
 **Decisão**: `CreatorPage` com avatar/banner (WEBP), tags, referência Nostr+Blossom, e `syncStatus` ('local' | 'synced' | 'exported' | 'imported').  
 **Consequência**: CreatorPages são a unidade de follow para Consumers. Export/import offline via `.notfeed.json`.
 
-## ADR-009: Taxonomia hierárquica com dois ramos (Standard / Custom)
+## ADR-009: Taxonomia oficial com duas árvores (Subject / Content Type)
 
-**Contexto**: Precisamos organizar conteúdo por tema, mas sem impor rigidez.  
-**Decisão**: `Category` com dois ramos: `standard` (fixo) e `custom` (livre, propriedade do Consumer). Apenas sublevels (depth ≥ 1) vinculam-se a Profiles.  
-**Consequência**: Creators usam categories standard. Consumers adicionam organização pessoal via custom categories. Categories raiz são somente agrupadores.
+**Contexto**: Precisamos organizar conteúdo por tema e formato, sem permitir criação livre pelo usuário.  
+**Decisão**: `Category` com campo `treeId: 'subject' | 'content_type'`. Toda a taxonomia é oficial (seed), distribuída com o app, versionada via `CATEGORY_SEED_VERSION`. Campos: `order` (exibição), `isSystem` (sempre true no MVP), `isActive` (soft-delete em migrações). Removidos `origin` e `ownerId`.  
+**Consequência**: Sem CRUD de categories. Seed automático no boot. Migração versionada adiciona/desativa categories. Profiles usam `CategoryAssignment[]` (até 3 sublevels por tree). Feed filtra por ambas as trees.
 
 ## ADR-010: Política de imagem WEBP
 
@@ -68,9 +68,15 @@
 
 ## ADR-012: ConsumerState para overrides locais
 
-**Contexto**: Consumers precisam ativar/desativar entidades individuais e organizar em custom categories sem alterar os dados do Creator.  
-**Decisão**: `ConsumerState` — value object que registra overrides locais (`enabled`, `customCategoryId`) por entidade (CreatorPage, Profile, Font).  
+**Contexto**: Consumers precisam ativar/desativar entidades individuais e organizar favoritos sem alterar os dados do Creator.  
+**Decisão**: `ConsumerState` — value object que registra overrides locais (`enabled`, `favoriteFolderId`, `priority`, `favorite`) por entidade (CreatorPage, Profile, Font). `favoriteFolderId` aponta para um `FavoriteFolder` (null = Inbox quando favorite=true).  
 **Consequência**: Dados do Creator ficam imutáveis. Toda personalização é armazenada como estado local do Consumer.
+
+## ADR-015: Sistema de pastas para favoritos (FavoriteFolder)
+
+**Contexto**: Consumers precisam organizar entidades favoritadas em grupos nomeados.  
+**Decisão**: `FavoriteFolder` com Inbox fixo (não deletável, não renomeável) + pastas criadas pelo usuário. Entidades favoritadas podem ser movidas entre pastas via `favoriteFolderId` no `ConsumerState`. UI alterna entre visualização de lista e tabs.  
+**Consequência**: Favoritos ganham organização além de uma lista flat. Deletar uma pasta move seus itens para Inbox. Scope: apenas entidades (Page/Profile/Font), não posts individuais.
 
 ## ADR-013: Layout adaptativo via store reativo (não CSS-only)
 

@@ -15,7 +15,7 @@ Profile é uma identidade temática ou editorial que agrupa Fonts. Pode ser cria
 | `title` | string [1..100] | Sim | Nome do profile |
 | `tags` | string[] | Não | Tags descritivas |
 | `avatar` | ImageAsset (WEBP, ≤512×512) | Não | Imagem de avatar |
-| `categoryId` | string | Sim | Referência a Category sublevel (depth ≥ 1) |
+| `categoryAssignments` | CategoryAssignment[] | Sim | Até 3 sublevels por tree (subject + content_type) |
 | `defaultEnabled` | boolean | Sim | Estado padrão para novos consumers |
 | `createdAt` | Date | Sim (auto) | Data de criação |
 | `updatedAt` | Date | Sim (auto) | Última atualização |
@@ -26,7 +26,8 @@ Profile é uma identidade temática ou editorial que agrupa Fonts. Pode ser cria
 - Se `ownerType = 'consumer'`, `creatorPageId` é obrigatoriamente null.
 - Se `ownerType = 'creator'`, `creatorPageId` pode apontar para uma CreatorPage do mesmo creator.
 - Somente o owner pode editar/deletar o Profile e gerenciar suas Fonts.
-- Pertence a exatamente uma Category sublevel.
+- Pertence a até 3 sublevels por tree (via `CategoryAssignment`).
+- `CategoryAssignment` = `{ treeId, categoryIds[] }`. Máximo de 3 IDs por tree; apenas sublevels (depth ≥ 1).
 - Deletar um Profile deleta em cascata todas as suas Fonts e posts associados.
 - Title deve ter entre 1 e 100 caracteres.
 - Pode ser ativado/desativado pelo UserConsumer (via ConsumerState, sem excluir).

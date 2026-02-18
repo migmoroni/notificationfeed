@@ -33,9 +33,15 @@ export function createProfileStore(): ProfileRepository {
 			return db.profiles.query<Profile>('creatorPageId', creatorPageId);
 		},
 
-		async getByCategoryId(categoryId: string): Promise<Profile[]> {
+		async getByCategoryIds(categoryIds: string[]): Promise<Profile[]> {
 			const db = await getDatabase();
-			return db.profiles.query<Profile>('categoryId', categoryId);
+			const all = await db.profiles.getAll<Profile>();
+			const idSet = new Set(categoryIds);
+			return all.filter((p) =>
+				p.categoryAssignments.some((a) =>
+					a.categoryIds.some((cid) => idSet.has(cid))
+				)
+			);
 		},
 
 		async create(data: NewProfile): Promise<Profile> {

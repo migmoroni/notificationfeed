@@ -1,15 +1,20 @@
 /**
- * Category — hierarchical taxonomy system.
+ * Category — official hierarchical taxonomy system.
  *
- * Two coexisting branches:
- * - Standard: fixed tree shipped with the app (immutable by users)
- * - Custom: free-form folder-like tree created by UserConsumer only
+ * All categories are system-defined (shipped with the app via seed).
+ * Multiple independent trees coexist, identified by `treeId`:
+ * - "subject": topic taxonomy (e.g., Open Source, Politics, Science)
+ * - "content_type": format taxonomy (e.g., News, Analysis, Research)
  *
  * Only sublevels (depth >= 1) can be associated with entities.
  * Root levels are structural groupings only.
+ *
+ * The seed JSON is used only for initial population and migrations.
+ * At runtime, all data comes from IndexedDB.
  */
 
-export type CategoryOrigin = 'standard' | 'custom';
+/** Identifies which tree a category belongs to */
+export type CategoryTreeId = 'subject' | 'content_type';
 
 export interface Category {
 	id: string;
@@ -17,20 +22,23 @@ export interface Category {
 	/** Display name */
 	label: string;
 
-	/** Parent category ID (null = root) */
+	/** Which tree this category belongs to */
+	treeId: CategoryTreeId;
+
+	/** Parent category ID (null = root). Must share the same treeId. */
 	parentId: string | null;
-
-	/** Whether this is a standard (app) or custom (user) category */
-	origin: CategoryOrigin;
-
-	/**
-	 * Owner — only set for custom categories.
-	 * Always references a UserConsumer (creators use standard categories).
-	 */
-	ownerId: string | null;
 
 	/** Depth in the tree (0 = root, >= 1 = sublevel) */
 	depth: number;
+
+	/** Sort order among siblings */
+	order: number;
+
+	/** Always true — indicates system-managed category */
+	isSystem: boolean;
+
+	/** Whether the user has this category active locally */
+	isActive: boolean;
 }
 
 export type NewCategory = Omit<Category, 'id' | 'depth'>;
@@ -41,10 +49,10 @@ export type NewCategory = Omit<Category, 'id' | 'depth'>;
 export interface CategoryRepository {
 	getAll(): Promise<Category[]>;
 	getById(id: string): Promise<Category | null>;
-	getByOrigin(origin: CategoryOrigin): Promise<Category[]>;
+	getByTreeId(treeId: CategoryTreeId): Promise<Category[]>;
 	getChildren(parentId: string): Promise<Category[]>;
-	getByOwnerId(ownerId: string): Promise<Category[]>;
-	getSublevels(): Promise<Category[]>;
+	getRoots(treeId?: CategoryTreeId): Promise<Category[]>;
+	getSublevels(treeId?: CategoryTreeId): Promise<Category[]>;
 	create(category: NewCategory): Promise<Category>;
 	update(id: string, data: Partial<NewCategory>): Promise<Category>;
 	delete(id: string): Promise<void>;

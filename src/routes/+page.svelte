@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { feed } from '$lib/stores/feed.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
-	import { FeedList, PriorityFilter } from '$lib/components/feed/index.js';
+	import { FeedList, PriorityFilter, CategoryFilter } from '$lib/components/feed/index.js';
 	import type { PriorityFilterValue } from '$lib/components/feed/index.js';
 	import { formatRelativeDate } from '$lib/utils/date.js';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
 
 	let filter: PriorityFilterValue = $state('all');
+	let selectedSubjects: string[] = $state([]);
+	let selectedContentTypes: string[] = $state([]);
 	let refreshing = $state(false);
 
 	async function handleRefresh() {
@@ -16,6 +18,11 @@
 		} finally {
 			refreshing = false;
 		}
+	}
+
+	function handleCategoryChange(filters: { subjectIds: string[]; contentTypeIds: string[] }) {
+		selectedSubjects = filters.subjectIds;
+		selectedContentTypes = filters.contentTypeIds;
 	}
 </script>
 
@@ -44,11 +51,16 @@
 		</button>
 	</div>
 
-	<!-- Priority filter -->
-	<div class="mb-4">
+	<!-- Filters: priority + categories -->
+	<div class="flex items-center gap-3 mb-4 flex-wrap">
 		<PriorityFilter value={filter} onchange={(v) => (filter = v)} />
+		<CategoryFilter
+			subjectIds={selectedSubjects}
+			contentTypeIds={selectedContentTypes}
+			onchange={handleCategoryChange}
+		/>
 	</div>
 
 	<!-- Feed list -->
-	<FeedList {filter} />
+	<FeedList {filter} subjectIds={selectedSubjects} contentTypeIds={selectedContentTypes} />
 </div>

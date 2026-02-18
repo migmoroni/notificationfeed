@@ -3,7 +3,7 @@
  */
 
 import type { CategoryRepository } from '$lib/domain/category/category.js';
-import type { Category, NewCategory, CategoryOrigin } from '$lib/domain/category/category.js';
+import type { Category, NewCategory, CategoryTreeId } from '$lib/domain/category/category.js';
 import { getDatabase } from './db.js';
 
 export function createCategoryStore(): CategoryRepository {
@@ -18,9 +18,9 @@ export function createCategoryStore(): CategoryRepository {
 			return db.categories.getById<Category>(id);
 		},
 
-		async getByOrigin(origin: CategoryOrigin): Promise<Category[]> {
+		async getByTreeId(treeId: CategoryTreeId): Promise<Category[]> {
 			const db = await getDatabase();
-			return db.categories.query<Category>('origin', origin);
+			return db.categories.query<Category>('treeId', treeId);
 		},
 
 		async getChildren(parentId: string): Promise<Category[]> {
@@ -28,14 +28,17 @@ export function createCategoryStore(): CategoryRepository {
 			return db.categories.query<Category>('parentId', parentId);
 		},
 
-		async getByOwnerId(ownerId: string): Promise<Category[]> {
-			const db = await getDatabase();
-			return db.categories.query<Category>('ownerId', ownerId);
-		},
-
-		async getSublevels(): Promise<Category[]> {
+		async getRoots(treeId?: CategoryTreeId): Promise<Category[]> {
 			const db = await getDatabase();
 			const all = await db.categories.getAll<Category>();
+			return all.filter((c) => c.parentId === null && (!treeId || c.treeId === treeId));
+		},
+
+		async getSublevels(treeId?: CategoryTreeId): Promise<Category[]> {
+			const db = await getDatabase();
+			const all = treeId
+				? await db.categories.query<Category>('treeId', treeId)
+				: await db.categories.getAll<Category>();
 			return all.filter((c) => c.depth >= 1);
 		},
 

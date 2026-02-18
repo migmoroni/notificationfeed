@@ -108,15 +108,16 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 
 ## Fase 3 — Tela de Browse (`/browse`)
 
-> Navegação por categories standard para descobrir conteúdo.
+> Navegação por categories oficiais (subject + content_type) para descobrir conteúdo.
 
 ### Tarefas
 
-- [ ] Criar `seedStandardCategories()` em `src/lib/persistence/seed.ts`
-  - Árvore fixa de categories padrão (Tech, News, Science, etc.)
-  - Executar no primeiro uso (verificar se já existe)
+- [x] Seed automático de categories oficiais (`category-seed.ts` + `category-seed.service.ts`)
+- [x] Migração versionada via `CATEGORY_SEED_VERSION` + localStorage
+- [x] Filtro de feed por subject e content_type (`CategoryFilter.svelte`)
 - [ ] Componente `CategoryTree.svelte`
-  - Árvore colapsável (root → sublevels)
+  - Árvore colapsável (root → sublevels) por tree (subject / content_type)
+  - Toggle entre trees via tabs
   - Indicador de contagem de entidades por sublevel
 - [ ] Componente `EntityCard.svelte`
   - Card para Page/Profile/Font
@@ -141,22 +142,32 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 
 ## Fase 4 — Tela de Favoritos (`/favorites`)
 
-> Lista agrupada de entidades favoritadas pelo consumer.
+> Favoritos organizados em pastas (Inbox + pastas do usuário).
 
 ### Tarefas
 
+- [x] Domain model `FavoriteFolder` (Inbox fixo + user-created)
+- [x] `FavoriteFolderRepository` + IndexedDB store
+- [x] Store reativo `favorites.svelte.ts` com folders, items, viewMode
 - [ ] Componente `FavoritesList.svelte`
-  - Agrupado por tipo: CreatorPages, Profiles, Fonts
+  - Toggle entre visualização list e tabs
+  - Pasta ativa como filtro
   - Reutiliza `EntityCard.svelte`
+- [ ] Componente `FolderSidebar.svelte`
+  - Lista de folders com Inbox fixo no topo
+  - Criar/renomear/deletar pasta (dialog)
+  - Drag-and-drop de entidades entre pastas (futuro)
 - [ ] Ajuste de prioridade inline (mesmo select do browse)
 - [ ] Toggle favorito (remover da lista)
+- [ ] Mover entidade entre pastas
 - [ ] Ação: ver posts de um Font favorito (navega ao feed filtrado)
 - [ ] Empty state ("Nenhum favorito ainda")
 - [ ] `npm run build` limpo
 
 ### Entregáveis
 
-- Lista de favoritos funcional
+- Favoritos organizados em pastas (Inbox + custom)
+- Toggle list/tabs
 - Prioridade ajustável inline
 - Navegação rápida para feed de um font
 
@@ -302,22 +313,20 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 
 ---
 
-## Fase 10 — Categories Custom + Polish
+## Fase 10 — Polish & UX
 
-> Funcionalidades pós-MVP.
+> Funcionalidades pós-MVP e refinamentos.
 
 ### Tarefas
 
-- [ ] CRUD de categories custom (consumer-only)
-- [ ] Organização por custom categories no browse
 - [ ] Dark mode toggle (respeitar `prefers-color-scheme`)
 - [ ] Onboarding flow (primeira execução: criar consumer, explicar conceitos)
 - [ ] Performance: virtualização de listas longas (>100 posts)
 - [ ] Acessibilidade: keyboard navigation, ARIA labels, focus management
 - [ ] Animações de transição entre compact/expanded
+- [ ] Drag-and-drop para reordenar favoritos entre pastas
 
 ### Entregáveis
 
-- Categories custom funcionais
 - Polish de UX
 - Acessibilidade completa

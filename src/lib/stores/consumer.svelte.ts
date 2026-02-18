@@ -45,7 +45,7 @@ function findOrCreateState(entityId: string, entityType: ConsumerEntityType): Co
 		entityType,
 		entityId,
 		enabled: true,
-		customCategoryId: null,
+		favoriteFolderId: null,
 		priority: null,
 		favorite: false,
 		overriddenAt: new Date()
@@ -157,5 +157,23 @@ export const consumer = {
 			...state.user,
 			follows: state.user.follows.filter((f) => f.targetId !== targetId)
 		};
+	},
+
+	async moveFavoriteToFolder(entityId: string, entityType: ConsumerEntityType, folderId: string | null): Promise<void> {
+		if (!state.user) return;
+
+		const cs = findOrCreateState(entityId, entityType);
+		cs.favoriteFolderId = folderId;
+		cs.overriddenAt = new Date();
+
+		await repo.setState(state.user.id, cs);
+
+		const idx = state.states.findIndex((s) => s.entityId === entityId);
+		if (idx >= 0) {
+			state.states[idx] = cs;
+		} else {
+			state.states = [...state.states, cs];
+		}
+		refreshStateMap();
 	}
 };

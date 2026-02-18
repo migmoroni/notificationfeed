@@ -7,25 +7,13 @@
  * NOTE: Dev-only utility. Do NOT export from $lib/index.ts.
  */
 
-import type { Category } from '$lib/domain/category/category.js';
 import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
-import { createCategoryStore } from '$lib/persistence/category.store.js';
-import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
-import { createProfileStore } from '$lib/persistence/profile.store.js';
-import { createFontStore } from '$lib/persistence/font.store.js';
-import { createUserConsumerStore } from '$lib/persistence/user-consumer.store.js';
 import { savePosts } from '$lib/persistence/post.store.js';
 
 // ── Stable IDs ─────────────────────────────────────────────────────────
 
 const IDS = {
 	consumer: '00000000-0000-0000-0000-000000000001',
-	catTech: '00000000-0000-0000-0000-000000001001',
-	catTechWeb: '00000000-0000-0000-0000-000000001002',
-	catTechAI: '00000000-0000-0000-0000-000000001003',
-	catNews: '00000000-0000-0000-0000-000000002001',
-	catNewsWorld: '00000000-0000-0000-0000-000000002002',
-	catNewsBrazil: '00000000-0000-0000-0000-000000002003',
 	pageTechBlog: '00000000-0000-0000-0000-000000003001',
 	pageNewsDaily: '00000000-0000-0000-0000-000000003002',
 	profileTech: '00000000-0000-0000-0000-000000004001',
@@ -39,9 +27,10 @@ const IDS = {
 // ── Seed check ─────────────────────────────────────────────────────────
 
 export async function hasMockData(): Promise<boolean> {
-	const categoryStore = createCategoryStore();
-	const cats = await categoryStore.getAll();
-	return cats.some((c: Category) => c.id === IDS.catTech);
+	const { getDatabase } = await import('$lib/persistence/db.js');
+	const db = await getDatabase();
+	const pages = await db.creatorPages.getAll();
+	return pages.some((p: any) => p.id === IDS.pageTechBlog);
 }
 
 // ── Seed function ──────────────────────────────────────────────────────
@@ -49,33 +38,8 @@ export async function hasMockData(): Promise<boolean> {
 export async function seedMockData(): Promise<void> {
 	if (await hasMockData()) return;
 
-	const categoryStore = createCategoryStore();
-	const pageStore = createCreatorPageStore();
-	const profileStore = createProfileStore();
-	const fontStore = createFontStore();
-	const consumerStore = createUserConsumerStore();
-
-	// ── Categories ──────────────────────────────────────────────────
-
-	// We use the store's put (via create) but we want stable IDs,
-	// so we'll use the lower-level approach: create then the store assigns ID.
-	// Instead, we'll create with the factory and accept generated IDs,
-	// but for mock data we need deterministic IDs. Let's use the DB directly.
 	const { getDatabase } = await import('$lib/persistence/db.js');
 	const db = await getDatabase();
-
-	const categories: Category[] = [
-		{ id: IDS.catTech, label: 'Technology', parentId: null, origin: 'standard', ownerId: null, depth: 0 },
-		{ id: IDS.catTechWeb, label: 'Web Development', parentId: IDS.catTech, origin: 'standard', ownerId: null, depth: 1 },
-		{ id: IDS.catTechAI, label: 'Artificial Intelligence', parentId: IDS.catTech, origin: 'standard', ownerId: null, depth: 1 },
-		{ id: IDS.catNews, label: 'News', parentId: null, origin: 'standard', ownerId: null, depth: 0 },
-		{ id: IDS.catNewsWorld, label: 'World News', parentId: IDS.catNews, origin: 'standard', ownerId: null, depth: 1 },
-		{ id: IDS.catNewsBrazil, label: 'Brazil News', parentId: IDS.catNews, origin: 'standard', ownerId: null, depth: 1 }
-	];
-
-	for (const cat of categories) {
-		await db.categories.put(cat);
-	}
 
 	// ── UserConsumer ────────────────────────────────────────────────
 
@@ -137,7 +101,10 @@ export async function seedMockData(): Promise<void> {
 		title: 'Tech Sources',
 		tags: ['tech', 'development'],
 		avatar: null,
-		categoryId: IDS.catTechWeb,
+		categoryAssignments: [
+			{ treeId: 'subject', categoryIds: ['subj-tech-webdev', 'subj-tech-ai'] },
+			{ treeId: 'content_type', categoryIds: ['ct-format-news', 'ct-format-tutorial'] }
+		],
 		defaultEnabled: true,
 		createdAt: now,
 		updatedAt: now
@@ -151,7 +118,10 @@ export async function seedMockData(): Promise<void> {
 		title: 'News Sources',
 		tags: ['news', 'world'],
 		avatar: null,
-		categoryId: IDS.catNewsWorld,
+		categoryAssignments: [
+			{ treeId: 'subject', categoryIds: ['subj-politics-intl'] },
+			{ treeId: 'content_type', categoryIds: ['ct-format-news'] }
+		],
 		defaultEnabled: true,
 		createdAt: now,
 		updatedAt: now
@@ -219,7 +189,7 @@ export async function seedMockData(): Promise<void> {
 			entityType: 'font' as const,
 			entityId: IDS.fontRss1,
 			enabled: true,
-			customCategoryId: null,
+			favoriteFolderId: null,
 			priority: 1 as const,
 			favorite: true,
 			overriddenAt: now
@@ -229,7 +199,7 @@ export async function seedMockData(): Promise<void> {
 			entityType: 'profile' as const,
 			entityId: IDS.profileTech,
 			enabled: true,
-			customCategoryId: null,
+			favoriteFolderId: null,
 			priority: 2 as const,
 			favorite: false,
 			overriddenAt: now
@@ -239,7 +209,7 @@ export async function seedMockData(): Promise<void> {
 			entityType: 'font' as const,
 			entityId: IDS.fontRss2,
 			enabled: true,
-			customCategoryId: null,
+			favoriteFolderId: null,
 			priority: null,
 			favorite: false,
 			overriddenAt: now
@@ -249,7 +219,7 @@ export async function seedMockData(): Promise<void> {
 			entityType: 'font' as const,
 			entityId: IDS.fontAtom1,
 			enabled: true,
-			customCategoryId: null,
+			favoriteFolderId: null,
 			priority: null,
 			favorite: true,
 			overriddenAt: now

@@ -16,7 +16,16 @@ export type { Profile, NewProfile } from './domain/profile/profile.js';
 export type { Font, NewFont, FontProtocol, FontConfig } from './domain/font/font.js';
 
 // Domain — Category
-export type { Category, NewCategory, CategoryOrigin } from './domain/category/category.js';
+export type { Category, NewCategory, CategoryTreeId } from './domain/category/category.js';
+export { CATEGORY_SEED, CATEGORY_SEED_VERSION } from './domain/category/category-seed.js';
+
+// Domain — Category Assignment
+export type { CategoryAssignment } from './domain/shared/category-assignment.js';
+export { MAX_CATEGORIES_PER_TREE, validateAssignments } from './domain/shared/category-assignment.js';
+
+// Domain — Favorite Folder
+export type { FavoriteFolder } from './domain/favorite-folder/favorite-folder.js';
+export type { FavoriteFolderRepository } from './domain/favorite-folder/favorite-folder.js';
 
 // Domain — Shared Value Objects
 export type { ImageAsset, ImageSlot, AcceptedImageFormat } from './domain/shared/image-asset.js';
@@ -45,7 +54,7 @@ export type { BrowseEntity } from './stores/browse.svelte.js';
 
 // Stores — Favorites
 export { favorites } from './stores/favorites.svelte.js';
-export type { FavoriteItem } from './stores/favorites.svelte.js';
+export type { FavoriteItem, FavoritesViewMode } from './stores/favorites.svelte.js';
 
 // Normalization
 export type { CanonicalPost } from './normalization/canonical-post.js';
@@ -58,5 +67,5 @@ export type { Platform, Capabilities } from './platform/capabilities.js';
 export { formatRelativeDate, formatShortDate } from './utils/date.js';
 
 // Components — Feed
-export { PostCard, FeedList, PriorityFilter } from './components/feed/index.js';
+export { PostCard, FeedList, PriorityFilter, CategoryFilter } from './components/feed/index.js';
 export type { PriorityFilterValue } from './components/feed/index.js';

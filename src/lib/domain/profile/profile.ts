@@ -8,12 +8,13 @@
  * - Always has an owner (consumer or creator).
  * - If ownerType='consumer', creatorPageId must be null.
  * - If ownerType='creator', creatorPageId may reference a CreatorPage.
- * - Belongs to exactly one Category sublevel (depth >= 1).
- * - Category is never inherited — it's directly assigned.
+ * - Has categoryAssignments: up to 3 categories per tree (subject, content_type).
+ * - Categories are sublevels (depth >= 1), never root groupers.
  */
 
 import type { ImageAsset } from '../shared/image-asset.js';
 import type { UserRole } from '../user/user.js';
+import type { CategoryAssignment } from '../shared/category-assignment.js';
 
 export interface Profile {
 	id: string;
@@ -31,8 +32,12 @@ export interface Profile {
 	/** Avatar image (WEBP, max 512x512) */
 	avatar: ImageAsset | null;
 
-	/** Reference to a Category sublevel (depth >= 1) */
-	categoryId: string;
+	/**
+	 * Category assignments — one entry per tree.
+	 * Each tree allows up to 3 category sublevels.
+	 * Example: [{ treeId: 'subject', categoryIds: ['cat1','cat2'] }, { treeId: 'content_type', categoryIds: ['cat3'] }]
+	 */
+	categoryAssignments: CategoryAssignment[];
 
 	/** Default enabled state for new consumers */
 	defaultEnabled: boolean;

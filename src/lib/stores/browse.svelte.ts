@@ -1,13 +1,13 @@
 /**
  * Browse Store — reactive state for category-based navigation.
  *
- * Provides categories (standard tree), selected category filtering,
- * and text-based search across CreatorPages, Profiles, and Fonts.
+ * Provides categories organized by treeId (subject, content_type),
+ * selected category filtering, and text-based search across entities.
  *
  * Pattern: module-level $state + exported read-only accessor + actions.
  */
 
-import type { Category } from '$lib/domain/category/category.js';
+import type { Category, CategoryTreeId } from '$lib/domain/category/category.js';
 import type { CreatorPage } from '$lib/domain/creator-page/creator-page.js';
 import type { Profile } from '$lib/domain/profile/profile.js';
 import type { Font } from '$lib/domain/font/font.js';
@@ -28,6 +28,7 @@ export type BrowseEntity =
 interface BrowseStoreState {
 	categories: Category[];
 	selectedCategoryId: string | null;
+	activeTreeId: CategoryTreeId;
 	entities: BrowseEntity[];
 	searchQuery: string;
 	loading: boolean;
@@ -36,6 +37,7 @@ interface BrowseStoreState {
 let state = $state<BrowseStoreState>({
 	categories: [],
 	selectedCategoryId: null,
+	activeTreeId: 'subject',
 	entities: [],
 	searchQuery: '',
 	loading: false
@@ -61,16 +63,25 @@ function matchesTags(tags: string[], query: string): boolean {
 export const browse = {
 	get categories() { return state.categories; },
 	get selectedCategoryId() { return state.selectedCategoryId; },
+	get activeTreeId() { return state.activeTreeId; },
 	get entities() { return state.entities; },
 	get searchQuery() { return state.searchQuery; },
 	get loading() { return state.loading; },
 
 	get rootCategories(): Category[] {
-		return state.categories.filter((c) => c.parentId === null);
+		return state.categories
+			.filter((c) => c.parentId === null && c.treeId === state.activeTreeId && c.isActive)
+			.sort((a, b) => a.order - b.order);
 	},
 
 	getChildren(parentId: string): Category[] {
-		return state.categories.filter((c) => c.parentId === parentId);
+		return state.categories
+			.filter((c) => c.parentId === parentId && c.isActive)
+			.sort((a, b) => a.order - b.order);
+	},
+
+	getCategoriesByTree(treeId: CategoryTreeId): Category[] {
+		return state.categories.filter((c) => c.treeId === treeId && c.isActive);
 	},
 
 	// ── Actions ──────────────────────────────────────────────────────
@@ -82,6 +93,12 @@ export const browse = {
 		} finally {
 			state.loading = false;
 		}
+	},
+
+	setActiveTree(treeId: CategoryTreeId): void {
+		state.activeTreeId = treeId;
+		state.selectedCategoryId = null;
+		state.entities = [];
 	},
 
 	async selectCategory(categoryId: string | null): Promise<void> {
@@ -97,9 +114,13 @@ export const browse = {
 			const childCats = await categoryRepo.getChildren(categoryId);
 			const catIds = new Set([categoryId, ...childCats.map((c) => c.id)]);
 
-			// Load profiles in this category tree
+			// Load profiles matching any of these categories in their assignments
 			const allProfiles = await profileRepo.getAll();
-			const matchedProfiles = allProfiles.filter((p) => catIds.has(p.categoryId));
+			const matchedProfiles = allProfiles.filter((p) =>
+				p.categoryAssignments.some((a) =>
+					a.categoryIds.some((cid) => catIds.has(cid))
+				)
+			);
 
 			// Build profile IDs for font lookup
 			const profileIds = new Set(matchedProfiles.map((p) => p.id));

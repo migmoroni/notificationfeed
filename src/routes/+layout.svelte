@@ -7,6 +7,7 @@
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { feed } from '$lib/stores/feed.svelte.js';
 	import { hasMockData, seedMockData } from '$lib/utils/mock-data.js';
+	import { seedCategories } from '$lib/persistence/category-seed.service.js';
 	import Newspaper from '@lucide/svelte/icons/newspaper';
 	import Search from '@lucide/svelte/icons/search';
 	import Star from '@lucide/svelte/icons/star';
@@ -29,8 +30,9 @@
 	onMount(() => {
 		const layoutCleanup = initLayout();
 
-		// Initialize data stores (consumer → seed → feed)
+		// Initialize data stores (seed categories → consumer → mock → feed)
 		(async () => {
+			await seedCategories();
 			await consumer.init();
 
 			if (!(await hasMockData())) {

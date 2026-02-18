@@ -15,6 +15,7 @@ export interface Database {
 	categories: TableOps;
 	consumerStates: TableOps;
 	posts: TableOps;
+	favoriteFolders: TableOps;
 }
 
 export interface TableOps {
@@ -43,10 +44,13 @@ export async function getDatabase(): Promise<Database> {
 
 async function initIndexedDB(): Promise<Database> {
 	return new Promise((resolve, reject) => {
-		const request = indexedDB.open('notfeed', 2);
+		const request = indexedDB.open('notfeed', 3);
 
-		request.onupgradeneeded = () => {
+		request.onupgradeneeded = (event) => {
 			const idb = request.result;
+			const oldVersion = (event as IDBVersionChangeEvent).oldVersion;
+
+			// ── v1 → initial stores ────────────────────────────────────
 
 			if (!idb.objectStoreNames.contains('users')) {
 				const userStore = idb.createObjectStore('users', { keyPath: 'id' });
@@ -62,7 +66,6 @@ async function initIndexedDB(): Promise<Database> {
 				const profileStore = idb.createObjectStore('profiles', { keyPath: 'id' });
 				profileStore.createIndex('ownerId', 'ownerId', { unique: false });
 				profileStore.createIndex('creatorPageId', 'creatorPageId', { unique: false });
-				profileStore.createIndex('categoryId', 'categoryId', { unique: false });
 			}
 
 			if (!idb.objectStoreNames.contains('fonts')) {
@@ -73,8 +76,7 @@ async function initIndexedDB(): Promise<Database> {
 			if (!idb.objectStoreNames.contains('categories')) {
 				const catStore = idb.createObjectStore('categories', { keyPath: 'id' });
 				catStore.createIndex('parentId', 'parentId', { unique: false });
-				catStore.createIndex('origin', 'origin', { unique: false });
-				catStore.createIndex('ownerId', 'ownerId', { unique: false });
+				catStore.createIndex('treeId', 'treeId', { unique: false });
 			}
 
 			if (!idb.objectStoreNames.contains('consumerStates')) {
@@ -87,6 +89,35 @@ async function initIndexedDB(): Promise<Database> {
 				postStore.createIndex('fontId', 'fontId', { unique: false });
 				postStore.createIndex('publishedAt', 'publishedAt', { unique: false });
 			}
+
+			// ── v3 → favoriteFolders store + category index migration ──
+
+			if (!idb.objectStoreNames.contains('favoriteFolders')) {
+				idb.createObjectStore('favoriteFolders', { keyPath: 'id' });
+			}
+
+			// Remove stale indexes from v2 categories (origin, ownerId, categoryId on profiles)
+			if (oldVersion > 0 && oldVersion < 3) {
+				const tx = (event.target as IDBOpenDBRequest).transaction!;
+
+				// Categories: drop origin/ownerId indexes, add treeId if missing
+				if (idb.objectStoreNames.contains('categories')) {
+					const catStore = tx.objectStore('categories');
+					if (catStore.indexNames.contains('origin')) catStore.deleteIndex('origin');
+					if (catStore.indexNames.contains('ownerId')) catStore.deleteIndex('ownerId');
+					if (!catStore.indexNames.contains('treeId')) {
+						catStore.createIndex('treeId', 'treeId', { unique: false });
+					}
+				}
+
+				// Profiles: drop categoryId index (no longer single field)
+				if (idb.objectStoreNames.contains('profiles')) {
+					const profileStore = tx.objectStore('profiles');
+					if (profileStore.indexNames.contains('categoryId')) {
+						profileStore.deleteIndex('categoryId');
+					}
+				}
+			}
 		};
 
 		request.onsuccess = () => {
@@ -98,7 +129,8 @@ async function initIndexedDB(): Promise<Database> {
 				fonts: createIndexedDBTable(idb, 'fonts'),
 				categories: createIndexedDBTable(idb, 'categories'),
 				consumerStates: createIndexedDBTable(idb, 'consumerStates'),
-				posts: createIndexedDBTable(idb, 'posts')
+				posts: createIndexedDBTable(idb, 'posts'),
+				favoriteFolders: createIndexedDBTable(idb, 'favoriteFolders')
 			});
 		};
 

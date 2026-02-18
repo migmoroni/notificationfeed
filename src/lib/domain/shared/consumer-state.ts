@@ -2,7 +2,7 @@
  * ConsumerState — value object for local overrides by UserConsumer.
  *
  * Overrides the `defaultEnabled` set by the creator for a specific entity.
- * Also stores priority level, favorite flag, and custom category assignment.
+ * Also stores priority level, favorite flag, and favorite folder assignment.
  *
  * Priority levels (per-consumer, per-entity):
  *   1 = alta — posts appear first in the feed
@@ -26,8 +26,11 @@ export interface ConsumerState {
 	/** Local enabled/disabled override */
 	enabled: boolean;
 
-	/** Custom category assigned by the consumer (null = use original) */
-	customCategoryId: string | null;
+	/**
+	 * Favorite folder assignment. null = Inbox (when favorite === true).
+	 * References a FavoriteFolder.id.
+	 */
+	favoriteFolderId: string | null;
 
 	/**
 	 * Priority override. null = inherit from parent entity.

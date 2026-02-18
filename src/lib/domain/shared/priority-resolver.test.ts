@@ -20,7 +20,7 @@ function makeState(entityId: string, entityType: 'font' | 'profile' | 'creator_p
 		entityType,
 		entityId,
 		enabled: true,
-		customCategoryId: null,
+		favoriteFolderId: null,
 		priority,
 		favorite: false,
 		overriddenAt: new Date()

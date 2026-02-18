@@ -7,19 +7,28 @@
 
 	interface Props {
 		filter?: PriorityFilterValue;
+		subjectIds?: string[];
+		contentTypeIds?: string[];
 	}
 
-	let { filter = 'all' }: Props = $props();
+	let { filter = 'all', subjectIds = [], contentTypeIds = [] }: Props = $props();
 
 	const PAGE_SIZE = 20;
 	let visibleCount = $state(PAGE_SIZE);
 	let sentinel: HTMLDivElement | undefined = $state();
 
-	// Filtered + paginated posts
+	// Get base posts (with category filtering if applicable)
+	let basePosts = $derived(
+		(subjectIds.length > 0 || contentTypeIds.length > 0)
+			? feed.filteredByCategories(subjectIds, contentTypeIds)
+			: feed.prioritized
+	);
+
+	// Apply priority filter on top
 	let filtered = $derived(
 		filter === 'all'
-			? feed.prioritized
-			: feed.prioritized.filter((sp) => sp.priority === filter)
+			? basePosts
+			: basePosts.filter((sp) => sp.priority === filter)
 	);
 
 	let visible = $derived(filtered.slice(0, visibleCount));
