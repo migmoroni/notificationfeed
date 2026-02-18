@@ -33,6 +33,7 @@ export type NewUserCreator = Omit<UserCreator, 'id' | 'role' | 'createdAt' | 'up
 export interface UserCreatorRepository {
 	getAll(): Promise<UserCreator[]>;
 	getById(id: string): Promise<UserCreator | null>;
+	getByPublicKey(pubkey: string): Promise<UserCreator | null>;
 	create(user: NewUserCreator): Promise<UserCreator>;
 	update(id: string, data: Partial<NewUserCreator>): Promise<UserCreator>;
 	delete(id: string): Promise<void>;

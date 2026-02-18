@@ -53,3 +53,10 @@ export type { CanonicalPost } from './normalization/canonical-post.js';
 // Platform
 export { detectPlatform, getCapabilities } from './platform/capabilities.js';
 export type { Platform, Capabilities } from './platform/capabilities.js';
+
+// Utils — Date
+export { formatRelativeDate, formatShortDate } from './utils/date.js';
+
+// Components — Feed
+export { PostCard, FeedList, PriorityFilter } from './components/feed/index.js';
+export type { PriorityFilterValue } from './components/feed/index.js';

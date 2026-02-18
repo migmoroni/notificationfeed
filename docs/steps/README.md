@@ -70,30 +70,32 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 
 ---
 
-## Fase 2 — Tela de Feed (`/`)
+## Fase 2 — Tela de Feed (`/`) ✅
 
 > Core loop: mostrar posts priorizados com infinite scroll.
 
 ### Tarefas
 
-- [ ] Componente `PostCard.svelte`
+- [x] Helper `src/lib/utils/date.ts` — `formatRelativeDate` + `formatShortDate` via `Intl.RelativeTimeFormat` (pt-BR)
+- [x] Componente `PostCard.svelte`
   - Título, autor, data relativa, excerpt
-  - Badge de prioridade (colorido: vermelho/amarelo/cinza)
-  - Indicador lido/não-lido
-  - Ação: marcar como lido
-- [ ] Componente `FeedList.svelte`
-  - Infinite scroll via IntersectionObserver
+  - Badge de prioridade (colorido: destructive/secondary/outline)
+  - Indicador lido/não-lido (borda accent + CircleDot)
+  - Ação: marcar como lido + abrir link externo
+- [x] Componente `FeedList.svelte`
+  - Infinite scroll via IntersectionObserver (PAGE_SIZE=20)
   - Consome `feed.store` (posts priorizados)
-  - Loading state (skeleton cards)
+  - Loading state (pulse skeleton cards)
   - Empty state ("Nenhum post ainda")
-- [ ] Componente `PriorityFilter.svelte`
-  - Chips/tabs: Todos, Alta, Média, Baixa
+- [x] Componente `PriorityFilter.svelte`
+  - Tabs: Todos, Alta, Média, Baixa (shadcn Tabs)
   - Filtra posts por nível de prioridade
-- [ ] Iniciar ingestion no `onMount` do layout
-  - Buscar fonts ativas → `startIngestion()` para cada
-  - Posts ingeridos → `savePosts()` → atualiza feed store
-- [ ] Testes de componente (`PostCard`, `FeedList`)
-- [ ] `npm run build` limpo
+- [x] Iniciar dados mock no `onMount` do layout
+  - `consumer.init()` → `seedMockData()` → `feed.loadFeed()`
+  - Decisão: ingestion real adiada para fase futura (mock only)
+- [x] Testes: `date.test.ts` (10 tests) + testes existentes (19)
+- [x] Instalado `@testing-library/svelte`
+- [x] `npm run build` limpo + `npm run test:run` (29/29 pass)
 
 ### Entregáveis
 

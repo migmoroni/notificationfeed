@@ -4,6 +4,9 @@
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { layout, initLayout } from '$lib/stores/layout.svelte.js';
+	import { consumer } from '$lib/stores/consumer.svelte.js';
+	import { feed } from '$lib/stores/feed.svelte.js';
+	import { hasMockData, seedMockData } from '$lib/utils/mock-data.js';
 	import Newspaper from '@lucide/svelte/icons/newspaper';
 	import Search from '@lucide/svelte/icons/search';
 	import Star from '@lucide/svelte/icons/star';
@@ -24,8 +27,22 @@
 	}
 
 	onMount(() => {
-		const cleanup = initLayout();
-		return cleanup;
+		const layoutCleanup = initLayout();
+
+		// Initialize data stores (consumer → seed → feed)
+		(async () => {
+			await consumer.init();
+
+			if (!(await hasMockData())) {
+				await seedMockData();
+			}
+
+			await feed.loadFeed();
+		})();
+
+		return () => {
+			layoutCleanup();
+		};
 	});
 </script>
 
