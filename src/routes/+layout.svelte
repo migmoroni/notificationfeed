@@ -15,6 +15,8 @@
 
 	let { children } = $props();
 
+	let ready = $state(false);
+
 	const navItems = [
 		{ href: '/', label: 'Feed', icon: Newspaper },
 		{ href: '/browse', label: 'Browse', icon: Search },
@@ -31,6 +33,7 @@
 		const layoutCleanup = initLayout();
 
 		// Initialize data stores (seed categories → consumer → mock → feed)
+		// Must complete before child routes read from IndexedDB.
 		(async () => {
 			await seedCategories();
 			await consumer.init();
@@ -40,6 +43,7 @@
 			}
 
 			await feed.loadFeed();
+			ready = true;
 		})();
 
 		return () => {
@@ -77,13 +81,25 @@
 		</aside>
 
 		<main class="flex-1 overflow-y-auto">
-			{@render children()}
+			{#if ready}
+				{@render children()}
+			{:else}
+				<div class="flex items-center justify-center h-full">
+					<div class="animate-pulse text-sm text-muted-foreground">Carregando…</div>
+				</div>
+			{/if}
 		</main>
 	{:else}
 		<!-- COMPACT: full-width content + fixed bottom navigation -->
 		<div class="flex flex-col w-full h-full">
 			<main class="flex-1 overflow-y-auto">
-				{@render children()}
+				{#if ready}
+					{@render children()}
+				{:else}
+					<div class="flex items-center justify-center h-full">
+						<div class="animate-pulse text-sm text-muted-foreground">Carregando…</div>
+					</div>
+				{/if}
 			</main>
 
 			<nav

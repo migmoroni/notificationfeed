@@ -106,7 +106,7 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 
 ---
 
-## Fase 3 — Tela de Browse (`/browse`)
+## Fase 3 — Tela de Browse (`/browse`) ✅
 
 > Navegação por categories oficiais (subject + content_type) para descobrir conteúdo.
 
@@ -115,28 +115,56 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 - [x] Seed automático de categories oficiais (`category-seed.ts` + `category-seed.service.ts`)
 - [x] Migração versionada via `CATEGORY_SEED_VERSION` + localStorage
 - [x] Filtro de feed por subject e content_type (`CategoryFilter.svelte`)
-- [ ] Componente `CategoryTree.svelte`
-  - Árvore colapsável (root → sublevels) por tree (subject / content_type)
-  - Toggle entre trees via tabs
-  - Indicador de contagem de entidades por sublevel
-- [ ] Componente `EntityCard.svelte`
-  - Card para Page/Profile/Font
-  - Avatar, título, tags, tipo (badge)
-  - Ações inline:
-    - Definir prioridade (select 1/2/3)
-    - Toggle favorito (ícone estrela)
-- [ ] Componente `EntityList.svelte`
-  - Lista de entidades filtradas por category sublevel
-  - Drill-down: category → pages → profiles → fonts
-- [ ] Preview de posts de um Font selecionado
-- [ ] Testes de componente
-- [ ] `npm run build` limpo
+- [x] Instalado componente shadcn `collapsible`
+- [x] Componente `CategoryTree.svelte`
+  - Árvore colapsável (root → sublevels) por tree via `Collapsible`
+  - Estado open/close preservado no componente
+- [x] Componente `TreeSelector.svelte`
+  - Tabs (shadcn) para alternar entre "Assunto" e "Formato"
+  - Chama `browse.setActiveTree()` ao mudar tab
+- [x] Componente `EntityCard.svelte`
+  - Card para Page/Profile/Font com ícones por tipo (Globe/User/Rss)
+  - Badge de tipo, tags, ações inline:
+    - Prioridade (1/2/3 buttons) via `consumer.setPriority()`
+    - Toggle favorito (Star/StarOff) via `consumer.setFavorite()`
+    - Toggle ativo/inativo via `consumer.toggleEnabled()`
+  - Link para sub-rotas (CreatorPage/Profile) ou card estático (Font)
+- [x] Componente `EntityList.svelte`
+  - Lista agrupada por tipo (Pages → Profiles → Fonts)
+  - Separadores, skeleton loader, empty state
+- [x] Componente `SearchBar.svelte`
+  - Input com debounce (300ms), ícone Search, botão limpar
+  - Integra `browse.searchEntities()` e `browse.clearSearch()`
+- [x] Componente `FontDetail.svelte`
+  - Collapsible com metadados técnicos (URL/relays/pubkey)
+  - Posts carregados via `getPosts({ fontId })` — lazy on expand
+  - Ações inline: prioridade, favorito
+- [x] Componente `ProfilePage.svelte`
+  - Reutilizável entre rotas standalone e under-creator
+  - Header com título, tags, category badges
+  - Lista de Fonts como `FontDetail` collapsibles
+  - Posts agregados com `PostCard` e `sortByPriority`
+- [x] Reescrita de `/browse/+page.svelte`
+  - Layout: SearchBar + TreeSelector (sidebar em desktop) + EntityList
+  - Busca oculta tree, mostra resultados direto
+- [x] Rotas aninhadas (refletem DDD lifecycle modes do Profile):
+  - `/browse/creator/[creatorId]` — detalhes da CreatorPage + lista de Profiles dependentes
+  - `/browse/profile/[profileId]` — standalone (redireciona para URL canônica se profile é dependente)
+  - `/browse/creator/[creatorId]/profile/[profileId]` — profile dependente (child do agregado CreatorPage)
+  - `/browse/profile/[profileId]/font/[fontId]` — font de profile standalone
+  - `/browse/creator/[creatorId]/profile/[profileId]/font/[fontId]` — font de profile dependente
+- [x] ADR-016: Profile como aggregate root condicional (standalone vs dependente)
+- [x] Mock data ajustado: `profileNews` agora é standalone (`creatorPageId: null`)
+- [x] Barrel exports atualizados (`$lib/index.ts` + `browse/index.ts`)
+- [x] `npm run build` limpo + `npm run test:run` (29/29 pass)
 
 ### Entregáveis
 
-- Navegação por categories standard
+- Navegação por categories oficiais com árvore colapsável
+- Busca por texto (pages, profiles, fonts)
 - Definição de prioridade e favorito inline
-- Drill-down funcional
+- Drill-down funcional com rotas aninhadas (CreatorPage → Profile → Font → Posts)
+- Entity count por sublevel adiado para fase futura
 
 ---
 

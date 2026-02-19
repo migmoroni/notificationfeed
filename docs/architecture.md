@@ -89,3 +89,13 @@
 **Contexto**: Consumers precisam controlar a relevância de fontes no feed sem alterar dados do Creator.  
 **Decisão**: `ConsumerState` ganha `priority: PriorityLevel | null` (1=alta, 2=média, 3=baixa) e `favorite: boolean`. Cadeia de herança: Font → Profile → CreatorPage → 3 (default). `null` = herdar. O feed agrupa por prioridade e ordena por data dentro de cada grupo.  
 **Consequência**: Posts de prioridade 1 sempre aparecem antes de prioridade 2, independente da data. Toda personalização é per-consumer, armazenada em `ConsumerState`.
+
+## ADR-016: Profile como aggregate root condicional (standalone vs dependente)
+
+**Contexto**: Profile pode existir de forma independente (criado por consumer) ou vinculado a uma CreatorPage (criado por creator). Quando vinculado, o Profile é semanticamente um filho do agregado CreatorPage — sua identidade, navegação e herança de prioridade dependem do pai.  
+**Decisão**: `creatorPageId: string | null` determina o modo de ciclo de vida do Profile:
+- `null` → **standalone**: aggregate root independente. URL: `/browse/profile/{id}`. Prioridade: Font → Profile → default(3).
+- `string` → **dependente**: entidade filha do agregado CreatorPage. URL: `/browse/creator/{pageId}/profile/{id}`. Prioridade: Font → Profile → CreatorPage → default(3).
+
+A rota standalone (`/browse/profile/{id}`) detecta profiles dependentes e redireciona para a URL canônica sob o creator. Deletar uma CreatorPage desvincula seus profiles (tornam-se standalone), mudando automaticamente seu padrão de navegação.  
+**Consequência**: O Profile tem identidade dual no DDD — pode ser aggregate root ou child entity dependendo do contexto. A URL reflete fielmente a relação de posse. Código de navegação (EntityList, rotas) usa `creatorPageId` para construir hrefs corretos. `PriorityResolver` já suporta ambos os modos via `PriorityContext.creatorPageId`.

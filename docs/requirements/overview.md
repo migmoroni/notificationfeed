@@ -35,7 +35,7 @@ Notfeed é um cliente de agregação de informação focado em feeds e notifica�
 - **UserConsumer** — conta local de consumo (follows, ativação, categorias custom)
 - **UserCreator** — conta de criação (gerencia CreatorPages, sync via Nostr/Blossom)
 - **CreatorPage** — artefato publicável com Profiles e Fonts (export JSON offline)
-- **Profile** — identidade temática que agrupa Fonts (criável por consumer ou creator)
+- **Profile** — identidade temática que agrupa Fonts. Dois modos: standalone (aggregate root) ou dependente (child do agregado CreatorPage)
 - **Font** — canal técnico de distribuição (Nostr, RSS, Atom)
 - **Category** — taxonomia hierárquica (standard do app + custom do consumer)
 

@@ -4,8 +4,8 @@
 |---|---|
 | **UserConsumer** | Conta local de consumo. Segue CreatorPages/Creators, organiza feeds, ativa/desativa entidades. Nunca publica conteúdo. |
 | **UserCreator** | Conta de criação. Gerencia CreatorPages, Profiles e Fonts. Pode sincronizar via Nostr/Blossom. |
-| **CreatorPage** | Artefato publicável que descreve uma coleção editorial de Profiles e Fonts. Vinculada a um UserCreator. Pode ser exportada como JSON para compartilhamento offline. |
-| **Profile** | Identidade temática que agrupa Fonts. Criável por consumer (standalone) ou creator (standalone ou em Page). Associado a até 3 sublevels por tree via `CategoryAssignment`. |
+| **CreatorPage** | Artefato publicável que descreve uma coleção editorial de Profiles e Fonts. Vinculada a um UserCreator. Profiles vinculados são entidades dependentes (filhos do agregado). Pode ser exportada como JSON para compartilhamento offline. |
+| **Profile** | Identidade temática que agrupa Fonts. Dois modos de ciclo de vida: **standalone** (`creatorPageId=null`) — aggregate root independente, navegado em `/browse/profile/{id}`; **dependente** (`creatorPageId` definido) — entidade filha do agregado CreatorPage, navegado em `/browse/creator/{pageId}/profile/{id}`. Associado a até 3 sublevels por tree via `CategoryAssignment`. |
 | **Font** | Canal técnico de distribuição vinculado a um Profile. Encapsula a configuração de um protocolo (Nostr, RSS ou Atom). Herda Category do Profile. O nome "Font" vem de "fonte de informação". |
 | **Category** | Sistema taxonômico hierárquico oficial. Duas árvores: `subject` (tema) e `content_type` (formato). Distribuído com o app via seed versionado. Apenas sublevels (depth ≥ 1) são associáveis a entidades. |
 | **CategoryAssignment** | Value object `{ treeId, categoryIds[] }` que vincula um Profile a até 3 sublevels dentro de uma tree. Substitui o antigo `categoryId` singular. |

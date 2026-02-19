@@ -4,6 +4,11 @@
  * Provides categories organized by treeId (subject, content_type),
  * selected category filtering, and text-based search across entities.
  *
+ * Profile navigation respects the DDD lifecycle modes:
+ * - Standalone profiles (creatorPageId = null) → `/browse/profile/{id}`
+ * - Dependent profiles (creatorPageId set) → `/browse/creator/{pageId}/profile/{id}`
+ * URL construction is delegated to the EntityList component.
+ *
  * Pattern: module-level $state + exported read-only accessor + actions.
  */
 

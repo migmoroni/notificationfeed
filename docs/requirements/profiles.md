@@ -4,6 +4,29 @@
 
 Profile é uma identidade temática ou editorial que agrupa Fonts. Pode ser criado por UserConsumer (standalone, para feeds manuais de terceiros) ou por UserCreator (standalone ou vinculado a uma CreatorPage).
 
+## Modos de ciclo de vida (DDD)
+
+Profile tem dois modos determinados pelo campo `creatorPageId`:
+
+### 1. Standalone (`creatorPageId = null`)
+
+- **Aggregate root independente** — existe por conta própria.
+- Criado por UserConsumer para feeds de terceiros.
+- Navegado diretamente: `/browse/profile/{id}`.
+- Deletar um Profile standalone é cascata: apaga Fonts e posts associados.
+- Cadeia de prioridade: Font → Profile → default(3). Sem nível CreatorPage.
+
+### 2. Dependente (`creatorPageId = string`)
+
+- **Entidade filha** dentro do agregado CreatorPage.
+- Identidade e navegação são escopadas sob a page pai: `/browse/creator/{pageId}/profile/{id}`.
+- Fonts do profile também são escopadas: `/browse/creator/{pageId}/profile/{id}/font/{fontId}`.
+- Cadeia de prioridade completa: Font → Profile → CreatorPage → default(3).
+- Deletar a CreatorPage **desvincula** o profile (torna standalone), não o deleta.
+- Profile importado via `.notfeed.json` herda `creatorPageId` do export.
+
+> **Transição:** Um profile dependente pode se tornar standalone se a CreatorPage for deletada. A URL muda automaticamente.
+
 ## Propriedades
 
 | Campo | Tipo | Obrigatório | Descrição |
@@ -23,8 +46,9 @@ Profile é uma identidade temática ou editorial que agrupa Fonts. Pode ser cria
 ## Regras de negócio
 
 - Profile sempre tem um owner (`ownerId` + `ownerType`).
-- Se `ownerType = 'consumer'`, `creatorPageId` é obrigatoriamente null.
+- Se `ownerType = 'consumer'`, `creatorPageId` é obrigatoriamente null (sempre standalone).
 - Se `ownerType = 'creator'`, `creatorPageId` pode apontar para uma CreatorPage do mesmo creator.
+- **Quando `creatorPageId` está definido, o Profile é dependente:** sua URL, navegação e herança de prioridade são escopadas sob a CreatorPage.
 - Somente o owner pode editar/deletar o Profile e gerenciar suas Fonts.
 - Pertence a até 3 sublevels por tree (via `CategoryAssignment`).
 - `CategoryAssignment` = `{ treeId, categoryIds[] }`. Máximo de 3 IDs por tree; apenas sublevels (depth ≥ 1).

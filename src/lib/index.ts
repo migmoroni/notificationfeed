@@ -69,3 +69,7 @@ export { formatRelativeDate, formatShortDate } from './utils/date.js';
 // Components — Feed
 export { PostCard, FeedList, PriorityFilter, CategoryFilter } from './components/feed/index.js';
 export type { PriorityFilterValue } from './components/feed/index.js';
+
+// Components — Browse
+export { CategoryTree, TreeSelector, EntityCard, EntityList, SearchBar, FontDetail } from './components/browse/index.js';
+export type { PriorityFilterValue } from './components/feed/index.js';

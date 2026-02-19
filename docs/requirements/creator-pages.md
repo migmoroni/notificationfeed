@@ -28,9 +28,10 @@ CreatorPage é um artefato publicável que descreve uma coleção editorial de P
 
 - Pertence a exatamente um UserCreator. Não pode existir órfã.
 - Somente o UserCreator proprietário pode editar.
+- **Profiles vinculados são entidades dependentes** dentro do agregado CreatorPage. Sua navegação e URL são escopadas sob a page: `/browse/creator/{id}/profile/{profileId}`.
 - Pode definir `defaultEnabled` por Profile e Font (estado inicial para novos consumers).
 - Pode ser seguida por UserConsumers (fluxo unidirecional: Page → Consumer, sem notificação reversa).
-- Deletar uma CreatorPage **desvincula** seus Profiles (tornam-se standalone), não os deleta.
+- Deletar uma CreatorPage **desvincula** seus Profiles (tornam-se standalone), não os deleta. Profiles desvinculados passam a ser navegados em `/browse/profile/{id}`.
 - CreatorPages importadas (`syncStatus = 'imported'`) são read-only para o consumer.
 
 ## Export/Import offline
