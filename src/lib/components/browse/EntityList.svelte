@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { BrowseEntity } from '$lib/stores/browse.svelte.js';
 	import type { Profile } from '$lib/domain/profile/profile.js';
+	import type { Font } from '$lib/domain/font/font.js';
 	import EntityCard from './EntityCard.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 
@@ -14,6 +15,15 @@
 	let pages = $derived(entities.filter((e) => e.type === 'creator_page'));
 	let profiles = $derived(entities.filter((e) => e.type === 'profile'));
 	let fonts = $derived(entities.filter((e) => e.type === 'font'));
+
+	// Build a profile lookup for resolving font hrefs
+	let profileMap = $derived.by(() => {
+		const map = new Map<string, Profile>();
+		for (const e of profiles) {
+			map.set(e.data.id, e.data as Profile);
+		}
+		return map;
+	});
 
 	/**
 	 * Profile URL follows DDD lifecycle modes:
@@ -32,6 +42,21 @@
 	function pageHref(entity: BrowseEntity): string {
 		if (entity.type !== 'creator_page') return '';
 		return `/browse/creator/${entity.data.id}`;
+	}
+
+	/**
+	 * Font URL resolved through its parent profile:
+	 * - If profile is dependent → /browse/creator/{pageId}/profile/{profileId}/font/{fontId}
+	 * - If profile is standalone → /browse/profile/{profileId}/font/{fontId}
+	 */
+	function fontHref(entity: BrowseEntity): string {
+		if (entity.type !== 'font') return '';
+		const font = entity.data as Font;
+		const profile = profileMap.get(font.profileId);
+		if (profile?.creatorPageId) {
+			return `/browse/creator/${profile.creatorPageId}/profile/${font.profileId}/font/${font.id}`;
+		}
+		return `/browse/profile/${font.profileId}/font/${font.id}`;
 	}
 </script>
 
@@ -92,7 +117,7 @@
 			<Separator />
 		{/if}
 
-		<!-- Fonts (no navigation link — shown inline) -->
+		<!-- Fonts -->
 		{#if fonts.length > 0}
 			<div>
 				<h3 class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 px-1">
@@ -100,7 +125,7 @@
 				</h3>
 				<div class="flex flex-col gap-2">
 					{#each fonts as entity (entity.data.id)}
-						<EntityCard {entity} />
+						<EntityCard {entity} href={fontHref(entity)} />
 					{/each}
 				</div>
 			</div>

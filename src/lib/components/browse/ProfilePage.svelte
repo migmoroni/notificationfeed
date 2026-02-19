@@ -10,7 +10,7 @@
 	import { getPosts } from '$lib/persistence/post.store.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
-	import FontDetail from '$lib/components/browse/FontDetail.svelte';
+	import FontCard from '$lib/components/browse/FontCard.svelte';
 	import { PostCard } from '$lib/components/feed/index.js';
 	import { sortByPriority, type SortedPost } from '$lib/domain/shared/feed-sorter.js';
 	import { buildPriorityMap, type PriorityContext } from '$lib/domain/shared/priority-resolver.js';
@@ -107,6 +107,17 @@
 		if (!profile) return;
 		await consumer.setFavorite(profile.id, 'profile', !isFavorite);
 	}
+
+	function fontPageHref(fontId: string): string {
+		if (profile?.creatorPageId) {
+			return `/browse/creator/${profile.creatorPageId}/profile/${profileId}/font/${fontId}`;
+		}
+		return `/browse/profile/${profileId}/font/${fontId}`;
+	}
+
+	let creatorPageHref = $derived(
+		profile?.creatorPageId ? `/browse/creator/${profile.creatorPageId}` : null
+	);
 </script>
 
 <svelte:head>
@@ -174,6 +185,15 @@
 						{/each}
 					</div>
 				{/if}
+
+				{#if creatorPageHref}
+					<p class="text-xs text-muted-foreground mt-2">
+						Creator Page:
+						<a href={creatorPageHref} class="text-primary hover:underline">
+							Ver Creator Page →
+						</a>
+					</p>
+				{/if}
 			</div>
 		</div>
 
@@ -186,9 +206,9 @@
 			{#if fonts.length === 0}
 				<p class="text-sm text-muted-foreground">Nenhuma font neste profile.</p>
 			{:else}
-				<div class="flex flex-col gap-2">
+				<div class="flex flex-col gap-3">
 					{#each fonts as font (font.id)}
-						<FontDetail {font} />
+						<FontCard {font} fontPageHref={fontPageHref(font.id)} />
 					{/each}
 				</div>
 			{/if}

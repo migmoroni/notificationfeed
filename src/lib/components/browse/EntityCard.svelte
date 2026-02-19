@@ -8,6 +8,7 @@
 	import Rss from '@lucide/svelte/icons/rss';
 	import Star from '@lucide/svelte/icons/star';
 	import StarOff from '@lucide/svelte/icons/star-off';
+	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 
 	interface Props {
 		entity: BrowseEntity;
@@ -126,6 +127,10 @@
 				</button>
 			</div>
 		</div>
+
+		{#if href}
+			<ArrowUpRight class="size-4 shrink-0 text-muted-foreground mt-1" />
+		{/if}
 	</div>
 {/snippet}
 
