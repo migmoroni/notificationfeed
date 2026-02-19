@@ -1,11 +1,13 @@
 /**
- * Favorites Store — reactive state for favorited entities with folder system.
+ * Favorites Store — reactive state for favorited entities with tab system.
  *
  * Derives from `consumer.states` filtering on `favorite === true`,
  * then resolves each referenced entity (CreatorPage / Profile / Font)
- * from the persistence layer. Supports folders (Inbox + custom).
+ * from the persistence layer. Supports many-to-many tab associations.
  *
- * UI offers two interchangeable views: list/grid or lateral tabs (per folder).
+ * The system tab "all_favorites" always shows every favorited item.
+ * Custom tabs are user-created (emoji + title) and items can belong
+ * to multiple tabs simultaneously.
  *
  * Pattern: module-level $state + exported read-only accessor + actions.
  */
@@ -14,11 +16,11 @@ import type { ConsumerState, ConsumerEntityType } from '$lib/domain/shared/consu
 import type { CreatorPage } from '$lib/domain/creator-page/creator-page.js';
 import type { Profile } from '$lib/domain/profile/profile.js';
 import type { Font } from '$lib/domain/font/font.js';
-import type { FavoriteFolder } from '$lib/domain/favorite-folder/favorite-folder.js';
+import type { FavoriteTab } from '$lib/domain/favorite-tab/favorite-tab.js';
 import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
 import { createProfileStore } from '$lib/persistence/profile.store.js';
 import { createFontStore } from '$lib/persistence/font.store.js';
-import { createFavoriteFolderStore, INBOX_ID } from '$lib/persistence/favorite-folder.store.js';
+import { createFavoriteTabStore, ALL_FAVORITES_ID } from '$lib/persistence/favorite-tab.store.js';
 import { consumer } from './consumer.svelte.js';
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -27,33 +29,34 @@ export interface FavoriteItem {
 	state: ConsumerState;
 	entity: CreatorPage | Profile | Font | null;
 	entityType: ConsumerEntityType;
-	folderId: string; // resolved: null on ConsumerState → INBOX_ID
+	tabIds: string[]; // custom tab IDs this item belongs to
 }
 
-export type FavoritesViewMode = 'list' | 'tabs';
+// Re-export for convenience
+export { ALL_FAVORITES_ID };
 
 // ── Internal reactive state ────────────────────────────────────────────
 
 interface FavoritesStoreState {
-	folders: FavoriteFolder[];
+	tabs: FavoriteTab[];
 	items: FavoriteItem[];
-	activeFolderId: string | null; // null = show all
-	viewMode: FavoritesViewMode;
+	activeTabId: string; // ALL_FAVORITES_ID = show all
+	selectedItemIds: Set<string>; // for batch selection
 	loading: boolean;
 }
 
 let state = $state<FavoritesStoreState>({
-	folders: [],
+	tabs: [],
 	items: [],
-	activeFolderId: null,
-	viewMode: 'list',
+	activeTabId: ALL_FAVORITES_ID,
+	selectedItemIds: new Set(),
 	loading: false
 });
 
 const pageRepo = createCreatorPageStore();
 const profileRepo = createProfileStore();
 const fontRepo = createFontStore();
-const folderRepo = createFavoriteFolderStore();
+const tabRepo = createFavoriteTabStore();
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
@@ -73,41 +76,49 @@ async function resolveEntity(cs: ConsumerState): Promise<CreatorPage | Profile |
 // ── Exported accessor ──────────────────────────────────────────────────
 
 export const favorites = {
-	get folders() { return state.folders; },
+	get tabs() { return state.tabs; },
 	get items() { return state.items; },
-	get activeFolderId() { return state.activeFolderId; },
-	get viewMode() { return state.viewMode; },
+	get activeTabId() { return state.activeTabId; },
+	get selectedItemIds() { return state.selectedItemIds; },
 	get loading() { return state.loading; },
 	get count() { return state.items.length; },
+	get isSelecting() { return state.selectedItemIds.size > 0; },
+	get selectedCount() { return state.selectedItemIds.size; },
 
-	/** Items filtered by the active folder (null = all) */
-	get filteredItems(): FavoriteItem[] {
-		if (!state.activeFolderId) return state.items;
-		return state.items.filter((i) => i.folderId === state.activeFolderId);
+	/** Custom tabs only (excludes system tab) */
+	get customTabs(): FavoriteTab[] {
+		return state.tabs.filter((t) => !t.isSystem);
 	},
 
-	/** Items grouped by folder ID */
-	get itemsByFolder(): Map<string, FavoriteItem[]> {
+	/** Items filtered by the active tab */
+	get filteredItems(): FavoriteItem[] {
+		if (state.activeTabId === ALL_FAVORITES_ID) return state.items;
+		return state.items.filter((i) => i.tabIds.includes(state.activeTabId));
+	},
+
+	/** Items grouped by tab ID (includes all_favorites) */
+	get itemsByTab(): Map<string, FavoriteItem[]> {
 		const map = new Map<string, FavoriteItem[]>();
-		for (const item of state.items) {
-			const arr = map.get(item.folderId) ?? [];
-			arr.push(item);
-			map.set(item.folderId, arr);
+		// all_favorites always gets all items
+		map.set(ALL_FAVORITES_ID, [...state.items]);
+		for (const tab of state.tabs) {
+			if (tab.isSystem) continue;
+			map.set(tab.id, state.items.filter((i) => i.tabIds.includes(tab.id)));
 		}
 		return map;
 	},
 
 	// ── Actions ──────────────────────────────────────────────────────
 
-	async loadFolders(): Promise<void> {
-		state.folders = await folderRepo.getAll();
+	async loadTabs(): Promise<void> {
+		state.tabs = await tabRepo.getAll();
 	},
 
 	async loadFavorites(): Promise<void> {
 		state.loading = true;
 
 		try {
-			await favorites.loadFolders();
+			await favorites.loadTabs();
 
 			const favStates = consumer.states.filter((s) => s.favorite === true);
 
@@ -118,7 +129,7 @@ export const favorites = {
 						state: s,
 						entity,
 						entityType: s.entityType,
-						folderId: s.favoriteFolderId ?? INBOX_ID
+						tabIds: s.favoriteTabIds ?? []
 					};
 				})
 			);
@@ -129,65 +140,128 @@ export const favorites = {
 		}
 	},
 
-	async removeFavorite(entityId: string, entityType: ConsumerEntityType): Promise<void> {
-		await consumer.setFavorite(entityId, entityType, false);
-
-		// Optimistic removal from local list
-		state.items = state.items.filter((item) => item.state.entityId !== entityId);
-	},
-
-	async createFolder(name: string): Promise<FavoriteFolder> {
-		const maxOrder = state.folders.reduce((max, f) => Math.max(max, f.order), 0);
-		const folder = await folderRepo.create({
-			name,
-			isInbox: false,
-			order: maxOrder + 1
-		});
-		state.folders = [...state.folders, folder];
-		return folder;
-	},
-
-	async renameFolder(id: string, name: string): Promise<void> {
-		const updated = await folderRepo.update(id, { name });
-		state.folders = state.folders.map((f) => (f.id === id ? updated : f));
-	},
-
-	async deleteFolder(id: string): Promise<void> {
-		await folderRepo.delete(id);
-		state.folders = state.folders.filter((f) => f.id !== id);
-
-		// Move items from deleted folder to Inbox
-		for (const item of state.items) {
-			if (item.folderId === id) {
-				await consumer.moveFavoriteToFolder(item.state.entityId, item.state.entityType, null);
-				item.folderId = INBOX_ID;
+	/** Remove favorite flag from multiple entities (batch) */
+	async removeFavorites(entityIds: string[]): Promise<void> {
+		for (const entityId of entityIds) {
+			const item = state.items.find((i) => i.state.entityId === entityId);
+			if (item) {
+				await consumer.setFavorite(entityId, item.entityType, false);
 			}
 		}
-		// Trigger reactivity
-		state.items = [...state.items];
-
-		// If active folder was deleted, reset
-		if (state.activeFolderId === id) {
-			state.activeFolderId = null;
-		}
+		// Optimistic removal
+		const idSet = new Set(entityIds);
+		state.items = state.items.filter((i) => !idSet.has(i.state.entityId));
+		state.selectedItemIds = new Set();
 	},
 
-	async moveToFolder(entityId: string, entityType: ConsumerEntityType, folderId: string | null): Promise<void> {
-		await consumer.moveFavoriteToFolder(entityId, entityType, folderId);
-
-		const resolvedFolderId = folderId ?? INBOX_ID;
-		state.items = state.items.map((item) =>
-			item.state.entityId === entityId
-				? { ...item, folderId: resolvedFolderId }
-				: item
+	/** Remove a single favorite */
+	async removeFavorite(entityId: string, entityType: ConsumerEntityType): Promise<void> {
+		await consumer.setFavorite(entityId, entityType, false);
+		state.items = state.items.filter((i) => i.state.entityId !== entityId);
+		state.selectedItemIds = new Set(
+			[...state.selectedItemIds].filter((id) => id !== entityId)
 		);
 	},
 
-	setActiveFolder(folderId: string | null): void {
-		state.activeFolderId = folderId;
+	async createTab(title: string, emoji: string): Promise<FavoriteTab> {
+		const maxPos = state.tabs.reduce((max, t) => Math.max(max, t.position), 0);
+		const tab = await tabRepo.create({
+			title,
+			emoji,
+			position: maxPos + 1,
+			isSystem: false
+		});
+		state.tabs = [...state.tabs, tab];
+		return tab;
 	},
 
-	setViewMode(mode: FavoritesViewMode): void {
-		state.viewMode = mode;
+	async updateTab(id: string, data: { title?: string; emoji?: string }): Promise<void> {
+		const updated = await tabRepo.update(id, data);
+		state.tabs = state.tabs.map((t) => (t.id === id ? updated : t));
+	},
+
+	async deleteTab(id: string): Promise<void> {
+		await tabRepo.delete(id);
+		state.tabs = state.tabs.filter((t) => t.id !== id);
+
+		// Remove this tab ID from all items' tabIds
+		let changed = false;
+		for (const item of state.items) {
+			const idx = item.tabIds.indexOf(id);
+			if (idx >= 0) {
+				item.tabIds = item.tabIds.filter((tid) => tid !== id);
+				// Persist the change on the consumer state
+				await consumer.updateFavoriteTabIds(item.state.entityId, item.entityType, item.tabIds);
+				changed = true;
+			}
+		}
+		if (changed) state.items = [...state.items];
+
+		// Reset active tab if deleted
+		if (state.activeTabId === id) {
+			state.activeTabId = ALL_FAVORITES_ID;
+		}
+	},
+
+	/** Add items to one or more tabs (batch association) */
+	async addItemsToTabs(entityIds: string[], tabIds: string[]): Promise<void> {
+		for (const entityId of entityIds) {
+			const item = state.items.find((i) => i.state.entityId === entityId);
+			if (!item) continue;
+
+			const merged = [...new Set([...item.tabIds, ...tabIds])];
+			item.tabIds = merged;
+			await consumer.updateFavoriteTabIds(entityId, item.entityType, merged);
+		}
+		state.items = [...state.items]; // trigger reactivity
+	},
+
+	/** Remove items from a specific tab (batch) */
+	async removeItemsFromTab(entityIds: string[], tabId: string): Promise<void> {
+		for (const entityId of entityIds) {
+			const item = state.items.find((i) => i.state.entityId === entityId);
+			if (!item) continue;
+
+			const filtered = item.tabIds.filter((tid) => tid !== tabId);
+			item.tabIds = filtered;
+			await consumer.updateFavoriteTabIds(entityId, item.entityType, filtered);
+		}
+		state.items = [...state.items];
+	},
+
+	/** Reorder a tab to a new position (for future drag-and-drop) */
+	async reorderTab(tabId: string, newPosition: number): Promise<void> {
+		const tab = state.tabs.find((t) => t.id === tabId);
+		if (!tab || tab.isSystem) return;
+
+		const updated = await tabRepo.update(tabId, { position: newPosition });
+		state.tabs = state.tabs
+			.map((t) => (t.id === tabId ? updated : t))
+			.sort((a, b) => a.position - b.position);
+	},
+
+	// ── Selection ────────────────────────────────────────────────────
+
+	toggleSelectItem(entityId: string): void {
+		const next = new Set(state.selectedItemIds);
+		if (next.has(entityId)) {
+			next.delete(entityId);
+		} else {
+			next.add(entityId);
+		}
+		state.selectedItemIds = next;
+	},
+
+	selectAll(): void {
+		state.selectedItemIds = new Set(favorites.filteredItems.map((i) => i.state.entityId));
+	},
+
+	clearSelection(): void {
+		state.selectedItemIds = new Set();
+	},
+
+	setActiveTab(tabId: string): void {
+		state.activeTabId = tabId;
+		state.selectedItemIds = new Set(); // clear selection on tab change
 	}
 };

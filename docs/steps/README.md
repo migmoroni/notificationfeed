@@ -168,36 +168,56 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 
 ---
 
-## Fase 4 — Tela de Favoritos (`/favorites`)
+## Fase 4 — Tela de Favoritos (`/favorites`) ✅
 
-> Favoritos organizados em pastas (Inbox + pastas do usuário).
+> Favoritos organizados em tabs (many-to-many). Tab de sistema "Todos" + tabs custom com emoji.
 
 ### Tarefas
 
-- [x] Domain model `FavoriteFolder` (Inbox fixo + user-created)
-- [x] `FavoriteFolderRepository` + IndexedDB store
-- [x] Store reativo `favorites.svelte.ts` com folders, items, viewMode
-- [ ] Componente `FavoritesList.svelte`
-  - Toggle entre visualização list e tabs
-  - Pasta ativa como filtro
-  - Reutiliza `EntityCard.svelte`
-- [ ] Componente `FolderSidebar.svelte`
-  - Lista de folders com Inbox fixo no topo
-  - Criar/renomear/deletar pasta (dialog)
-  - Drag-and-drop de entidades entre pastas (futuro)
-- [ ] Ajuste de prioridade inline (mesmo select do browse)
-- [ ] Toggle favorito (remover da lista)
-- [ ] Mover entidade entre pastas
-- [ ] Ação: ver posts de um Font favorito (navega ao feed filtrado)
-- [ ] Empty state ("Nenhum favorito ainda")
-- [ ] `npm run build` limpo
+- [x] Domain model redesenhado: `FavoriteFolder` → `FavoriteTab` (many-to-many)
+  - `FavoriteTab { id, title, emoji, position, isSystem, createdAt }`
+  - `FavoriteTabRepository` contract
+  - Tab de sistema `all_favorites` (⭐ Todos) — não pode ser editada/excluída
+- [x] `ConsumerState` migrado: `favoriteFolderId: string | null` → `favoriteTabIds: string[]`
+- [x] IndexedDB migrado v3→v4: store `favoriteFolders` → `favoriteTabs`, campo `favoriteFolderId` → `favoriteTabIds` nos consumerStates
+- [x] `favorite-tab.store.ts` — implementação do repo com `ensureSystemTab()` auto-criação
+- [x] `consumer.svelte.ts` — `moveFavoriteToFolder()` → `updateFavoriteTabIds()`, limpa tabIds ao desfavoritar
+- [x] Store reativo `favorites.svelte.ts` reescrito para N→N:
+  - State: `tabs`, `items`, `activeTabId`, `selectedItemIds`, `loading`
+  - Derived: `filteredItems`, `itemsByTab`, `customTabs`, `isSelecting`
+  - Actions: `loadFavorites()`, `createTab()`, `updateTab()`, `deleteTab()`, `addItemsToTabs()`, `removeItemsFromTab()`, `removeFavorites()`, `reorderTab()`, seleção em lote
+- [x] Componente `TabSidebar.svelte`
+  - Tabs verticais (expanded: emoji + título) / horizontais (compact: emoji only)
+  - Tab ⭐ "Todos" fixa no topo, tabs custom abaixo
+  - Botão "+" para criar tab, menu de contexto (editar/excluir)
+- [x] Componente `TabDialog.svelte`
+  - Dialog modal para criar/editar tab (emoji + título)
+  - Validação: emoji obrigatório, título max 20 chars
+- [x] Componente `FavoriteItemList.svelte`
+  - Lista agrupada por tipo (Pages → Profiles → Fonts) via `EntityCard`
+  - Long-press (500ms) ativa modo seleção, checkbox visual por card
+  - Adapter `FavoriteItem` → `BrowseEntity` para reutilizar `EntityCard`
+- [x] Componente `SelectionBar.svelte`
+  - Barra flutuante no bottom com count + "Organizar" / "Desfavoritar" / "Cancelar"
+- [x] Componente `TabAssignmentDialog.svelte`
+  - Lista de tabs custom com tri-state checkbox (✓ todos / – parcial / ☐ nenhum)
+  - Toggle adicionar/remover itens selecionados de cada tab
+- [x] Reescrita de `/favorites/+page.svelte`
+  - Layout responsivo: sidebar `lg:grid-cols-[200px_1fr]` (expanded) / horizontal (compact)
+  - Confirm dialog para desfavoritar em lote
+- [x] Barrel exports atualizados (`$lib/index.ts` + `favorites/index.ts`)
+- [x] Mock data migrado: `favoriteFolderId: null` → `favoriteTabIds: []`
+- [x] Stale data detection para v3→v4 migration em `hasMockData()`
+- [x] Test fixtures atualizados: `priority-resolver.test.ts`
+- [x] `npm run build` limpo + `npm run test:run` (29/29 pass)
 
 ### Entregáveis
 
-- Favoritos organizados em pastas (Inbox + custom)
-- Toggle list/tabs
-- Prioridade ajustável inline
-- Navegação rápida para feed de um font
+- Favoritos organizados em tabs (many-to-many, ⭐ Todos + custom)
+- Seleção em lote via long-press + bulk assign/desfavoritar
+- Tabs com emoji + título, CRUD via dialog modal
+- Prioridade ajustável inline (via EntityCard reutilizado)
+- Layout responsivo (sidebar vertical / row horizontal)
 
 ---
 

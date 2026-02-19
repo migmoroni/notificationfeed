@@ -51,6 +51,22 @@ export async function hasMockData(): Promise<boolean> {
 		return false;
 	}
 
+	// Detect stale data from before favoriteTabIds migration (v3→v4)
+	const states = await db.consumerStates.getAll();
+	const staleState = states.find((s: any) => 'favoriteFolderId' in s);
+	if (staleState) {
+		for (const s of states) await db.consumerStates.delete((s as any).entityId);
+		for (const p of profiles) await db.profiles.delete((p as any).id);
+		for (const pg of pages) await db.creatorPages.delete((pg as any).id);
+		const fonts = await db.fonts.getAll();
+		for (const f of fonts) await db.fonts.delete((f as any).id);
+		const posts = await db.posts.getAll();
+		for (const post of posts) await db.posts.delete((post as any).id);
+		const users = await db.users.getAll();
+		for (const u of users) await db.users.delete((u as any).id);
+		return false;
+	}
+
 	return true;
 }
 
@@ -210,7 +226,7 @@ export async function seedMockData(): Promise<void> {
 			entityType: 'font' as const,
 			entityId: IDS.fontRss1,
 			enabled: true,
-			favoriteFolderId: null,
+			favoriteTabIds: [] as string[],
 			priority: 1 as const,
 			favorite: true,
 			overriddenAt: now
@@ -220,7 +236,7 @@ export async function seedMockData(): Promise<void> {
 			entityType: 'profile' as const,
 			entityId: IDS.profileTech,
 			enabled: true,
-			favoriteFolderId: null,
+			favoriteTabIds: [] as string[],
 			priority: 2 as const,
 			favorite: false,
 			overriddenAt: now
@@ -230,7 +246,7 @@ export async function seedMockData(): Promise<void> {
 			entityType: 'font' as const,
 			entityId: IDS.fontRss2,
 			enabled: true,
-			favoriteFolderId: null,
+			favoriteTabIds: [] as string[],
 			priority: null,
 			favorite: false,
 			overriddenAt: now
@@ -240,7 +256,7 @@ export async function seedMockData(): Promise<void> {
 			entityType: 'font' as const,
 			entityId: IDS.fontAtom1,
 			enabled: true,
-			favoriteFolderId: null,
+			favoriteTabIds: [] as string[],
 			priority: null,
 			favorite: true,
 			overriddenAt: now

@@ -1,12 +1,77 @@
 <script lang="ts">
-	// Favorites page — quick access to favorited Pages/Profiles/Fonts
+	import { onMount } from 'svelte';
+	import { favorites } from '$lib/stores/favorites.svelte.js';
+	import { layout } from '$lib/stores/layout.svelte.js';
+	import {
+		TabSidebar,
+		FavoriteItemList,
+		SelectionBar,
+		TabAssignmentDialog
+	} from '$lib/components/favorites/index.js';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+
+	let showAssignment = $state(false);
+	let showRemoveConfirm = $state(false);
+
+	onMount(() => {
+		favorites.loadFavorites();
+	});
+
+	async function handleConfirmRemove() {
+		const ids = [...favorites.selectedItemIds];
+		await favorites.removeFavorites(ids);
+		showRemoveConfirm = false;
+	}
 </script>
 
 <svelte:head>
 	<title>Notfeed — Favorites</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-2xl px-4 py-6">
-	<h1 class="text-2xl font-bold mb-4">Favorites</h1>
-	<p class="text-muted-foreground">Your favorited content sources will appear here.</p>
+<div class="mx-auto w-full px-4 py-4" class:max-w-5xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
+	<div class="mb-4">
+		<h1 class="text-xl font-bold mb-3">Favoritos</h1>
+	</div>
+
+	<div class="grid gap-4 {layout.isExpanded ? 'lg:grid-cols-[200px_1fr]' : ''}">
+		<!-- Sidebar / Horizontal tabs -->
+		<aside class={layout.isExpanded ? 'lg:sticky lg:top-4 lg:self-start' : ''}>
+			<TabSidebar />
+		</aside>
+
+		<!-- Main: filtered items -->
+		<div class={favorites.isSelecting ? 'pb-20' : ''}>
+			<FavoriteItemList items={favorites.filteredItems} loading={favorites.loading} />
+		</div>
+	</div>
 </div>
+
+<!-- Selection bar (fixed bottom) -->
+<SelectionBar
+	onopenAssignment={() => (showAssignment = true)}
+	onopenRemoveConfirm={() => (showRemoveConfirm = true)}
+/>
+
+<!-- Tab assignment dialog -->
+{#if showAssignment}
+	<TabAssignmentDialog onclose={() => (showAssignment = false)} />
+{/if}
+
+<!-- Remove confirm dialog -->
+{#if showRemoveConfirm}
+	<Dialog.Root open={true} onOpenChange={(open) => { if (!open) showRemoveConfirm = false; }}>
+		<Dialog.Content class="sm:max-w-sm">
+			<Dialog.Header>
+				<Dialog.Title>Desfavoritar</Dialog.Title>
+				<Dialog.Description>
+					Remover {favorites.selectedCount} item(s) dos favoritos? Eles não serão excluídos, apenas perderão o status de favorito.
+				</Dialog.Description>
+			</Dialog.Header>
+			<Dialog.Footer>
+				<Button variant="outline" onclick={() => (showRemoveConfirm = false)}>Cancelar</Button>
+				<Button variant="destructive" onclick={handleConfirmRemove}>Confirmar</Button>
+			</Dialog.Footer>
+		</Dialog.Content>
+	</Dialog.Root>
+{/if}

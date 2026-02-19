@@ -15,7 +15,7 @@ export interface Database {
 	categories: TableOps;
 	consumerStates: TableOps;
 	posts: TableOps;
-	favoriteFolders: TableOps;
+	favoriteTabs: TableOps;
 }
 
 export interface TableOps {
@@ -44,7 +44,7 @@ export async function getDatabase(): Promise<Database> {
 
 async function initIndexedDB(): Promise<Database> {
 	return new Promise((resolve, reject) => {
-		const request = indexedDB.open('notfeed', 3);
+		const request = indexedDB.open('notfeed', 4);
 
 		request.onupgradeneeded = (event) => {
 			const idb = request.result;
@@ -92,8 +92,9 @@ async function initIndexedDB(): Promise<Database> {
 
 			// ── v3 → favoriteFolders store + category index migration ──
 
-			if (!idb.objectStoreNames.contains('favoriteFolders')) {
-				idb.createObjectStore('favoriteFolders', { keyPath: 'id' });
+			if (!idb.objectStoreNames.contains('favoriteFolders') && !idb.objectStoreNames.contains('favoriteTabs')) {
+				// Fresh install or upgrading from < v3: create favoriteTabs directly
+				idb.createObjectStore('favoriteTabs', { keyPath: 'id' });
 			}
 
 			// Remove stale indexes from v2 categories (origin, ownerId, categoryId on profiles)
@@ -118,6 +119,34 @@ async function initIndexedDB(): Promise<Database> {
 					}
 				}
 			}
+
+			// ── v4 → favoriteFolders → favoriteTabs + consumerState migration ──
+
+			if (oldVersion > 0 && oldVersion < 4) {
+				// Rename store: delete favoriteFolders, create favoriteTabs
+				if (idb.objectStoreNames.contains('favoriteFolders')) {
+					idb.deleteObjectStore('favoriteFolders');
+				}
+				if (!idb.objectStoreNames.contains('favoriteTabs')) {
+					idb.createObjectStore('favoriteTabs', { keyPath: 'id' });
+				}
+
+				// Migrate consumerStates: favoriteFolderId → favoriteTabIds
+				if (idb.objectStoreNames.contains('consumerStates')) {
+					const tx = (event.target as IDBOpenDBRequest).transaction!;
+					const csStore = tx.objectStore('consumerStates');
+					const getAll = csStore.getAll();
+					getAll.onsuccess = () => {
+						for (const record of getAll.result) {
+							if ('favoriteFolderId' in record) {
+								delete (record as any).favoriteFolderId;
+								(record as any).favoriteTabIds = [];
+								csStore.put(record);
+							}
+						}
+					};
+				}
+			}
 		};
 
 		request.onsuccess = () => {
@@ -130,7 +159,7 @@ async function initIndexedDB(): Promise<Database> {
 				categories: createIndexedDBTable(idb, 'categories'),
 				consumerStates: createIndexedDBTable(idb, 'consumerStates'),
 				posts: createIndexedDBTable(idb, 'posts'),
-				favoriteFolders: createIndexedDBTable(idb, 'favoriteFolders')
+				favoriteTabs: createIndexedDBTable(idb, 'favoriteTabs')
 			});
 		};
 

@@ -45,7 +45,7 @@ function findOrCreateState(entityId: string, entityType: ConsumerEntityType): Co
 		entityType,
 		entityId,
 		enabled: true,
-		favoriteFolderId: null,
+		favoriteTabIds: [],
 		priority: null,
 		favorite: false,
 		overriddenAt: new Date()
@@ -111,6 +111,7 @@ export const consumer = {
 
 		const cs = findOrCreateState(entityId, entityType);
 		cs.favorite = value;
+		if (!value) cs.favoriteTabIds = []; // clear tab assignments when unfavoriting
 		cs.overriddenAt = new Date();
 
 		await repo.setState(state.user.id, cs);
@@ -159,11 +160,11 @@ export const consumer = {
 		};
 	},
 
-	async moveFavoriteToFolder(entityId: string, entityType: ConsumerEntityType, folderId: string | null): Promise<void> {
+	async updateFavoriteTabIds(entityId: string, entityType: ConsumerEntityType, tabIds: string[]): Promise<void> {
 		if (!state.user) return;
 
 		const cs = findOrCreateState(entityId, entityType);
-		cs.favoriteFolderId = folderId;
+		cs.favoriteTabIds = tabIds;
 		cs.overriddenAt = new Date();
 
 		await repo.setState(state.user.id, cs);
