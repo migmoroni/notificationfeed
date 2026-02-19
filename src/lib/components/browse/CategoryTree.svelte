@@ -1,37 +1,55 @@
 <script lang="ts">
-	import type { Category } from '$lib/domain/category/category.js';
+	import type { Category, CategoryTreeId } from '$lib/domain/category/category.js';
 	import { browse } from '$lib/stores/browse.svelte.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import X from '@lucide/svelte/icons/x';
 
 	interface Props {
-		selectedCategoryId: string | null;
-		onselect: (categoryId: string | null) => void;
+		treeId: CategoryTreeId;
+		label: string;
 	}
 
-	let { selectedCategoryId, onselect }: Props = $props();
+	let { treeId, label }: Props = $props();
 
-	// Track which roots are open — persists across tree interactions
+	// Track which roots are open
 	let openRoots: Record<string, boolean> = $state({});
+
+	let roots = $derived(browse.getRootCategories(treeId));
+	let selectedCount = $derived(browse.getSelectedCount(treeId));
 
 	function toggleRoot(rootId: string) {
 		openRoots[rootId] = !openRoots[rootId];
 	}
 
-	function handleSelect(categoryId: string) {
-		if (selectedCategoryId === categoryId) {
-			onselect(null);
-		} else {
-			onselect(categoryId);
-		}
+	function handleToggle(categoryId: string) {
+		browse.toggleCategory(categoryId, treeId);
+	}
+
+	function handleClearTree() {
+		browse.clearTree(treeId);
 	}
 </script>
 
 <div class="flex flex-col gap-0.5">
-	{#each browse.rootCategories as root (root.id)}
+	<div class="flex items-center justify-between px-2 mb-1">
+		<span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</span>
+		{#if selectedCount > 0}
+			<button
+				onclick={handleClearTree}
+				class="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+				aria-label="Limpar filtro de {label}"
+			>
+				<X class="size-3" />
+				{selectedCount}
+			</button>
+		{/if}
+	</div>
+
+	{#each roots as root (root.id)}
 		{@const children = browse.getChildren(root.id)}
 		{@const isOpen = openRoots[root.id] ?? false}
-		{@const hasSelectedChild = children.some((c) => c.id === selectedCategoryId)}
+		{@const hasSelectedChild = children.some((c) => browse.isSelected(c.id, treeId))}
 
 		<Collapsible.Root open={isOpen} onOpenChange={() => toggleRoot(root.id)}>
 			<Collapsible.Trigger
@@ -49,10 +67,11 @@
 			<Collapsible.Content>
 				<div class="ml-4 flex flex-col gap-0.5 border-l border-border pl-2 py-0.5">
 					{#each children as child (child.id)}
+						{@const selected = browse.isSelected(child.id, treeId)}
 						<button
-							onclick={() => handleSelect(child.id)}
+							onclick={() => handleToggle(child.id)}
 							class="flex w-full items-center rounded-md px-2 py-1 text-sm transition-colors text-left
-								{selectedCategoryId === child.id
+								{selected
 								? 'bg-accent text-accent-foreground font-medium'
 								: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
 						>
@@ -64,7 +83,7 @@
 		</Collapsible.Root>
 	{/each}
 
-	{#if browse.rootCategories.length === 0 && !browse.loading}
-		<p class="text-sm text-muted-foreground px-2 py-4">Nenhuma categoria disponível.</p>
+	{#if roots.length === 0 && !browse.loading}
+		<p class="text-sm text-muted-foreground px-2 py-2">Nenhuma categoria.</p>
 	{/if}
 </div>
