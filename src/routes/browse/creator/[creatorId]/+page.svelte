@@ -6,11 +6,12 @@
 	import type { Font } from '$lib/domain/font/font.js';
 	import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
+	import { layout } from '$lib/stores/layout.svelte.js';
 	import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
 	import { createProfileStore } from '$lib/persistence/profile.store.js';
 	import { createFontStore } from '$lib/persistence/font.store.js';
 	import { getPosts } from '$lib/persistence/post.store.js';
-	import { EntityCard, FontCard } from '$lib/components/browse/index.js';
+	import { ProfileCard } from '$lib/components/browse/index.js';
 	import { PostCard } from '$lib/components/feed/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
@@ -23,7 +24,7 @@
 
 	let creatorPage = $state<CreatorPage | null>(null);
 	let profiles: Profile[] = $state([]);
-	let fontsByProfile = $state<Map<string, Font[]>>(new Map());
+	let allFonts: Font[] = $state([]);
 	let posts: CanonicalPost[] = $state([]);
 	let loading = $state(true);
 	let notFound = $state(false);
@@ -33,13 +34,8 @@
 
 	const creatorId = $derived(page.params.creatorId!);
 
-	let allFonts = $derived.by(() => {
-		const result: Font[] = [];
-		for (const fonts of fontsByProfile.values()) {
-			result.push(...fonts);
-		}
-		return result;
-	});
+	let postLimit = $derived(layout.isExpanded ? 8 : 4);
+	let postGridCols = $derived(layout.isExpanded ? 'grid-cols-2' : 'grid-cols-1');
 
 	let sortedPosts: SortedPost[] = $derived.by(() => {
 		if (posts.length === 0) return [];
@@ -68,22 +64,21 @@
 			creatorPage = found;
 			profiles = await profileStore.getByCreatorPageId(creatorId);
 
-			// Load fonts for each profile
-			const fMap = new Map<string, Font[]>();
+			// Load fonts + posts for aggregated posts section
+			const fonts: Font[] = [];
 			const allPosts: CanonicalPost[] = [];
 
 			for (const profile of profiles) {
 				const profileFonts = await fontStore.getByProfileId(profile.id);
-				fMap.set(profile.id, profileFonts);
+				fonts.push(...profileFonts);
 
-				// Load posts from each font
 				for (const font of profileFonts) {
 					const fontPosts = await getPosts({ fontId: font.id });
 					allPosts.push(...fontPosts);
 				}
 			}
 
-			fontsByProfile = fMap;
+			allFonts = fonts;
 			posts = allPosts;
 		} catch (err) {
 			console.error('[CreatorPage] Failed to load:', err);
@@ -107,7 +102,7 @@
 	<title>Notfeed — {creatorPage?.title ?? 'Creator Page'}</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-2xl px-4 py-4">
+<div class="container mx-auto px-4 py-4 {layout.isExpanded ? 'max-w-4xl' : 'max-w-2xl'}">
 	<!-- Back navigation -->
 	<a
 		href="/browse"
@@ -167,7 +162,7 @@
 			</div>
 		</div>
 
-		<!-- Profiles -->
+		<!-- Profiles (collapsible cards with fonts inside) -->
 		<section class="mb-6">
 			<h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
 				Profiles ({profiles.length})
@@ -176,31 +171,13 @@
 			{#if profiles.length === 0}
 				<p class="text-sm text-muted-foreground py-4">Nenhum profile nesta page.</p>
 			{:else}
-				<div class="flex flex-col gap-2">
-					{#each profiles as profile (profile.id)}
-						<EntityCard
-							entity={{ type: 'profile', data: profile }}
-							href="/browse/creator/{creatorId}/profile/{profile.id}"
-						/>
-					{/each}
-				</div>
-			{/if}
-		</section>
-
-		<Separator class="mb-6" />
-
-		<!-- Fonts (across all profiles) -->
-		<section class="mb-6">
-			<h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-				Fonts ({allFonts.length})
-			</h2>
-
-			{#if allFonts.length === 0}
-				<p class="text-sm text-muted-foreground">Nenhuma font nesta page.</p>
-			{:else}
 				<div class="flex flex-col gap-3">
-					{#each allFonts as font (font.id)}
-						<FontCard {font} fontPageHref={fontPageHref(font.profileId, font.id)} />
+					{#each profiles as profile (profile.id)}
+						<ProfileCard
+							{profile}
+							profilePageHref="/browse/creator/{creatorId}/profile/{profile.id}"
+							fontPageHref={(fontId) => fontPageHref(profile.id, fontId)}
+						/>
 					{/each}
 				</div>
 			{/if}
@@ -217,16 +194,16 @@
 			{#if sortedPosts.length === 0}
 				<p class="text-sm text-muted-foreground">Nenhum post ainda.</p>
 			{:else}
-				<div class="flex flex-col gap-2">
-					{#each sortedPosts.slice(0, 20) as sp (sp.post.id)}
+				<div class="grid {postGridCols} gap-2">
+					{#each sortedPosts.slice(0, postLimit) as sp (sp.post.id)}
 						<PostCard sortedPost={sp} />
 					{/each}
-					{#if sortedPosts.length > 20}
-						<p class="text-xs text-muted-foreground text-center py-2">
-							Mostrando 20 de {sortedPosts.length} posts
-						</p>
-					{/if}
 				</div>
+				{#if sortedPosts.length > postLimit}
+					<p class="text-xs text-muted-foreground text-center py-2">
+						Mostrando {postLimit} de {sortedPosts.length} posts
+					</p>
+				{/if}
 			{/if}
 		</section>
 	{/if}

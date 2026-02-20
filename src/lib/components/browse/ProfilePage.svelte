@@ -4,6 +4,7 @@
 	import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 	import type { Category } from '$lib/domain/category/category.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
+	import { layout } from '$lib/stores/layout.svelte.js';
 	import { createProfileStore } from '$lib/persistence/profile.store.js';
 	import { createFontStore } from '$lib/persistence/font.store.js';
 	import { createCategoryStore } from '$lib/persistence/category.store.js';
@@ -118,13 +119,16 @@
 	let creatorPageHref = $derived(
 		profile?.creatorPageId ? `/browse/creator/${profile.creatorPageId}` : null
 	);
+
+	let postLimit = $derived(layout.isExpanded ? 8 : 4);
+	let postGridCols = $derived(layout.isExpanded ? 'grid-cols-2' : 'grid-cols-1');
 </script>
 
 <svelte:head>
 	<title>Notfeed — {profile?.title ?? 'Profile'}</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-2xl px-4 py-4">
+<div class="container mx-auto px-4 py-4 {layout.isExpanded ? 'max-w-4xl' : 'max-w-2xl'}">
 	<!-- Back navigation -->
 	<a
 		href={backHref}
@@ -225,16 +229,16 @@
 			{#if sortedPosts.length === 0}
 				<p class="text-sm text-muted-foreground">Nenhum post ainda.</p>
 			{:else}
-				<div class="flex flex-col gap-2">
-					{#each sortedPosts.slice(0, 20) as sp (sp.post.id)}
+				<div class="grid {postGridCols} gap-2">
+					{#each sortedPosts.slice(0, postLimit) as sp (sp.post.id)}
 						<PostCard sortedPost={sp} />
 					{/each}
-					{#if sortedPosts.length > 20}
-						<p class="text-xs text-muted-foreground text-center py-2">
-							Mostrando 20 de {sortedPosts.length} posts
-						</p>
-					{/if}
 				</div>
+				{#if sortedPosts.length > postLimit}
+					<p class="text-xs text-muted-foreground text-center py-2">
+						Mostrando {postLimit} de {sortedPosts.length} posts
+					</p>
+				{/if}
 			{/if}
 		</section>
 	{/if}

@@ -71,4 +71,4 @@ export { PostCard, FeedList, PriorityFilter, CategoryFilter } from './components
 export type { PriorityFilterValue } from './components/feed/index.js';
 
 // Components — Browse
-export { CategoryTree, TreeSelector, EntityCard, EntityList, SearchBar, FontCard, FontDetail } from './components/browse/index.js';
+export { CategoryTree, TreeSelector, EntityCard, EntityList, SearchBar, FontCard, FontDetail, ProfileCard } from './components/browse/index.js';

@@ -6,6 +6,7 @@
 	import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
+	import { layout } from '$lib/stores/layout.svelte.js';
 	import { createFontStore } from '$lib/persistence/font.store.js';
 	import { createProfileStore } from '$lib/persistence/profile.store.js';
 	import { getPosts } from '$lib/persistence/post.store.js';
@@ -101,13 +102,15 @@
 		if (!font) return;
 		await consumer.setFavorite(font.id, 'font', !isFavorite);
 	}
+
+	let postGridCols = $derived(layout.isExpanded ? 'grid-cols-2' : 'grid-cols-1');
 </script>
 
 <svelte:head>
 	<title>Notfeed — {font?.title ?? 'Font'}</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-2xl px-4 py-4">
+<div class="container mx-auto px-4 py-4 {layout.isExpanded ? 'max-w-4xl' : 'max-w-2xl'}">
 	<!-- Back navigation -->
 	<a
 		href={backHref}
@@ -223,7 +226,7 @@
 			{#if sortedPosts.length === 0}
 				<p class="text-sm text-muted-foreground">Nenhum post ainda.</p>
 			{:else}
-				<div class="flex flex-col gap-2">
+				<div class="grid {postGridCols} gap-2">
 					{#each sortedPosts as sp (sp.post.id)}
 						<PostCard sortedPost={sp} />
 					{/each}

@@ -6,4 +6,5 @@ export { default as SearchBar } from './SearchBar.svelte';
 export { default as FontCard } from './FontCard.svelte';
 export { default as FontDetail } from './FontDetail.svelte';
 export { default as FontPage } from './FontPage.svelte';
+export { default as ProfileCard } from './ProfileCard.svelte';
 export { default as ProfilePage } from './ProfilePage.svelte';

@@ -1,40 +1,36 @@
 <script lang="ts">
+	import type { Profile } from '$lib/domain/profile/profile.js';
 	import type { Font } from '$lib/domain/font/font.js';
-	import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
-	import { layout } from '$lib/stores/layout.svelte.js';
-	import { getPosts } from '$lib/persistence/post.store.js';
+	import { createFontStore } from '$lib/persistence/font.store.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
-	import { formatRelativeDate } from '$lib/utils/date.js';
+	import FontCard from '$lib/components/browse/FontCard.svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
-	import Rss from '@lucide/svelte/icons/rss';
+	import User from '@lucide/svelte/icons/user';
 	import Star from '@lucide/svelte/icons/star';
 	import StarOff from '@lucide/svelte/icons/star-off';
-	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
-	import { onMount } from 'svelte';
 
 	interface Props {
-		font: Font;
-		fontPageHref: string;
+		profile: Profile;
+		profilePageHref: string;
+		/** Computes the font page href given a font id */
+		fontPageHref: (fontId: string) => string;
 	}
 
-	let { font, fontPageHref }: Props = $props();
+	let { profile, profilePageHref, fontPageHref }: Props = $props();
 
 	let open = $state(false);
-	let posts: CanonicalPost[] = $state([]);
-	let loadingPosts = $state(false);
+	let fonts: Font[] = $state([]);
+	let loadingFonts = $state(false);
 	let loaded = $state(false);
 
-	let entityState = $derived(consumer.stateMap.get(font.id));
+	let entityState = $derived(consumer.stateMap.get(profile.id));
 	let currentPriority = $derived(entityState?.priority ?? null);
 	let isFavorite = $derived(entityState?.favorite ?? false);
 	let isEnabled = $derived(entityState?.enabled ?? true);
-
-	let postLimit = $derived(layout.isExpanded ? 8 : 4);
-	let postGridCols = $derived(layout.isExpanded ? 'grid-cols-2' : 'grid-cols-1');
 
 	const priorityConfig: Record<PriorityLevel, { label: string }> = {
 		1: { label: '1' },
@@ -42,40 +38,34 @@
 		3: { label: '3' }
 	};
 
-	const protocolBadge: Record<string, string> = {
-		rss: 'RSS',
-		atom: 'Atom',
-		nostr: 'Nostr'
-	};
-
-	async function loadPosts() {
+	async function loadFonts() {
 		if (loaded) return;
-		loadingPosts = true;
+		loadingFonts = true;
 		try {
-			const result = await getPosts({ fontId: font.id });
-			posts = result.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+			const fontStore = createFontStore();
+			fonts = await fontStore.getByProfileId(profile.id);
 			loaded = true;
 		} finally {
-			loadingPosts = false;
+			loadingFonts = false;
 		}
 	}
 
 	function handleOpenChange() {
 		open = !open;
 		if (open && !loaded) {
-			loadPosts();
+			loadFonts();
 		}
 	}
 
 	async function handlePriority(level: PriorityLevel, e: MouseEvent) {
 		e.stopPropagation();
 		const newLevel = currentPriority === level ? null : level;
-		await consumer.setPriority(font.id, 'font', newLevel);
+		await consumer.setPriority(profile.id, 'profile', newLevel);
 	}
 
 	async function handleFavorite(e: MouseEvent) {
 		e.stopPropagation();
-		await consumer.setFavorite(font.id, 'font', !isFavorite);
+		await consumer.setFavorite(profile.id, 'profile', !isFavorite);
 	}
 </script>
 
@@ -86,17 +76,22 @@
 			<Collapsible.Trigger
 				class="flex flex-1 items-center gap-3 text-left transition-colors hover:bg-accent/30 -m-1.5 p-1.5 rounded-md"
 			>
-				<div class="flex items-center justify-center size-8 shrink-0 rounded-md bg-muted text-muted-foreground">
-					<Rss class="size-4" />
+				<div class="flex items-center justify-center size-9 shrink-0 rounded-md bg-muted text-muted-foreground">
+					<User class="size-4" />
 				</div>
 
 				<div class="flex-1 min-w-0">
 					<div class="flex items-center gap-2">
-						<span class="text-sm font-medium truncate">{font.title}</span>
-						<Badge variant="outline" class="text-[10px] px-1.5 py-0 shrink-0">
-							{protocolBadge[font.protocol] ?? font.protocol}
-						</Badge>
+						<span class="text-sm font-medium truncate">{profile.title}</span>
+						<Badge variant="outline" class="text-[10px] px-1.5 py-0 shrink-0">Profile</Badge>
 					</div>
+					{#if profile.tags.length > 0}
+						<div class="flex flex-wrap gap-1 mt-0.5">
+							{#each profile.tags.slice(0, 3) as tag}
+								<span class="text-[10px] text-muted-foreground bg-muted rounded px-1.5 py-0.5">{tag}</span>
+							{/each}
+						</div>
+					{/if}
 				</div>
 
 				<ChevronRight
@@ -143,63 +138,32 @@
 		<!-- Collapsible content -->
 		<Collapsible.Content>
 			<div class="border-t border-border px-3 py-3">
-				<!-- Config info -->
-				<div class="text-xs text-muted-foreground mb-3">
-					{#if font.protocol === 'nostr'}
-						{@const nostrConfig = font.config as import('$lib/domain/font/font.js').FontNostrConfig}
-						<p>Relays: {nostrConfig.relays?.join(', ') ?? '—'}</p>
-						<p class="truncate">Pubkey: {nostrConfig.pubkey ?? '—'}</p>
-					{:else}
-						{@const feedConfig = font.config as import('$lib/domain/font/font.js').FontRssConfig}
-						<p class="truncate">URL: {feedConfig.url ?? '—'}</p>
-					{/if}
-				</div>
-
-				<!-- Posts preview -->
-				{#if loadingPosts}
-					<div class="grid {postGridCols} gap-2">
-						{#each { length: layout.isExpanded ? 4 : 2 } as _}
-							<div class="animate-pulse rounded border border-border p-2">
+				<!-- Fonts -->
+				{#if loadingFonts}
+					<div class="flex flex-col gap-2">
+						{#each { length: 2 } as _}
+							<div class="animate-pulse rounded border border-border p-3">
 								<div class="h-3 w-40 bg-muted rounded mb-1"></div>
 								<div class="h-2 w-24 bg-muted rounded"></div>
 							</div>
 						{/each}
 					</div>
-				{:else if posts.length === 0 && loaded}
-					<p class="text-xs text-muted-foreground">Nenhum post ainda.</p>
+				{:else if fonts.length === 0 && loaded}
+					<p class="text-xs text-muted-foreground">Nenhuma font neste profile.</p>
 				{:else if loaded}
-					<div class="grid {postGridCols} gap-1.5">
-						{#each posts.slice(0, postLimit) as post (post.id)}
-							<a
-								href={post.url || undefined}
-								target="_blank"
-								rel="noopener noreferrer"
-								class="group/post flex items-start gap-2 rounded border border-border p-2 text-left transition-colors hover:bg-accent/50 {post.read ? 'opacity-60' : ''}"
-							>
-								<div class="flex-1 min-w-0">
-									<p class="text-xs font-medium line-clamp-1">{post.title}</p>
-									<p class="text-[10px] text-muted-foreground mt-0.5">
-										{post.author} · {formatRelativeDate(post.publishedAt)}
-									</p>
-								</div>
-								{#if post.url}
-									<ExternalLink class="size-3 shrink-0 text-muted-foreground mt-0.5" />
-								{/if}
-							</a>
+					<div class="flex flex-col gap-2">
+						{#each fonts as font (font.id)}
+							<FontCard {font} fontPageHref={fontPageHref(font.id)} />
 						{/each}
 					</div>
 				{/if}
 
 				<!-- Redirect button -->
 				<a
-					href={fontPageHref}
+					href={profilePageHref}
 					class="mt-3 flex items-center justify-center gap-2 w-full rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10 hover:border-primary/50"
 				>
-					{#if posts.length > postLimit}
-						Ver todos os {posts.length} posts
-					{:else}
-						Abrir página da font
-					{/if}
+					Abrir página do profile
 					<ArrowUpRight class="size-4" />
 				</a>
 			</div>
