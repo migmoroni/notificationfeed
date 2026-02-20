@@ -28,9 +28,9 @@
 
 	let { backHref, backLabel }: Props = $props();
 
-	let font: Font | null = $state(null);
-	let parentProfile: Profile | null = $state(null);
-	let posts: CanonicalPost[] = $state([]);
+	let font = $state<Font | null>(null);
+	let parentProfile = $state<Profile | null>(null);
+	let posts = $state<CanonicalPost[]>([]);
 	let loading = $state(true);
 	let notFound = $state(false);
 

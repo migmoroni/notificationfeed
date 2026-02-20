@@ -94,7 +94,7 @@ export const consumer = {
 		cs.priority = level;
 		cs.overriddenAt = new Date();
 
-		await repo.setState(state.user.id, cs);
+		await repo.setState(state.user.id, $state.snapshot(cs));
 
 		// Update local state
 		const idx = state.states.findIndex((s) => s.entityId === entityId);
@@ -114,7 +114,7 @@ export const consumer = {
 		if (!value) cs.favoriteTabIds = []; // clear tab assignments when unfavoriting
 		cs.overriddenAt = new Date();
 
-		await repo.setState(state.user.id, cs);
+		await repo.setState(state.user.id, $state.snapshot(cs));
 
 		const idx = state.states.findIndex((s) => s.entityId === entityId);
 		if (idx >= 0) {
@@ -132,7 +132,7 @@ export const consumer = {
 		cs.enabled = !cs.enabled;
 		cs.overriddenAt = new Date();
 
-		await repo.setState(state.user.id, cs);
+		await repo.setState(state.user.id, $state.snapshot(cs));
 
 		const idx = state.states.findIndex((s) => s.entityId === entityId);
 		if (idx >= 0) {
