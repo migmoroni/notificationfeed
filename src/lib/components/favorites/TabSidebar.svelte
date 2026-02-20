@@ -6,8 +6,7 @@
 	import Ellipsis from '@lucide/svelte/icons/ellipsis';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
-	import TabDialog from './TabDialog.svelte';
-	import ConfirmDeleteTabDialog from '$lib/components/shared/ConfirmDeleteTabDialog.svelte';
+	import TabDialog from '$lib/components/shared/TabDialog.svelte';
 
 	let showCreateDialog = $state(false);
 	let editingTab = $state<{ id: string; title: string; emoji: string } | null>(null);
@@ -155,17 +154,17 @@
 </nav>
 
 <!-- Create dialog -->
-{#if showCreateDialog}
-	<TabDialog
-		mode="create"
-		onconfirm={handleCreateConfirm}
-		oncancel={() => (showCreateDialog = false)}
-	/>
-{/if}
+<TabDialog
+	bind:open={showCreateDialog}
+	mode="create"
+	onconfirm={handleCreateConfirm}
+	oncancel={() => (showCreateDialog = false)}
+/>
 
 <!-- Edit dialog -->
 {#if editingTab}
 	<TabDialog
+		open={true}
 		mode="edit"
 		initialTitle={editingTab.title}
 		initialEmoji={editingTab.emoji}
@@ -175,8 +174,9 @@
 {/if}
 
 <!-- Delete tab confirm -->
-<ConfirmDeleteTabDialog
+<TabDialog
 	bind:open={showDeleteConfirm}
+	mode="delete"
 	onconfirm={confirmDeleteTab}
 	oncancel={() => { showDeleteConfirm = false; deletingTabId = null; }}
 />
