@@ -18,9 +18,8 @@
 	import { formatRelativeDate } from '$lib/utils/date.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import User from '@lucide/svelte/icons/user';
-	import Star from '@lucide/svelte/icons/star';
-	import StarOff from '@lucide/svelte/icons/star-off';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
+	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
 
 	/**
 	 * Reusable Profile detail page.
@@ -174,17 +173,7 @@
 			<div class="flex-1 min-w-0">
 				<div class="flex items-center gap-2 mb-1">
 					<h1 class="text-xl font-bold truncate">{profile.title}</h1>
-					<button
-						onclick={handleFavorite}
-						class="shrink-0 transition-colors {isFavorite ? 'text-yellow-500' : 'text-muted-foreground hover:text-foreground'}"
-						aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-					>
-						{#if isFavorite}
-							<Star class="size-5 fill-current" />
-						{:else}
-							<StarOff class="size-5" />
-						{/if}
-					</button>
+					<FavoriteButton favorite={isFavorite} size="md" onclick={handleFavorite} />
 				</div>
 
 				{#if profile.tags.length > 0}

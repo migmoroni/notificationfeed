@@ -18,9 +18,8 @@
 	import { formatRelativeDate } from '$lib/utils/date.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Rss from '@lucide/svelte/icons/rss';
-	import Star from '@lucide/svelte/icons/star';
-	import StarOff from '@lucide/svelte/icons/star-off';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
+	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
 	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 
 	interface Props {
@@ -150,17 +149,7 @@
 					<Badge variant="outline" class="text-[10px] px-1.5 py-0 shrink-0">
 						{protocolBadge[font.protocol] ?? font.protocol}
 					</Badge>
-					<button
-						onclick={handleFavorite}
-						class="shrink-0 transition-colors {isFavorite ? 'text-yellow-500' : 'text-muted-foreground hover:text-foreground'}"
-						aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-					>
-						{#if isFavorite}
-							<Star class="size-5 fill-current" />
-						{:else}
-							<StarOff class="size-5" />
-						{/if}
-					</button>
+					<FavoriteButton favorite={isFavorite} size="md" onclick={handleFavorite} />
 				</div>
 
 				<!-- Config info -->

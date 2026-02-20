@@ -10,11 +10,10 @@
 	import { formatRelativeDate } from '$lib/utils/date.js';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Rss from '@lucide/svelte/icons/rss';
-	import Star from '@lucide/svelte/icons/star';
-	import StarOff from '@lucide/svelte/icons/star-off';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
+	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
 	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 	import { onMount } from 'svelte';
 
@@ -113,18 +112,7 @@
 			<div class="flex items-center gap-1" onclick={(e) => e.stopPropagation()} onkeydown={() => {}}>
 				<PriorityButtons current={currentPriority} onchange={handlePriorityChange} />
 
-				<button
-					onclick={handleFavorite}
-					class="inline-flex items-center justify-center size-6 rounded transition-colors
-						{isFavorite ? 'text-yellow-500' : 'text-muted-foreground hover:text-foreground'}"
-					aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-				>
-					{#if isFavorite}
-						<Star class="size-4 fill-current" />
-					{:else}
-						<StarOff class="size-4" />
-					{/if}
-				</button>
+				<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
 			</div>
 		</div>
 

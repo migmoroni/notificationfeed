@@ -10,9 +10,8 @@
 	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Rss from '@lucide/svelte/icons/rss';
-	import Star from '@lucide/svelte/icons/star';
-	import StarOff from '@lucide/svelte/icons/star-off';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
+	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
 
 	interface Props {
 		font: Font;
@@ -111,18 +110,7 @@
 				<div class="flex items-center gap-2 mb-3">
 					<PriorityButtons current={currentPriority} size="sm" onchange={handlePriorityChange} />
 
-					<button
-						onclick={handleFavorite}
-						class="inline-flex items-center justify-center size-6 rounded transition-colors
-							{isFavorite ? 'text-yellow-500' : 'text-muted-foreground hover:text-foreground'}"
-						aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-					>
-						{#if isFavorite}
-							<Star class="size-4 fill-current" />
-						{:else}
-							<StarOff class="size-4" />
-						{/if}
-					</button>
+					<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
 				</div>
 
 				<!-- Posts -->

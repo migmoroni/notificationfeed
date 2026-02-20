@@ -6,10 +6,9 @@
 	import Globe from '@lucide/svelte/icons/globe';
 	import User from '@lucide/svelte/icons/user';
 	import Rss from '@lucide/svelte/icons/rss';
-	import Star from '@lucide/svelte/icons/star';
-	import StarOff from '@lucide/svelte/icons/star-off';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
+	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
 	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 
 	interface Props {
@@ -93,18 +92,7 @@
 				<PriorityButtons current={currentPriority} onchange={handlePriorityChange} />
 
 				<!-- Favorite toggle -->
-				<button
-					onclick={handleFavorite}
-					class="inline-flex items-center justify-center size-6 rounded transition-colors
-						{isFavorite ? 'text-yellow-500' : 'text-muted-foreground hover:text-foreground'}"
-					aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-				>
-					{#if isFavorite}
-						<Star class="size-4 fill-current" />
-					{:else}
-						<StarOff class="size-4" />
-					{/if}
-				</button>
+				<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
 
 				<!-- Enabled toggle -->
 				<button
