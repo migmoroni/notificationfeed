@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SortedPost } from '$lib/domain/shared/feed-sorter.js';
-	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
+	import PriorityBadge from '$lib/components/shared/PriorityBadge.svelte';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { feed } from '$lib/stores/feed.svelte.js';
 	import { formatRelativeDate } from '$lib/utils/date.js';
@@ -12,12 +12,6 @@
 	}
 
 	let { sortedPost }: Props = $props();
-
-	const priorityConfig: Record<PriorityLevel, { label: string; variant: 'destructive' | 'secondary' | 'outline' }> = {
-		1: { label: 'Alta', variant: 'destructive' },
-		2: { label: 'Média', variant: 'secondary' },
-		3: { label: 'Baixa', variant: 'outline' }
-	};
 
 	function handleClick() {
 		if (!sortedPost.post.read) {
@@ -83,9 +77,7 @@
 				{formatRelativeDate(sortedPost.post.publishedAt)}
 			</time>
 
-			<Badge variant={priorityConfig[sortedPost.priority].variant}>
-				{priorityConfig[sortedPost.priority].label}
-			</Badge>
+			<PriorityBadge level={sortedPost.priority} />
 
 			{#if !sortedPost.post.read}
 				<CircleDot class="size-3 text-primary ml-auto" />

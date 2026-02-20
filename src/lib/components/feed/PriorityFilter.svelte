@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
+	import { PRIORITY_LEVELS } from '$lib/components/shared/priority.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 
 	export type PriorityFilterValue = PriorityLevel | 'all';
@@ -13,9 +14,7 @@
 
 	const options: { value: PriorityFilterValue; label: string }[] = [
 		{ value: 'all', label: 'Todos' },
-		{ value: 1, label: 'Alta' },
-		{ value: 2, label: 'Média' },
-		{ value: 3, label: 'Baixa' }
+		...PRIORITY_LEVELS.map((p) => ({ value: p.level, label: p.name }))
 	];
 
 	function handleChange(newValue: string) {

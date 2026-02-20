@@ -1,12 +1,13 @@
 <script lang="ts">
 	import type { Font } from '$lib/domain/font/font.js';
 	import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
-	import type { ConsumerEntityType, PriorityLevel } from '$lib/domain/shared/consumer-state.js';
+	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { getPosts } from '$lib/persistence/post.store.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import { formatRelativeDate } from '$lib/utils/date.js';
+	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Rss from '@lucide/svelte/icons/rss';
 	import Star from '@lucide/svelte/icons/star';
@@ -35,12 +36,6 @@
 	let isFavorite = $derived(entityState?.favorite ?? false);
 	let isEnabled = $derived(entityState?.enabled ?? true);
 
-	const priorityConfig: Record<PriorityLevel, { label: string; variant: 'destructive' | 'secondary' | 'outline' }> = {
-		1: { label: '1', variant: 'destructive' },
-		2: { label: '2', variant: 'secondary' },
-		3: { label: '3', variant: 'outline' }
-	};
-
 	const protocolBadge: Record<string, string> = {
 		rss: 'RSS',
 		atom: 'Atom',
@@ -66,9 +61,8 @@
 		}
 	}
 
-	async function handlePriority(level: PriorityLevel) {
-		const newLevel = currentPriority === level ? null : level;
-		await consumer.setPriority(font.id, 'font', newLevel);
+	async function handlePriorityChange(level: PriorityLevel | null) {
+		await consumer.setPriority(font.id, 'font', level);
 	}
 
 	async function handleFavorite() {
@@ -115,23 +109,7 @@
 
 				<!-- Actions -->
 				<div class="flex items-center gap-2 mb-3">
-					<div class="flex gap-0.5">
-						{#each [1, 2, 3] as level}
-							{@const pConfig = priorityConfig[level as PriorityLevel]}
-							<button
-								onclick={() => handlePriority(level as PriorityLevel)}
-								class="inline-flex items-center justify-center size-6 rounded text-[10px] font-bold transition-colors border
-									{currentPriority === level
-									? level === 1 ? 'bg-destructive text-destructive-foreground border-destructive'
-										: level === 2 ? 'bg-secondary text-secondary-foreground border-secondary'
-										: 'bg-accent text-accent-foreground border-accent'
-									: 'border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground'}"
-								aria-label="Prioridade {pConfig.label}"
-							>
-								{pConfig.label}
-							</button>
-						{/each}
-					</div>
+					<PriorityButtons current={currentPriority} size="sm" onchange={handlePriorityChange} />
 
 					<button
 						onclick={handleFavorite}

@@ -13,6 +13,7 @@
 	import StarOff from '@lucide/svelte/icons/star-off';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
+	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 
 	interface Props {
 		profile: Profile;
@@ -34,12 +35,6 @@
 	let isFavorite = $derived(entityState?.favorite ?? false);
 	let isEnabled = $derived(entityState?.enabled ?? true);
 
-	const priorityConfig: Record<PriorityLevel, { label: string }> = {
-		1: { label: '1' },
-		2: { label: '2' },
-		3: { label: '3' }
-	};
-
 	async function loadFonts() {
 		if (loaded) return;
 		loadingFonts = true;
@@ -59,10 +54,8 @@
 		}
 	}
 
-	async function handlePriority(level: PriorityLevel, e: MouseEvent) {
-		e.stopPropagation();
-		const newLevel = currentPriority === level ? null : level;
-		await consumer.setPriority(profile.id, 'profile', newLevel);
+	async function handlePriorityChange(level: PriorityLevel | null) {
+		await consumer.setPriority(profile.id, 'profile', level);
 	}
 
 	async function handleFavorite(e: MouseEvent) {
@@ -113,23 +106,7 @@
 			<!-- Actions inline in header -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div class="flex items-center gap-1" onclick={(e) => e.stopPropagation()} onkeydown={() => {}}>
-				<div class="flex gap-0.5">
-					{#each [1, 2, 3] as level}
-						{@const pConfig = priorityConfig[level as PriorityLevel]}
-						<button
-							onclick={(e) => handlePriority(level as PriorityLevel, e)}
-							class="inline-flex items-center justify-center size-6 rounded text-[10px] font-bold transition-colors border
-								{currentPriority === level
-								? level === 1 ? 'bg-destructive text-destructive-foreground border-destructive'
-									: level === 2 ? 'bg-secondary text-secondary-foreground border-secondary'
-									: 'bg-accent text-accent-foreground border-accent'
-								: 'border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground'}"
-							aria-label="Prioridade {pConfig.label}"
-						>
-							{pConfig.label}
-						</button>
-					{/each}
-				</div>
+				<PriorityButtons current={currentPriority} onchange={handlePriorityChange} />
 
 				<button
 					onclick={handleFavorite}

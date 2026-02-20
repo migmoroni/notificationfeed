@@ -10,6 +10,7 @@
 	import StarOff from '@lucide/svelte/icons/star-off';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
+	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 
 	interface Props {
 		entity: BrowseEntity;
@@ -26,21 +27,14 @@
 		font: { label: 'Font', icon: Rss, consumerType: 'font' }
 	};
 
-	const priorityConfig: Record<PriorityLevel, { label: string; variant: 'destructive' | 'secondary' | 'outline' }> = {
-		1: { label: '1', variant: 'destructive' },
-		2: { label: '2', variant: 'secondary' },
-		3: { label: '3', variant: 'outline' }
-	};
-
 	let config = $derived(typeConfig[entity.type]);
 	let entityState = $derived(consumer.stateMap.get(entity.data.id));
 	let currentPriority = $derived(entityState?.priority ?? null);
 	let isFavorite = $derived(entityState?.favorite ?? false);
 	let isEnabled = $derived(entityState?.enabled ?? true);
 
-	async function handlePriority(level: PriorityLevel) {
-		const newLevel = currentPriority === level ? null : level;
-		await consumer.setPriority(entity.data.id, config.consumerType, newLevel);
+	async function handlePriorityChange(level: PriorityLevel | null) {
+		await consumer.setPriority(entity.data.id, config.consumerType, level);
 	}
 
 	async function handleFavorite(e: MouseEvent) {
@@ -96,23 +90,7 @@
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div class="flex items-center gap-2 mt-2" onclick={stopPropagation} onkeydown={() => {}}>
 				<!-- Priority buttons -->
-				<div class="flex gap-0.5">
-					{#each [1, 2, 3] as level}
-						{@const pConfig = priorityConfig[level as PriorityLevel]}
-						<button
-							onclick={(e) => { e.stopPropagation(); handlePriority(level as PriorityLevel); }}
-							class="inline-flex items-center justify-center size-6 rounded text-[10px] font-bold transition-colors border
-								{currentPriority === level
-								? level === 1 ? 'bg-destructive text-destructive-foreground border-destructive'
-									: level === 2 ? 'bg-secondary text-secondary-foreground border-secondary'
-									: 'bg-accent text-accent-foreground border-accent'
-								: 'border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground'}"
-							aria-label="Prioridade {pConfig.label}"
-						>
-							{pConfig.label}
-						</button>
-					{/each}
-				</div>
+				<PriorityButtons current={currentPriority} onchange={handlePriorityChange} />
 
 				<!-- Favorite toggle -->
 				<button

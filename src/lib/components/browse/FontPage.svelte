@@ -21,6 +21,7 @@
 	import Star from '@lucide/svelte/icons/star';
 	import StarOff from '@lucide/svelte/icons/star-off';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
+	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 
 	interface Props {
 		backHref: string;
@@ -42,12 +43,6 @@
 	let currentPriority = $derived(entityState?.priority ?? null);
 	let isFavorite = $derived(entityState?.favorite ?? false);
 	let isEnabled = $derived(entityState?.enabled ?? true);
-
-	const priorityConfig: Record<PriorityLevel, { label: string }> = {
-		1: { label: '1' },
-		2: { label: '2' },
-		3: { label: '3' }
-	};
 
 	const protocolBadge: Record<string, string> = {
 		rss: 'RSS',
@@ -94,10 +89,9 @@
 		}
 	});
 
-	async function handlePriority(level: PriorityLevel) {
+	async function handlePriorityChange(level: PriorityLevel | null) {
 		if (!font) return;
-		const newLevel = currentPriority === level ? null : level;
-		await consumer.setPriority(font.id, 'font', newLevel);
+		await consumer.setPriority(font.id, 'font', level);
 	}
 
 	async function handleFavorite() {
@@ -204,23 +198,7 @@
 		<!-- Priority actions -->
 		<div class="flex items-center gap-2 mb-6">
 			<span class="text-xs text-muted-foreground">Prioridade:</span>
-			<div class="flex gap-0.5">
-				{#each [1, 2, 3] as level}
-					{@const pConfig = priorityConfig[level as PriorityLevel]}
-					<button
-						onclick={() => handlePriority(level as PriorityLevel)}
-						class="inline-flex items-center justify-center size-7 rounded text-xs font-bold transition-colors border
-							{currentPriority === level
-							? level === 1 ? 'bg-destructive text-destructive-foreground border-destructive'
-								: level === 2 ? 'bg-secondary text-secondary-foreground border-secondary'
-								: 'bg-accent text-accent-foreground border-accent'
-							: 'border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground'}"
-						aria-label="Prioridade {pConfig.label}"
-					>
-						{pConfig.label}
-					</button>
-				{/each}
-			</div>
+			<PriorityButtons current={currentPriority} size="md" onchange={handlePriorityChange} />
 
 			<span class="text-xs ml-2 {isEnabled ? 'text-muted-foreground' : 'text-destructive'}">
 				{isEnabled ? 'Ativo' : 'Inativo'}
