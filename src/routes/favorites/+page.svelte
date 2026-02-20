@@ -8,8 +8,7 @@
 		SelectionBar,
 		TabAssignmentDialog
 	} from '$lib/components/favorites/index.js';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
+	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
 
 	let showAssignment = $state(false);
 	let showRemoveConfirm = $state(false);
@@ -59,19 +58,9 @@
 {/if}
 
 <!-- Remove confirm dialog -->
-{#if showRemoveConfirm}
-	<Dialog.Root open={true} onOpenChange={(open) => { if (!open) showRemoveConfirm = false; }}>
-		<Dialog.Content class="sm:max-w-sm">
-			<Dialog.Header>
-				<Dialog.Title>Desfavoritar</Dialog.Title>
-				<Dialog.Description>
-					Remover {favorites.selectedCount} item(s) dos favoritos? Eles não serão excluídos, apenas perderão o status de favorito.
-				</Dialog.Description>
-			</Dialog.Header>
-			<Dialog.Footer>
-				<Button variant="outline" onclick={() => (showRemoveConfirm = false)}>Cancelar</Button>
-				<Button variant="destructive" onclick={handleConfirmRemove}>Confirmar</Button>
-			</Dialog.Footer>
-		</Dialog.Content>
-	</Dialog.Root>
-{/if}
+<ConfirmUnfavoriteDialog
+	bind:open={showRemoveConfirm}
+	count={favorites.selectedCount}
+	onconfirm={handleConfirmRemove}
+	oncancel={() => (showRemoveConfirm = false)}
+/>

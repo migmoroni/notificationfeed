@@ -21,6 +21,7 @@
 	import Globe from '@lucide/svelte/icons/globe';
 	import Star from '@lucide/svelte/icons/star';
 	import StarOff from '@lucide/svelte/icons/star-off';
+	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
 
 	let creatorPage = $state<CreatorPage | null>(null);
 	let profiles: Profile[] = $state([]);
@@ -88,9 +89,21 @@
 		}
 	});
 
+	let showUnfavConfirm = $state(false);
+
 	async function handleFavorite() {
 		if (!creatorPage) return;
-		await consumer.setFavorite(creatorPage.id, 'creator_page', !isFavorite);
+		if (isFavorite) {
+			showUnfavConfirm = true;
+			return;
+		}
+		await consumer.setFavorite(creatorPage.id, 'creator_page', true);
+	}
+
+	async function confirmUnfavorite() {
+		if (!creatorPage) return;
+		await consumer.setFavorite(creatorPage.id, 'creator_page', false);
+		showUnfavConfirm = false;
 	}
 
 	function fontPageHref(profileId: string, fontId: string): string {
@@ -208,3 +221,5 @@
 		</section>
 	{/if}
 </div>
+
+<ConfirmUnfavoriteDialog bind:open={showUnfavConfirm} onconfirm={confirmUnfavorite} oncancel={() => (showUnfavConfirm = false)} />

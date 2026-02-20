@@ -20,6 +20,7 @@
 	import Rss from '@lucide/svelte/icons/rss';
 	import Star from '@lucide/svelte/icons/star';
 	import StarOff from '@lucide/svelte/icons/star-off';
+	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
 
 	interface Props {
 		backHref: string;
@@ -31,6 +32,7 @@
 	let font = $state<Font | null>(null);
 	let parentProfile = $state<Profile | null>(null);
 	let posts = $state<CanonicalPost[]>([]);
+	let showUnfavConfirm = $state(false);
 	let loading = $state(true);
 	let notFound = $state(false);
 
@@ -100,7 +102,17 @@
 
 	async function handleFavorite() {
 		if (!font) return;
-		await consumer.setFavorite(font.id, 'font', !isFavorite);
+		if (isFavorite) {
+			showUnfavConfirm = true;
+			return;
+		}
+		await consumer.setFavorite(font.id, 'font', true);
+	}
+
+	async function confirmUnfavorite() {
+		if (!font) return;
+		await consumer.setFavorite(font.id, 'font', false);
+		showUnfavConfirm = false;
 	}
 
 	let postGridCols = $derived(layout.isExpanded ? 'grid-cols-2' : 'grid-cols-1');
@@ -235,3 +247,5 @@
 		</section>
 	{/if}
 </div>
+
+<ConfirmUnfavoriteDialog bind:open={showUnfavConfirm} onconfirm={confirmUnfavorite} oncancel={() => (showUnfavConfirm = false)} />

@@ -9,6 +9,7 @@
 	import Star from '@lucide/svelte/icons/star';
 	import StarOff from '@lucide/svelte/icons/star-off';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
+	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
 
 	interface Props {
 		entity: BrowseEntity;
@@ -16,6 +17,8 @@
 	}
 
 	let { entity, href = null }: Props = $props();
+
+	let showUnfavConfirm = $state(false);
 
 	const typeConfig: Record<BrowseEntity['type'], { label: string; icon: typeof Globe; consumerType: ConsumerEntityType }> = {
 		creator_page: { label: 'Page', icon: Globe, consumerType: 'creator_page' },
@@ -43,7 +46,16 @@
 	async function handleFavorite(e: MouseEvent) {
 		e.preventDefault();
 		e.stopPropagation();
-		await consumer.setFavorite(entity.data.id, config.consumerType, !isFavorite);
+		if (isFavorite) {
+			showUnfavConfirm = true;
+			return;
+		}
+		await consumer.setFavorite(entity.data.id, config.consumerType, true);
+	}
+
+	async function confirmUnfavorite() {
+		await consumer.setFavorite(entity.data.id, config.consumerType, false);
+		showUnfavConfirm = false;
 	}
 
 	async function handleToggleEnabled(e: MouseEvent) {
@@ -146,3 +158,5 @@
 		{@render cardContent()}
 	</div>
 {/if}
+
+<ConfirmUnfavoriteDialog bind:open={showUnfavConfirm} onconfirm={confirmUnfavorite} oncancel={() => (showUnfavConfirm = false)} />

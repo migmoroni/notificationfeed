@@ -14,6 +14,7 @@
 	import StarOff from '@lucide/svelte/icons/star-off';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
+	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
 	import { onMount } from 'svelte';
 
 	interface Props {
@@ -27,6 +28,7 @@
 	let posts: CanonicalPost[] = $state([]);
 	let loadingPosts = $state(false);
 	let loaded = $state(false);
+	let showUnfavConfirm = $state(false);
 
 	let entityState = $derived(consumer.stateMap.get(font.id));
 	let currentPriority = $derived(entityState?.priority ?? null);
@@ -75,7 +77,16 @@
 
 	async function handleFavorite(e: MouseEvent) {
 		e.stopPropagation();
-		await consumer.setFavorite(font.id, 'font', !isFavorite);
+		if (isFavorite) {
+			showUnfavConfirm = true;
+			return;
+		}
+		await consumer.setFavorite(font.id, 'font', true);
+	}
+
+	async function confirmUnfavorite() {
+		await consumer.setFavorite(font.id, 'font', false);
+		showUnfavConfirm = false;
 	}
 </script>
 
@@ -206,3 +217,5 @@
 		</Collapsible.Content>
 	</div>
 </Collapsible.Root>
+
+<ConfirmUnfavoriteDialog bind:open={showUnfavConfirm} onconfirm={confirmUnfavorite} oncancel={() => (showUnfavConfirm = false)} />

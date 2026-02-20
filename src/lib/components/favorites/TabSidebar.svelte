@@ -7,9 +7,12 @@
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import TabDialog from './TabDialog.svelte';
+	import ConfirmDeleteTabDialog from '$lib/components/shared/ConfirmDeleteTabDialog.svelte';
 
 	let showCreateDialog = $state(false);
 	let editingTab = $state<{ id: string; title: string; emoji: string } | null>(null);
+	let showDeleteConfirm = $state(false);
+	let deletingTabId = $state<string | null>(null);
 	let openMenuId = $state<string | null>(null);
 
 	function handleTabClick(tabId: string) {
@@ -39,7 +42,16 @@
 
 	async function handleDeleteTab(tabId: string) {
 		openMenuId = null;
-		await favorites.deleteTab(tabId);
+		deletingTabId = tabId;
+		showDeleteConfirm = true;
+	}
+
+	async function confirmDeleteTab() {
+		if (deletingTabId) {
+			await favorites.deleteTab(deletingTabId);
+			deletingTabId = null;
+		}
+		showDeleteConfirm = false;
 	}
 
 	function toggleMenu(tabId: string, e: MouseEvent) {
@@ -161,3 +173,10 @@
 		oncancel={() => (editingTab = null)}
 	/>
 {/if}
+
+<!-- Delete tab confirm -->
+<ConfirmDeleteTabDialog
+	bind:open={showDeleteConfirm}
+	onconfirm={confirmDeleteTab}
+	oncancel={() => { showDeleteConfirm = false; deletingTabId = null; }}
+/>

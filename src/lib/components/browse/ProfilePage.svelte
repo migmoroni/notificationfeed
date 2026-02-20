@@ -20,6 +20,7 @@
 	import User from '@lucide/svelte/icons/user';
 	import Star from '@lucide/svelte/icons/star';
 	import StarOff from '@lucide/svelte/icons/star-off';
+	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
 
 	/**
 	 * Reusable Profile detail page.
@@ -104,9 +105,21 @@
 		}
 	});
 
+	let showUnfavConfirm = $state(false);
+
 	async function handleFavorite() {
 		if (!profile) return;
-		await consumer.setFavorite(profile.id, 'profile', !isFavorite);
+		if (isFavorite) {
+			showUnfavConfirm = true;
+			return;
+		}
+		await consumer.setFavorite(profile.id, 'profile', true);
+	}
+
+	async function confirmUnfavorite() {
+		if (!profile) return;
+		await consumer.setFavorite(profile.id, 'profile', false);
+		showUnfavConfirm = false;
 	}
 
 	function fontPageHref(fontId: string): string {
@@ -243,3 +256,5 @@
 		</section>
 	{/if}
 </div>
+
+<ConfirmUnfavoriteDialog bind:open={showUnfavConfirm} onconfirm={confirmUnfavorite} oncancel={() => (showUnfavConfirm = false)} />
