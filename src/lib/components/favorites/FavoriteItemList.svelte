@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { FavoriteItem } from '$lib/stores/favorites.svelte.js';
 	import type { BrowseEntity } from '$lib/stores/browse.svelte.js';
+	import type { Profile } from '$lib/domain/profile/profile.js';
+	import type { Font } from '$lib/domain/font/font.js';
 	import { favorites } from '$lib/stores/favorites.svelte.js';
 	import { EntityCard } from '$lib/components/browse/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
@@ -26,6 +28,30 @@
 
 	function toBrowseEntity(item: FavoriteItem): BrowseEntity {
 		return { type: item.entityType, data: item.entity! } as BrowseEntity;
+	}
+
+	/**
+	 * Compute the /favorites/... href for a given favorite item.
+	 */
+	function itemHref(item: FavoriteItem): string {
+		const entity = item.entity!;
+		switch (item.entityType) {
+			case 'creator_page':
+				return `/favorites/creator/${entity.id}`;
+			case 'profile': {
+				const profile = entity as Profile;
+				if (profile.creatorPageId) {
+					return `/favorites/creator/${profile.creatorPageId}/profile/${profile.id}`;
+				}
+				return `/favorites/profile/${profile.id}`;
+			}
+			case 'font': {
+				const font = entity as Font;
+				return `/favorites/profile/${font.profileId}/font/${font.id}`;
+			}
+			default:
+				return '#';
+		}
 	}
 
 	function handlePointerDown(entityId: string) {
@@ -93,7 +119,7 @@
 							</div>
 						{/if}
 						<div class={favorites.isSelecting ? 'pl-8' : ''}>
-							<EntityCard entity={toBrowseEntity(item)} />
+						<EntityCard entity={toBrowseEntity(item)} href={favorites.isSelecting ? null : itemHref(item)} />
 						</div>
 					</div>
 				{/each}

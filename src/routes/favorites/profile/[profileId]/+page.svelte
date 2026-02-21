@@ -12,9 +12,9 @@
 		const profileStore = createProfileStore();
 		const profile = await profileStore.getById(profileId);
 		if (profile?.creatorPageId) {
-			goto(`/browse/creator/${profile.creatorPageId}/profile/${profile.id}`, { replaceState: true });
+			goto(`/favorites/creator/${profile.creatorPageId}/profile/${profile.id}`, { replaceState: true });
 		}
 	});
 </script>
 
-<ProfilePage {profileId} backHref="/browse" backLabel="Browse" baseHref="/browse" />
+<ProfilePage {profileId} backHref="/favorites" backLabel="Favoritos" baseHref="/favorites" />

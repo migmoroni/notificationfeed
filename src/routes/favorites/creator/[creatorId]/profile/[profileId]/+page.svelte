@@ -8,7 +8,7 @@
 
 <ProfilePage
 	{profileId}
-	backHref={`/browse/creator/${creatorId}`}
+	backHref={`/favorites/creator/${creatorId}`}
 	backLabel="Creator Page"
-	baseHref="/browse"
+	baseHref="/favorites"
 />
