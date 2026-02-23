@@ -10,7 +10,7 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 > Domínio, persistência, ingestão, normalização, layout store.
 
 - [x] Domain models completos (User, CreatorPage, Profile, Font, Category, ConsumerState)
-- [x] Repository contracts + IndexedDB implementations (7 stores)
+- [x] Repository contracts + IndexedDB implementations (8 stores)
 - [x] Ingestion clients (Nostr WebSocket, RSS fetch, Atom fetch)
 - [x] Normalizers (Nostr, RSS, Atom → CanonicalPost)
 - [x] Ingestion scheduler (polling RSS/Atom + WebSocket Nostr)
@@ -221,6 +221,88 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 
 ---
 
+## Fase 4.5 — Componentização, UX e Navegação de Favoritos ✅
+
+> Extrair componentes shared, centralizar prioridade, unificar navegação Browse ↔ Favorites.
+
+### Bug fixes
+
+- [x] `FontPage.svelte` — type narrowing: `$state<Font | null>(null)` para evitar erro de tipo
+- [x] `consumer.svelte.ts` — `$state.snapshot(cs)` antes de writes no IndexedDB para evitar "Proxy object could not be cloned" (ADR-019)
+
+### Shared component layer (`$lib/components/shared/`)
+
+- [x] `ConfirmDialog.svelte` — componente base genérico para diálogos de confirmação
+  - Props: `open`, `title`, `description`, `confirmLabel`, `confirmVariant`
+  - Snippet slot `icon` para ícone custom
+  - Eventos: `onconfirm`, `oncancel`
+- [x] `ConfirmUnfavoriteDialog.svelte` — wrapper especializado (ADR-020)
+  - Ícone StarOff, prop `count` para singular/plural
+  - Texto: "Remover {n} item(ns) dos favoritos?"
+- [x] `TabDialog.svelte` — unificado em 3 modes (antes era separado)
+  - `create`: ícone FolderPlus, "Criar Tab"
+  - `edit`: ícone FolderPen, "Editar Tab"
+  - `delete`: ícone Bookmark+Trash2, "Excluir Tab"
+  - Validação: emoji obrigatório, título max 20 chars
+- [x] `priority.ts` — configuração centralizada de prioridade (ADR-017)
+  - `PRIORITY_LEVELS`, `PRIORITY_MAP`, `PRIORITY_INACTIVE_CLASS`
+  - Interface `PriorityConfig { value, label, variant, icon }`
+- [x] `PriorityButtons.svelte` — toggle group de 3 níveis
+  - Tamanhos: `sm` (cards) e `md` (pages)
+  - Configurado via `PRIORITY_LEVELS` de `priority.ts`
+- [x] `PriorityBadge.svelte` — badge de prioridade com variant/label do `PRIORITY_MAP`
+- [x] `FavoriteButton.svelte` — toggle star (Star/StarOff)
+  - Tamanhos: `sm` (size-6, cards) e `md` (size-5, pages)
+  - Callbacks: `onfavorite`, `onunfavorite`
+
+### Componentes atualizados para usar shared layer
+
+- [x] `FontCard.svelte` — usa PriorityButtons(sm), PriorityBadge, FavoriteButton(sm)
+- [x] `ProfileCard.svelte` — usa PriorityButtons(sm), PriorityBadge, FavoriteButton(sm)
+- [x] `EntityCard.svelte` — usa PriorityButtons(sm), PriorityBadge, FavoriteButton(sm)
+- [x] `PostCard.svelte` — usa PriorityBadge
+- [x] `PriorityFilter.svelte` — usa PRIORITY_MAP para labels
+- [x] `FontPage.svelte` — usa PriorityButtons(md), FavoriteButton(md)
+- [x] `ProfilePage.svelte` — usa FavoriteButton(md)
+- [x] `FontDetail.svelte` — usa PriorityButtons(sm), FavoriteButton(sm)
+
+### Navegação unificada Browse ↔ Favorites (ADR-018)
+
+- [x] Extração de `CreatorPage.svelte` como componente reutilizável
+  - Antes: lógica inline em `/browse/creator/[creatorId]/+page.svelte` (226 linhas)
+  - Depois: componente em `$lib/components/browse/CreatorPage.svelte`
+  - Props: `creatorId`, `backHref`, `backLabel`, `baseHref`
+- [x] `ProfilePage.svelte` — adicionado prop `baseHref` para links contextuais
+  - `fontPageHref` e `creatorPageHref` usam `${baseHref}/...` ao invés de `/browse/...` hardcoded
+- [x] `FavoriteItemList.svelte` — adicionado `itemHref()` para gerar URLs `/favorites/...`
+  - EntityCards agora recebem `href` para drill-down dentro do contexto Favoritos
+- [x] 5 sub-rotas de favoritos (espelham estrutura do Browse):
+  - `/favorites/creator/[creatorId]` → CreatorPage (back: Favoritos, baseHref: /favorites)
+  - `/favorites/profile/[profileId]` → ProfilePage (com redirect se dependente)
+  - `/favorites/creator/[creatorId]/profile/[profileId]` → ProfilePage
+  - `/favorites/profile/[profileId]/font/[fontId]` → FontPage
+  - `/favorites/creator/[creatorId]/profile/[profileId]/font/[fontId]` → FontPage
+- [x] Barrel exports atualizados (`browse/index.ts` exporta CreatorPage)
+
+### Diálogos de confirmação
+
+- [x] `ConfirmUnfavoriteDialog` integrado em `FavoriteItemList.svelte` (desfavoritar em lote)
+- [x] `ConfirmUnfavoriteDialog` integrado em todas as surfaces com toggle favorito
+
+### Verificação
+
+- [x] `npm run build` limpo + `npm run test:run` (29/29 pass)
+
+### Entregáveis
+
+- Componentes shared reutilizáveis (6 .svelte + 1 .ts)
+- Prioridade e favorito centralizados (single source of truth)
+- Navegação drill-down funcional dentro de Favoritos (espelha Browse)
+- Diálogos de confirmação para desfavoritar em todas as surfaces
+- Bug fixes de proxy/type documentados como ADRs
+
+---
+
 ## Fase 5 — Tela de Settings (`/settings`)
 
 > Configurações do consumer + CRUD de Profiles/Fonts próprios.
@@ -372,7 +454,7 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 - [ ] Performance: virtualização de listas longas (>100 posts)
 - [ ] Acessibilidade: keyboard navigation, ARIA labels, focus management
 - [ ] Animações de transição entre compact/expanded
-- [ ] Drag-and-drop para reordenar favoritos entre pastas
+- [ ] Drag-and-drop para reordenar favoritos entre tabs
 
 ### Entregáveis
 

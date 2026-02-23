@@ -77,5 +77,5 @@ Tree: content_type
 - [x] Migração versionada (soft-delete de removidas)
 - [x] Exibir categories por tree (subject / content_type)
 - [x] Filtro de feed por subject e content_type
-- [ ] Árvore colapsável na tela de Browse
+- [x] Árvore colapsável na tela de Browse
 - [ ] Contagem de entidades por sublevel

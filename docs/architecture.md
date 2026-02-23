@@ -99,3 +99,35 @@
 
 A rota standalone (`/browse/profile/{id}`) detecta profiles dependentes e redireciona para a URL canônica sob o creator. Deletar uma CreatorPage desvincula seus profiles (tornam-se standalone), mudando automaticamente seu padrão de navegação.  
 **Consequência**: O Profile tem identidade dual no DDD — pode ser aggregate root ou child entity dependendo do contexto. A URL reflete fielmente a relação de posse. Código de navegação (EntityList, rotas) usa `creatorPageId` para construir hrefs corretos. `PriorityResolver` já suporta ambos os modos via `PriorityContext.creatorPageId`.
+
+## ADR-017: Shared component layer (`$lib/components/shared/`)
+
+**Contexto**: Padrões de UI repetidos em múltiplos componentes (botão de favorito, seletor de prioridade, dialogs de confirmação, dialogs de tab) geram duplicação e inconsistência.  
+**Decisão**: Camada `shared/` contém componentes reutilizáveis agnósticos de domínio:
+- **ConfirmDialog** — base genérica com `icon` snippet, `title`, `description`, `confirmVariant`
+- **ConfirmUnfavoriteDialog** — wrapper com ícone StarOff e texto específico
+- **TabDialog** — dialog unificado com 3 modes (`create` | `edit` | `delete`), cada um com ícone, título e comportamento próprios
+- **PriorityButtons** — toggle group com sizes `sm`/`md`, classes centralizadas em `priority.ts`
+- **PriorityBadge** — badge de prioridade com variant e label
+- **FavoriteButton** — toggle star com sizes `sm`/`md`
+- **priority.ts** — single source of truth (`PRIORITY_LEVELS`, `PRIORITY_MAP`, `PRIORITY_INACTIVE_CLASS`)
+
+**Consequência**: Zero duplicação de config e markup de prioridade/favorito. Mudança visual/comportamental em um único lugar. Componentes de domínio (browse, feed, favorites) consomem shared/ ao invés de reimplementar.
+
+## ADR-018: Navegação unificada Browse ↔ Favorites via `baseHref`
+
+**Contexto**: As telas Browse e Favorites precisam navegar para as mesmas páginas de detalhe (CreatorPage, Profile, Font) mas com contexto de retorno diferente (`/browse` vs `/favorites`).  
+**Decisão**: Componentes de página reutilizáveis (`CreatorPage.svelte`, `ProfilePage.svelte`, `FontPage.svelte`) recebem `backHref`, `backLabel`, e `baseHref` como props. O `baseHref` é usado para gerar links internos (ex: `${baseHref}/creator/${id}/profile/${pid}`). Rotas em `/favorites/...` espelham a árvore de `/browse/...`, passando `baseHref="/favorites"`.  
+**Consequência**: Uma única implementação de UI para cada entidade. Adicionar novos contextos de navegação (ex: `/settings/...`) requer apenas novas rotas thin-wrapper. FavoriteItemList gera hrefs com prefixo `/favorites/` automaticamente.
+
+## ADR-019: `$state.snapshot()` obrigatório para IndexedDB
+
+**Contexto**: Svelte 5 wraps valores `$state` em Proxy objects. O `structured clone algorithm` do IndexedDB (usado em `.put()`) não consegue clonar Proxies, lançando "Proxy object could not be cloned".  
+**Decisão**: Toda escrita em IndexedDB passa por `$state.snapshot(obj)` antes de chamar o repositório. Aplicado em `consumer.svelte.ts` para `setPriority()`, `setFavorite()`, `toggleEnabled()`.  
+**Consequência**: Padrão obrigatório para qualquer store reativo que persista em IndexedDB. Verificação em code review.
+
+## ADR-020: Confirmação obrigatória para desfavoritar
+
+**Contexto**: Desfavoritar remove a entidade da lista de favoritos e de todas as tabs associadas. É uma ação destrutiva que deve ser reversível pelo usuário antes de confirmar.  
+**Decisão**: Toda ação de desfavoritar (em browse e favorites) exibe `ConfirmUnfavoriteDialog` antes de executar. O dialog mostra contagem de itens (singular/plural) e usa variante destrutiva.  
+**Consequência**: Protege contra cliques acidentais. Fluxo consistente em todas as 7+ superfícies onde desfavoritar é possível.

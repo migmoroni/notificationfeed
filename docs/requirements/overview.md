@@ -37,7 +37,7 @@ Notfeed é um cliente de agregação de informação focado em feeds e notifica�
 - **CreatorPage** — artefato publicável com Profiles e Fonts (export JSON offline)
 - **Profile** — identidade temática que agrupa Fonts. Dois modos: standalone (aggregate root) ou dependente (child do agregado CreatorPage)
 - **Font** — canal técnico de distribuição (Nostr, RSS, Atom)
-- **Category** — taxonomia hierárquica (standard do app + custom do consumer)
+- **Category** — taxonomia hierárquica (standard do app; read-only no MVP)
 
 ## Escopo do MVP
 
