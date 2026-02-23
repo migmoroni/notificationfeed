@@ -8,7 +8,11 @@
 	import Rss from '@lucide/svelte/icons/rss';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
+	import ConfirmUnsubscribeDialog from '$lib/components/shared/ConfirmUnsubscribeDialog.svelte';
+	import ConfirmUnfollowDialog from '$lib/components/shared/ConfirmUnfollowDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
+	import SubscribeButton from '$lib/components/shared/SubscribeButton.svelte';
+	import FollowButton from '$lib/components/shared/FollowButton.svelte';
 	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 
 	interface Props {
@@ -19,6 +23,8 @@
 	let { entity, href = null }: Props = $props();
 
 	let showUnfavConfirm = $state(false);
+	let showUnsubscribeConfirm = $state(false);
+	let showUnfollowConfirm = $state(false);
 
 	const typeConfig: Record<BrowseEntity['type'], { label: string; icon: typeof Globe; consumerType: ConsumerEntityType }> = {
 		creator_page: { label: 'Page', icon: Globe, consumerType: 'creator_page' },
@@ -54,7 +60,26 @@
 	async function handleToggleEnabled(e: MouseEvent) {
 		e.preventDefault();
 		e.stopPropagation();
+		// If currently enabled (subscribed/following), show confirmation
+		if (isEnabled) {
+			if (entity.type === 'creator_page') {
+				showUnsubscribeConfirm = true;
+			} else {
+				showUnfollowConfirm = true;
+			}
+			return;
+		}
 		await consumer.toggleEnabled(entity.data.id, config.consumerType);
+	}
+
+	async function confirmUnsubscribe() {
+		await consumer.toggleEnabled(entity.data.id, config.consumerType);
+		showUnsubscribeConfirm = false;
+	}
+
+	async function confirmUnfollow() {
+		await consumer.toggleEnabled(entity.data.id, config.consumerType);
+		showUnfollowConfirm = false;
 	}
 
 	function stopPropagation(e: MouseEvent) {
@@ -94,15 +119,14 @@
 				<!-- Favorite toggle -->
 				<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
 
-				<!-- Enabled toggle -->
-				<button
-					onclick={handleToggleEnabled}
-					class="ml-auto text-[10px] px-1.5 py-0.5 rounded transition-colors
-						{isEnabled ? 'text-muted-foreground hover:text-foreground' : 'text-destructive'}"
-					aria-label={isEnabled ? 'Desativar' : 'Ativar'}
-				>
-					{isEnabled ? 'Ativo' : 'Inativo'}
-				</button>
+				<!-- Subscribe/Follow toggle -->
+				<div class="ml-auto">
+					{#if entity.type === 'creator_page'}
+						<SubscribeButton subscribed={isEnabled} onclick={handleToggleEnabled} />
+					{:else}
+						<FollowButton following={isEnabled} onclick={handleToggleEnabled} />
+					{/if}
+				</div>
 			</div>
 		</div>
 
@@ -126,3 +150,5 @@
 {/if}
 
 <ConfirmUnfavoriteDialog bind:open={showUnfavConfirm} onconfirm={confirmUnfavorite} oncancel={() => (showUnfavConfirm = false)} />
+<ConfirmUnsubscribeDialog bind:open={showUnsubscribeConfirm} title={entity.data.title} onconfirm={confirmUnsubscribe} oncancel={() => (showUnsubscribeConfirm = false)} />
+<ConfirmUnfollowDialog bind:open={showUnfollowConfirm} title={entity.data.title} onconfirm={confirmUnfollow} oncancel={() => (showUnfollowConfirm = false)} />

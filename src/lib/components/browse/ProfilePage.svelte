@@ -19,7 +19,9 @@
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import User from '@lucide/svelte/icons/user';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
+	import ConfirmUnfollowDialog from '$lib/components/shared/ConfirmUnfollowDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
+	import FollowButton from '$lib/components/shared/FollowButton.svelte';
 
 	/**
 	 * Reusable Profile detail page.
@@ -49,6 +51,7 @@
 
 	let entityState = $derived(profile ? consumer.stateMap.get(profile.id) : undefined);
 	let isFavorite = $derived(entityState?.favorite ?? false);
+	let isFollowing = $derived(entityState?.enabled ?? true);
 
 	let sortedPosts: SortedPost[] = $derived.by(() => {
 		if (posts.length === 0) return [];
@@ -107,6 +110,7 @@
 	});
 
 	let showUnfavConfirm = $state(false);
+	let showUnfollowConfirm = $state(false);
 
 	async function handleFavorite() {
 		if (!profile) return;
@@ -121,6 +125,21 @@
 		if (!profile) return;
 		await consumer.setFavorite(profile.id, 'profile', false);
 		showUnfavConfirm = false;
+	}
+
+	async function handleFollow() {
+		if (!profile) return;
+		if (isFollowing) {
+			showUnfollowConfirm = true;
+			return;
+		}
+		await consumer.toggleEnabled(profile.id, 'profile');
+	}
+
+	async function confirmUnfollow() {
+		if (!profile) return;
+		await consumer.toggleEnabled(profile.id, 'profile');
+		showUnfollowConfirm = false;
 	}
 
 	function fontPageHref(fontId: string): string {
@@ -176,6 +195,7 @@
 				<div class="flex items-center gap-2 mb-1">
 					<h1 class="text-xl font-bold truncate">{profile.title}</h1>
 					<FavoriteButton favorite={isFavorite} size="md" onclick={handleFavorite} />
+					<FollowButton following={isFollowing} size="md" onclick={handleFollow} />
 				</div>
 
 				{#if profile.tags.length > 0}
@@ -249,3 +269,4 @@
 </div>
 
 <ConfirmUnfavoriteDialog bind:open={showUnfavConfirm} onconfirm={confirmUnfavorite} oncancel={() => (showUnfavConfirm = false)} />
+<ConfirmUnfollowDialog bind:open={showUnfollowConfirm} title={profile?.title ?? ''} onconfirm={confirmUnfollow} oncancel={() => (showUnfollowConfirm = false)} />

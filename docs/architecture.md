@@ -131,3 +131,21 @@ A rota standalone (`/browse/profile/{id}`) detecta profiles dependentes e redire
 **Contexto**: Desfavoritar remove a entidade da lista de favoritos e de todas as tabs associadas. É uma ação destrutiva que deve ser reversível pelo usuário antes de confirmar.  
 **Decisão**: Toda ação de desfavoritar (em browse e favorites) exibe `ConfirmUnfavoriteDialog` antes de executar. O dialog mostra contagem de itens (singular/plural) e usa variante destrutiva.  
 **Consequência**: Protege contra cliques acidentais. Fluxo consistente em todas as 7+ superfícies onde desfavoritar é possível.
+
+## ADR-021: Subscribe/Follow como UI labels para enabled
+
+**Contexto**: O campo `ConsumerState.enabled` controlava "ativo/inativo" — terminologia genérica sem significado claro para o usuário.  
+**Decisão**: Revestir `enabled` com terminologia contextual: "Inscrito/Inscrever-se" (SubscribeButton) para CreatorPages, "Segue/Seguir" (FollowButton) para Profiles e Fonts. Ambos mapeiam para o mesmo `toggleEnabled()` do consumer store. Confirmação obrigatória para desinscrever/deixar de seguir via ConfirmUnsubscribeDialog/ConfirmUnfollowDialog.  
+**Consequência**: Sem alteração no domínio. Quatro novos componentes shared. Terminologia consistente em todas as surfaces (cards, detail pages, EntityCard).
+
+## ADR-022: Multi-user com activeUser store
+
+**Contexto**: O app precisa suportar dois tipos de usuário (consumer e creator) com navegações distintas.  
+**Decisão**: Criar `activeUser.svelte.ts` como store de identidade ativa. O layout condiciona a nav (consumer: 4 itens / creator: 3 itens) via `$derived` no `activeUser.role`. A rota `/user` centraliza CRUD de usuários, troca de identidade e configurações. Boot sequence: `activeUser.init()` → `consumer.init()` → `activeUser.setActive()`.  
+**Consequência**: Trocar de usuário recarrega stores. Creator é "local" por padrão (`syncStatus: 'local'`). Rotas `/pages` e `/library` são placeholders até Fase 6.
+
+## ADR-023: Import dual-mode (.notfeed.json + URLs)
+
+**Contexto**: Consumers precisam adicionar conteúdo de duas formas: importar páginas completas (.notfeed.json) de creators, ou colar URLs simples de feeds RSS/Atom.  
+**Decisão**: `ImportService` com dois métodos: `importNotfeedJson()` cria CreatorPage + Profiles + Fonts com IDs novos e `syncStatus: 'imported'`, com detecção de duplicatas via `exportId`. `importSimpleUrls()` agrupa URLs em um Profile standalone. UI em `/browse/import` com tabs (Arquivo / URLs) e preview antes de importar. Botão "Importar" no header do Browse.  
+**Consequência**: Import é consumer-only. Export completo (creator-side) será Fase 6. Detecção de protocolo é heurística (baseada em URL patterns).

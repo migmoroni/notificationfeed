@@ -19,7 +19,9 @@
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Globe from '@lucide/svelte/icons/globe';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
+	import ConfirmUnsubscribeDialog from '$lib/components/shared/ConfirmUnsubscribeDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
+	import SubscribeButton from '$lib/components/shared/SubscribeButton.svelte';
 
 	/**
 	 * Reusable Creator Page detail view.
@@ -46,6 +48,7 @@
 
 	let entityState = $derived(creatorPage ? consumer.stateMap.get(creatorPage.id) : undefined);
 	let isFavorite = $derived(entityState?.favorite ?? false);
+	let isSubscribed = $derived(entityState?.enabled ?? true);
 
 	let postLimit = $derived(layout.isExpanded ? 8 : 4);
 	let postGridCols = $derived(layout.isExpanded ? 'grid-cols-2' : 'grid-cols-1');
@@ -101,6 +104,7 @@
 	});
 
 	let showUnfavConfirm = $state(false);
+	let showUnsubscribeConfirm = $state(false);
 
 	async function handleFavorite() {
 		if (!creatorPage) return;
@@ -115,6 +119,21 @@
 		if (!creatorPage) return;
 		await consumer.setFavorite(creatorPage.id, 'creator_page', false);
 		showUnfavConfirm = false;
+	}
+
+	async function handleSubscribe() {
+		if (!creatorPage) return;
+		if (isSubscribed) {
+			showUnsubscribeConfirm = true;
+			return;
+		}
+		await consumer.toggleEnabled(creatorPage.id, 'creator_page');
+	}
+
+	async function confirmUnsubscribe() {
+		if (!creatorPage) return;
+		await consumer.toggleEnabled(creatorPage.id, 'creator_page');
+		showUnsubscribeConfirm = false;
 	}
 
 	function profilePageHref(profileId: string): string {
@@ -164,6 +183,7 @@
 				<div class="flex items-center gap-2 mb-1">
 					<h1 class="text-xl font-bold truncate">{creatorPage.title}</h1>
 					<FavoriteButton favorite={isFavorite} size="md" onclick={handleFavorite} />
+					<SubscribeButton subscribed={isSubscribed} size="md" onclick={handleSubscribe} />
 				</div>
 
 				{#if creatorPage.bio}
@@ -228,3 +248,4 @@
 </div>
 
 <ConfirmUnfavoriteDialog bind:open={showUnfavConfirm} onconfirm={confirmUnfavorite} oncancel={() => (showUnfavConfirm = false)} />
+<ConfirmUnsubscribeDialog bind:open={showUnsubscribeConfirm} title={creatorPage?.title ?? ''} onconfirm={confirmUnsubscribe} oncancel={() => (showUnsubscribeConfirm = false)} />

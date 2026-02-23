@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { browse } from '$lib/stores/browse.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { TreeSelector, EntityList, SearchBar } from '$lib/components/browse/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
 	import X from '@lucide/svelte/icons/x';
+	import Upload from '@lucide/svelte/icons/upload';
 
 	onMount(() => {
 		if (browse.categories.length === 0) {
@@ -18,8 +21,12 @@
 
 <div class="mx-auto w-full px-4 py-4" class:max-w-6xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
 	<!-- Header -->
-	<div class="mb-4">
-		<h1 class="text-xl font-bold mb-3">Browse</h1>
+	<div class="mb-4 flex items-center justify-between">
+		<h1 class="text-xl font-bold">Browse</h1>
+		<Button variant="outline" size="sm" onclick={() => goto('/browse/import')}>
+			<Upload class="mr-1.5 size-4" />
+			Importar
+		</Button>
 	</div>
 
 	<div class="grid gap-4 {layout.isExpanded ? 'lg:grid-cols-[260px_1fr]' : 'md:grid-cols-[220px_1fr]'}">

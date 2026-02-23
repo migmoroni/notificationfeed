@@ -30,10 +30,16 @@
 | **InputCapability** | Tipo de input detectado (`touch`, `pointer`, `hybrid`). Refinamento para interações — não altera o layout mode. |
 | **Favorito** | Flag booleana em `ConsumerState` que marca uma entidade (Page/Profile/Font) para acesso rápido. Favoritos podem ser organizados em `FavoriteTab`s (⭐ Todos por padrão). Desfavoritar requer confirmação via `ConfirmUnfavoriteDialog`. |
 | **FeedSorter** | Algoritmo de ordenação do feed: agrupa por prioridade (1→2→3), ordena por data dentro de cada grupo. Posts de prioridade alta sempre aparecem antes, mesmo que mais antigos. |
-| **SharedComponents** | Camada `$lib/components/shared/` com componentes reutilizáveis: `ConfirmDialog` (base genérica), `ConfirmUnfavoriteDialog`, `TabDialog` (3 modes: create/edit/delete), `PriorityButtons`, `PriorityBadge`, `FavoriteButton`, `priority.ts` (config centralizada). |
+| **SharedComponents** | Camada `$lib/components/shared/` com componentes reutilizáveis: `ConfirmDialog` (base genérica), `ConfirmUnfavoriteDialog`, `ConfirmUnsubscribeDialog`, `ConfirmUnfollowDialog`, `TabDialog` (3 modes: create/edit/delete), `PriorityButtons`, `PriorityBadge`, `FavoriteButton`, `SubscribeButton`, `FollowButton`, `priority.ts` (config centralizada). |
 | **PriorityButtons** | Componente shared com toggle group de 3 níveis. Tamanhos: `sm` (cards) e `md` (pages). Configurado via `priority.ts`. |
 | **PriorityBadge** | Componente shared que exibe badge de prioridade com variant e label do `PRIORITY_MAP`. |
 | **FavoriteButton** | Componente shared com toggle star. Tamanhos: `sm` (size-6, cards) e `md` (size-5, pages). |
 | **ConfirmDialog** | Componente base genérico para confirmações. Aceita `icon` snippet, `title`, `description`, `confirmVariant`. Wrappers especializados herdam dele. |
 | **TabDialog** | Componente unificado para CRUD de tabs. 3 modes: `create` (FolderPlus), `edit` (FolderPen), `delete` (Bookmark+Trash2). Cada modo com ícone, título e comportamento únicos. |
 | **baseHref** | Prop de componentes de página (`CreatorPage`, `ProfilePage`) que define o prefixo de URL para links internos. Permite reutilizar o mesmo componente em `/browse` e `/favorites`. |
+| **SubscribeButton** | Componente shared para toggle de inscrição em CreatorPages. UI: "Inscrito" (verde, UserCheck) / "Inscrever-se" (muted, UserPlus). Mapeia para `ConsumerState.enabled`. Tamanhos: `sm` e `md`. |
+| **FollowButton** | Componente shared para toggle de seguir Profiles/Fonts. UI: "Segue" (azul, Eye) / "Seguir" (muted, EyeOff). Mapeia para `ConsumerState.enabled`. Tamanhos: `sm` e `md`. |
+| **ConfirmUnsubscribeDialog** | Dialog de confirmação para cancelar inscrição em CreatorPage. Usa UserMinus + variante destrutiva. |
+| **ConfirmUnfollowDialog** | Dialog de confirmação para deixar de seguir Profile/Font. Usa EyeOff + variante destrutiva. |
+| **activeUser** | Store reativo (`active-user.svelte.ts`) que gerencia identidade ativa (consumer ou creator). Controla nav condicional. API: `init()`, `switchTo()`, `createConsumer()`, `createCreator()`. |
+| **ImportService** | Serviço (`import.service.ts`) para importar conteúdo. Dois modos: `importNotfeedJson()` (página completa) e `importSimpleUrls()` (URLs avulsas → Profile standalone). |

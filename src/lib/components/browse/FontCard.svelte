@@ -13,7 +13,9 @@
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
+	import ConfirmUnfollowDialog from '$lib/components/shared/ConfirmUnfollowDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
+	import FollowButton from '$lib/components/shared/FollowButton.svelte';
 	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 	import { onMount } from 'svelte';
 
@@ -29,6 +31,7 @@
 	let loadingPosts = $state(false);
 	let loaded = $state(false);
 	let showUnfavConfirm = $state(false);
+	let showUnfollowConfirm = $state(false);
 
 	let entityState = $derived(consumer.stateMap.get(font.id));
 	let currentPriority = $derived(entityState?.priority ?? null);
@@ -80,6 +83,20 @@
 		await consumer.setFavorite(font.id, 'font', false);
 		showUnfavConfirm = false;
 	}
+
+	async function handleFollow(e: MouseEvent) {
+		e.stopPropagation();
+		if (isEnabled) {
+			showUnfollowConfirm = true;
+			return;
+		}
+		await consumer.toggleEnabled(font.id, 'font');
+	}
+
+	async function confirmUnfollow() {
+		await consumer.toggleEnabled(font.id, 'font');
+		showUnfollowConfirm = false;
+	}
 </script>
 
 <Collapsible.Root {open} onOpenChange={handleOpenChange}>
@@ -113,6 +130,8 @@
 				<PriorityButtons current={currentPriority} onchange={handlePriorityChange} />
 
 				<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
+
+				<FollowButton following={isEnabled} onclick={handleFollow} />
 			</div>
 		</div>
 
@@ -184,3 +203,4 @@
 </Collapsible.Root>
 
 <ConfirmUnfavoriteDialog bind:open={showUnfavConfirm} onconfirm={confirmUnfavorite} oncancel={() => (showUnfavConfirm = false)} />
+<ConfirmUnfollowDialog bind:open={showUnfollowConfirm} title={font.title} onconfirm={confirmUnfollow} oncancel={() => (showUnfollowConfirm = false)} />

@@ -303,59 +303,71 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 
 ---
 
-## Fase 5 — Tela de Settings (`/settings`)
+## Fase 5 — Experiência Consumer: Subscribe/Follow, Multi-User, Import ✅
 
-> Configurações do consumer + CRUD de Profiles/Fonts próprios.
+> Sistema Subscribe/Follow, multi-user com nav condicional, import de conteúdo.
 
 ### Tarefas
 
-- [ ] Seção "Minha Conta" — nome, display name
-- [ ] Seção "Meus Profiles"
-  - Criar/editar/deletar Profiles (consumer-owned)
-  - Upload de avatar com conversão WEBP (Canvas API)
-  - Seleção de category sublevel
-  - Tags
-- [ ] Seção "Minhas Fonts"
-  - Criar/editar/deletar Fonts dentro de um Profile
-  - Form dinâmico por protocolo:
-    - RSS: campo URL
-    - Atom: campo URL
-    - Nostr: campos relays[] + pubkey + kinds[]
-  - Validação de URL e pubkey
-- [ ] Seção "Reset" — limpar todas as prioridades e favoritos
-- [ ] `npm run build` limpo
+- [x] **activeUser store** (`active-user.svelte.ts`)
+  - `init()`, `switchTo()`, `setActive()`, `createConsumer()`, `createCreator()`
+  - Expõe: `current`, `role`, `isConsumer`, `isCreator`, `allUsers`
+- [x] **Subscribe/Follow components** (4 novos shared)
+  - `SubscribeButton.svelte` — "Inscrito" / "Inscrever-se" (CreatorPages)
+  - `FollowButton.svelte` — "Segue" / "Seguir" (Profiles, Fonts)
+  - `ConfirmUnsubscribeDialog.svelte` — confirmação destrutiva
+  - `ConfirmUnfollowDialog.svelte` — confirmação destrutiva
+- [x] **EntityCard** — SubscribeButton (creator_page) / FollowButton (profile/font)
+- [x] **Detail pages** — CreatorPage, ProfilePage, FontPage com botões md
+- [x] **Cards** — ProfileCard, FontCard, FontDetail com botões sm
+- [x] **Nav condicional** no `+layout.svelte`
+  - Consumer: Feed, Browse, Favoritos, User (4 items)
+  - Creator: Pages, Library, User (3 items)
+- [x] **Rota `/user`** — CRUD de usuários, troca de identidade, configurações
+- [x] **Rotas placeholder** — `/pages`, `/library` (creator mode)
+- [x] **Import service** (`import.service.ts`)
+  - `importNotfeedJson()` — cria CreatorPage + Profiles + Fonts, detecta duplicatas
+  - `importSimpleUrls()` — cria Profile standalone com Fonts por URL
+- [x] **Rota `/browse/import`** — tabs Arquivo/URLs, preview, botão no Browse
+- [x] **Remoção de `/settings`** — migrado para `/user`
+- [x] `npm run build` limpo + 29/29 testes passando
 
 ### Entregáveis
 
-- CRUD funcional de Profiles e Fonts
-- Upload e conversão de imagem WEBP
-- Formulário dinâmico por protocolo
+- Subscribe/Follow em todas as surfaces
+- Multi-user com nav condicional
+- Import .notfeed.json + URLs simples
+- ADRs 021–023
 
 ---
 
-## Fase 6 — Fluxo Creator: CreatorPages
+## Fase 6 — Experiência Creator: CRUD + Export
 
-> Publicação e compartilhamento de páginas editoriais.
+> CRUD de CreatorPages, gerenciamento de Profiles/Fonts do creator, export.
 
 ### Tarefas
 
-- [ ] Rota `/creator` — dashboard do creator
-- [ ] CRUD de CreatorPages
-  - Avatar + banner (WEBP, dimensões validadas)
-  - Tags, bio, título
-- [ ] Vincular Profiles existentes a uma CreatorPage
+- [ ] Rota `/pages` — CRUD de CreatorPages (título, bio, tags, avatar, banner)
+- [ ] Rota `/library` — gerenciamento de Profiles e Fonts do creator
+  - Criar/editar/deletar Profiles (creator-owned, vinculados a CreatorPage)
+  - Criar/editar/deletar Fonts dentro de Profiles
+  - Form dinâmico por protocolo (RSS URL, Atom URL, Nostr relays+pubkey+kinds)
+- [ ] Upload de avatar/banner com conversão WEBP (Canvas API)
+- [ ] Preview de CreatorPage (como consumer veria)
 - [ ] Export `.notfeed.json`
   - Gerar `PageExport` snapshot completo
   - Trigger download do arquivo
-- [ ] Import `.notfeed.json`
-  - File picker com validação do schema
-  - Parsing + criação local com `syncStatus: 'imported'`
+- [ ] Consumer: CRUD de Profiles/Fonts standalone (consumer-owned)
+  - Seção em `/user` ou rota dedicada
+  - Mesmo form dinâmico por protocolo
 - [ ] `npm run build` limpo
 
 ### Entregáveis
 
 - CreatorPages CRUD completo
-- Export/import offline funcional
+- Library de Profiles/Fonts do creator
+- Export .notfeed.json funcional
+- Consumer CRUD de Profiles/Fonts standalone
 
 ---
 

@@ -4,6 +4,7 @@
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { layout, initLayout } from '$lib/stores/layout.svelte.js';
+	import { activeUser } from '$lib/stores/active-user.svelte.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { feed } from '$lib/stores/feed.svelte.js';
 	import { hasMockData, seedMockData } from '$lib/utils/mock-data.js';
@@ -11,18 +12,28 @@
 	import Newspaper from '@lucide/svelte/icons/newspaper';
 	import Search from '@lucide/svelte/icons/search';
 	import Star from '@lucide/svelte/icons/star';
-	import Settings from '@lucide/svelte/icons/settings';
+	import CircleUser from '@lucide/svelte/icons/circle-user';
+	import FileStack from '@lucide/svelte/icons/file-stack';
+	import Library from '@lucide/svelte/icons/library';
 
 	let { children } = $props();
 
 	let ready = $state(false);
 
-	const navItems = [
+	const consumerNav = [
 		{ href: '/', label: 'Feed', icon: Newspaper },
 		{ href: '/browse', label: 'Browse', icon: Search },
-		{ href: '/favorites', label: 'Favorites', icon: Star },
-		{ href: '/settings', label: 'Settings', icon: Settings }
+		{ href: '/favorites', label: 'Favoritos', icon: Star },
+		{ href: '/user', label: 'User', icon: CircleUser }
 	] as const;
+
+	const creatorNav = [
+		{ href: '/pages', label: 'Pages', icon: FileStack },
+		{ href: '/library', label: 'Library', icon: Library },
+		{ href: '/user', label: 'User', icon: CircleUser }
+	] as const;
+
+	let navItems = $derived(activeUser.isCreator ? creatorNav : consumerNav);
 
 	function isActive(href: string): boolean {
 		const path = page.url.pathname;
@@ -32,11 +43,17 @@
 	onMount(() => {
 		const layoutCleanup = initLayout();
 
-		// Initialize data stores (seed categories → consumer → mock → feed)
+		// Initialize data stores (seed categories → active user → consumer → mock → feed)
 		// Must complete before child routes read from IndexedDB.
 		(async () => {
 			await seedCategories();
+			await activeUser.init();
 			await consumer.init();
+
+			// After consumer.init(), sync the active user identity
+			if (consumer.user) {
+				activeUser.setActive(consumer.user);
+			}
 
 			if (!(await hasMockData())) {
 				await seedMockData();

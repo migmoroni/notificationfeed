@@ -19,7 +19,9 @@
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Rss from '@lucide/svelte/icons/rss';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
+	import ConfirmUnfollowDialog from '$lib/components/shared/ConfirmUnfollowDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
+	import FollowButton from '$lib/components/shared/FollowButton.svelte';
 	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 
 	interface Props {
@@ -33,6 +35,7 @@
 	let parentProfile = $state<Profile | null>(null);
 	let posts = $state<CanonicalPost[]>([]);
 	let showUnfavConfirm = $state(false);
+	let showUnfollowConfirm = $state(false);
 	let loading = $state(true);
 	let notFound = $state(false);
 
@@ -106,6 +109,21 @@
 		if (!font) return;
 		await consumer.setFavorite(font.id, 'font', false);
 		showUnfavConfirm = false;
+	}
+
+	async function handleFollow() {
+		if (!font) return;
+		if (isEnabled) {
+			showUnfollowConfirm = true;
+			return;
+		}
+		await consumer.toggleEnabled(font.id, 'font');
+	}
+
+	async function confirmUnfollow() {
+		if (!font) return;
+		await consumer.toggleEnabled(font.id, 'font');
+		showUnfollowConfirm = false;
 	}
 
 	let postGridCols = $derived(layout.isExpanded ? 'grid-cols-2' : 'grid-cols-1');
@@ -189,9 +207,7 @@
 			<span class="text-xs text-muted-foreground">Prioridade:</span>
 			<PriorityButtons current={currentPriority} size="md" onchange={handlePriorityChange} />
 
-			<span class="text-xs ml-2 {isEnabled ? 'text-muted-foreground' : 'text-destructive'}">
-				{isEnabled ? 'Ativo' : 'Inativo'}
-			</span>
+			<FollowButton following={isEnabled} size="md" onclick={handleFollow} />
 		</div>
 
 		<Separator class="mb-6" />
@@ -216,3 +232,4 @@
 </div>
 
 <ConfirmUnfavoriteDialog bind:open={showUnfavConfirm} onconfirm={confirmUnfavorite} oncancel={() => (showUnfavConfirm = false)} />
+<ConfirmUnfollowDialog bind:open={showUnfollowConfirm} title={font?.title ?? ''} onconfirm={confirmUnfollow} oncancel={() => (showUnfollowConfirm = false)} />

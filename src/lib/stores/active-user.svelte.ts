@@ -1,0 +1,158 @@
+/**
+ * Active User Store — manages which user identity is currently active.
+ *
+ * Supports switching between multiple UserConsumer and UserCreator identities.
+ * The active user determines which nav items are shown and which stores are
+ * initialized (consumer vs creator).
+ *
+ * Pattern: module-level $state + exported read-only accessor.
+ */
+
+import type { UserBase, UserRole } from '$lib/domain/user/user.js';
+import type { UserConsumer } from '$lib/domain/user/user-consumer.js';
+import type { UserCreator } from '$lib/domain/user/user-creator.js';
+import { getDatabase } from '$lib/persistence/db.js';
+
+// ── Internal reactive state ────────────────────────────────────────────
+
+interface ActiveUserState {
+	current: UserBase | null;
+	allUsers: UserBase[];
+	loading: boolean;
+}
+
+let state = $state<ActiveUserState>({
+	current: null,
+	allUsers: [],
+	loading: false
+});
+
+// ── Helpers ────────────────────────────────────────────────────────────
+
+async function loadAllUsers(): Promise<UserBase[]> {
+	const db = await getDatabase();
+	const users = await db.users.getAll<UserBase>();
+	return users;
+}
+
+async function persistUser(user: UserBase): Promise<void> {
+	const db = await getDatabase();
+	await db.users.put(user);
+}
+
+// ── Exported accessor ──────────────────────────────────────────────────
+
+export const activeUser = {
+	get current() { return state.current; },
+	get role(): UserRole | null { return state.current?.role ?? null; },
+	get isConsumer() { return state.current?.role === 'consumer'; },
+	get isCreator() { return state.current?.role === 'creator'; },
+	get allUsers() { return state.allUsers; },
+	get consumers() { return state.allUsers.filter((u): u is UserConsumer => u.role === 'consumer'); },
+	get creators() { return state.allUsers.filter((u): u is UserCreator => u.role === 'creator'); },
+	get loading() { return state.loading; },
+
+	/**
+	 * Initialize: load all users from DB. If a consumer exists, activate it.
+	 * Called from +layout.svelte before consumer.init().
+	 */
+	async init(): Promise<void> {
+		if (state.loading) return;
+		state.loading = true;
+
+		try {
+			state.allUsers = await loadAllUsers();
+
+			// Auto-activate the first consumer if none is active
+			if (!state.current) {
+				const consumers = state.allUsers.filter(u => u.role === 'consumer');
+				if (consumers.length > 0) {
+					state.current = consumers[0];
+				}
+			}
+		} finally {
+			state.loading = false;
+		}
+	},
+
+	/**
+	 * Reload the user list (e.g. after creating a new user).
+	 */
+	async reload(): Promise<void> {
+		state.allUsers = await loadAllUsers();
+	},
+
+	/**
+	 * Switch to a different user by ID.
+	 */
+	switchTo(userId: string): void {
+		const user = state.allUsers.find(u => u.id === userId);
+		if (user) {
+			state.current = user;
+		}
+	},
+
+	/**
+	 * Set the active user directly (used during init when consumer.init() creates the user).
+	 */
+	setActive(user: UserBase): void {
+		state.current = user;
+		// Also update in allUsers list if not present
+		if (!state.allUsers.find(u => u.id === user.id)) {
+			state.allUsers = [...state.allUsers, user];
+		}
+	},
+
+	/**
+	 * Create a new consumer user.
+	 */
+	async createConsumer(displayName: string): Promise<UserConsumer> {
+		const now = new Date();
+		const user: UserConsumer = {
+			id: crypto.randomUUID(),
+			role: 'consumer',
+			displayName,
+			follows: [],
+			createdAt: now,
+			updatedAt: now
+		};
+		await persistUser(user);
+		state.allUsers = [...state.allUsers, user];
+		return user;
+	},
+
+	/**
+	 * Create a new creator user (local, no Nostr keypair).
+	 */
+	async createCreator(displayName: string): Promise<UserCreator> {
+		const now = new Date();
+		const user: UserCreator = {
+			id: crypto.randomUUID(),
+			role: 'creator',
+			displayName,
+			nostrKeypair: null,
+			syncStatus: 'local',
+			createdAt: now,
+			updatedAt: now
+		};
+		await persistUser(user);
+		state.allUsers = [...state.allUsers, user];
+		return user;
+	},
+
+	/**
+	 * Update a user's display name.
+	 */
+	async updateDisplayName(userId: string, displayName: string): Promise<void> {
+		const user = state.allUsers.find(u => u.id === userId);
+		if (!user) return;
+
+		const updated = { ...user, displayName, updatedAt: new Date() };
+		await persistUser(updated);
+
+		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		if (state.current?.id === userId) {
+			state.current = updated;
+		}
+	}
+};

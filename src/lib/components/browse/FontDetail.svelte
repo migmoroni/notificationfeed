@@ -8,6 +8,8 @@
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import { formatRelativeDate } from '$lib/utils/date.js';
 	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
+	import ConfirmUnfollowDialog from '$lib/components/shared/ConfirmUnfollowDialog.svelte';
+	import FollowButton from '$lib/components/shared/FollowButton.svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Rss from '@lucide/svelte/icons/rss';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
@@ -67,6 +69,21 @@
 	async function handleFavorite() {
 		await consumer.setFavorite(font.id, 'font', !isFavorite);
 	}
+
+	let showUnfollowConfirm = $state(false);
+
+	async function handleFollow() {
+		if (isEnabled) {
+			showUnfollowConfirm = true;
+			return;
+		}
+		await consumer.toggleEnabled(font.id, 'font');
+	}
+
+	async function confirmUnfollow() {
+		await consumer.toggleEnabled(font.id, 'font');
+		showUnfollowConfirm = false;
+	}
 </script>
 
 <Collapsible.Root {open} onOpenChange={handleOpenChange}>
@@ -111,6 +128,8 @@
 					<PriorityButtons current={currentPriority} size="sm" onchange={handlePriorityChange} />
 
 					<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
+
+					<FollowButton following={isEnabled} onclick={handleFollow} />
 				</div>
 
 				<!-- Posts -->
@@ -156,3 +175,5 @@
 		</Collapsible.Content>
 	</div>
 </Collapsible.Root>
+
+<ConfirmUnfollowDialog bind:open={showUnfollowConfirm} title={font.title} onconfirm={confirmUnfollow} oncancel={() => (showUnfollowConfirm = false)} />
