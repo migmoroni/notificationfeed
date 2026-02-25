@@ -44,16 +44,23 @@
 	onMount(() => {
 		const layoutCleanup = initLayout();
 
-		// Initialize data stores (seed categories → active user → consumer → mock → feed)
+		// Initialize data stores (seed categories → active user → role-specific stores → mock → feed)
 		// Must complete before child routes read from IndexedDB.
 		(async () => {
 			await seedCategories();
 			await activeUser.init();
+
+			// Always init consumer (needed for feed data even when creator is active)
 			await consumer.init();
 
-			// After consumer.init(), sync the active user identity
-			if (consumer.user) {
-				activeUser.setActive(consumer.user);
+			// If restored user is a creator, init creator store
+			if (activeUser.isCreator) {
+				await creator.init(activeUser.current as any);
+			} else {
+				// Consumer flow: sync identity
+				if (consumer.user) {
+					activeUser.setActive(consumer.user);
+				}
 			}
 
 			if (!(await hasMockData())) {
@@ -62,10 +69,12 @@
 
 			await feed.loadFeed();
 
-			// Initialize creator store if a creator user exists
-			const creators = activeUser.creators;
-			if (creators.length > 0) {
-				await creator.init(creators[0]);
+			// Pre-load creator store if creators exist but active user is consumer
+			if (!activeUser.isCreator) {
+				const creators = activeUser.creators;
+				if (creators.length > 0) {
+					await creator.init(creators[0]);
+				}
 			}
 
 			ready = true;

@@ -29,6 +29,16 @@ let state = $state<ActiveUserState>({
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
+const ACTIVE_USER_KEY = 'notfeed:active-user-id';
+
+function saveActiveUserId(userId: string): void {
+	try { localStorage.setItem(ACTIVE_USER_KEY, userId); } catch { /* SSR / private mode */ }
+}
+
+function loadActiveUserId(): string | null {
+	try { return localStorage.getItem(ACTIVE_USER_KEY); } catch { return null; }
+}
+
 async function loadAllUsers(): Promise<UserBase[]> {
 	const db = await getDatabase();
 	const users = await db.users.getAll<UserBase>();
@@ -53,8 +63,9 @@ export const activeUser = {
 	get loading() { return state.loading; },
 
 	/**
-	 * Initialize: load all users from DB. If a consumer exists, activate it.
-	 * Called from +layout.svelte before consumer.init().
+	 * Initialize: load all users from DB.
+	 * Restores the last active user from localStorage; falls back to first consumer.
+	 * Called from +layout.svelte before store-specific init().
 	 */
 	async init(): Promise<void> {
 		if (state.loading) return;
@@ -63,11 +74,20 @@ export const activeUser = {
 		try {
 			state.allUsers = await loadAllUsers();
 
-			// Auto-activate the first consumer if none is active
 			if (!state.current) {
-				const consumers = state.allUsers.filter(u => u.role === 'consumer');
-				if (consumers.length > 0) {
-					state.current = consumers[0];
+				// Try to restore last active user
+				const savedId = loadActiveUserId();
+				const saved = savedId ? state.allUsers.find(u => u.id === savedId) : null;
+
+				if (saved) {
+					state.current = saved;
+				} else {
+					// Fallback: first consumer
+					const consumers = state.allUsers.filter(u => u.role === 'consumer');
+					if (consumers.length > 0) {
+						state.current = consumers[0];
+						saveActiveUserId(consumers[0].id);
+					}
 				}
 			}
 		} finally {
@@ -89,6 +109,7 @@ export const activeUser = {
 		const user = state.allUsers.find(u => u.id === userId);
 		if (user) {
 			state.current = user;
+			saveActiveUserId(user.id);
 		}
 	},
 
@@ -97,6 +118,7 @@ export const activeUser = {
 	 */
 	setActive(user: UserBase): void {
 		state.current = user;
+		saveActiveUserId(user.id);
 		// Also update in allUsers list if not present
 		if (!state.allUsers.find(u => u.id === user.id)) {
 			state.allUsers = [...state.allUsers, user];
