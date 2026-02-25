@@ -116,7 +116,7 @@ export const creator = {
 		if (!state.user) throw new Error('No active creator');
 
 		const page = await pageRepo.create({
-			...data,
+			...$state.snapshot(data),
 			ownerId: state.user.id
 		});
 		state.pages = [...state.pages, page];
@@ -124,7 +124,7 @@ export const creator = {
 	},
 
 	async updatePage(pageId: string, data: Partial<NewCreatorPage>): Promise<CreatorPage> {
-		const updated = await pageRepo.update(pageId, data);
+		const updated = await pageRepo.update(pageId, $state.snapshot(data));
 		state.pages = state.pages.map((p) => (p.id === pageId ? updated : p));
 		return updated;
 	},
@@ -149,7 +149,7 @@ export const creator = {
 		if (!state.user) throw new Error('No active creator');
 
 		const profile = await profileRepo.create({
-			...data,
+			...$state.snapshot(data),
 			ownerType: 'creator',
 			ownerId: state.user.id
 		});
@@ -158,7 +158,7 @@ export const creator = {
 	},
 
 	async updateProfile(profileId: string, data: Partial<NewProfile>): Promise<Profile> {
-		const updated = await profileRepo.update(profileId, data);
+		const updated = await profileRepo.update(profileId, $state.snapshot(data));
 		state.profiles = state.profiles.map((p) => (p.id === profileId ? updated : p));
 		return updated;
 	},
@@ -174,13 +174,13 @@ export const creator = {
 	// ── Font CRUD ────────────────────────────────────────────────────
 
 	async createFont(data: NewFont): Promise<Font> {
-		const font = await fontRepo.create(data);
+		const font = await fontRepo.create($state.snapshot(data));
 		state.fonts = [...state.fonts, font];
 		return font;
 	},
 
 	async updateFont(fontId: string, data: Partial<NewFont>): Promise<Font> {
-		const updated = await fontRepo.update(fontId, data);
+		const updated = await fontRepo.update(fontId, $state.snapshot(data));
 		state.fonts = state.fonts.map((f) => (f.id === fontId ? updated : f));
 		return updated;
 	},
