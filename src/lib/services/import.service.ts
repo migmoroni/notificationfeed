@@ -94,7 +94,7 @@ export async function importNotfeedJson(pageExport: PageExport, consumerId: stri
 			title: profileSnapshot.title,
 			tags: profileSnapshot.tags ?? [],
 			avatar: profileSnapshot.avatar ?? null,
-			categoryAssignments: [],
+			categoryAssignments: profileSnapshot.categoryAssignments ?? [],
 			defaultEnabled: profileSnapshot.defaultEnabled ?? true
 		});
 

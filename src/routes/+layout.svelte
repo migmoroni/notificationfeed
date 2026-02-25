@@ -6,6 +6,7 @@
 	import { layout, initLayout } from '$lib/stores/layout.svelte.js';
 	import { activeUser } from '$lib/stores/active-user.svelte.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
+	import { creator } from '$lib/stores/creator.svelte.js';
 	import { feed } from '$lib/stores/feed.svelte.js';
 	import { hasMockData, seedMockData } from '$lib/utils/mock-data.js';
 	import { seedCategories } from '$lib/persistence/category-seed.service.js';
@@ -14,7 +15,7 @@
 	import Star from '@lucide/svelte/icons/star';
 	import CircleUser from '@lucide/svelte/icons/circle-user';
 	import FileStack from '@lucide/svelte/icons/file-stack';
-	import Library from '@lucide/svelte/icons/library';
+	import Eye from '@lucide/svelte/icons/eye';
 
 	let { children } = $props();
 
@@ -29,7 +30,7 @@
 
 	const creatorNav = [
 		{ href: '/pages', label: 'Pages', icon: FileStack },
-		{ href: '/library', label: 'Library', icon: Library },
+		{ href: '/preview', label: 'Preview', icon: Eye },
 		{ href: '/user', label: 'User', icon: CircleUser }
 	] as const;
 
@@ -60,6 +61,13 @@
 			}
 
 			await feed.loadFeed();
+
+			// Initialize creator store if a creator user exists
+			const creators = activeUser.creators;
+			if (creators.length > 0) {
+				await creator.init(creators[0]);
+			}
+
 			ready = true;
 		})();
 

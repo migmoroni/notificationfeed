@@ -9,6 +9,7 @@
  */
 
 import type { ImageAsset } from '../shared/image-asset.js';
+import type { PageExport } from './page-export.js';
 
 export type PageSyncStatus = 'local' | 'synced' | 'exported' | 'imported';
 
@@ -40,13 +41,35 @@ export interface CreatorPage {
 	/** Stable export ID — generated once, preserved across re-exports */
 	exportId: string | null;
 
+	/**
+	 * Immutable snapshot of the last published version.
+	 * Edits to the page do NOT affect the published snapshot until re-publish.
+	 * `null` means never published (draft).
+	 */
+	publishedSnapshot: PageExport | null;
+
+	/** When the page was last published */
+	publishedAt: Date | null;
+
+	/** Increments on every publish (starts at 0 = never published) */
+	publishedVersion: number;
+
 	createdAt: Date;
 	updatedAt: Date;
 }
 
 export type NewCreatorPage = Omit<
 	CreatorPage,
-	'id' | 'createdAt' | 'updatedAt' | 'nostrPublicKey' | 'blossomRef' | 'syncStatus' | 'exportId'
+	| 'id'
+	| 'createdAt'
+	| 'updatedAt'
+	| 'nostrPublicKey'
+	| 'blossomRef'
+	| 'syncStatus'
+	| 'exportId'
+	| 'publishedSnapshot'
+	| 'publishedAt'
+	| 'publishedVersion'
 >;
 
 /**
@@ -61,4 +84,5 @@ export interface CreatorPageRepository {
 	update(id: string, data: Partial<NewCreatorPage>): Promise<CreatorPage>;
 	delete(id: string): Promise<void>;
 	setSyncStatus(id: string, status: PageSyncStatus): Promise<void>;
+	setPublished(id: string, snapshot: PageExport, version: number): Promise<void>;
 }

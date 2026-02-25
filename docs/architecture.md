@@ -149,3 +149,27 @@ A rota standalone (`/browse/profile/{id}`) detecta profiles dependentes e redire
 **Contexto**: Consumers precisam adicionar conteúdo de duas formas: importar páginas completas (.notfeed.json) de creators, ou colar URLs simples de feeds RSS/Atom.  
 **Decisão**: `ImportService` com dois métodos: `importNotfeedJson()` cria CreatorPage + Profiles + Fonts com IDs novos e `syncStatus: 'imported'`, com detecção de duplicatas via `exportId`. `importSimpleUrls()` agrupa URLs em um Profile standalone. UI em `/browse/import` com tabs (Arquivo / URLs) e preview antes de importar. Botão "Importar" no header do Browse.  
 **Consequência**: Import é consumer-only. Export completo (creator-side) será Fase 6. Detecção de protocolo é heurística (baseada em URL patterns).
+
+## ADR-024: Publish como snapshot versionado
+
+**Contexto**: Creators editam CreatorPages livremente. Publicar deve gerar uma "foto" imutável da page atual, sem afetar o rascunho em edição.  
+**Decisão**: `publishPage()` no creator store constrói um `PageExport` snapshot a partir dos dados live (page + profiles + fonts), incrementa `publishedVersion` e persiste `publishedSnapshot`, `publishedAt` e `publishedVersion` no CreatorPage. O snapshot segue o mesmo formato de `.notfeed.json` para export. `exportId` é gerado via `crypto.randomUUID()` na primeira publicação.  
+**Consequência**: Edições depois de publicar não aparecem no preview/export até nova publicação. Consumers que importam o `.notfeed.json` recebem exatamente o que foi publicado. Versionamento permite rastrear mudanças.
+
+## ADR-025: Separação creator/consumer com ownerType
+
+**Contexto**: Profiles e Fonts podem pertencer a um consumer (uso local) ou a um creator (curadoria publicável). Os dois espaços não devem interferir entre si.  
+**Decisão**: Campo `ownerType: 'consumer' | 'creator'` nos Profiles distingue propriedade. Fonts herdam o contexto do Profile pai. O creator store filtra por `ownerType === 'creator'` e `ownerId === creatorUser.id`. Copy-from-consumer faz deep copy com novos IDs e `ownerType: 'creator'`.  
+**Consequência**: Dados de consumer e creator coexistem na mesma tabela de IndexedDB mas são logicamente isolados. Um mesmo feed (ex: Hacker News) pode existir nos dois espaços com identidades distintas.
+
+## ADR-026: Preview = visão estática + feed
+
+**Contexto**: Creators precisam ver como sua page publicada aparece para consumers.  
+**Decisão**: Rota `/preview` exibe pages publicadas com duas tabs: "Visão Geral" (snapshot estático: bio, profiles, fonts como cards) e "Feed" (posts reais ingeridos das fonts da page). O preview-feed store resolve fontIds a partir dos profiles live da page publicada e filtra posts do IndexedDB.  
+**Consequência**: Preview é read-only. Feed mostra dados reais (não simulados) — requer que as fonts tenham sido ingeridas. Se nenhuma page está publicada, mostra empty state com link para `/pages`.
+
+## ADR-027: Remoção de /library, adição de /preview
+
+**Contexto**: A rota `/library` era um placeholder para gerenciamento de conteúdo do creator. Com o sistema de publish, a funcionalidade se dividiu: edição em `/pages` e visualização em `/preview`.  
+**Decisão**: Remover `/library` completamente. Nav do creator passa a ser: Pages (FileStack) → Preview (Eye) → User (CircleUser). `/pages` é o hub de CRUD, `/preview` mostra o resultado publicado.  
+**Consequência**: URLs de `/library` param de funcionar (breaking change aceitável pois era placeholder). A nav fica mais clara: criar vs ver o resultado.

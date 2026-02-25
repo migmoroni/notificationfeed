@@ -13,6 +13,7 @@
 
 import type { ImageAsset } from '../shared/image-asset.js';
 import type { FontProtocol, FontConfig } from '../font/font.js';
+import type { CategoryAssignment } from '../shared/category-assignment.js';
 
 /** Snapshot of a Font within the export (no internal IDs) */
 export interface FontSnapshot {
@@ -29,7 +30,7 @@ export interface ProfileSnapshot {
 	title: string;
 	tags: string[];
 	avatar: ImageAsset | null;
-	categoryId: string;
+	categoryAssignments: CategoryAssignment[];
 	defaultEnabled: boolean;
 	fonts: FontSnapshot[];
 }

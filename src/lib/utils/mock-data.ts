@@ -14,14 +14,21 @@ import { savePosts } from '$lib/persistence/post.store.js';
 
 const IDS = {
 	consumer: '00000000-0000-0000-0000-000000000001',
+	creator: '00000000-0000-0000-0000-000000000002',
 	pageTechBlog: '00000000-0000-0000-0000-000000003001',
 	pageNewsDaily: '00000000-0000-0000-0000-000000003002',
+	pageCreatorPublished: '00000000-0000-0000-0000-000000003003',
+	pageCreatorDraft: '00000000-0000-0000-0000-000000003004',
 	profileTech: '00000000-0000-0000-0000-000000004001',
 	profileNews: '00000000-0000-0000-0000-000000004002',
+	profileCreator1: '00000000-0000-0000-0000-000000004003',
+	profileCreator2: '00000000-0000-0000-0000-000000004004',
 	fontRss1: '00000000-0000-0000-0000-000000005001',
 	fontRss2: '00000000-0000-0000-0000-000000005002',
 	fontAtom1: '00000000-0000-0000-0000-000000005003',
-	fontNostr1: '00000000-0000-0000-0000-000000005004'
+	fontNostr1: '00000000-0000-0000-0000-000000005004',
+	fontCreatorRss1: '00000000-0000-0000-0000-000000005005',
+	fontCreatorAtom1: '00000000-0000-0000-0000-000000005006'
 } as const;
 
 // ── Seed check ─────────────────────────────────────────────────────────
@@ -32,6 +39,28 @@ export async function hasMockData(): Promise<boolean> {
 	const pages = await db.creatorPages.getAll();
 	const hasPage = pages.some((p: any) => p.id === IDS.pageTechBlog);
 	if (!hasPage) return false;
+
+	// Detect missing creator user (added in Phase 6)
+	const users = await db.users.getAll();
+	const hasCreator = users.some((u: any) => u.id === IDS.creator);
+	if (!hasCreator) return false;
+
+	// Detect stale data from before publishedVersion migration (v4→v5)
+	const techPage = pages.find((p: any) => p.id === IDS.pageTechBlog) as any;
+	if (techPage && !('publishedVersion' in techPage)) {
+		for (const pg of pages) await db.creatorPages.delete((pg as any).id);
+		const profiles = await db.profiles.getAll();
+		for (const p of profiles) await db.profiles.delete((p as any).id);
+		const fonts = await db.fonts.getAll();
+		for (const f of fonts) await db.fonts.delete((f as any).id);
+		const states = await db.consumerStates.getAll();
+		for (const s of states) await db.consumerStates.delete((s as any).entityId);
+		const posts = await db.posts.getAll();
+		for (const post of posts) await db.posts.delete((post as any).id);
+		const users = await db.users.getAll();
+		for (const u of users) await db.users.delete((u as any).id);
+		return false;
+	}
 
 	// Detect stale data from before categoryAssignments migration
 	const profiles = await db.profiles.getAll();
@@ -108,6 +137,9 @@ export async function seedMockData(): Promise<void> {
 		blossomRef: null,
 		syncStatus: 'local',
 		exportId: null,
+		publishedSnapshot: null,
+		publishedAt: null,
+		publishedVersion: 0,
 		createdAt: now,
 		updatedAt: now
 	});
@@ -124,6 +156,96 @@ export async function seedMockData(): Promise<void> {
 		blossomRef: null,
 		syncStatus: 'local',
 		exportId: null,
+		publishedSnapshot: null,
+		publishedAt: null,
+		publishedVersion: 0,
+		createdAt: now,
+		updatedAt: now
+	});
+
+	// ── UserCreator ────────────────────────────────────────────────
+
+	await db.users.put({
+		id: IDS.creator,
+		role: 'creator',
+		displayName: 'Creator Dev',
+		nostrKeypair: null,
+		syncStatus: 'local',
+		createdAt: new Date(),
+		updatedAt: new Date()
+	});
+
+	// ── Creator Pages (owned by creator user) ──────────────────────
+
+	// Published page — has a snapshot
+	const publishedSnapshot = {
+		exportId: 'export-mock-001',
+		version: 1,
+		page: {
+			title: 'Dev Curations',
+			bio: 'Hand-picked development feeds',
+			tags: ['dev', 'curated'],
+			avatar: null,
+			banner: null
+		},
+		profiles: [
+			{
+				title: 'Frontend Sources',
+				tags: ['frontend', 'web'],
+				avatar: null,
+				categoryAssignments: [
+					{ treeId: 'subject', categoryIds: ['subj-tech-webdev'] },
+					{ treeId: 'content_type', categoryIds: ['ct-format-tutorial'] }
+				],
+				fonts: [
+					{
+						title: 'Svelte Blog (Atom)',
+						tags: ['svelte'],
+						avatar: null,
+						protocol: 'atom' as const,
+						config: { url: 'https://svelte.dev/blog/rss.xml' }
+					}
+				]
+			}
+		],
+		exportedAt: new Date().toISOString()
+	};
+
+	await db.creatorPages.put({
+		id: IDS.pageCreatorPublished,
+		ownerId: IDS.creator,
+		title: 'Dev Curations',
+		bio: 'Hand-picked development feeds',
+		tags: ['dev', 'curated'],
+		avatar: null,
+		banner: null,
+		nostrPublicKey: null,
+		blossomRef: null,
+		syncStatus: 'local',
+		exportId: 'export-mock-001',
+		publishedSnapshot,
+		publishedAt: now,
+		publishedVersion: 1,
+		createdAt: now,
+		updatedAt: now
+	});
+
+	// Draft page — not yet published
+	await db.creatorPages.put({
+		id: IDS.pageCreatorDraft,
+		ownerId: IDS.creator,
+		title: 'News Experiment',
+		bio: 'Testing news aggregation',
+		tags: ['news', 'experiment'],
+		avatar: null,
+		banner: null,
+		nostrPublicKey: null,
+		blossomRef: null,
+		syncStatus: 'local',
+		exportId: null,
+		publishedSnapshot: null,
+		publishedAt: null,
+		publishedVersion: 0,
 		createdAt: now,
 		updatedAt: now
 	});
@@ -213,6 +335,69 @@ export async function seedMockData(): Promise<void> {
 		avatar: null,
 		protocol: 'nostr',
 		config: { relays: ['wss://relay.damus.io'], pubkey: 'npub1mockkey000000000000000000000000000000' },
+		defaultEnabled: true,
+		createdAt: now,
+		updatedAt: now
+	});
+
+	// ── Creator Profiles ────────────────────────────────────────────
+
+	await db.profiles.put({
+		id: IDS.profileCreator1,
+		ownerType: 'creator',
+		ownerId: IDS.creator,
+		creatorPageId: IDS.pageCreatorPublished,
+		title: 'Frontend Sources',
+		tags: ['frontend', 'web'],
+		avatar: null,
+		categoryAssignments: [
+			{ treeId: 'subject', categoryIds: ['subj-tech-webdev'] },
+			{ treeId: 'content_type', categoryIds: ['ct-format-tutorial'] }
+		],
+		defaultEnabled: true,
+		createdAt: now,
+		updatedAt: now
+	});
+
+	await db.profiles.put({
+		id: IDS.profileCreator2,
+		ownerType: 'creator',
+		ownerId: IDS.creator,
+		creatorPageId: IDS.pageCreatorDraft,
+		title: 'News Draft Profile',
+		tags: ['news'],
+		avatar: null,
+		categoryAssignments: [
+			{ treeId: 'subject', categoryIds: ['subj-politics-intl'] }
+		],
+		defaultEnabled: true,
+		createdAt: now,
+		updatedAt: now
+	});
+
+	// ── Creator Fonts ───────────────────────────────────────────────
+
+	await db.fonts.put({
+		id: IDS.fontCreatorRss1,
+		profileId: IDS.profileCreator1,
+		title: 'Hacker News (Creator)',
+		tags: ['hackernews'],
+		avatar: null,
+		protocol: 'rss',
+		config: { url: 'https://hnrss.org/frontpage' },
+		defaultEnabled: true,
+		createdAt: now,
+		updatedAt: now
+	});
+
+	await db.fonts.put({
+		id: IDS.fontCreatorAtom1,
+		profileId: IDS.profileCreator1,
+		title: 'Svelte Blog (Creator)',
+		tags: ['svelte'],
+		avatar: null,
+		protocol: 'atom',
+		config: { url: 'https://svelte.dev/blog/rss.xml' },
 		defaultEnabled: true,
 		createdAt: now,
 		updatedAt: now

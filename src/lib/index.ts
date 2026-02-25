@@ -45,6 +45,10 @@ export type { LayoutMode, LayoutState, InputCapability } from './stores/layout.s
 // Stores — Consumer
 export { consumer } from './stores/consumer.svelte.js';
 
+// Stores — Creator
+export { creator } from './stores/creator.svelte.js';
+export { previewFeed } from './stores/preview-feed.svelte.js';
+
 // Stores — Feed
 export { feed } from './stores/feed.svelte.js';
 
@@ -72,3 +76,16 @@ export type { PriorityFilterValue } from './components/feed/index.js';
 
 // Components — Browse
 export { CategoryTree, TreeSelector, EntityCard, EntityList, SearchBar, FontCard, FontDetail, ProfileCard } from './components/browse/index.js';
+
+// Components — Creator
+export {
+	ImageUpload, TagInput, CategoryPicker,
+	PageForm, ProfileForm, FontForm,
+	ProfileSection, PublishButton, ExportButton,
+	CopyFromConsumerDialog
+} from './components/creator/index.js';
+
+// Services — Creator
+export { processImage, createImagePreviewUrl } from './services/image.service.js';
+export { downloadPageExport, exportPage } from './services/export.service.js';
+export { copyProfilesToCreator, copyFontsToProfile } from './services/copy-consumer.service.js';

@@ -44,7 +44,7 @@ export async function getDatabase(): Promise<Database> {
 
 async function initIndexedDB(): Promise<Database> {
 	return new Promise((resolve, reject) => {
-		const request = indexedDB.open('notfeed', 4);
+		const request = indexedDB.open('notfeed', 5);
 
 		request.onupgradeneeded = (event) => {
 			const idb = request.result;
@@ -142,6 +142,36 @@ async function initIndexedDB(): Promise<Database> {
 								delete (record as any).favoriteFolderId;
 								(record as any).favoriteTabIds = [];
 								csStore.put(record);
+							}
+						}
+					};
+				}
+			}
+
+			// ── v5 → CreatorPage publish fields ────────────────────────────
+
+			if (oldVersion > 0 && oldVersion < 5) {
+				if (idb.objectStoreNames.contains('creatorPages')) {
+					const tx = (event.target as IDBOpenDBRequest).transaction!;
+					const cpStore = tx.objectStore('creatorPages');
+					const getAll = cpStore.getAll();
+					getAll.onsuccess = () => {
+						for (const record of getAll.result) {
+							let changed = false;
+							if (!('publishedSnapshot' in record)) {
+								(record as any).publishedSnapshot = null;
+								changed = true;
+							}
+							if (!('publishedAt' in record)) {
+								(record as any).publishedAt = null;
+								changed = true;
+							}
+							if (!('publishedVersion' in record)) {
+								(record as any).publishedVersion = 0;
+								changed = true;
+							}
+							if (changed) {
+								cpStore.put(record);
 							}
 						}
 					};
