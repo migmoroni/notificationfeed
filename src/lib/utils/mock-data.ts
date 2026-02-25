@@ -36,65 +36,12 @@ const IDS = {
 export async function hasMockData(): Promise<boolean> {
 	const { getDatabase } = await import('$lib/persistence/db.js');
 	const db = await getDatabase();
+
 	const pages = await db.creatorPages.getAll();
-	const hasPage = pages.some((p: any) => p.id === IDS.pageTechBlog);
-	if (!hasPage) return false;
+	if (!pages.some((p: any) => p.id === IDS.pageTechBlog)) return false;
 
-	// Detect missing creator user (added in Phase 6)
 	const users = await db.users.getAll();
-	const hasCreator = users.some((u: any) => u.id === IDS.creator);
-	if (!hasCreator) return false;
-
-	// Detect stale data from before publishedVersion migration (v4→v5)
-	const techPage = pages.find((p: any) => p.id === IDS.pageTechBlog) as any;
-	if (techPage && !('publishedVersion' in techPage)) {
-		for (const pg of pages) await db.creatorPages.delete((pg as any).id);
-		const profiles = await db.profiles.getAll();
-		for (const p of profiles) await db.profiles.delete((p as any).id);
-		const fonts = await db.fonts.getAll();
-		for (const f of fonts) await db.fonts.delete((f as any).id);
-		const states = await db.consumerStates.getAll();
-		for (const s of states) await db.consumerStates.delete((s as any).entityId);
-		const posts = await db.posts.getAll();
-		for (const post of posts) await db.posts.delete((post as any).id);
-		const users = await db.users.getAll();
-		for (const u of users) await db.users.delete((u as any).id);
-		return false;
-	}
-
-	// Detect stale data from before categoryAssignments migration
-	const profiles = await db.profiles.getAll();
-	const techProfile = profiles.find((p: any) => p.id === IDS.profileTech) as any;
-	if (techProfile && !techProfile.categoryAssignments) {
-		// Purge stale mock data so it can be re-seeded
-		for (const p of profiles) await db.profiles.delete((p as any).id);
-		for (const pg of pages) await db.creatorPages.delete((pg as any).id);
-		const fonts = await db.fonts.getAll();
-		for (const f of fonts) await db.fonts.delete((f as any).id);
-		const states = await db.consumerStates.getAll();
-		for (const s of states) await db.consumerStates.delete((s as any).entityId);
-		const posts = await db.posts.getAll();
-		for (const post of posts) await db.posts.delete((post as any).id);
-		const users = await db.users.getAll();
-		for (const u of users) await db.users.delete((u as any).id);
-		return false;
-	}
-
-	// Detect stale data from before favoriteTabIds migration (v3→v4)
-	const states = await db.consumerStates.getAll();
-	const staleState = states.find((s: any) => 'favoriteFolderId' in s);
-	if (staleState) {
-		for (const s of states) await db.consumerStates.delete((s as any).entityId);
-		for (const p of profiles) await db.profiles.delete((p as any).id);
-		for (const pg of pages) await db.creatorPages.delete((pg as any).id);
-		const fonts = await db.fonts.getAll();
-		for (const f of fonts) await db.fonts.delete((f as any).id);
-		const posts = await db.posts.getAll();
-		for (const post of posts) await db.posts.delete((post as any).id);
-		const users = await db.users.getAll();
-		for (const u of users) await db.users.delete((u as any).id);
-		return false;
-	}
+	if (!users.some((u: any) => u.id === IDS.creator)) return false;
 
 	return true;
 }

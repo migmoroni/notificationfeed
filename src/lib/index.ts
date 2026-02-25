@@ -17,7 +17,7 @@ export type { Font, NewFont, FontProtocol, FontConfig } from './domain/font/font
 
 // Domain — Category
 export type { Category, NewCategory, CategoryTreeId } from './domain/category/category.js';
-export { CATEGORY_SEED, CATEGORY_SEED_VERSION } from './domain/category/category-seed.js';
+export { CATEGORY_SEED } from './domain/category/category-seed.js';
 
 // Domain — Category Assignment
 export type { CategoryAssignment } from './domain/shared/category-assignment.js';

@@ -1,8 +1,12 @@
 /**
- * Database initialization and migration.
+ * Database initialization.
  *
  * Abstracts over IndexedDB (web/PWA/TWA) and SQLite (Tauri desktop).
  * Provides a unified interface for the persistence layer.
+ *
+ * NOTE: No migration logic — the app hasn't launched yet.
+ * If the schema changes during development, delete the local DB
+ * (DevTools → Application → Delete database "notfeed") and reload.
  */
 
 import { detectPlatform } from '$lib/platform/capabilities.js';
@@ -44,139 +48,36 @@ export async function getDatabase(): Promise<Database> {
 
 async function initIndexedDB(): Promise<Database> {
 	return new Promise((resolve, reject) => {
-		const request = indexedDB.open('notfeed', 5);
+		const request = indexedDB.open('notfeed', 1);
 
-		request.onupgradeneeded = (event) => {
+		request.onupgradeneeded = () => {
 			const idb = request.result;
-			const oldVersion = (event as IDBVersionChangeEvent).oldVersion;
 
-			// ── v1 → initial stores ────────────────────────────────────
+			const userStore = idb.createObjectStore('users', { keyPath: 'id' });
+			userStore.createIndex('role', 'role', { unique: false });
 
-			if (!idb.objectStoreNames.contains('users')) {
-				const userStore = idb.createObjectStore('users', { keyPath: 'id' });
-				userStore.createIndex('role', 'role', { unique: false });
-			}
+			const cpStore = idb.createObjectStore('creatorPages', { keyPath: 'id' });
+			cpStore.createIndex('ownerId', 'ownerId', { unique: false });
 
-			if (!idb.objectStoreNames.contains('creatorPages')) {
-				const cpStore = idb.createObjectStore('creatorPages', { keyPath: 'id' });
-				cpStore.createIndex('ownerId', 'ownerId', { unique: false });
-			}
+			const profileStore = idb.createObjectStore('profiles', { keyPath: 'id' });
+			profileStore.createIndex('ownerId', 'ownerId', { unique: false });
+			profileStore.createIndex('creatorPageId', 'creatorPageId', { unique: false });
 
-			if (!idb.objectStoreNames.contains('profiles')) {
-				const profileStore = idb.createObjectStore('profiles', { keyPath: 'id' });
-				profileStore.createIndex('ownerId', 'ownerId', { unique: false });
-				profileStore.createIndex('creatorPageId', 'creatorPageId', { unique: false });
-			}
+			const fontStore = idb.createObjectStore('fonts', { keyPath: 'id' });
+			fontStore.createIndex('profileId', 'profileId', { unique: false });
 
-			if (!idb.objectStoreNames.contains('fonts')) {
-				const fontStore = idb.createObjectStore('fonts', { keyPath: 'id' });
-				fontStore.createIndex('profileId', 'profileId', { unique: false });
-			}
+			const catStore = idb.createObjectStore('categories', { keyPath: 'id' });
+			catStore.createIndex('parentId', 'parentId', { unique: false });
+			catStore.createIndex('treeId', 'treeId', { unique: false });
 
-			if (!idb.objectStoreNames.contains('categories')) {
-				const catStore = idb.createObjectStore('categories', { keyPath: 'id' });
-				catStore.createIndex('parentId', 'parentId', { unique: false });
-				catStore.createIndex('treeId', 'treeId', { unique: false });
-			}
+			const csStore = idb.createObjectStore('consumerStates', { keyPath: 'entityId' });
+			csStore.createIndex('entityType', 'entityType', { unique: false });
 
-			if (!idb.objectStoreNames.contains('consumerStates')) {
-				const csStore = idb.createObjectStore('consumerStates', { keyPath: 'entityId' });
-				csStore.createIndex('entityType', 'entityType', { unique: false });
-			}
+			const postStore = idb.createObjectStore('posts', { keyPath: 'id' });
+			postStore.createIndex('fontId', 'fontId', { unique: false });
+			postStore.createIndex('publishedAt', 'publishedAt', { unique: false });
 
-			if (!idb.objectStoreNames.contains('posts')) {
-				const postStore = idb.createObjectStore('posts', { keyPath: 'id' });
-				postStore.createIndex('fontId', 'fontId', { unique: false });
-				postStore.createIndex('publishedAt', 'publishedAt', { unique: false });
-			}
-
-			// ── v3 → favoriteFolders store + category index migration ──
-
-			if (!idb.objectStoreNames.contains('favoriteFolders') && !idb.objectStoreNames.contains('favoriteTabs')) {
-				// Fresh install or upgrading from < v3: create favoriteTabs directly
-				idb.createObjectStore('favoriteTabs', { keyPath: 'id' });
-			}
-
-			// Remove stale indexes from v2 categories (origin, ownerId, categoryId on profiles)
-			if (oldVersion > 0 && oldVersion < 3) {
-				const tx = (event.target as IDBOpenDBRequest).transaction!;
-
-				// Categories: drop origin/ownerId indexes, add treeId if missing
-				if (idb.objectStoreNames.contains('categories')) {
-					const catStore = tx.objectStore('categories');
-					if (catStore.indexNames.contains('origin')) catStore.deleteIndex('origin');
-					if (catStore.indexNames.contains('ownerId')) catStore.deleteIndex('ownerId');
-					if (!catStore.indexNames.contains('treeId')) {
-						catStore.createIndex('treeId', 'treeId', { unique: false });
-					}
-				}
-
-				// Profiles: drop categoryId index (no longer single field)
-				if (idb.objectStoreNames.contains('profiles')) {
-					const profileStore = tx.objectStore('profiles');
-					if (profileStore.indexNames.contains('categoryId')) {
-						profileStore.deleteIndex('categoryId');
-					}
-				}
-			}
-
-			// ── v4 → favoriteFolders → favoriteTabs + consumerState migration ──
-
-			if (oldVersion > 0 && oldVersion < 4) {
-				// Rename store: delete favoriteFolders, create favoriteTabs
-				if (idb.objectStoreNames.contains('favoriteFolders')) {
-					idb.deleteObjectStore('favoriteFolders');
-				}
-				if (!idb.objectStoreNames.contains('favoriteTabs')) {
-					idb.createObjectStore('favoriteTabs', { keyPath: 'id' });
-				}
-
-				// Migrate consumerStates: favoriteFolderId → favoriteTabIds
-				if (idb.objectStoreNames.contains('consumerStates')) {
-					const tx = (event.target as IDBOpenDBRequest).transaction!;
-					const csStore = tx.objectStore('consumerStates');
-					const getAll = csStore.getAll();
-					getAll.onsuccess = () => {
-						for (const record of getAll.result) {
-							if ('favoriteFolderId' in record) {
-								delete (record as any).favoriteFolderId;
-								(record as any).favoriteTabIds = [];
-								csStore.put(record);
-							}
-						}
-					};
-				}
-			}
-
-			// ── v5 → CreatorPage publish fields ────────────────────────────
-
-			if (oldVersion > 0 && oldVersion < 5) {
-				if (idb.objectStoreNames.contains('creatorPages')) {
-					const tx = (event.target as IDBOpenDBRequest).transaction!;
-					const cpStore = tx.objectStore('creatorPages');
-					const getAll = cpStore.getAll();
-					getAll.onsuccess = () => {
-						for (const record of getAll.result) {
-							let changed = false;
-							if (!('publishedSnapshot' in record)) {
-								(record as any).publishedSnapshot = null;
-								changed = true;
-							}
-							if (!('publishedAt' in record)) {
-								(record as any).publishedAt = null;
-								changed = true;
-							}
-							if (!('publishedVersion' in record)) {
-								(record as any).publishedVersion = 0;
-								changed = true;
-							}
-							if (changed) {
-								cpStore.put(record);
-							}
-						}
-					};
-				}
-			}
+			idb.createObjectStore('favoriteTabs', { keyPath: 'id' });
 		};
 
 		request.onsuccess = () => {

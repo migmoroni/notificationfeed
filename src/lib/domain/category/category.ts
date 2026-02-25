@@ -9,7 +9,7 @@
  * Only sublevels (depth >= 1) can be associated with entities.
  * Root levels are structural groupings only.
  *
- * The seed JSON is used only for initial population and migrations.
+ * The seed data is used only for initial population.
  * At runtime, all data comes from IndexedDB.
  */
 

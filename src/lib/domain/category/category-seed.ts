@@ -1,16 +1,13 @@
 /**
  * Category Seed — official taxonomy data shipped with the app.
  *
- * This JSON-like constant is used ONLY for initial population and migrations.
+ * This constant is used ONLY for initial population.
  * At runtime, all category data comes from IndexedDB.
  *
- * Versioning: bump CATEGORY_SEED_VERSION when adding/removing/reorganizing categories.
- * The seed service compares the persisted version and applies a diff on app boot.
+ * If the taxonomy changes during development, delete the local DB and reload.
  */
 
 import type { Category, CategoryTreeId } from './category.js';
-
-export const CATEGORY_SEED_VERSION = 1;
 
 type SeedCategory = Omit<Category, 'isActive'>;
 
