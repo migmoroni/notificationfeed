@@ -8,10 +8,12 @@
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import { formatRelativeDate } from '$lib/utils/date.js';
 	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
-	import ConfirmUnfollowDialog from '$lib/components/shared/ConfirmUnfollowDialog.svelte';
-	import FollowButton from '$lib/components/shared/FollowButton.svelte';
+	import ConfirmDeactivateDialog from '$lib/components/shared/ConfirmDeactivateDialog.svelte';
+	import ActiveButton from '$lib/components/shared/ActiveButton.svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Rss from '@lucide/svelte/icons/rss';
+	import Atom from '@lucide/svelte/icons/atom';
+	import Zap from '@lucide/svelte/icons/zap';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
 
@@ -70,19 +72,19 @@
 		await consumer.setFavorite(font.id, 'font', !isFavorite);
 	}
 
-	let showUnfollowConfirm = $state(false);
+	let showDeactivateConfirm = $state(false);
 
-	async function handleFollow() {
+	async function handleToggleActive() {
 		if (isEnabled) {
-			showUnfollowConfirm = true;
+			showDeactivateConfirm = true;
 			return;
 		}
 		await consumer.toggleEnabled(font.id, 'font');
 	}
 
-	async function confirmUnfollow() {
+	async function confirmDeactivate() {
 		await consumer.toggleEnabled(font.id, 'font');
-		showUnfollowConfirm = false;
+		showDeactivateConfirm = false;
 	}
 </script>
 
@@ -92,7 +94,13 @@
 			class="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-accent/50"
 		>
 			<div class="flex items-center justify-center size-8 shrink-0 rounded-md bg-muted text-muted-foreground">
-				<Rss class="size-4" />
+				{#if font.protocol === 'atom'}
+					<Atom class="size-4" />
+				{:else if font.protocol === 'nostr'}
+					<Zap class="size-4" />
+				{:else}
+					<Rss class="size-4" />
+				{/if}
 			</div>
 
 			<div class="flex-1 min-w-0">
@@ -129,7 +137,7 @@
 
 					<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
 
-					<FollowButton following={isEnabled} onclick={handleFollow} />
+					<ActiveButton active={isEnabled} onclick={handleToggleActive} />
 				</div>
 
 				<!-- Posts -->
@@ -176,4 +184,4 @@
 	</div>
 </Collapsible.Root>
 
-<ConfirmUnfollowDialog bind:open={showUnfollowConfirm} title={font.title} onconfirm={confirmUnfollow} oncancel={() => (showUnfollowConfirm = false)} />
+<ConfirmDeactivateDialog bind:open={showDeactivateConfirm} title={font.title} onconfirm={confirmDeactivate} oncancel={() => (showDeactivateConfirm = false)} />

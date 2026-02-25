@@ -6,13 +6,17 @@
 	import Globe from '@lucide/svelte/icons/globe';
 	import User from '@lucide/svelte/icons/user';
 	import Rss from '@lucide/svelte/icons/rss';
+	import Atom from '@lucide/svelte/icons/atom';
+	import Zap from '@lucide/svelte/icons/zap';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
 	import ConfirmUnsubscribeDialog from '$lib/components/shared/ConfirmUnsubscribeDialog.svelte';
 	import ConfirmUnfollowDialog from '$lib/components/shared/ConfirmUnfollowDialog.svelte';
+	import ConfirmDeactivateDialog from '$lib/components/shared/ConfirmDeactivateDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
 	import SubscribeButton from '$lib/components/shared/SubscribeButton.svelte';
 	import FollowButton from '$lib/components/shared/FollowButton.svelte';
+	import ActiveButton from '$lib/components/shared/ActiveButton.svelte';
 	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 
 	interface Props {
@@ -25,6 +29,7 @@
 	let showUnfavConfirm = $state(false);
 	let showUnsubscribeConfirm = $state(false);
 	let showUnfollowConfirm = $state(false);
+	let showDeactivateConfirm = $state(false);
 
 	const typeConfig: Record<BrowseEntity['type'], { label: string; icon: typeof Globe; consumerType: ConsumerEntityType }> = {
 		creator_page: { label: 'Page', icon: Globe, consumerType: 'creator_page' },
@@ -60,10 +65,12 @@
 	async function handleToggleEnabled(e: MouseEvent) {
 		e.preventDefault();
 		e.stopPropagation();
-		// If currently enabled (subscribed/following), show confirmation
+		// If currently enabled (subscribed/following/active), show confirmation
 		if (isEnabled) {
 			if (entity.type === 'creator_page') {
 				showUnsubscribeConfirm = true;
+			} else if (entity.type === 'font') {
+				showDeactivateConfirm = true;
 			} else {
 				showUnfollowConfirm = true;
 			}
@@ -82,6 +89,11 @@
 		showUnfollowConfirm = false;
 	}
 
+	async function confirmDeactivate() {
+		await consumer.toggleEnabled(entity.data.id, config.consumerType);
+		showDeactivateConfirm = false;
+	}
+
 	function stopPropagation(e: MouseEvent) {
 		e.preventDefault();
 		e.stopPropagation();
@@ -92,7 +104,18 @@
 	<div class="flex items-start gap-3 p-3 {!isEnabled ? 'opacity-50' : ''}">
 		<!-- Icon -->
 		<div class="flex items-center justify-center size-10 shrink-0 rounded-md bg-muted text-muted-foreground">
-			<config.icon class="size-5" />
+			{#if entity.type === 'font'}
+				{@const font = entity.data as import('$lib/domain/font/font.js').Font}
+				{#if font.protocol === 'atom'}
+					<Atom class="size-5" />
+				{:else if font.protocol === 'nostr'}
+					<Zap class="size-5" />
+				{:else}
+					<Rss class="size-5" />
+				{/if}
+			{:else}
+				<config.icon class="size-5" />
+			{/if}
 		</div>
 
 		<!-- Body -->
@@ -119,10 +142,12 @@
 				<!-- Favorite toggle -->
 				<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
 
-				<!-- Subscribe/Follow toggle -->
+				<!-- Subscribe/Follow/Active toggle -->
 				<div class="ml-auto">
 					{#if entity.type === 'creator_page'}
 						<SubscribeButton subscribed={isEnabled} onclick={handleToggleEnabled} />
+					{:else if entity.type === 'font'}
+						<ActiveButton active={isEnabled} onclick={handleToggleEnabled} />
 					{:else}
 						<FollowButton following={isEnabled} onclick={handleToggleEnabled} />
 					{/if}
@@ -152,3 +177,4 @@
 <ConfirmUnfavoriteDialog bind:open={showUnfavConfirm} onconfirm={confirmUnfavorite} oncancel={() => (showUnfavConfirm = false)} />
 <ConfirmUnsubscribeDialog bind:open={showUnsubscribeConfirm} title={entity.data.title} onconfirm={confirmUnsubscribe} oncancel={() => (showUnsubscribeConfirm = false)} />
 <ConfirmUnfollowDialog bind:open={showUnfollowConfirm} title={entity.data.title} onconfirm={confirmUnfollow} oncancel={() => (showUnfollowConfirm = false)} />
+<ConfirmDeactivateDialog bind:open={showDeactivateConfirm} title={entity.data.title} onconfirm={confirmDeactivate} oncancel={() => (showDeactivateConfirm = false)} />

@@ -18,10 +18,12 @@
 	import { formatRelativeDate } from '$lib/utils/date.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Rss from '@lucide/svelte/icons/rss';
+	import Atom from '@lucide/svelte/icons/atom';
+	import Zap from '@lucide/svelte/icons/zap';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
-	import ConfirmUnfollowDialog from '$lib/components/shared/ConfirmUnfollowDialog.svelte';
+	import ConfirmDeactivateDialog from '$lib/components/shared/ConfirmDeactivateDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
-	import FollowButton from '$lib/components/shared/FollowButton.svelte';
+	import ActiveButton from '$lib/components/shared/ActiveButton.svelte';
 	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 
 	let font = $state<Font | null>(null);
@@ -36,7 +38,7 @@
 
 	let posts = $state<CanonicalPost[]>([]);
 	let showUnfavConfirm = $state(false);
-	let showUnfollowConfirm = $state(false);
+	let showDeactivateConfirm = $state(false);
 	let loading = $state(true);
 	let notFound = $state(false);
 
@@ -112,19 +114,19 @@
 		showUnfavConfirm = false;
 	}
 
-	async function handleFollow() {
+	async function handleToggleActive() {
 		if (!font) return;
 		if (isEnabled) {
-			showUnfollowConfirm = true;
+			showDeactivateConfirm = true;
 			return;
 		}
 		await consumer.toggleEnabled(font.id, 'font');
 	}
 
-	async function confirmUnfollow() {
+	async function confirmDeactivate() {
 		if (!font) return;
 		await consumer.toggleEnabled(font.id, 'font');
-		showUnfollowConfirm = false;
+		showDeactivateConfirm = false;
 	}
 
 	let parentProfileHref = $derived.by(() => {
@@ -167,7 +169,13 @@
 		<!-- Header -->
 		<div class="flex items-start gap-4 mb-6">
 			<div class="flex items-center justify-center size-14 shrink-0 rounded-lg bg-muted text-muted-foreground">
-				<Rss class="size-7" />
+				{#if font.protocol === 'atom'}
+					<Atom class="size-7" />
+				{:else if font.protocol === 'nostr'}
+					<Zap class="size-7" />
+				{:else}
+					<Rss class="size-7" />
+				{/if}
 			</div>
 
 			<div class="flex-1 min-w-0">
@@ -216,7 +224,7 @@
 			<span class="text-xs text-muted-foreground">Prioridade:</span>
 			<PriorityButtons current={currentPriority} size="md" onchange={handlePriorityChange} />
 
-			<FollowButton following={isEnabled} size="md" onclick={handleFollow} />
+			<ActiveButton active={isEnabled} size="md" onclick={handleToggleActive} />
 		</div>
 
 		<Separator class="mb-6" />
@@ -241,4 +249,4 @@
 </div>
 
 <ConfirmUnfavoriteDialog bind:open={showUnfavConfirm} onconfirm={confirmUnfavorite} oncancel={() => (showUnfavConfirm = false)} />
-<ConfirmUnfollowDialog bind:open={showUnfollowConfirm} title={font?.title ?? ''} onconfirm={confirmUnfollow} oncancel={() => (showUnfollowConfirm = false)} />
+<ConfirmDeactivateDialog bind:open={showDeactivateConfirm} title={font?.title ?? ''} onconfirm={confirmDeactivate} oncancel={() => (showDeactivateConfirm = false)} />
