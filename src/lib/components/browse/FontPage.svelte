@@ -24,15 +24,16 @@
 	import FollowButton from '$lib/components/shared/FollowButton.svelte';
 	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 
-	interface Props {
-		backHref: string;
-		backLabel: string;
-	}
-
-	let { backHref, backLabel }: Props = $props();
-
 	let font = $state<Font | null>(null);
 	let parentProfile = $state<Profile | null>(null);
+
+	interface Props {
+		/** Root prefix for generating parent links (e.g. '/browse' or '/favorites') */
+		baseHref: string;
+	}
+
+	let { baseHref }: Props = $props();
+
 	let posts = $state<CanonicalPost[]>([]);
 	let showUnfavConfirm = $state(false);
 	let showUnfollowConfirm = $state(false);
@@ -126,6 +127,14 @@
 		showUnfollowConfirm = false;
 	}
 
+	let parentProfileHref = $derived.by(() => {
+		if (!parentProfile) return null;
+		if (parentProfile.creatorPageId) {
+			return `${baseHref}/creator/${parentProfile.creatorPageId}/profile/${parentProfile.id}`;
+		}
+		return `${baseHref}/profile/${parentProfile.id}`;
+	});
+
 	let postGridCols = $derived(layout.isExpanded ? 'grid-cols-2' : 'grid-cols-1');
 </script>
 
@@ -135,13 +144,13 @@
 
 <div class="container mx-auto px-4 py-4 {layout.isExpanded ? 'max-w-4xl' : 'max-w-2xl'}">
 	<!-- Back navigation -->
-	<a
-		href={backHref}
+	<button
+		onclick={() => history.back()}
 		class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4"
 	>
 		<ArrowLeft class="size-4" />
-		{backLabel}
-	</a>
+		Voltar
+	</button>
 
 	{#if loading}
 		<div class="animate-pulse space-y-4">
@@ -152,7 +161,7 @@
 	{:else if notFound}
 		<div class="py-12 text-center">
 			<p class="text-sm text-muted-foreground">Font não encontrada.</p>
-			<a href={backHref} class="text-sm text-primary hover:underline mt-2 inline-block">Voltar</a>
+			<button onclick={() => history.back()} class="text-sm text-primary hover:underline mt-2 inline-block">Voltar</button>
 		</div>
 	{:else if font}
 		<!-- Header -->
@@ -191,10 +200,10 @@
 				{/if}
 
 				<!-- Parent profile link -->
-				{#if parentProfile}
+				{#if parentProfile && parentProfileHref}
 					<p class="text-xs text-muted-foreground">
 						Profile:
-						<a href={backHref} class="text-primary hover:underline">
+						<a href={parentProfileHref} class="text-primary hover:underline">
 							{parentProfile.title}
 						</a>
 					</p>

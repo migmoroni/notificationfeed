@@ -17,4 +17,4 @@
 	});
 </script>
 
-<ProfilePage {profileId} backHref="/favorites" backLabel="Favoritos" baseHref="/favorites" />
+<ProfilePage {profileId} baseHref="/favorites" />

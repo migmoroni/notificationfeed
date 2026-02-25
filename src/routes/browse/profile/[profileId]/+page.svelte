@@ -17,4 +17,4 @@
 	});
 </script>
 
-<ProfilePage {profileId} backHref="/browse" backLabel="Browse" baseHref="/browse" />
+<ProfilePage {profileId} baseHref="/browse" />

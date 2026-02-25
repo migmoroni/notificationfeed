@@ -43,10 +43,10 @@
 </svelte:head>
 
 <div class="container mx-auto px-4 py-6 {layout.isExpanded ? 'max-w-3xl' : 'max-w-2xl'}">
-	<a href="/pages" class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
+	<button onclick={() => history.back()} class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
 		<ArrowLeft class="size-4" />
-		Pages
-	</a>
+		Voltar
+	</button>
 
 	{#if !creatorPage}
 		<div class="py-12 text-center">

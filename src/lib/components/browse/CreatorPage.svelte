@@ -27,17 +27,15 @@
 	 * Reusable Creator Page detail view.
 	 *
 	 * Used by both /browse/creator/{id} and /favorites/creator/{id}.
-	 * The caller controls navigation context via backHref/backLabel/baseHref.
+	 * Back button uses history.back() to respect browsing history.
 	 */
 	interface Props {
 		creatorId: string;
-		backHref: string;
-		backLabel: string;
 		/** Root prefix for generating child links (e.g. '/browse' or '/favorites') */
 		baseHref: string;
 	}
 
-	let { creatorId, backHref, backLabel, baseHref }: Props = $props();
+	let { creatorId, baseHref }: Props = $props();
 
 	let creatorPage = $state<CreatorPage | null>(null);
 	let profiles: Profile[] = $state([]);
@@ -151,13 +149,13 @@
 
 <div class="container mx-auto px-4 py-4 {layout.isExpanded ? 'max-w-4xl' : 'max-w-2xl'}">
 	<!-- Back navigation -->
-	<a
-		href={backHref}
+	<button
+		onclick={() => history.back()}
 		class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4"
 	>
 		<ArrowLeft class="size-4" />
-		{backLabel}
-	</a>
+		Voltar
+	</button>
 
 	{#if loading}
 		<div class="animate-pulse space-y-4">
@@ -168,9 +166,9 @@
 	{:else if notFound}
 		<div class="py-12 text-center">
 			<p class="text-sm text-muted-foreground">Creator Page não encontrada.</p>
-			<a href={backHref} class="text-sm text-primary hover:underline mt-2 inline-block">
+			<button onclick={() => history.back()} class="text-sm text-primary hover:underline mt-2 inline-block">
 				Voltar
-			</a>
+			</button>
 		</div>
 	{:else if creatorPage}
 		<!-- Header -->

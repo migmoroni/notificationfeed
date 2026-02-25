@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { activeUser } from '$lib/stores/active-user.svelte.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { browse } from '$lib/stores/browse.svelte.js';
@@ -120,7 +119,7 @@
 <div class="mx-auto w-full max-w-2xl px-4 py-4">
 	<!-- Header -->
 	<div class="mb-6 flex items-center gap-3">
-		<Button variant="ghost" size="icon" onclick={() => goto('/browse')}>
+		<Button variant="ghost" size="icon" onclick={() => history.back()}>
 			<ArrowLeft class="size-5" />
 		</Button>
 		<div>
@@ -247,10 +246,10 @@
 	<!-- Back link -->
 	<div class="mt-6 text-center">
 		<button
-			onclick={() => goto('/browse')}
+			onclick={() => history.back()}
 			class="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
 		>
-			Voltar ao Browse
+			Voltar
 		</button>
 	</div>
 </div>

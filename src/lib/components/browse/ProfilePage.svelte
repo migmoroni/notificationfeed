@@ -27,20 +27,18 @@
 	 * Reusable Profile detail page.
 	 *
 	 * Shared between both DDD lifecycle modes:
-	 * - Standalone: rendered at /browse/profile/{id}, backHref → /browse
-	 * - Dependent: rendered at /browse/creator/{pageId}/profile/{id}, backHref → /browse/creator/{pageId}
+	 * - Standalone: rendered at /browse/profile/{id}
+	 * - Dependent: rendered at /browse/creator/{pageId}/profile/{id}
 	 *
-	 * The caller (route page) determines backHref/backLabel/baseHref based on context.
+	 * Back button uses history.back() to respect browsing history.
 	 */
 	interface Props {
 		profileId: string;
-		backHref: string;
-		backLabel: string;
 		/** Root prefix for generating child links (e.g. '/browse' or '/favorites') */
 		baseHref: string;
 	}
 
-	let { profileId, backHref, backLabel, baseHref }: Props = $props();
+	let { profileId, baseHref }: Props = $props();
 
 	let profile = $state<Profile | null>(null);
 	let fonts: Font[] = $state([]);
@@ -163,13 +161,13 @@
 
 <div class="container mx-auto px-4 py-4 {layout.isExpanded ? 'max-w-4xl' : 'max-w-2xl'}">
 	<!-- Back navigation -->
-	<a
-		href={backHref}
+	<button
+		onclick={() => history.back()}
 		class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4"
 	>
 		<ArrowLeft class="size-4" />
-		{backLabel}
-	</a>
+		Voltar
+	</button>
 
 	{#if loading}
 		<div class="animate-pulse space-y-4">
@@ -180,9 +178,9 @@
 	{:else if notFound}
 		<div class="py-12 text-center">
 			<p class="text-sm text-muted-foreground">Profile não encontrado.</p>
-			<a href={backHref} class="text-sm text-primary hover:underline mt-2 inline-block">
+			<button onclick={() => history.back()} class="text-sm text-primary hover:underline mt-2 inline-block">
 				Voltar
-			</a>
+			</button>
 		</div>
 	{:else if profile}
 		<!-- Header -->

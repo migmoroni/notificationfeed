@@ -5,4 +5,4 @@
 	const creatorId = $derived(page.params.creatorId!);
 </script>
 
-<CreatorPage {creatorId} backHref="/favorites" backLabel="Favoritos" baseHref="/favorites" />
+<CreatorPage {creatorId} baseHref="/favorites" />
