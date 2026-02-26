@@ -51,6 +51,7 @@
 						const wasSelected = feedEntityFilter.isPageSelected(page.id);
 						feedEntityFilter.togglePage(page.id);
 						if (!wasSelected) openPages[page.id] = true;
+						else openPages[page.id] = false;
 					}}
 					class="flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground
 						{isPageSelected ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'}"
@@ -86,7 +87,12 @@
 									<div class="w-5 shrink-0"></div>
 								{/if}
 								<button
-									onclick={() => feedEntityFilter.toggleProfile(profile.id)}
+									onclick={() => {
+										const wasSelected = feedEntityFilter.isProfileSelected(profile.id);
+										feedEntityFilter.toggleProfile(profile.id);
+										if (!wasSelected) openProfiles[profile.id] = true;
+										else openProfiles[profile.id] = false;
+									}}
 									class="flex w-full items-center gap-2 rounded-md px-1 py-1 text-sm transition-colors text-left
 										{isProfileSelected
 										? 'bg-accent text-accent-foreground font-medium'
@@ -150,10 +156,15 @@
 					<div class="w-5 shrink-0"></div>
 				{/if}
 				<button
-					onclick={() => feedEntityFilter.toggleProfile(profile.id)}
+				onclick={() => {
+					const wasSelected = feedEntityFilter.isProfileSelected(profile.id);
+					feedEntityFilter.toggleProfile(profile.id);
+					if (!wasSelected) openProfiles[profile.id] = true;
+					else openProfiles[profile.id] = false;
+				}}
 					class="flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground
-						{isProfileSelected ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'}"
-				>
+					{isProfileSelected ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'}"
+			>
 				{#if profile.avatar?.data}
 					<img src="data:image/webp;base64,{profile.avatar.data}" alt="" class="size-4 shrink-0 rounded-full object-cover" />
 				{:else}
