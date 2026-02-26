@@ -12,7 +12,7 @@
 
 	let { current, size = 'sm', onchange }: Props = $props();
 
-	const sizeClass = $derived(size === 'md' ? 'size-7 text-xs' : 'size-6 text-[10px]');
+	const sizeClass = $derived(size === 'md' ? 'h-7 px-2.5 text-xs' : 'h-6 px-2 text-[10px]');
 
 	function handleClick(level: PriorityLevel, e: MouseEvent) {
 		e.stopPropagation();

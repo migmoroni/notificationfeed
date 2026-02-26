@@ -28,7 +28,7 @@
 	<title>Notfeed — Favorites</title>
 </svelte:head>
 
-<div class="mx-auto w-full px-4 py-4" class:max-w-5xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
+<div class="mx-auto w-full px-4 py-4" class:max-w-7xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
 	<div class="mb-4">
 		<h1 class="text-xl font-bold mb-3">Favoritos</h1>
 	</div>

@@ -24,21 +24,21 @@ export interface PriorityConfig {
 export const PRIORITY_LEVELS: PriorityConfig[] = [
 	{
 		level: 1,
-		label: '1',
+		label: 'Alta',
 		name: 'Alta',
 		badgeVariant: 'destructive',
 		activeClass: 'bg-destructive text-destructive-foreground border-destructive'
 	},
 	{
 		level: 2,
-		label: '2',
+		label: 'Média',
 		name: 'Média',
 		badgeVariant: 'secondary',
 		activeClass: 'bg-secondary text-secondary-foreground border-secondary'
 	},
 	{
 		level: 3,
-		label: '3',
+		label: 'Baixa',
 		name: 'Baixa',
 		badgeVariant: 'outline',
 		activeClass: 'bg-accent text-accent-foreground border-accent'

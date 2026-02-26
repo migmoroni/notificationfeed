@@ -3,6 +3,7 @@
 	import type { ConsumerEntityType, PriorityLevel } from '$lib/domain/shared/consumer-state.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
+	import PriorityBadge from '$lib/components/shared/PriorityBadge.svelte';
 	import Globe from '@lucide/svelte/icons/globe';
 	import User from '@lucide/svelte/icons/user';
 	import Rss from '@lucide/svelte/icons/rss';
@@ -17,7 +18,6 @@
 	import SubscribeButton from '$lib/components/shared/SubscribeButton.svelte';
 	import FollowButton from '$lib/components/shared/FollowButton.svelte';
 	import ActiveButton from '$lib/components/shared/ActiveButton.svelte';
-	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 
 	interface Props {
 		entity: BrowseEntity;
@@ -42,10 +42,6 @@
 	let currentPriority = $derived(entityState?.priority ?? null);
 	let isFavorite = $derived(entityState?.favorite ?? false);
 	let isEnabled = $derived(entityState?.enabled ?? true);
-
-	async function handlePriorityChange(level: PriorityLevel | null) {
-		await consumer.setPriority(entity.data.id, config.consumerType, level);
-	}
 
 	async function handleFavorite(e: MouseEvent) {
 		e.preventDefault();
@@ -101,7 +97,7 @@
 </script>
 
 {#snippet cardContent()}
-	<div class="flex items-start gap-3 p-3 {!isEnabled ? 'opacity-50' : ''}">
+	<div class="flex items-start gap-3 p-3.5 {!isEnabled ? 'opacity-50' : ''}">
 		<!-- Icon -->
 		<div class="flex items-center justify-center size-10 shrink-0 rounded-md bg-muted text-muted-foreground">
 			{#if entity.type === 'font'}
@@ -120,15 +116,18 @@
 
 		<!-- Body -->
 		<div class="flex-1 min-w-0">
-			<div class="flex items-center gap-2 mb-0.5">
+			<div class="flex items-center gap-2">
 				<h3 class="text-sm font-semibold truncate">{entity.data.title}</h3>
-				<Badge variant="outline" class="text-[10px] px-1.5 py-0 shrink-0">{config.label}</Badge>
+				<Badge variant="outline" class="text-[11px] px-1.5 py-0 shrink-0">{config.label}</Badge>
+				{#if href}
+					<ArrowUpRight class="size-3.5 shrink-0 text-muted-foreground ml-auto" />
+				{/if}
 			</div>
 
 			{#if entity.data.tags.length > 0}
 				<div class="flex flex-wrap gap-1 mt-1">
 					{#each entity.data.tags.slice(0, 4) as tag}
-						<span class="text-[10px] text-muted-foreground bg-muted rounded px-1.5 py-0.5">{tag}</span>
+						<span class="text-[11px] text-muted-foreground bg-muted rounded px-1.5 py-0.5">{tag}</span>
 					{/each}
 				</div>
 			{/if}
@@ -136,8 +135,10 @@
 			<!-- Actions row -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div class="flex items-center gap-2 mt-2" onclick={stopPropagation} onkeydown={() => {}}>
-				<!-- Priority buttons -->
-				<PriorityButtons current={currentPriority} onchange={handlePriorityChange} />
+				<!-- Priority label (read-only) -->
+				{#if currentPriority}
+					<PriorityBadge level={currentPriority} />
+				{/if}
 
 				<!-- Favorite toggle -->
 				<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
@@ -154,10 +155,6 @@
 				</div>
 			</div>
 		</div>
-
-		{#if href}
-			<ArrowUpRight class="size-4 shrink-0 text-muted-foreground mt-1" />
-		{/if}
 	</div>
 {/snippet}
 

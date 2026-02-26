@@ -4,6 +4,7 @@
 	import type { Font } from '$lib/domain/font/font.js';
 	import EntityCard from './EntityCard.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { layout } from '$lib/stores/layout.svelte.js';
 
 	interface Props {
 		entities: BrowseEntity[];
@@ -62,14 +63,14 @@
 
 {#if loading}
 	<!-- Skeleton loader -->
-	<div class="flex flex-col gap-3">
-		{#each { length: 3 } as _}
-			<div class="rounded-lg border border-border bg-card p-3 animate-pulse">
+	<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
+		{#each { length: 6 } as _}
+			<div class="rounded-lg border border-border bg-card p-3.5 animate-pulse">
 				<div class="flex items-start gap-3">
 					<div class="size-10 rounded-md bg-muted"></div>
 					<div class="flex-1">
-						<div class="h-4 w-32 bg-muted rounded mb-2"></div>
-						<div class="h-3 w-48 bg-muted rounded"></div>
+						<div class="h-4 w-28 bg-muted rounded mb-2"></div>
+						<div class="h-3 w-40 bg-muted rounded"></div>
 					</div>
 				</div>
 			</div>
@@ -80,14 +81,14 @@
 		<p class="text-sm text-muted-foreground">Selecione uma categoria para ver conteúdo.</p>
 	</div>
 {:else}
-	<div class="flex flex-col gap-3">
+	<div class="flex flex-col gap-4">
 		<!-- CreatorPages -->
 		{#if pages.length > 0}
 			<div>
-				<h3 class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 px-1">
+				<h3 class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
 					Creator Pages ({pages.length})
 				</h3>
-				<div class="flex flex-col gap-2">
+				<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
 					{#each pages as entity (entity.data.id)}
 						<EntityCard {entity} href={pageHref(entity)} />
 					{/each}
@@ -102,10 +103,10 @@
 		<!-- Profiles -->
 		{#if profiles.length > 0}
 			<div>
-				<h3 class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 px-1">
+				<h3 class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
 					Profiles ({profiles.length})
 				</h3>
-				<div class="flex flex-col gap-2">
+				<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
 					{#each profiles as entity (entity.data.id)}
 						<EntityCard {entity} href={profileHref(entity)} />
 					{/each}
@@ -120,10 +121,10 @@
 		<!-- Fonts -->
 		{#if fonts.length > 0}
 			<div>
-				<h3 class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 px-1">
+				<h3 class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
 					Fonts ({fonts.length})
 				</h3>
-				<div class="flex flex-col gap-2">
+				<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
 					{#each fonts as entity (entity.data.id)}
 						<EntityCard {entity} href={fontHref(entity)} />
 					{/each}

@@ -4,6 +4,7 @@
 	import type { Profile } from '$lib/domain/profile/profile.js';
 	import type { Font } from '$lib/domain/font/font.js';
 	import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
+	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
@@ -22,6 +23,7 @@
 	import ConfirmUnsubscribeDialog from '$lib/components/shared/ConfirmUnsubscribeDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
 	import SubscribeButton from '$lib/components/shared/SubscribeButton.svelte';
+	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 
 	/**
 	 * Reusable Creator Page detail view.
@@ -45,6 +47,7 @@
 	let notFound = $state(false);
 
 	let entityState = $derived(creatorPage ? consumer.stateMap.get(creatorPage.id) : undefined);
+	let currentPriority = $derived(entityState?.priority ?? null);
 	let isFavorite = $derived(entityState?.favorite ?? false);
 	let isSubscribed = $derived(entityState?.enabled ?? true);
 
@@ -103,6 +106,11 @@
 
 	let showUnfavConfirm = $state(false);
 	let showUnsubscribeConfirm = $state(false);
+
+	async function handlePriorityChange(level: PriorityLevel | null) {
+		if (!creatorPage) return;
+		await consumer.setPriority(creatorPage.id, 'creator_page', level);
+	}
 
 	async function handleFavorite() {
 		if (!creatorPage) return;
@@ -182,6 +190,12 @@
 					<h1 class="text-xl font-bold truncate">{creatorPage.title}</h1>
 					<FavoriteButton favorite={isFavorite} size="md" onclick={handleFavorite} />
 					<SubscribeButton subscribed={isSubscribed} size="md" onclick={handleSubscribe} />
+				</div>
+
+				<!-- Priority -->
+				<div class="flex items-center gap-2 mb-2">
+					<span class="text-xs text-muted-foreground">Prioridade:</span>
+					<PriorityButtons current={currentPriority} size="md" onchange={handlePriorityChange} />
 				</div>
 
 				{#if creatorPage.bio}

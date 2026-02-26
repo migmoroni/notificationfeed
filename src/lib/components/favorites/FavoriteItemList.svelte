@@ -4,6 +4,7 @@
 	import type { Profile } from '$lib/domain/profile/profile.js';
 	import type { Font } from '$lib/domain/font/font.js';
 	import { favorites } from '$lib/stores/favorites.svelte.js';
+	import { layout } from '$lib/stores/layout.svelte.js';
 	import { EntityCard } from '$lib/components/browse/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import Check from '@lucide/svelte/icons/check';
@@ -92,10 +93,10 @@
 {#snippet groupSection(label: string, groupItems: FavoriteItem[])}
 	{#if groupItems.length > 0}
 		<div>
-			<h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
-				{label} ({groupItems.length})
-			</h3>
-			<div class="flex flex-col gap-2">
+		<h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
+			{label} ({groupItems.length})
+		</h3>
+		<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
 				{#each groupItems as item (item.state.entityId)}
 					{@const isSelected = favorites.selectedItemIds.has(item.state.entityId)}
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -129,9 +130,9 @@
 {/snippet}
 
 {#if loading}
-	<div class="flex flex-col gap-3">
-		{#each Array(3) as _}
-			<div class="h-24 rounded-lg bg-muted animate-pulse"></div>
+	<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
+		{#each Array(6) as _}
+			<div class="h-20 rounded-lg bg-muted animate-pulse"></div>
 		{/each}
 	</div>
 {:else if items.length === 0}

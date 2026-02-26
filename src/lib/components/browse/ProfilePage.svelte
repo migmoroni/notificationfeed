@@ -3,6 +3,7 @@
 	import type { Font } from '$lib/domain/font/font.js';
 	import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 	import type { Category } from '$lib/domain/category/category.js';
+	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { createProfileStore } from '$lib/persistence/profile.store.js';
@@ -22,6 +23,7 @@
 	import ConfirmUnfollowDialog from '$lib/components/shared/ConfirmUnfollowDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
 	import FollowButton from '$lib/components/shared/FollowButton.svelte';
+	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 
 	/**
 	 * Reusable Profile detail page.
@@ -48,6 +50,7 @@
 	let notFound = $state(false);
 
 	let entityState = $derived(profile ? consumer.stateMap.get(profile.id) : undefined);
+	let currentPriority = $derived(entityState?.priority ?? null);
 	let isFavorite = $derived(entityState?.favorite ?? false);
 	let isFollowing = $derived(entityState?.enabled ?? true);
 
@@ -109,6 +112,11 @@
 
 	let showUnfavConfirm = $state(false);
 	let showUnfollowConfirm = $state(false);
+
+	async function handlePriorityChange(level: PriorityLevel | null) {
+		if (!profile) return;
+		await consumer.setPriority(profile.id, 'profile', level);
+	}
 
 	async function handleFavorite() {
 		if (!profile) return;
@@ -194,6 +202,12 @@
 					<h1 class="text-xl font-bold truncate">{profile.title}</h1>
 					<FavoriteButton favorite={isFavorite} size="md" onclick={handleFavorite} />
 					<FollowButton following={isFollowing} size="md" onclick={handleFollow} />
+				</div>
+
+				<!-- Priority -->
+				<div class="flex items-center gap-2 mb-2">
+					<span class="text-xs text-muted-foreground">Prioridade:</span>
+					<PriorityButtons current={currentPriority} size="md" onchange={handlePriorityChange} />
 				</div>
 
 				{#if profile.tags.length > 0}
