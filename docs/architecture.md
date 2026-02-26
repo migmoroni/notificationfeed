@@ -24,6 +24,8 @@
 **Decisão**: IndexedDB no MVP. SQLite via Tauri plugin como melhoria futura para desktop.  
 **Consequência**: Funciona em PWA, TWA e Tauri (via webview). Migration path para SQLite é isolada em `db.ts`.
 
+> **Regra de desenvolvimento (pré-lançamento):** Qualquer alteração no schema do banco (adicionar/remover stores ou indexes) **não** incrementa a versão do IndexedDB. O banco permanece em `version: 1` até o app ser lançado para usuários reais. Para aplicar mudanças de schema durante o desenvolvimento, apague o banco localmente (DevTools → Application → Storage → Delete database "notfeed") e recarregue. **Nunca** criar lógica de migration durante o pré-lançamento.
+
 ## ADR-005: shadcn-svelte como sistema de componentes
 
 **Contexto**: Precisamos de componentes UI consistentes e customizáveis.  

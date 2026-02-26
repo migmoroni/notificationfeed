@@ -49,7 +49,7 @@ Persistência local, sem dependência de backend remoto.
 ## Esquema IndexedDB
 
 - Database name: `notfeed`
-- Version: `4`
+- Version: `1` (fixo até lançamento — ver ADR-004)
 - Object stores:
   - `users` (keyPath: `id`, index: `role`)
   - `creatorPages` (keyPath: `id`, index: `ownerId`)
@@ -59,19 +59,14 @@ Persistência local, sem dependência de backend remoto.
   - `consumerStates` (keyPath: `entityId`, index: `entityType`)
   - `posts` (keyPath: `id`, indexes: `fontId`, `publishedAt`)
   - `favoriteTabs` (keyPath: `id`)
+  - `feedMacros` (keyPath: `id`)
 
-### Histórico de migrações
-
-| Versão | Mudanças |
-|--------|----------|
-| v1 | Stores iniciais: users, creatorPages, profiles, fonts, categories, consumerStates, posts |
-| v3 | Adição de favoriteFolders; limpeza de indexes stale (origin, ownerId em categories; categoryId em profiles); adição de treeId em categories |
-| v4 | Rename favoriteFolders → favoriteTabs; migração consumerStates `favoriteFolderId` → `favoriteTabIds[]` |
+> **Pré-lançamento:** schema changes = delete DB + reload. Sem migrations, sem bumps de versão.
 
 ## Regras
 
 - A camada de persistência é acessada apenas via stores; nunca diretamente pela UI.
-- Migrações de schema são versionadas (IndexedDB `onupgradeneeded`).
+- Schema versão `1` fixo até lançamento. Novas stores/indexes = delete DB + reload (sem migrations, sem bumps de versão).
 - O módulo `db.ts` abstrai a escolha entre IndexedDB e SQLite via detecção de plataforma.
 - Writes para IndexedDB devem usar `$state.snapshot()` para evitar "Proxy object could not be cloned" (ADR-019).
 
