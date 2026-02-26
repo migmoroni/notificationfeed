@@ -2,23 +2,45 @@
 	import { onMount } from 'svelte';
 	import { feed } from '$lib/stores/feed.svelte.js';
 	import { feedCategories } from '$lib/stores/feed-categories.svelte.js';
+	import { feedEntityFilter } from '$lib/stores/feed-entity-filter.svelte.js';
+	import { feedMacros } from '$lib/stores/feed-macros.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { FeedList, PriorityFilter } from '$lib/components/feed/index.js';
+	import EntityTreeFilter from '$lib/components/feed/EntityTreeFilter.svelte';
+	import FeedMacros from '$lib/components/feed/FeedMacros.svelte';
 	import { TreeSelector } from '$lib/components/browse/index.js';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import type { PriorityFilterValue } from '$lib/components/feed/index.js';
 	import { formatRelativeDate } from '$lib/utils/date.js';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
 	import X from '@lucide/svelte/icons/x';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import Filter from '@lucide/svelte/icons/filter';
 
 	let filter: PriorityFilterValue = $state('all');
 	let refreshing = $state(false);
+	let advancedFiltersOpen = $state(false);
 
 	let selectedSubjects = $derived(feedCategories.getSelectedIds('subject'));
 	let selectedContentTypes = $derived(feedCategories.getSelectedIds('content_type'));
 	let selectedRegions = $derived(feedCategories.getSelectedIds('region'));
+	let allowedFontIds = $derived(feedEntityFilter.hasFilters ? [...feedEntityFilter.getAllowedFontIds()] : []);
 
-	onMount(() => {
+	onMount(async () => {
 		feedCategories.loadCategories();
+		feedEntityFilter.loadPages();
+		await feedMacros.init();
+	});
+
+	$effect(() => {
+		// Track filter changes to clear active macro if needed
+		selectedSubjects;
+		selectedContentTypes;
+		selectedRegions;
+		feedEntityFilter.selectedPageIds;
+		feedEntityFilter.selectedProfileIds;
+		feedEntityFilter.selectedFontIds;
+		feedMacros.clearActiveMacroIfChanged();
 	});
 
 	async function handleRefresh() {
@@ -107,16 +129,38 @@
 	</div>
 
 	<div class="grid gap-6 {layout.isExpanded ? 'lg:grid-cols-[220px_1fr]' : ''}">
-		<!-- Sidebar: category trees (only in expanded layout) -->
+		<!-- Sidebar: entity tree + category trees (only in expanded layout) -->
 		{#if layout.isExpanded}
-			<aside class="lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
-				<TreeSelector store={feedCategories} />
+			<aside class="lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto flex flex-col gap-4">
+				<FeedMacros />
+
+				<div class="border-t border-border pt-4">
+					<Collapsible.Root bind:open={advancedFiltersOpen}>
+						<Collapsible.Trigger
+							class="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+						>
+							<div class="flex items-center gap-2">
+								<Filter class="size-4" />
+								Filtros Avançados
+							</div>
+							<ChevronRight
+								class="size-4 transition-transform duration-200 {advancedFiltersOpen ? 'rotate-90' : ''}"
+							/>
+						</Collapsible.Trigger>
+						<Collapsible.Content class="pt-3 flex flex-col gap-3">
+							<EntityTreeFilter />
+							<div class="border-t border-border pt-3">
+								<TreeSelector store={feedCategories} />
+							</div>
+						</Collapsible.Content>
+					</Collapsible.Root>
+				</div>
 			</aside>
 		{/if}
 
 		<!-- Feed list -->
 		<div>
-			<FeedList {filter} subjectIds={selectedSubjects} contentTypeIds={selectedContentTypes} regionIds={selectedRegions} />
+			<FeedList {filter} subjectIds={selectedSubjects} contentTypeIds={selectedContentTypes} regionIds={selectedRegions} fontIds={allowedFontIds} />
 		</div>
 	</div>
 </div>

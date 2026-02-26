@@ -11,9 +11,10 @@
 		subjectIds?: string[];
 		contentTypeIds?: string[];
 		regionIds?: string[];
+		fontIds?: string[];
 	}
 
-	let { filter = 'all', subjectIds = [], contentTypeIds = [], regionIds = [] }: Props = $props();
+	let { filter = 'all', subjectIds = [], contentTypeIds = [], regionIds = [], fontIds = [] }: Props = $props();
 
 	const PAGE_SIZE = 20;
 	let visibleCount = $state(PAGE_SIZE);
@@ -26,11 +27,18 @@
 			: feed.prioritized
 	);
 
+	// Apply entity (font) filter
+	let entityFiltered = $derived(
+		fontIds.length > 0
+			? (() => { const allowed = new Set(fontIds); return basePosts.filter((sp) => allowed.has(sp.post.fontId)); })()
+			: basePosts
+	);
+
 	// Apply priority filter on top
 	let filtered = $derived(
 		filter === 'all'
-			? basePosts
-			: basePosts.filter((sp) => sp.priority === filter)
+			? entityFiltered
+			: entityFiltered.filter((sp) => sp.priority === filter)
 	);
 
 	let visible = $derived(filtered.slice(0, visibleCount));
