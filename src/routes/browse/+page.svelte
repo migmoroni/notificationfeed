@@ -19,7 +19,7 @@
 	<title>Notfeed — Browse</title>
 </svelte:head>
 
-<div class="mx-auto w-full px-4 py-4" class:max-w-7xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
+<div class="mx-auto w-full py-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded} class:px-4={!layout.isExpanded} class:pl-4={layout.isExpanded} class:pr-24={layout.isExpanded}>
 	<!-- Header -->
 	<div class="mb-4 flex items-center justify-between">
 		<h1 class="text-xl font-bold">Browse</h1>
@@ -82,7 +82,7 @@
 		</div>
 	{/if}
 
-	<div class="grid gap-6 {layout.isExpanded ? 'lg:grid-cols-[220px_1fr]' : 'md:grid-cols-[200px_1fr]'}">
+	<div class="grid gap-12 {layout.isExpanded ? 'lg:grid-cols-[295px_1fr]' : 'md:grid-cols-[265px_1fr]'}">
 		<!-- Sidebar: category trees -->
 		<aside class="{layout.isExpanded ? 'lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto' : 'md:sticky md:top-4 md:self-start md:max-h-[calc(100vh-2rem)] md:overflow-y-auto'}">
 			<TreeSelector />

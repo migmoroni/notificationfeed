@@ -57,7 +57,7 @@
 	<title>Notfeed — Feed</title>
 </svelte:head>
 
-<div class="mx-auto w-full px-4 py-4" class:max-w-7xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
+<div class="mx-auto w-full py-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded} class:px-4={!layout.isExpanded} class:pl-4={layout.isExpanded} class:pr-24={layout.isExpanded}>
 	<!-- Header -->
 	<div class="flex items-center justify-between mb-4 gap-3">
 		<div class="flex items-center gap-3 min-w-0">
@@ -128,7 +128,7 @@
 		{/if}
 	</div>
 
-	<div class="grid gap-6 {layout.isExpanded ? 'lg:grid-cols-[220px_1fr]' : ''}">
+	<div class="grid gap-12 {layout.isExpanded ? 'lg:grid-cols-[295px_1fr]' : ''}">
 		<!-- Sidebar: entity tree + category trees (only in expanded layout) -->
 		{#if layout.isExpanded}
 			<aside class="lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto flex flex-col gap-4">

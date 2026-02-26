@@ -28,12 +28,12 @@
 	<title>Notfeed — Favorites</title>
 </svelte:head>
 
-<div class="mx-auto w-full px-4 py-4" class:max-w-7xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
+<div class="mx-auto w-full py-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded} class:px-4={!layout.isExpanded} class:pl-4={layout.isExpanded} class:pr-24={layout.isExpanded}>
 	<div class="mb-4">
 		<h1 class="text-xl font-bold mb-3">Favoritos</h1>
 	</div>
 
-	<div class="grid gap-4 {layout.isExpanded ? 'lg:grid-cols-[200px_1fr]' : ''}">
+	<div class="grid gap-12 {layout.isExpanded ? 'lg:grid-cols-[295px_1fr]' : ''}">
 		<!-- Sidebar / Horizontal tabs -->
 		<aside class={layout.isExpanded ? 'lg:sticky lg:top-4 lg:self-start' : ''}>
 			<TabSidebar />
