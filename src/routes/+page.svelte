@@ -1,15 +1,24 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { feed } from '$lib/stores/feed.svelte.js';
+	import { feedCategories } from '$lib/stores/feed-categories.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
-	import { FeedList, PriorityFilter, CategoryFilter } from '$lib/components/feed/index.js';
+	import { FeedList, PriorityFilter } from '$lib/components/feed/index.js';
+	import { TreeSelector } from '$lib/components/browse/index.js';
 	import type { PriorityFilterValue } from '$lib/components/feed/index.js';
 	import { formatRelativeDate } from '$lib/utils/date.js';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
+	import X from '@lucide/svelte/icons/x';
 
 	let filter: PriorityFilterValue = $state('all');
-	let selectedSubjects: string[] = $state([]);
-	let selectedContentTypes: string[] = $state([]);
 	let refreshing = $state(false);
+
+	let selectedSubjects = $derived(feedCategories.getSelectedIds('subject'));
+	let selectedContentTypes = $derived(feedCategories.getSelectedIds('content_type'));
+
+	onMount(() => {
+		feedCategories.loadCategories();
+	});
 
 	async function handleRefresh() {
 		refreshing = true;
@@ -19,18 +28,13 @@
 			refreshing = false;
 		}
 	}
-
-	function handleCategoryChange(filters: { subjectIds: string[]; contentTypeIds: string[] }) {
-		selectedSubjects = filters.subjectIds;
-		selectedContentTypes = filters.contentTypeIds;
-	}
 </script>
 
 <svelte:head>
 	<title>Notfeed — Feed</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-2xl px-4 py-4">
+<div class="mx-auto w-full px-4 py-4" class:max-w-7xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
 	<!-- Header -->
 	<div class="flex items-center justify-between mb-4 gap-3">
 		<div class="flex items-center gap-3 min-w-0">
@@ -51,16 +55,55 @@
 		</button>
 	</div>
 
-	<!-- Filters: priority + categories -->
+	<!-- Priority filter + active category badges -->
 	<div class="flex items-center gap-3 mb-4 flex-wrap">
 		<PriorityFilter value={filter} onchange={(v) => (filter = v)} />
-		<CategoryFilter
-			subjectIds={selectedSubjects}
-			contentTypeIds={selectedContentTypes}
-			onchange={handleCategoryChange}
-		/>
+
+		{#if feedCategories.getSelectedCount('subject') > 0 || feedCategories.getSelectedCount('content_type') > 0}
+			{#each selectedSubjects as catId (catId)}
+				{@const cat = feedCategories.categories.find((c) => c.id === catId)}
+				{#if cat}
+					<button
+						onclick={() => feedCategories.toggleCategory(catId, 'subject')}
+						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
+					>
+						{cat.label}
+						<X class="size-3" />
+					</button>
+				{/if}
+			{/each}
+			{#each selectedContentTypes as catId (catId)}
+				{@const cat = feedCategories.categories.find((c) => c.id === catId)}
+				{#if cat}
+					<button
+						onclick={() => feedCategories.toggleCategory(catId, 'content_type')}
+						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
+					>
+						{cat.label}
+						<X class="size-3" />
+					</button>
+				{/if}
+			{/each}
+			<button
+				onclick={() => feedCategories.clearAll()}
+				class="text-xs text-muted-foreground hover:text-foreground transition-colors underline"
+			>
+				Limpar todos
+			</button>
+		{/if}
 	</div>
 
-	<!-- Feed list -->
-	<FeedList {filter} subjectIds={selectedSubjects} contentTypeIds={selectedContentTypes} />
+	<div class="grid gap-6 {layout.isExpanded ? 'lg:grid-cols-[220px_1fr]' : ''}">
+		<!-- Sidebar: category trees (only in expanded layout) -->
+		{#if layout.isExpanded}
+			<aside class="lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
+				<TreeSelector store={feedCategories} />
+			</aside>
+		{/if}
+
+		<!-- Feed list -->
+		<div>
+			<FeedList {filter} subjectIds={selectedSubjects} contentTypeIds={selectedContentTypes} />
+		</div>
+	</div>
 </div>
