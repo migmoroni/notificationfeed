@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import type { Category, CategoryTreeId } from '$lib/domain/category/category.js';
 	import type { CategoryAssignment } from '$lib/domain/shared/category-assignment.js';
-	import { MAX_CATEGORIES_PER_TREE } from '$lib/domain/shared/category-assignment.js';
+	import { SUGGESTED_CATEGORIES_PER_TREE } from '$lib/domain/shared/category-assignment.js';
 	import { createCategoryStore } from '$lib/persistence/category.store.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
@@ -46,7 +46,6 @@
 		if (currentIds.includes(categoryId)) {
 			newIds = currentIds.filter((id) => id !== categoryId);
 		} else {
-			if (currentIds.length >= MAX_CATEGORIES_PER_TREE) return;
 			newIds = [...currentIds, categoryId];
 		}
 
@@ -73,7 +72,10 @@
 			{@const available = getTreeCategories(tree.id)}
 			<div class="space-y-1">
 				<span class="text-xs font-medium text-muted-foreground">
-					{tree.label} ({selected.length}/{MAX_CATEGORIES_PER_TREE})
+					{tree.label} ({selected.length})
+					{#if selected.length > SUGGESTED_CATEGORIES_PER_TREE}
+						<span class="text-amber-500">— sugerido: {SUGGESTED_CATEGORIES_PER_TREE}</span>
+					{/if}
 				</span>
 
 				{#if selected.length > 0}
@@ -96,15 +98,11 @@
 				<div class="flex flex-wrap gap-1">
 					{#each available as cat}
 						{@const isSelected = selected.includes(cat.id)}
-						{@const isDisabled = !isSelected && selected.length >= MAX_CATEGORIES_PER_TREE}
 						<button
 							type="button"
 							class="text-xs px-2 py-0.5 rounded-md border transition-colors {isSelected
 								? 'bg-primary text-primary-foreground border-primary'
-								: isDisabled
-									? 'opacity-40 cursor-not-allowed border-border'
-									: 'hover:bg-accent hover:text-accent-foreground border-border'}"
-							disabled={isDisabled}
+								: 'hover:bg-accent hover:text-accent-foreground border-border'}"
 							onclick={() => toggleCategory(tree.id, cat.id)}
 						>
 							{cat.label}

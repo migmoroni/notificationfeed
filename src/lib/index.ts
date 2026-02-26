@@ -21,7 +21,7 @@ export { CATEGORY_SEED } from './domain/category/category-seed.js';
 
 // Domain — Category Assignment
 export type { CategoryAssignment } from './domain/shared/category-assignment.js';
-export { MAX_CATEGORIES_PER_TREE, validateAssignments } from './domain/shared/category-assignment.js';
+export { SUGGESTED_CATEGORIES_PER_TREE, validateAssignments } from './domain/shared/category-assignment.js';
 
 // Domain — Favorite Tab
 export type { FavoriteTab } from './domain/favorite-tab/favorite-tab.js';

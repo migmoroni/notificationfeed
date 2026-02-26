@@ -2,12 +2,11 @@
  * CategoryAssignment — links an entity to categories within a specific tree.
  *
  * A Profile can hold multiple assignments (one per tree).
- * Each assignment allows up to 3 categories from the same tree.
+ * The suggested amount is 3 categories per tree, but more can be assigned.
  *
  * Validation rules:
  * - All categoryIds must belong to the declared treeId
  * - No duplicate categoryIds within the same treeId
- * - Maximum 3 categoryIds per treeId
  * - Categories must be sublevels (depth >= 1)
  */
 
@@ -18,7 +17,8 @@ export interface CategoryAssignment {
 	categoryIds: string[];
 }
 
-export const MAX_CATEGORIES_PER_TREE = 3;
+/** Suggested (not enforced) number of categories per tree. */
+export const SUGGESTED_CATEGORIES_PER_TREE = 3;
 
 export interface AssignmentValidationError {
 	treeId: CategoryTreeId;
@@ -37,14 +37,6 @@ export function validateAssignments(
 	const categoryMap = new Map(allCategories.map((c) => [c.id, c]));
 
 	for (const assignment of assignments) {
-		// Max 3 per tree
-		if (assignment.categoryIds.length > MAX_CATEGORIES_PER_TREE) {
-			errors.push({
-				treeId: assignment.treeId,
-				message: `Maximum ${MAX_CATEGORIES_PER_TREE} categories per tree (got ${assignment.categoryIds.length})`
-			});
-		}
-
 		// No duplicates
 		const unique = new Set(assignment.categoryIds);
 		if (unique.size !== assignment.categoryIds.length) {
