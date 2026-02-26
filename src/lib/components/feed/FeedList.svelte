@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import type { PriorityFilterValue } from './PriorityFilter.svelte';
 	import { feed } from '$lib/stores/feed.svelte.js';
+	import { layout } from '$lib/stores/layout.svelte.js';
 	import PostCard from './PostCard.svelte';
 	import Newspaper from '@lucide/svelte/icons/newspaper';
 
@@ -93,14 +94,14 @@
 	</div>
 {:else}
 	<!-- Post list -->
-	<div class="flex flex-col gap-3">
+	<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}">
 		{#each visible as sortedPost (sortedPost.post.id)}
 			<PostCard {sortedPost} />
 		{/each}
 
 		<!-- Infinite scroll sentinel -->
 		{#if hasMore}
-			<div bind:this={sentinel} class="h-10 flex items-center justify-center">
+			<div bind:this={sentinel} class="h-10 flex items-center justify-center {layout.isExpanded ? 'lg:col-span-2' : ''}">
 				<div class="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent"></div>
 			</div>
 		{/if}
