@@ -195,6 +195,13 @@ export const feedEntityFilter = {
 	/**
 	 * Compute the final set of allowed font IDs based on current selection.
 	 * Returns empty set if no filters — meaning "show all".
+	 *
+	 * Narrowing hierarchy: each level refines the parent.
+	 *   - Page selected → all fonts from that page
+	 *   - Page + child Profile selected → only fonts from that profile
+	 *   - Page + child Profile + child Font selected → only that font
+	 *   - Profile selected (standalone) → all fonts from that profile
+	 *   - Profile + child Font selected → only that font
 	 */
 	getAllowedFontIds(): Set<string> {
 		if (!this.hasFilters) return new Set();
@@ -203,26 +210,38 @@ export const feedEntityFilter = {
 		const allFonts = getActiveFonts();
 		const allProfiles = getActiveProfiles();
 
-		// Fonts directly selected
-		for (const fid of selectedFontIds) {
-			allowed.add(fid);
-		}
+		// Helper: effective fonts for a profile (narrowed by selected fonts if any)
+		const fontsForProfile = (profileId: string): string[] => {
+			const pFonts = allFonts.filter((f) => f.profileId === profileId);
+			const selected = pFonts.filter((f) => selectedFontIds.has(f.id));
+			return selected.length > 0 ? selected.map((f) => f.id) : pFonts.map((f) => f.id);
+		};
 
-		// Fonts from selected profiles
-		for (const pid of selectedProfileIds) {
-			for (const f of allFonts.filter((f) => f.profileId === pid)) {
-				allowed.add(f.id);
-			}
-		}
-
-		// Fonts from selected pages (via profiles)
+		// Process selected pages — narrowed by child profile/font selections
 		for (const pageId of selectedPageIds) {
 			const pageProfiles = allProfiles.filter((p) => p.creatorPageId === pageId);
-			for (const p of pageProfiles) {
-				for (const f of allFonts.filter((f) => f.profileId === p.id)) {
-					allowed.add(f.id);
-				}
+			const selectedInPage = pageProfiles.filter((p) => selectedProfileIds.has(p.id));
+			const profilesToUse = selectedInPage.length > 0 ? selectedInPage : pageProfiles;
+			for (const p of profilesToUse) {
+				for (const fid of fontsForProfile(p.id)) allowed.add(fid);
 			}
+		}
+
+		// Process selected profiles not already covered by a selected page
+		for (const profileId of selectedProfileIds) {
+			const profile = allProfiles.find((p) => p.id === profileId);
+			if (profile?.creatorPageId && selectedPageIds.has(profile.creatorPageId)) continue;
+			for (const fid of fontsForProfile(profileId)) allowed.add(fid);
+		}
+
+		// Process selected fonts not already covered by a selected profile or page
+		for (const fontId of selectedFontIds) {
+			const font = allFonts.find((f) => f.id === fontId);
+			if (!font) continue;
+			const profile = allProfiles.find((p) => p.id === font.profileId);
+			if (profile && selectedProfileIds.has(profile.id)) continue;
+			if (profile?.creatorPageId && selectedPageIds.has(profile.creatorPageId)) continue;
+			allowed.add(fontId);
 		}
 
 		return allowed;
