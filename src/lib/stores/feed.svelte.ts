@@ -73,7 +73,7 @@ function computePrioritized(): SortedPost[] {
  * in the specified tree.
  */
 function fontIdsMatchingCategories(
-	treeId: 'subject' | 'content_type',
+	treeId: 'subject' | 'content_type' | 'region',
 	categoryIds: string[]
 ): Set<string> {
 	if (categoryIds.length === 0) return new Set(); // means "no filter" — handled by caller
@@ -109,7 +109,7 @@ export const feed = {
 	 * Get prioritized posts filtered by category assignments.
 	 * Pass empty arrays to skip that dimension of filtering.
 	 */
-	filteredByCategories(subjectIds: string[], contentTypeIds: string[]): SortedPost[] {
+	filteredByCategories(subjectIds: string[], contentTypeIds: string[], regionIds: string[] = []): SortedPost[] {
 		let sorted = computePrioritized();
 
 		if (subjectIds.length > 0) {
@@ -119,6 +119,11 @@ export const feed = {
 
 		if (contentTypeIds.length > 0) {
 			const allowedFonts = fontIdsMatchingCategories('content_type', contentTypeIds);
+			sorted = sorted.filter((sp) => allowedFonts.has(sp.post.fontId));
+		}
+
+		if (regionIds.length > 0) {
+			const allowedFonts = fontIdsMatchingCategories('region', regionIds);
 			sorted = sorted.filter((sp) => allowedFonts.has(sp.post.fontId));
 		}
 

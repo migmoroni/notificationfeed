@@ -20,7 +20,7 @@ interface FeedCategoriesState {
 
 let state = $state<FeedCategoriesState>({
 	categories: [],
-	selectedByTree: { subject: new Set(), content_type: new Set() },
+	selectedByTree: { subject: new Set(), content_type: new Set(), region: new Set() },
 	loading: false
 });
 
@@ -39,7 +39,7 @@ export const feedCategories = {
 	},
 
 	get hasFilters(): boolean {
-		return state.selectedByTree.subject.size > 0 || state.selectedByTree.content_type.size > 0;
+		return state.selectedByTree.subject.size > 0 || state.selectedByTree.content_type.size > 0 || state.selectedByTree.region.size > 0;
 	},
 
 	getRootCategories(treeId: CategoryTreeId): Category[] {
@@ -90,6 +90,6 @@ export const feedCategories = {
 	},
 
 	clearAll(): void {
-		state.selectedByTree = { subject: new Set(), content_type: new Set() };
+		state.selectedByTree = { subject: new Set(), content_type: new Set(), region: new Set() };
 	}
 };

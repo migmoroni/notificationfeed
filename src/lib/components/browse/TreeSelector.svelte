@@ -15,4 +15,6 @@
 	<CategoryTree treeId="subject" label="Assunto" {store} />
 	<Separator />
 	<CategoryTree treeId="content_type" label="Formato" {store} />
+	<Separator />
+	<CategoryTree treeId="region" label="Região" {store} />
 </nav>

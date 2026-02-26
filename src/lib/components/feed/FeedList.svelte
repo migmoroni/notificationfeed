@@ -9,9 +9,10 @@
 		filter?: PriorityFilterValue;
 		subjectIds?: string[];
 		contentTypeIds?: string[];
+		regionIds?: string[];
 	}
 
-	let { filter = 'all', subjectIds = [], contentTypeIds = [] }: Props = $props();
+	let { filter = 'all', subjectIds = [], contentTypeIds = [], regionIds = [] }: Props = $props();
 
 	const PAGE_SIZE = 20;
 	let visibleCount = $state(PAGE_SIZE);
@@ -19,8 +20,8 @@
 
 	// Get base posts (with category filtering if applicable)
 	let basePosts = $derived(
-		(subjectIds.length > 0 || contentTypeIds.length > 0)
-			? feed.filteredByCategories(subjectIds, contentTypeIds)
+		(subjectIds.length > 0 || contentTypeIds.length > 0 || regionIds.length > 0)
+			? feed.filteredByCategories(subjectIds, contentTypeIds, regionIds)
 			: feed.prioritized
 	);
 

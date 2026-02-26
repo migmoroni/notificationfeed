@@ -42,7 +42,7 @@ interface BrowseStoreState {
 
 let state = $state<BrowseStoreState>({
 	categories: [],
-	selectedByTree: { subject: new Set(), content_type: new Set() },
+	selectedByTree: { subject: new Set(), content_type: new Set(), region: new Set() },
 	entities: [],
 	searchQuery: '',
 	loading: false
@@ -91,7 +91,7 @@ function entityMatchesQuery(entity: BrowseEntity, query: string): boolean {
 }
 
 let hasAnySelection = $derived(
-	state.selectedByTree.subject.size > 0 || state.selectedByTree.content_type.size > 0
+	state.selectedByTree.subject.size > 0 || state.selectedByTree.content_type.size > 0 || state.selectedByTree.region.size > 0
 );
 
 // ── Exported accessor ──────────────────────────────────────────────────
@@ -154,9 +154,9 @@ export const browse = {
 		await this.applyFilters();
 	},
 
-	/** Clear all selections across both trees. */
+	/** Clear all selections across all trees. */
 	async clearAllCategories(): Promise<void> {
-		state.selectedByTree = { subject: new Set(), content_type: new Set() };
+		state.selectedByTree = { subject: new Set(), content_type: new Set(), region: new Set() };
 		await this.applyFilters();
 	},
 
@@ -178,7 +178,7 @@ export const browse = {
 	 * - Both active = intersection
 	 */
 	async applyFilters(): Promise<void> {
-		const hasCategories = state.selectedByTree.subject.size > 0 || state.selectedByTree.content_type.size > 0;
+		const hasCategories = state.selectedByTree.subject.size > 0 || state.selectedByTree.content_type.size > 0 || state.selectedByTree.region.size > 0;
 		const hasSearch = state.searchQuery.trim().length > 0;
 
 		if (!hasCategories && !hasSearch) {
@@ -197,13 +197,15 @@ export const browse = {
 			// Expand selected categories to include children
 			const subjectIds = expandCategoryIds(state.selectedByTree.subject, state.categories);
 			const contentTypeIds = expandCategoryIds(state.selectedByTree.content_type, state.categories);
+			const regionIds = expandCategoryIds(state.selectedByTree.region, state.categories);
 
 			// Filter profiles: AND between trees (must match both if both have selections)
 			let matchedProfiles = allProfiles;
 			if (hasCategories) {
 				matchedProfiles = allProfiles.filter((p) =>
 					profileMatchesTree(p, 'subject', subjectIds) &&
-					profileMatchesTree(p, 'content_type', contentTypeIds)
+					profileMatchesTree(p, 'content_type', contentTypeIds) &&
+					profileMatchesTree(p, 'region', regionIds)
 				);
 			}
 

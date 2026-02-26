@@ -15,6 +15,7 @@
 
 	let selectedSubjects = $derived(feedCategories.getSelectedIds('subject'));
 	let selectedContentTypes = $derived(feedCategories.getSelectedIds('content_type'));
+	let selectedRegions = $derived(feedCategories.getSelectedIds('region'));
 
 	onMount(() => {
 		feedCategories.loadCategories();
@@ -59,7 +60,7 @@
 	<div class="flex items-center gap-3 mb-4 flex-wrap">
 		<PriorityFilter value={filter} onchange={(v) => (filter = v)} />
 
-		{#if feedCategories.getSelectedCount('subject') > 0 || feedCategories.getSelectedCount('content_type') > 0}
+		{#if feedCategories.getSelectedCount('subject') > 0 || feedCategories.getSelectedCount('content_type') > 0 || feedCategories.getSelectedCount('region') > 0}
 			{#each selectedSubjects as catId (catId)}
 				{@const cat = feedCategories.categories.find((c) => c.id === catId)}
 				{#if cat}
@@ -77,6 +78,18 @@
 				{#if cat}
 					<button
 						onclick={() => feedCategories.toggleCategory(catId, 'content_type')}
+						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
+					>
+						{cat.label}
+						<X class="size-3" />
+					</button>
+				{/if}
+			{/each}
+			{#each selectedRegions as catId (catId)}
+				{@const cat = feedCategories.categories.find((c) => c.id === catId)}
+				{#if cat}
+					<button
+						onclick={() => feedCategories.toggleCategory(catId, 'region')}
 						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
 					>
 						{cat.label}
@@ -103,7 +116,7 @@
 
 		<!-- Feed list -->
 		<div>
-			<FeedList {filter} subjectIds={selectedSubjects} contentTypeIds={selectedContentTypes} />
+			<FeedList {filter} subjectIds={selectedSubjects} contentTypeIds={selectedContentTypes} regionIds={selectedRegions} />
 		</div>
 	</div>
 </div>

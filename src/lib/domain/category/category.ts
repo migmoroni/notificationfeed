@@ -14,7 +14,7 @@
  */
 
 /** Identifies which tree a category belongs to */
-export type CategoryTreeId = 'subject' | 'content_type';
+export type CategoryTreeId = 'subject' | 'content_type' | 'region';
 
 export interface Category {
 	id: string;

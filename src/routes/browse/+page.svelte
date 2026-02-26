@@ -35,7 +35,7 @@
 	</div>
 
 	<!-- Active filter badges -->
-	{#if browse.getSelectedCount('subject') > 0 || browse.getSelectedCount('content_type') > 0}
+	{#if browse.getSelectedCount('subject') > 0 || browse.getSelectedCount('content_type') > 0 || browse.getSelectedCount('region') > 0}
 		<div class="flex flex-wrap gap-1.5 mb-3">
 			{#each [...browse.selectedByTree.subject] as catId (catId)}
 				{@const cat = browse.categories.find((c) => c.id === catId)}
@@ -54,6 +54,18 @@
 				{#if cat}
 					<button
 						onclick={() => browse.toggleCategory(catId, 'content_type')}
+						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
+					>
+						{cat.label}
+						<X class="size-3" />
+					</button>
+				{/if}
+			{/each}
+			{#each [...browse.selectedByTree.region] as catId (catId)}
+				{@const cat = browse.categories.find((c) => c.id === catId)}
+				{#if cat}
+					<button
+						onclick={() => browse.toggleCategory(catId, 'region')}
 						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
 					>
 						{cat.label}
