@@ -28,19 +28,19 @@
 	<title>Notfeed — Favorites</title>
 </svelte:head>
 
-<div class="mx-auto w-full py-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded} class:px-4={!layout.isExpanded} class:pl-4={layout.isExpanded} class:pr-24={layout.isExpanded}>
+<div class="mx-auto w-full h-full flex flex-col overflow-hidden py-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded} class:px-4={!layout.isExpanded} class:pl-4={layout.isExpanded}>
 	<div class="mb-4">
 		<h1 class="text-xl font-bold mb-3">Favoritos</h1>
 	</div>
 
-	<div class="grid gap-12 {layout.isExpanded ? 'lg:grid-cols-[295px_1fr]' : ''}">
+	<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? 'lg:grid-cols-[295px_1fr]' : ''}">
 		<!-- Sidebar / Horizontal tabs -->
-		<aside class={layout.isExpanded ? 'lg:sticky lg:top-4 lg:self-start' : ''}>
+		<aside class="overflow-y-auto gap-4">
 			<TabSidebar />
 		</aside>
 
 		<!-- Main: filtered items -->
-		<div class={favorites.isSelecting ? 'pb-20' : ''}>
+		<div class="overflow-y-auto pr-24 pb-24 pt-4 {favorites.isSelecting ? 'pb-20' : ''}">
 			<FavoriteItemList items={favorites.filteredItems} loading={favorites.loading} />
 		</div>
 	</div>

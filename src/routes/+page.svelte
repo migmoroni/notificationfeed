@@ -57,9 +57,9 @@
 	<title>Notfeed — Feed</title>
 </svelte:head>
 
-<div class="mx-auto w-full py-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded} class:px-4={!layout.isExpanded} class:pl-4={layout.isExpanded} class:pr-24={layout.isExpanded}>
+<div class="mx-auto w-full h-full flex flex-col overflow-hidden pt-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded} class:px-4={!layout.isExpanded} class:pl-4={layout.isExpanded}>
 	<!-- Header -->
-	<div class="flex items-center justify-between mb-4 gap-3">
+	<div class="flex items-center justify-between mb-4 gap-3 pr-24">
 		<div class="flex items-center gap-3 min-w-0">
 			<h1 class="text-xl font-bold shrink-0">Feed</h1>
 			{#if feed.lastRefresh}
@@ -128,10 +128,10 @@
 		{/if}
 	</div>
 
-	<div class="grid gap-12 {layout.isExpanded ? 'lg:grid-cols-[295px_1fr]' : ''}">
+	<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? 'lg:grid-cols-[295px_1fr]' : ''}">
 		<!-- Sidebar: entity tree + category trees (only in expanded layout) -->
 		{#if layout.isExpanded}
-			<aside class="lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto flex flex-col gap-4">
+			<aside class="overflow-y-auto flex flex-col gap-4">
 				<FeedMacros />
 
 				<div class="border-t border-border pt-4">
@@ -159,7 +159,7 @@
 		{/if}
 
 		<!-- Feed list -->
-		<div>
+		<div class="overflow-y-auto pr-24 pb-24 pt-4">
 			<FeedList {filter} subjectIds={selectedSubjects} contentTypeIds={selectedContentTypes} regionIds={selectedRegions} fontIds={allowedFontIds} />
 		</div>
 	</div>
