@@ -28,7 +28,11 @@ const IDS = {
 	fontAtom1: '00000000-0000-0000-0000-000000005003',
 	fontNostr1: '00000000-0000-0000-0000-000000005004',
 	fontCreatorRss1: '00000000-0000-0000-0000-000000005005',
-	fontCreatorAtom1: '00000000-0000-0000-0000-000000005006'
+	fontCreatorAtom1: '00000000-0000-0000-0000-000000005006',
+	profileSecurity: '00000000-0000-0000-0000-000000004005',
+	profileScienceNews: '00000000-0000-0000-0000-000000004006',
+	fontRss3: '00000000-0000-0000-0000-000000005007',
+	fontAtom2: '00000000-0000-0000-0000-000000005008'
 } as const;
 
 // ── Seed check ─────────────────────────────────────────────────────────
@@ -287,6 +291,66 @@ export async function seedMockData(): Promise<void> {
 		updatedAt: now
 	});
 
+	await db.profiles.put({
+		id: IDS.profileSecurity,
+		ownerType: 'consumer',
+		ownerId: IDS.consumer,
+		creatorPageId: IDS.pageTechBlog,
+		title: 'Security & Privacy',
+		tags: ['security', 'privacy', 'infosec'],
+		avatar: null,
+		categoryAssignments: [
+			{ treeId: 'subject', categoryIds: ['subj-tech-security'] },
+			{ treeId: 'content_type', categoryIds: ['ct-format-news', 'ct-format-analysis'] }
+		],
+		defaultEnabled: true,
+		createdAt: now,
+		updatedAt: now
+	});
+
+	await db.profiles.put({
+		id: IDS.profileScienceNews,
+		ownerType: 'consumer',
+		ownerId: IDS.consumer,
+		creatorPageId: IDS.pageNewsDaily,
+		title: 'Science & Health',
+		tags: ['science', 'health', 'research'],
+		avatar: null,
+		categoryAssignments: [
+			{ treeId: 'subject', categoryIds: ['subj-science', 'subj-health'] },
+			{ treeId: 'content_type', categoryIds: ['ct-format-news'] }
+		],
+		defaultEnabled: true,
+		createdAt: now,
+		updatedAt: now
+	});
+
+	await db.fonts.put({
+		id: IDS.fontRss3,
+		profileId: IDS.profileSecurity,
+		title: 'Krebs on Security',
+		tags: ['security', 'infosec'],
+		avatar: null,
+		protocol: 'rss',
+		config: { url: 'https://krebsonsecurity.com/feed/' },
+		defaultEnabled: true,
+		createdAt: now,
+		updatedAt: now
+	});
+
+	await db.fonts.put({
+		id: IDS.fontAtom2,
+		profileId: IDS.profileScienceNews,
+		title: 'Nature News (Atom)',
+		tags: ['science', 'research'],
+		avatar: null,
+		protocol: 'atom',
+		config: { url: 'https://www.nature.com/nature.rss' },
+		defaultEnabled: true,
+		createdAt: now,
+		updatedAt: now
+	});
+
 	// ── Creator Profiles ────────────────────────────────────────────
 
 	await db.profiles.put({
@@ -521,6 +585,126 @@ export async function seedMockData(): Promise<void> {
 			publishedAt: new Date('2026-02-13T11:00:00Z'),
 			ingestedAt: now,
 			read: false
+		},
+		{
+			id: 'post-011',
+			fontId: IDS.fontRss3,
+			protocol: 'rss',
+			title: 'Critical vulnerability found in widely used SSH library',
+			content: 'Researchers disclose a remote code execution flaw affecting millions of servers.',
+			url: 'https://krebsonsecurity.com/2026/02/ssh-vuln',
+			author: 'Brian Krebs',
+			publishedAt: new Date('2026-02-16T09:00:00Z'),
+			ingestedAt: now,
+			read: false
+		},
+		{
+			id: 'post-012',
+			fontId: IDS.fontRss3,
+			protocol: 'rss',
+			title: 'Ransomware group dismantled by joint law enforcement operation',
+			content: 'Europol and FBI coordinate takedown of infrastructure spanning 12 countries.',
+			url: 'https://krebsonsecurity.com/2026/02/ransomware-takedown',
+			author: 'Brian Krebs',
+			publishedAt: new Date('2026-02-15T13:00:00Z'),
+			ingestedAt: now,
+			read: false
+		},
+		{
+			id: 'post-013',
+			fontId: IDS.fontRss3,
+			protocol: 'rss',
+			title: 'Browser fingerprinting techniques evolve beyond cookies',
+			content: 'New research shows canvas and GPU fingerprinting are near-impossible to block.',
+			url: 'https://krebsonsecurity.com/2026/02/fingerprinting',
+			author: 'Brian Krebs',
+			publishedAt: new Date('2026-02-14T17:30:00Z'),
+			ingestedAt: now,
+			read: true
+		},
+		{
+			id: 'post-014',
+			fontId: IDS.fontAtom2,
+			protocol: 'atom',
+			title: 'Breakthrough in protein folding enables faster drug discovery',
+			content: 'AI-assisted models predict novel binding sites with 94% accuracy in trials.',
+			url: 'https://nature.com/articles/protein-folding-2026',
+			author: 'Nature Editorial',
+			publishedAt: new Date('2026-02-16T07:00:00Z'),
+			ingestedAt: now,
+			read: false
+		},
+		{
+			id: 'post-015',
+			fontId: IDS.fontAtom2,
+			protocol: 'atom',
+			title: 'CRISPR gene editing approved for third hereditary condition',
+			content: 'Regulators green-light treatment targeting rare metabolic disorder.',
+			url: 'https://nature.com/articles/crispr-approval-2026',
+			author: 'Nature Editorial',
+			publishedAt: new Date('2026-02-15T11:00:00Z'),
+			ingestedAt: now,
+			read: false
+		},
+		{
+			id: 'post-016',
+			fontId: IDS.fontAtom2,
+			protocol: 'atom',
+			title: 'Ocean warming accelerates coral bleaching across Indo-Pacific',
+			content: 'Satellite data confirms third mass bleaching event in six years.',
+			url: 'https://nature.com/articles/coral-bleaching-2026',
+			author: 'Nature Editorial',
+			publishedAt: new Date('2026-02-14T08:00:00Z'),
+			ingestedAt: now,
+			read: false
+		},
+		{
+			id: 'post-017',
+			fontId: IDS.fontRss1,
+			protocol: 'rss',
+			title: 'Ask HN: How do you manage secrets in a monorepo?',
+			content: 'Discussion on Vault, SOPS, and environment-specific strategies.',
+			url: 'https://news.ycombinator.com/item?id=4',
+			author: 'repo_architect',
+			publishedAt: new Date('2026-02-16T11:00:00Z'),
+			ingestedAt: now,
+			read: false
+		},
+		{
+			id: 'post-018',
+			fontId: IDS.fontAtom1,
+			protocol: 'atom',
+			title: 'SvelteKit 3.0 testing patterns with Vitest and Playwright',
+			content: 'End-to-end and unit testing strategies updated for the new adapter model.',
+			url: 'https://svelte.dev/blog/testing-2026',
+			author: 'Svelte Team',
+			publishedAt: new Date('2026-02-12T14:00:00Z'),
+			ingestedAt: now,
+			read: false
+		},
+		{
+			id: 'post-019',
+			fontId: IDS.fontNostr1,
+			protocol: 'nostr',
+			title: 'DVMs gain traction as decentralized AI inference layer',
+			content: 'Data Vending Machines allow any relay to serve AI tasks over nostr events.',
+			url: '',
+			author: 'dvm_builder',
+			publishedAt: new Date('2026-02-16T05:00:00Z'),
+			ingestedAt: now,
+			read: false
+		},
+		{
+			id: 'post-020',
+			fontId: IDS.fontRss2,
+			protocol: 'rss',
+			title: 'UN report warns of rising food insecurity in West Africa',
+			content: 'Climate shocks and conflict displace over 3 million smallholder farmers.',
+			url: 'https://bbc.co.uk/news/world-3',
+			author: 'BBC News',
+			publishedAt: new Date('2026-02-12T09:30:00Z'),
+			ingestedAt: now,
+			read: false
 		}
 	];
 
@@ -529,3 +713,5 @@ export async function seedMockData(): Promise<void> {
 
 /** Exported IDs for use in tests */
 export const MOCK_IDS = IDS;
+
+// New IDs added: profileSecurity, profileScienceNews, fontRss3, fontAtom2, posts 011–020
