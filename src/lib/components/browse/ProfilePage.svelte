@@ -193,8 +193,14 @@
 	{:else if profile}
 		<!-- Header -->
 		<div class="flex items-start gap-4 mb-6">
-			<div class="flex items-center justify-center size-14 shrink-0 rounded-lg bg-muted text-muted-foreground">
-				<User class="size-7" />
+			<div class="shrink-0 w-14 h-14 rounded-lg bg-muted text-muted-foreground overflow-hidden">
+				{#if profile.avatar?.data}
+					<img src="data:image/webp;base64,{profile.avatar.data}" alt="" class="w-full h-full object-cover" />
+				{:else}
+					<div class="flex items-center justify-center w-full h-full">
+						<User class="size-7" />
+					</div>
+				{/if}
 			</div>
 
 			<div class="flex-1 min-w-0">

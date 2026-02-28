@@ -4,6 +4,8 @@
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import X from '@lucide/svelte/icons/x';
 	import Rss from '@lucide/svelte/icons/rss';
+	import Atom from '@lucide/svelte/icons/atom';
+	import Zap from '@lucide/svelte/icons/zap';
 	import User from '@lucide/svelte/icons/user';
 	import FileText from '@lucide/svelte/icons/file-text';
 
@@ -13,9 +15,34 @@
 
 	let { store }: Props = $props();
 
-	// Track which nodes are open
-	let openPages: Record<string, boolean> = $state({});
-	let openProfiles: Record<string, boolean> = $state({});
+	// Open state derived from selection — selected items stay expanded across remounts
+	let openPages: Record<string, boolean> = $derived.by(() => {
+		const result: Record<string, boolean> = {};
+		for (const page of store.getPages()) {
+			if (store.isPageSelected(page.id)) result[page.id] = true;
+		}
+		return result;
+	});
+	let openProfiles: Record<string, boolean> = $derived.by(() => {
+		const result: Record<string, boolean> = {};
+		for (const p of [...store.getProfiles(), ...store.getStandaloneProfiles()]) {
+			if (store.isProfileSelected(p.id)) result[p.id] = true;
+		}
+		return result;
+	});
+
+	// Branch-level open: auto-open when there are selections, collapsed otherwise.
+	// Manual override respected until selection state changes.
+	let branchManual: Record<string, boolean> = $state({});
+	let hasAnySelection = $derived(store.selectedPageIds.size > 0 || store.selectedProfileIds.size > 0 || store.selectedFontIds.size > 0);
+
+	function isBranchOpen(key: string): boolean {
+		if (key in branchManual) return branchManual[key];
+		return hasAnySelection;
+	}
+	function toggleBranch(key: string) {
+		branchManual[key] = !isBranchOpen(key);
+	}
 
 	let pages = $derived(store.getPages());
 	let standaloneProfiles = $derived(store.getStandaloneProfiles());
@@ -37,38 +64,50 @@
 		{/if}
 	</div>
 
-	<!-- Pages with child profiles -->
+	<!-- Branch: Pages -->
+	{#if pages.length > 0}
+	<Collapsible.Root open={isBranchOpen('pages')} onOpenChange={() => toggleBranch('pages')}>
+		<Collapsible.Trigger
+			class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+		>
+			<ChevronRight
+				class="size-4 shrink-0 transition-transform duration-200 {isBranchOpen('pages') ? 'rotate-90' : ''}"
+			/>
+			<span>Páginas</span>
+			<span class="ml-auto text-xs text-muted-foreground">{pages.length}</span>
+		</Collapsible.Trigger>
+		<Collapsible.Content>
+			<div class="ml-4 flex flex-col gap-0.5 border-l border-border pl-2 py-0.5">
 	{#each pages as page (page.id)}
 		{@const isPageOpen = openPages[page.id] ?? false}
 		{@const isPageSelected = store.isPageSelected(page.id)}
 		{@const pageProfiles = store.getProfiles(page.id)}
 
-		<Collapsible.Root open={isPageOpen} onOpenChange={() => (openPages[page.id] = !openPages[page.id])}>
+		<Collapsible.Root open={isPageOpen}>
 			<div class="flex items-center gap-0.5">
-				<Collapsible.Trigger
-					class="flex items-center gap-1 rounded-md px-1 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground shrink-0"
-				>
+				<div class="flex items-center gap-1 px-1 py-2 shrink-0">
 					<ChevronRight
 						class="size-3.5 shrink-0 transition-transform duration-200 {isPageOpen ? 'rotate-90' : ''}"
 					/>
-				</Collapsible.Trigger>
+				</div>
 				<button
-					onclick={() => {
-						const wasSelected = store.isPageSelected(page.id);
-						store.togglePage(page.id);
-						if (!wasSelected) openPages[page.id] = true;
-						else openPages[page.id] = false;
-					}}
-					class="flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground
+					onclick={() => store.togglePage(page.id)}
+					class="flex w-full items-stretch rounded-md overflow-hidden text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground
 						{isPageSelected ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'}"
 				>
 					{#if page.avatarData}
-						<img src="data:image/webp;base64,{page.avatarData}" alt="" class="size-4 shrink-0 rounded-sm object-cover" />
+						<div class="shrink-0 w-10">
+							<img src="data:image/webp;base64,{page.avatarData}" alt="" class="w-full h-full object-cover" />
+						</div>
 					{:else}
-						<FileText class="size-3.5 shrink-0" />
+						<div class="flex items-center justify-center shrink-0 px-1 py-2">
+							<FileText class="size-3.5 shrink-0" />
+						</div>
 					{/if}
-					<span class="truncate">{page.title}</span>
-					<span class="ml-auto text-xs text-muted-foreground">{page.profileCount}</span>
+					<div class="flex items-center gap-2 flex-1 min-w-0 px-1 py-2">
+						<span class="truncate">{page.title}</span>
+						<span class="ml-auto text-xs text-muted-foreground">{page.profileCount}</span>
+					</div>
 				</button>
 			</div>
 
@@ -79,57 +118,72 @@
 						{@const isProfileSelected = store.isProfileSelected(profile.id)}
 						{@const profileFonts = store.getFonts(profile.id)}
 
-						<Collapsible.Root open={isProfileOpen} onOpenChange={() => (openProfiles[profile.id] = !openProfiles[profile.id])}>
-							<div class="flex items-center gap-0.5">
-								{#if profileFonts.length > 0}
-									<Collapsible.Trigger
-										class="flex items-center gap-1 rounded-md px-1 py-1 text-sm transition-colors hover:bg-accent/50 shrink-0"
-									>
-										<ChevronRight
-											class="size-3 shrink-0 transition-transform duration-200 {isProfileOpen ? 'rotate-90' : ''}"
-										/>
-									</Collapsible.Trigger>
+					<Collapsible.Root open={isProfileOpen}>
+						<div class="flex items-center gap-0.5">
+							{#if profileFonts.length > 0}
+								<div class="flex items-center gap-1 px-1 py-2 shrink-0">
+									<ChevronRight
+										class="size-3 shrink-0 transition-transform duration-200 {isProfileOpen ? 'rotate-90' : ''}"
+									/>
+								</div>
 								{:else}
 									<div class="w-5 shrink-0"></div>
 								{/if}
 								<button
-									onclick={() => {
-										const wasSelected = store.isProfileSelected(profile.id);
-										store.toggleProfile(profile.id);
-										if (!wasSelected) openProfiles[profile.id] = true;
-										else openProfiles[profile.id] = false;
-									}}
-									class="flex w-full items-center gap-2 rounded-md px-1 py-1 text-sm transition-colors text-left
+									onclick={() => store.toggleProfile(profile.id)}
+									class="flex w-full items-stretch rounded-md overflow-hidden text-sm transition-colors text-left
 										{isProfileSelected
 										? 'bg-accent text-accent-foreground font-medium'
 										: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
 								>
 									{#if profile.avatar?.data}
-										<img src="data:image/webp;base64,{profile.avatar.data}" alt="" class="size-4 shrink-0 rounded-full object-cover" />
+										<div class="shrink-0 w-10">
+											<img src="data:image/webp;base64,{profile.avatar.data}" alt="" class="w-full h-full object-cover" />
+										</div>
 									{:else}
-										<User class="size-3.5 shrink-0" />
+										<div class="flex items-center justify-center shrink-0 px-1 py-2">
+											<User class="size-3.5 shrink-0" />
+										</div>
 									{/if}
-									<span class="truncate">{profile.title}</span>
-									{#if profileFonts.length > 0}
-										<span class="ml-auto text-xs text-muted-foreground">{profileFonts.length}</span>
-									{/if}
+									<div class="flex items-center gap-2 flex-1 min-w-0 px-1 py-2">
+										<span class="truncate">{profile.title}</span>
+										{#if profileFonts.length > 0}
+											<span class="ml-auto text-xs text-muted-foreground">{profileFonts.length}</span>
+										{/if}
+									</div>
 								</button>
 							</div>
 
 							{#if profileFonts.length > 0}
 								<Collapsible.Content>
-									<div class="ml-5 flex flex-col gap-0.5 border-l border-border pl-2 py-0.5">
+									<div class="ml-4 flex flex-col gap-0.5 border-l border-border pl-2 py-0.5">
 										{#each profileFonts as font (font.id)}
 											{@const isFontSelected = store.isFontSelected(font.id)}
 											<button
 												onclick={() => store.toggleFont(font.id)}
-												class="flex w-full items-center gap-2 rounded-md px-1 py-0.5 text-xs transition-colors text-left
+												class="ml-5 flex w-full items-stretch rounded-md overflow-hidden text-sm transition-colors text-left
 													{isFontSelected
 													? 'bg-accent text-accent-foreground font-medium'
 													: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
 											>
-												<Rss class="size-3 shrink-0" />
-												<span class="truncate">{font.title}</span>
+												{#if font.avatar?.data}
+													<div class="shrink-0 w-10">
+														<img src="data:image/webp;base64,{font.avatar.data}" alt="" class="w-full h-full object-cover" />
+													</div>
+												{:else}
+													<div class="flex items-center justify-center shrink-0 px-1 py-2">
+														{#if font.protocol === 'atom'}
+															<Atom class="size-3.5 shrink-0" />
+														{:else if font.protocol === 'nostr'}
+															<Zap class="size-3.5 shrink-0" />
+														{:else}
+															<Rss class="size-3.5 shrink-0" />
+														{/if}
+													</div>
+												{/if}
+												<div class="flex items-center gap-2 flex-1 min-w-0 px-1 py-2">
+													<span class="truncate">{font.title}</span>
+												</div>
 											</button>
 										{/each}
 									</div>
@@ -141,45 +195,61 @@
 			</Collapsible.Content>
 		</Collapsible.Root>
 	{/each}
+			</div>
+		</Collapsible.Content>
+	</Collapsible.Root>
+	{/if}
 
-	<!-- Standalone profiles (no page) -->
+	<!-- Branch: Standalone profiles -->
+	{#if standaloneProfiles.length > 0}
+	<Collapsible.Root open={isBranchOpen('profiles')} onOpenChange={() => toggleBranch('profiles')}>
+		<Collapsible.Trigger
+			class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+		>
+			<ChevronRight
+				class="size-4 shrink-0 transition-transform duration-200 {isBranchOpen('profiles') ? 'rotate-90' : ''}"
+			/>
+			<span>Perfis</span>
+			<span class="ml-auto text-xs text-muted-foreground">{standaloneProfiles.length}</span>
+		</Collapsible.Trigger>
+		<Collapsible.Content>
+			<div class="ml-4 flex flex-col gap-0.5 border-l border-border pl-2 py-0.5">
 	{#each standaloneProfiles as profile (profile.id)}
 		{@const isProfileOpen = openProfiles[profile.id] ?? false}
 		{@const isProfileSelected = store.isProfileSelected(profile.id)}
 		{@const profileFonts = store.getFonts(profile.id)}
 
-		<Collapsible.Root open={isProfileOpen} onOpenChange={() => (openProfiles[profile.id] = !openProfiles[profile.id])}>
+		<Collapsible.Root open={isProfileOpen}>
 			<div class="flex items-center gap-0.5">
 				{#if profileFonts.length > 0}
-					<Collapsible.Trigger
-						class="flex items-center gap-1 rounded-md px-1 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground shrink-0"
-					>
+					<div class="flex items-center gap-1 px-1 py-2 shrink-0">
 						<ChevronRight
 							class="size-3.5 shrink-0 transition-transform duration-200 {isProfileOpen ? 'rotate-90' : ''}"
 						/>
-					</Collapsible.Trigger>
+					</div>
 				{:else}
 					<div class="w-5 shrink-0"></div>
 				{/if}
 				<button
-				onclick={() => {
-					const wasSelected = store.isProfileSelected(profile.id);
-					store.toggleProfile(profile.id);
-					if (!wasSelected) openProfiles[profile.id] = true;
-					else openProfiles[profile.id] = false;
-				}}
-					class="flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground
+				onclick={() => store.toggleProfile(profile.id)}
+					class="flex w-full items-stretch rounded-md overflow-hidden text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground
 					{isProfileSelected ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'}"
 			>
 				{#if profile.avatar?.data}
-					<img src="data:image/webp;base64,{profile.avatar.data}" alt="" class="size-4 shrink-0 rounded-full object-cover" />
+					<div class="shrink-0 w-10">
+						<img src="data:image/webp;base64,{profile.avatar.data}" alt="" class="w-full h-full object-cover" />
+					</div>
 				{:else}
-					<User class="size-3.5 shrink-0" />
+					<div class="flex items-center justify-center shrink-0 px-1 py-2">
+						<User class="size-3.5 shrink-0" />
+					</div>
 				{/if}
-					<span class="truncate">{profile.title}</span>
-					{#if profileFonts.length > 0}
-						<span class="ml-auto text-xs text-muted-foreground">{profileFonts.length}</span>
-					{/if}
+					<div class="flex items-center gap-2 flex-1 min-w-0 px-1 py-2">
+						<span class="truncate">{profile.title}</span>
+						{#if profileFonts.length > 0}
+							<span class="ml-auto text-xs text-muted-foreground">{profileFonts.length}</span>
+						{/if}
+					</div>
 				</button>
 			</div>
 
@@ -190,13 +260,29 @@
 							{@const isFontSelected = store.isFontSelected(font.id)}
 							<button
 								onclick={() => store.toggleFont(font.id)}
-								class="flex w-full items-center gap-2 rounded-md px-1 py-0.5 text-xs transition-colors text-left
-									{isFontSelected
-									? 'bg-accent text-accent-foreground font-medium'
-									: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
-							>
-								<Rss class="size-3 shrink-0" />
-								<span class="truncate">{font.title}</span>
+							class="flex w-full items-stretch rounded-md overflow-hidden text-sm transition-colors text-left
+								{isFontSelected
+								? 'bg-accent text-accent-foreground font-medium'
+								: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
+						>
+							{#if font.avatar?.data}
+								<div class="shrink-0 w-10">
+									<img src="data:image/webp;base64,{font.avatar.data}" alt="" class="w-full h-full object-cover" />
+								</div>
+							{:else}
+								<div class="flex items-center justify-center shrink-0 px-1 py-2">
+									{#if font.protocol === 'atom'}
+										<Atom class="size-3.5 shrink-0" />
+									{:else if font.protocol === 'nostr'}
+										<Zap class="size-3.5 shrink-0" />
+									{:else}
+										<Rss class="size-3.5 shrink-0" />
+									{/if}
+								</div>
+							{/if}
+								<div class="flex items-center gap-2 flex-1 min-w-0 px-1 py-2">
+									<span class="truncate">{font.title}</span>
+								</div>
 							</button>
 						{/each}
 					</div>
@@ -204,6 +290,10 @@
 			{/if}
 		</Collapsible.Root>
 	{/each}
+			</div>
+		</Collapsible.Content>
+	</Collapsible.Root>
+	{/if}
 
 	{#if pages.length === 0 && standaloneProfiles.length === 0}
 		<p class="px-2 text-xs text-muted-foreground">Nenhuma fonte no feed.</p>

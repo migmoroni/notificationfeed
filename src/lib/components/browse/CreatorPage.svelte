@@ -179,10 +179,23 @@
 			</button>
 		</div>
 	{:else if creatorPage}
+		<!-- Banner -->
+		{#if creatorPage.banner?.data}
+			<div class="rounded-lg overflow-hidden mb-4" style="aspect-ratio: 3.6 / 1;">
+				<img src="data:image/webp;base64,{creatorPage.banner.data}" alt="" class="w-full h-full object-cover" />
+			</div>
+		{/if}
+
 		<!-- Header -->
 		<div class="flex items-start gap-4 mb-6">
-			<div class="flex items-center justify-center size-16 shrink-0 rounded-lg bg-muted text-muted-foreground">
-				<Globe class="size-8" />
+			<div class="shrink-0 w-16 h-16 rounded-lg bg-muted text-muted-foreground overflow-hidden">
+				{#if creatorPage.avatar?.data}
+					<img src="data:image/webp;base64,{creatorPage.avatar.data}" alt="" class="w-full h-full object-cover" />
+				{:else}
+					<div class="flex items-center justify-center w-full h-full">
+						<Globe class="size-8" />
+					</div>
+				{/if}
 			</div>
 
 			<div class="flex-1 min-w-0">

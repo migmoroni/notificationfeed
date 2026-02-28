@@ -168,8 +168,10 @@
 	{:else if font}
 		<!-- Header -->
 		<div class="flex items-start gap-4 mb-6">
-			<div class="flex items-center justify-center size-14 shrink-0 rounded-lg bg-muted text-muted-foreground">
-				{#if font.protocol === 'atom'}
+			<div class="flex items-center justify-center size-14 shrink-0 rounded-lg bg-muted text-muted-foreground overflow-hidden">
+				{#if font.avatar?.data}
+					<img src="data:image/webp;base64,{font.avatar.data}" alt="" class="size-14 object-cover" />
+				{:else if font.protocol === 'atom'}
 					<Atom class="size-7" />
 				{:else if font.protocol === 'nostr'}
 					<Zap class="size-7" />

@@ -13,14 +13,21 @@
 
 	let { treeId, label, store }: Props = $props();
 
-	// Track which roots are open
-	let openRoots: Record<string, boolean> = $state({});
+	// Manual overrides: only set when user explicitly toggles a branch.
+	// undefined = no override (use auto logic), true/false = manual state.
+	let manualOverrides: Record<string, boolean> = $state({});
 
 	let roots = $derived(store.getRootCategories(treeId));
 	let selectedCount = $derived(store.getSelectedCount(treeId));
 
-	function toggleRoot(rootId: string) {
-		openRoots[rootId] = !openRoots[rootId];
+	function isRootOpen(rootId: string, hasSelectedChild: boolean): boolean {
+		if (rootId in manualOverrides) return manualOverrides[rootId];
+		return hasSelectedChild;
+	}
+
+	function toggleRoot(rootId: string, hasSelectedChild: boolean) {
+		const currentlyOpen = isRootOpen(rootId, hasSelectedChild);
+		manualOverrides[rootId] = !currentlyOpen;
 	}
 
 	function handleToggle(categoryId: string) {
@@ -49,10 +56,10 @@
 
 	{#each roots as root (root.id)}
 		{@const children = store.getChildren(root.id)}
-		{@const isOpen = openRoots[root.id] ?? false}
 		{@const hasSelectedChild = children.some((c: Category) => store.isSelected(c.id, treeId))}
+		{@const isOpen = isRootOpen(root.id, hasSelectedChild)}
 
-		<Collapsible.Root open={isOpen} onOpenChange={() => toggleRoot(root.id)}>
+		<Collapsible.Root open={isOpen} onOpenChange={() => toggleRoot(root.id, hasSelectedChild)}>
 			<Collapsible.Trigger
 				class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground {hasSelectedChild ? 'text-foreground' : 'text-muted-foreground'}"
 			>

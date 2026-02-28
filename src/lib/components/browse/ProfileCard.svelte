@@ -90,43 +90,51 @@
 </script>
 
 <Collapsible.Root {open} onOpenChange={handleOpenChange}>
-	<div class="rounded-lg border border-border bg-card {!isEnabled ? 'opacity-50' : ''}">
+	<div class="rounded-lg border border-border bg-card overflow-hidden {!isEnabled ? 'opacity-50' : ''}">
 		<!-- Header (trigger) -->
-		<div class="flex items-center gap-3 p-3">
-			<Collapsible.Trigger
-				class="flex flex-1 items-center gap-3 text-left transition-colors hover:bg-accent/30 -m-1.5 p-1.5 rounded-md"
-			>
-				<div class="flex items-center justify-center size-9 shrink-0 rounded-md bg-muted text-muted-foreground">
-					<User class="size-4" />
+		<div class="flex items-stretch">
+			{#if profile.avatar?.data}
+				<div class="shrink-0 w-24">
+					<img src="data:image/webp;base64,{profile.avatar.data}" alt="" class="w-full h-full object-cover" />
 				</div>
+			{:else}
+				<div class="flex items-center justify-center w-24 shrink-0 bg-muted text-muted-foreground">
+					<User class="size-5" />
+				</div>
+			{/if}
 
-				<div class="flex-1 min-w-0">
-					<div class="flex items-center gap-2">
-						<span class="text-sm font-medium truncate">{profile.title}</span>
-						<Badge variant="outline" class="text-[10px] px-1.5 py-0 shrink-0">Profile</Badge>
-					</div>
-					{#if profile.tags.length > 0}
-						<div class="flex flex-wrap gap-1 mt-0.5">
-							{#each profile.tags.slice(0, 3) as tag}
-								<span class="text-[10px] text-muted-foreground bg-muted rounded px-1.5 py-0.5">{tag}</span>
-							{/each}
+			<div class="flex items-center gap-3 p-3 flex-1 min-w-0">
+				<Collapsible.Trigger
+					class="flex flex-1 items-center gap-3 text-left transition-colors hover:bg-accent/30 -m-1.5 p-1.5 rounded-md"
+				>
+					<div class="flex-1 min-w-0">
+						<div class="flex items-center gap-2">
+							<span class="text-sm font-medium truncate">{profile.title}</span>
+							<Badge variant="outline" class="text-[10px] px-1.5 py-0 shrink-0">Profile</Badge>
 						</div>
-					{/if}
+						{#if profile.tags.length > 0}
+							<div class="flex flex-wrap gap-1 mt-0.5">
+								{#each profile.tags.slice(0, 3) as tag}
+									<span class="text-[10px] text-muted-foreground bg-muted rounded px-1.5 py-0.5">{tag}</span>
+								{/each}
+							</div>
+						{/if}
+					</div>
+
+					<ChevronRight
+						class="size-4 shrink-0 text-muted-foreground transition-transform duration-200 {open ? 'rotate-90' : ''}"
+					/>
+				</Collapsible.Trigger>
+
+				<!-- Actions inline in header -->
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div class="flex items-center gap-1" onclick={(e) => e.stopPropagation()} onkeydown={() => {}}>
+					<PriorityButtons current={currentPriority} onchange={handlePriorityChange} />
+
+					<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
+
+					<FollowButton following={isEnabled} onclick={handleFollow} />
 				</div>
-
-				<ChevronRight
-					class="size-4 shrink-0 text-muted-foreground transition-transform duration-200 {open ? 'rotate-90' : ''}"
-				/>
-			</Collapsible.Trigger>
-
-			<!-- Actions inline in header -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="flex items-center gap-1" onclick={(e) => e.stopPropagation()} onkeydown={() => {}}>
-				<PriorityButtons current={currentPriority} onchange={handlePriorityChange} />
-
-				<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
-
-				<FollowButton following={isEnabled} onclick={handleFollow} />
 			</div>
 		</div>
 

@@ -102,13 +102,15 @@
 </script>
 
 <Collapsible.Root {open} onOpenChange={handleOpenChange}>
-	<div class="rounded-lg border border-border bg-card {!isEnabled ? 'opacity-50' : ''}">
+	<div class="rounded-lg border border-border bg-card overflow-hidden {!isEnabled ? 'opacity-50' : ''}">
 		<!-- Header (trigger) -->
-		<div class="flex items-center gap-3 p-3">
-			<Collapsible.Trigger
-				class="flex flex-1 items-center gap-3 text-left transition-colors hover:bg-accent/30 -m-1.5 p-1.5 rounded-md"
-			>
-				<div class="flex items-center justify-center size-8 shrink-0 rounded-md bg-muted text-muted-foreground">
+		<div class="flex items-stretch">
+			{#if font.avatar?.data}
+				<div class="shrink-0 w-18">
+					<img src="data:image/webp;base64,{font.avatar.data}" alt="" class="w-full h-full object-cover" />
+				</div>
+			{:else}
+				<div class="flex items-center justify-center w-18 shrink-0 bg-muted text-muted-foreground">
 					{#if font.protocol === 'atom'}
 						<Atom class="size-4" />
 					{:else if font.protocol === 'nostr'}
@@ -117,29 +119,35 @@
 						<Rss class="size-4" />
 					{/if}
 				</div>
+			{/if}
 
-				<div class="flex-1 min-w-0">
-					<div class="flex items-center gap-2">
-						<span class="text-sm font-medium truncate">{font.title}</span>
-						<Badge variant="outline" class="text-[10px] px-1.5 py-0 shrink-0">
-							{protocolBadge[font.protocol] ?? font.protocol}
-						</Badge>
+			<div class="flex items-center gap-3 p-3 flex-1 min-w-0">
+				<Collapsible.Trigger
+					class="flex flex-1 items-center gap-3 text-left transition-colors hover:bg-accent/30 -m-1.5 p-1.5 rounded-md"
+				>
+					<div class="flex-1 min-w-0">
+						<div class="flex items-center gap-2">
+							<span class="text-sm font-medium truncate">{font.title}</span>
+							<Badge variant="outline" class="text-[10px] px-1.5 py-0 shrink-0">
+								{protocolBadge[font.protocol] ?? font.protocol}
+							</Badge>
+						</div>
 					</div>
+
+					<ChevronRight
+						class="size-4 shrink-0 text-muted-foreground transition-transform duration-200 {open ? 'rotate-90' : ''}"
+					/>
+				</Collapsible.Trigger>
+
+				<!-- Actions inline in header -->
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div class="flex items-center gap-1" onclick={(e) => e.stopPropagation()} onkeydown={() => {}}>
+					<PriorityButtons current={currentPriority} onchange={handlePriorityChange} />
+
+					<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
+
+					<ActiveButton active={isEnabled} onclick={handleToggleActive} />
 				</div>
-
-				<ChevronRight
-					class="size-4 shrink-0 text-muted-foreground transition-transform duration-200 {open ? 'rotate-90' : ''}"
-				/>
-			</Collapsible.Trigger>
-
-			<!-- Actions inline in header -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="flex items-center gap-1" onclick={(e) => e.stopPropagation()} onkeydown={() => {}}>
-				<PriorityButtons current={currentPriority} onchange={handlePriorityChange} />
-
-				<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
-
-				<ActiveButton active={isEnabled} onclick={handleToggleActive} />
 			</div>
 		</div>
 

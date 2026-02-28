@@ -93,8 +93,10 @@
 		<Collapsible.Trigger
 			class="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-accent/50"
 		>
-			<div class="flex items-center justify-center size-8 shrink-0 rounded-md bg-muted text-muted-foreground">
-				{#if font.protocol === 'atom'}
+			<div class="flex items-center justify-center size-8 shrink-0 bg-muted text-muted-foreground overflow-hidden">
+				{#if font.avatar?.data}
+					<img src="data:image/webp;base64,{font.avatar.data}" alt="" class="size-8 object-cover" />
+				{:else if font.protocol === 'atom'}
 					<Atom class="size-4" />
 				{:else if font.protocol === 'nostr'}
 					<Zap class="size-4" />

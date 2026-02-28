@@ -97,25 +97,35 @@
 </script>
 
 {#snippet cardContent()}
-	<div class="flex items-start gap-3 p-3.5 {!isEnabled ? 'opacity-50' : ''}">
-		<!-- Icon -->
-		<div class="flex items-center justify-center size-10 shrink-0 rounded-md bg-muted text-muted-foreground">
-			{#if entity.type === 'font'}
-				{@const font = entity.data as import('$lib/domain/font/font.js').Font}
-				{#if font.protocol === 'atom'}
-					<Atom class="size-5" />
-				{:else if font.protocol === 'nostr'}
-					<Zap class="size-5" />
+	<div class="flex items-stretch h-24 overflow-hidden {!isEnabled ? 'opacity-50' : ''}">
+		<!-- Avatar / Icon -->
+		{#if entity.data.avatar?.data}
+			<div class="shrink-0 w-32 overflow-hidden">
+				<img
+					src="data:image/webp;base64,{entity.data.avatar.data}"
+					alt=""
+					class="w-full h-full object-cover rounded-l-lg"
+				/>
+			</div>
+		{:else}
+			<div class="flex items-center justify-center w-32 shrink-0 rounded-l-lg bg-muted text-muted-foreground">
+				{#if entity.type === 'font'}
+					{@const font = entity.data as import('$lib/domain/font/font.js').Font}
+					{#if font.protocol === 'atom'}
+						<Atom class="size-5" />
+					{:else if font.protocol === 'nostr'}
+						<Zap class="size-5" />
+					{:else}
+						<Rss class="size-5" />
+					{/if}
 				{:else}
-					<Rss class="size-5" />
+					<config.icon class="size-5" />
 				{/if}
-			{:else}
-				<config.icon class="size-5" />
-			{/if}
-		</div>
+			</div>
+		{/if}
 
 		<!-- Body -->
-		<div class="flex-1 min-w-0">
+		<div class="flex-1 min-w-0 p-3.5">
 			<div class="flex items-center gap-2">
 				<h3 class="text-sm font-semibold truncate">{entity.data.title}</h3>
 				<Badge variant="outline" class="text-[11px] px-1.5 py-0 shrink-0">{config.label}</Badge>
@@ -161,12 +171,12 @@
 {#if href}
 	<a
 		{href}
-		class="block rounded-lg border border-border bg-card text-card-foreground transition-colors hover:bg-accent/50"
+		class="block rounded-lg border border-border bg-card text-card-foreground transition-colors hover:bg-accent/50 overflow-hidden"
 	>
 		{@render cardContent()}
 	</a>
 {:else}
-	<div class="rounded-lg border border-border bg-card text-card-foreground">
+	<div class="rounded-lg border border-border bg-card text-card-foreground overflow-hidden">
 		{@render cardContent()}
 	</div>
 {/if}
