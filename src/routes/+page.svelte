@@ -6,9 +6,8 @@
 	import { feedMacros } from '$lib/stores/feed-macros.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { FeedList, PriorityFilter } from '$lib/components/feed/index.js';
-	import EntityTreeFilter from '$lib/components/feed/EntityTreeFilter.svelte';
 	import FeedMacros from '$lib/components/feed/FeedMacros.svelte';
-	import { TreeSelector } from '$lib/components/browse/index.js';
+	import FilterSidebar from '$lib/components/shared/FilterSidebar.svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import type { PriorityFilterValue } from '$lib/components/feed/index.js';
 	import { formatRelativeDate } from '$lib/utils/date.js';
@@ -147,11 +146,8 @@
 								class="size-4 transition-transform duration-200 {advancedFiltersOpen ? 'rotate-90' : ''}"
 							/>
 						</Collapsible.Trigger>
-						<Collapsible.Content class="pt-3 flex flex-col gap-3">
-							<EntityTreeFilter />
-							<div class="border-t border-border pt-3">
-								<TreeSelector store={feedCategories} />
-							</div>
+						<Collapsible.Content class="pt-3">
+							<FilterSidebar entityStore={feedEntityFilter} categoryStore={feedCategories} />
 						</Collapsible.Content>
 					</Collapsible.Root>
 				</div>

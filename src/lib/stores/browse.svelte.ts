@@ -252,5 +252,32 @@ export const browse = {
 	// Legacy compatibility
 	async searchEntities(query: string): Promise<void> {
 		return this.setSearchQuery(query);
+	},
+
+	/**
+	 * Load all entities unconditionally (used when an external filter like
+	 * the entity filter is active but browse has no category/search filters).
+	 */
+	async loadAllEntities(): Promise<void> {
+		state.loading = true;
+		try {
+			const [allPages, allProfiles, allFonts] = await Promise.all([
+				pageRepo.getAll(),
+				profileRepo.getAll(),
+				fontRepo.getAll()
+			]);
+			state.entities = [
+				...allPages.map((p) => ({ type: 'creator_page' as const, data: p })),
+				...allProfiles.map((p) => ({ type: 'profile' as const, data: p })),
+				...allFonts.map((f) => ({ type: 'font' as const, data: f }))
+			];
+		} finally {
+			state.loading = false;
+		}
+	},
+
+	/** Clear entities (used when all external filters are also cleared). */
+	clearEntities(): void {
+		state.entities = [];
 	}
 };

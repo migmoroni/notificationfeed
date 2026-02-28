@@ -1,5 +1,5 @@
-export { default as CategoryTree } from './CategoryTree.svelte';
-export { default as TreeSelector } from './TreeSelector.svelte';
+export { default as CategoryTree } from '$lib/components/shared/CategoryTree.svelte';
+export { default as TreeSelector } from '$lib/components/shared/TreeSelector.svelte';
 export { default as EntityCard } from './EntityCard.svelte';
 export { default as EntityList } from './EntityList.svelte';
 export { default as SearchBar } from './SearchBar.svelte';

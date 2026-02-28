@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { feedEntityFilter } from '$lib/stores/feed-entity-filter.svelte.js';
+	import type { EntityFilterStore } from '$lib/stores/entity-filter.types.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import X from '@lucide/svelte/icons/x';
@@ -7,13 +7,19 @@
 	import User from '@lucide/svelte/icons/user';
 	import FileText from '@lucide/svelte/icons/file-text';
 
+	interface Props {
+		store: EntityFilterStore;
+	}
+
+	let { store }: Props = $props();
+
 	// Track which nodes are open
 	let openPages: Record<string, boolean> = $state({});
 	let openProfiles: Record<string, boolean> = $state({});
 
-	let pages = $derived(feedEntityFilter.getPages());
-	let standaloneProfiles = $derived(feedEntityFilter.getStandaloneProfiles());
-	let totalSelected = $derived(feedEntityFilter.totalSelected);
+	let pages = $derived(store.getPages());
+	let standaloneProfiles = $derived(store.getStandaloneProfiles());
+	let totalSelected = $derived(store.totalSelected);
 </script>
 
 <div class="flex flex-col gap-0.5">
@@ -21,7 +27,7 @@
 		<span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Fontes</span>
 		{#if totalSelected > 0}
 			<button
-				onclick={() => feedEntityFilter.clearAll()}
+				onclick={() => store.clearAll()}
 				class="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
 				aria-label="Limpar filtro de fontes"
 			>
@@ -34,8 +40,8 @@
 	<!-- Pages with child profiles -->
 	{#each pages as page (page.id)}
 		{@const isPageOpen = openPages[page.id] ?? false}
-		{@const isPageSelected = feedEntityFilter.isPageSelected(page.id)}
-		{@const pageProfiles = feedEntityFilter.getProfiles(page.id)}
+		{@const isPageSelected = store.isPageSelected(page.id)}
+		{@const pageProfiles = store.getProfiles(page.id)}
 
 		<Collapsible.Root open={isPageOpen} onOpenChange={() => (openPages[page.id] = !openPages[page.id])}>
 			<div class="flex items-center gap-0.5">
@@ -48,8 +54,8 @@
 				</Collapsible.Trigger>
 				<button
 					onclick={() => {
-						const wasSelected = feedEntityFilter.isPageSelected(page.id);
-						feedEntityFilter.togglePage(page.id);
+						const wasSelected = store.isPageSelected(page.id);
+						store.togglePage(page.id);
 						if (!wasSelected) openPages[page.id] = true;
 						else openPages[page.id] = false;
 					}}
@@ -70,8 +76,8 @@
 				<div class="ml-4 flex flex-col gap-0.5 border-l border-border pl-2 py-0.5">
 					{#each pageProfiles as profile (profile.id)}
 						{@const isProfileOpen = openProfiles[profile.id] ?? false}
-						{@const isProfileSelected = feedEntityFilter.isProfileSelected(profile.id)}
-						{@const profileFonts = feedEntityFilter.getFonts(profile.id)}
+						{@const isProfileSelected = store.isProfileSelected(profile.id)}
+						{@const profileFonts = store.getFonts(profile.id)}
 
 						<Collapsible.Root open={isProfileOpen} onOpenChange={() => (openProfiles[profile.id] = !openProfiles[profile.id])}>
 							<div class="flex items-center gap-0.5">
@@ -88,8 +94,8 @@
 								{/if}
 								<button
 									onclick={() => {
-										const wasSelected = feedEntityFilter.isProfileSelected(profile.id);
-										feedEntityFilter.toggleProfile(profile.id);
+										const wasSelected = store.isProfileSelected(profile.id);
+										store.toggleProfile(profile.id);
 										if (!wasSelected) openProfiles[profile.id] = true;
 										else openProfiles[profile.id] = false;
 									}}
@@ -114,9 +120,9 @@
 								<Collapsible.Content>
 									<div class="ml-5 flex flex-col gap-0.5 border-l border-border pl-2 py-0.5">
 										{#each profileFonts as font (font.id)}
-											{@const isFontSelected = feedEntityFilter.isFontSelected(font.id)}
+											{@const isFontSelected = store.isFontSelected(font.id)}
 											<button
-												onclick={() => feedEntityFilter.toggleFont(font.id)}
+												onclick={() => store.toggleFont(font.id)}
 												class="flex w-full items-center gap-2 rounded-md px-1 py-0.5 text-xs transition-colors text-left
 													{isFontSelected
 													? 'bg-accent text-accent-foreground font-medium'
@@ -139,8 +145,8 @@
 	<!-- Standalone profiles (no page) -->
 	{#each standaloneProfiles as profile (profile.id)}
 		{@const isProfileOpen = openProfiles[profile.id] ?? false}
-		{@const isProfileSelected = feedEntityFilter.isProfileSelected(profile.id)}
-		{@const profileFonts = feedEntityFilter.getFonts(profile.id)}
+		{@const isProfileSelected = store.isProfileSelected(profile.id)}
+		{@const profileFonts = store.getFonts(profile.id)}
 
 		<Collapsible.Root open={isProfileOpen} onOpenChange={() => (openProfiles[profile.id] = !openProfiles[profile.id])}>
 			<div class="flex items-center gap-0.5">
@@ -157,8 +163,8 @@
 				{/if}
 				<button
 				onclick={() => {
-					const wasSelected = feedEntityFilter.isProfileSelected(profile.id);
-					feedEntityFilter.toggleProfile(profile.id);
+					const wasSelected = store.isProfileSelected(profile.id);
+					store.toggleProfile(profile.id);
 					if (!wasSelected) openProfiles[profile.id] = true;
 					else openProfiles[profile.id] = false;
 				}}
@@ -181,9 +187,9 @@
 				<Collapsible.Content>
 					<div class="ml-4 flex flex-col gap-0.5 border-l border-border pl-2 py-0.5">
 						{#each profileFonts as font (font.id)}
-							{@const isFontSelected = feedEntityFilter.isFontSelected(font.id)}
+							{@const isFontSelected = store.isFontSelected(font.id)}
 							<button
-								onclick={() => feedEntityFilter.toggleFont(font.id)}
+								onclick={() => store.toggleFont(font.id)}
 								class="flex w-full items-center gap-2 rounded-md px-1 py-0.5 text-xs transition-colors text-left
 									{isFontSelected
 									? 'bg-accent text-accent-foreground font-medium'

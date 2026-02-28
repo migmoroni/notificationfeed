@@ -2,16 +2,62 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { browse } from '$lib/stores/browse.svelte.js';
+	import { browseEntityFilter } from '$lib/stores/browse-entity-filter.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
-	import { TreeSelector, EntityList, SearchBar } from '$lib/components/browse/index.js';
+	import { EntityList, SearchBar } from '$lib/components/browse/index.js';
+	import FilterSidebar from '$lib/components/shared/FilterSidebar.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import X from '@lucide/svelte/icons/x';
 	import Upload from '@lucide/svelte/icons/upload';
+
+	let allowedFontIds = $derived(
+		browseEntityFilter.hasFilters ? [...browseEntityFilter.getAllowedFontIds()] : []
+	);
+
+	let hasAnyFilter = $derived(browse.hasFilters || browseEntityFilter.hasFilters);
+
+	// When entity filter becomes active but browse has no own filters, load all entities.
+	// When entity filter is cleared and browse has no own filters, clear entities.
+	$effect(() => {
+		if (browseEntityFilter.hasFilters && !browse.hasFilters) {
+			browse.loadAllEntities();
+		} else if (!browseEntityFilter.hasFilters && !browse.hasFilters) {
+			browse.clearEntities();
+		}
+	});
+
+	// Filter browse entities by the entity filter when active
+	let filteredEntities = $derived.by(() => {
+		if (!browseEntityFilter.hasFilters) return browse.entities;
+		const fontSet = new Set(allowedFontIds);
+		return browse.entities.filter((e) => {
+			if (e.type === 'font') return fontSet.has(e.data.id);
+			if (e.type === 'profile') {
+				// keep profile if any of its fonts is allowed
+				return browse.entities.some(
+					(f) => f.type === 'font' && f.data.profileId === e.data.id && fontSet.has(f.data.id)
+				);
+			}
+			if (e.type === 'creator_page') {
+				// keep page if any of its profiles has an allowed font
+				return browse.entities.some(
+					(p) =>
+						p.type === 'profile' &&
+						p.data.creatorPageId === e.data.id &&
+						browse.entities.some(
+							(f) => f.type === 'font' && f.data.profileId === p.data.id && fontSet.has(f.data.id)
+						)
+				);
+			}
+			return true;
+		});
+	});
 
 	onMount(() => {
 		if (browse.categories.length === 0) {
 			browse.loadCategories();
 		}
+		browseEntityFilter.loadPages();
 	});
 </script>
 
@@ -83,15 +129,15 @@
 	{/if}
 
 	<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? 'lg:grid-cols-[295px_1fr]' : 'md:grid-cols-[265px_1fr]'}">
-		<!-- Sidebar: category trees -->
-		<aside class="overflow-y-auto gap-4">
-			<TreeSelector />
+		<!-- Sidebar -->
+		<aside class="overflow-y-auto">
+			<FilterSidebar entityStore={browseEntityFilter} categoryStore={browse} />
 		</aside>
 
 		<!-- Main: filtered results -->
 		<div class="overflow-y-auto pr-24">
-			{#if browse.hasFilters}
-				<EntityList entities={browse.entities} loading={browse.loading} />
+			{#if hasAnyFilter}
+				<EntityList entities={filteredEntities} loading={browse.loading} />
 			{:else}
 				<div class="flex flex-col items-center justify-center py-12 text-center">
 					<p class="text-sm text-muted-foreground">
