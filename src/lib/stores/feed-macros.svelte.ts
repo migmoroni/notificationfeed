@@ -83,6 +83,25 @@ export const feedMacros = {
 		}
 	},
 
+	async updateMacro(id: string): Promise<void> {
+		const macro = macros.find((m) => m.id === id);
+		if (!macro) return;
+		const updated: FeedMacro = {
+			...macro,
+			filters: {
+				pageIds: Array.from(feedEntityFilter.selectedPageIds),
+				profileIds: Array.from(feedEntityFilter.selectedProfileIds),
+				fontIds: Array.from(feedEntityFilter.selectedFontIds),
+				subjectIds: feedCategories.getSelectedIds('subject'),
+				contentTypeIds: feedCategories.getSelectedIds('content_type'),
+				regionIds: feedCategories.getSelectedIds('region')
+			}
+		};
+		await saveToDB(updated);
+		macros = macros.map((m) => (m.id === id ? updated : m));
+		activeMacroId = id;
+	},
+
 	get isCurrentStateSaved(): boolean {
 		const currentFilters = {
 			pageIds: Array.from(feedEntityFilter.selectedPageIds).sort(),

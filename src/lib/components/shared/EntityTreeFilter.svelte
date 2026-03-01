@@ -34,11 +34,35 @@
 	// Branch-level open: auto-open when there are selections, collapsed otherwise.
 	// Manual override respected until selection state changes.
 	let branchManual: Record<string, boolean> = $state({});
-	let hasAnySelection = $derived(store.selectedPageIds.size > 0 || store.selectedProfileIds.size > 0 || store.selectedFontIds.size > 0);
+
+	function hasPageBranchSelection(): boolean {
+		if (store.selectedPageIds.size > 0) return true;
+		for (const page of store.getPages()) {
+			for (const p of store.getProfiles(page.id)) {
+				if (store.isProfileSelected(p.id)) return true;
+				for (const f of store.getFonts(p.id)) {
+					if (store.isFontSelected(f.id)) return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	function hasProfileBranchSelection(): boolean {
+		for (const p of store.getStandaloneProfiles()) {
+			if (store.isProfileSelected(p.id)) return true;
+			for (const f of store.getFonts(p.id)) {
+				if (store.isFontSelected(f.id)) return true;
+			}
+		}
+		return false;
+	}
 
 	function isBranchOpen(key: string): boolean {
 		if (key in branchManual) return branchManual[key];
-		return hasAnySelection;
+		if (key === 'pages') return hasPageBranchSelection();
+		if (key === 'profiles') return hasProfileBranchSelection();
+		return false;
 	}
 	function toggleBranch(key: string) {
 		branchManual[key] = !isBranchOpen(key);

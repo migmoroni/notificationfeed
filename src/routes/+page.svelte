@@ -8,17 +8,100 @@
 	import { FeedList, PriorityFilter } from '$lib/components/feed/index.js';
 	import FeedMacros from '$lib/components/feed/FeedMacros.svelte';
 	import FilterSidebar from '$lib/components/shared/FilterSidebar.svelte';
-	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
+	import ConfirmDialog from '$lib/components/shared/ConfirmDialog.svelte';
 	import type { PriorityFilterValue } from '$lib/components/feed/index.js';
 	import { formatRelativeDate } from '$lib/utils/date.js';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
 	import X from '@lucide/svelte/icons/x';
-	import ChevronRight from '@lucide/svelte/icons/chevron-right';
-	import Filter from '@lucide/svelte/icons/filter';
+	import Plus from '@lucide/svelte/icons/plus';
+	import Check from '@lucide/svelte/icons/check';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import Pencil from '@lucide/svelte/icons/pencil';
 
 	let filter: PriorityFilterValue = $state('all');
 	let refreshing = $state(false);
-	let advancedFiltersOpen = $state(false);
+
+	let hasAdvancedFilters = $derived(
+		feedEntityFilter.hasFilters ||
+		feedCategories.getSelectedIds('subject').length > 0 ||
+		feedCategories.getSelectedIds('content_type').length > 0 ||
+		feedCategories.getSelectedIds('region').length > 0
+	);
+
+	// Tab: 'saved' or 'advanced'. Default to 'advanced' if filters are already active on mount.
+	let activeTab: 'saved' | 'advanced' = $state(hasAdvancedFilters ? 'advanced' : 'saved');
+
+	// Save new macro UI
+	let isSaving = $state(false);
+	let newMacroName = $state('');
+
+	// Edit macro UI
+	let isEditing = $state(false);
+	let editingMacroId = $state<string | null>(null);
+	let hasEditChanges = $derived(
+		editingMacroId !== null && !feedMacros.isCurrentStateSaved
+	);
+
+	// Delete macro confirm
+	let showDeleteConfirm = $state(false);
+	let deletingMacroId = $state<string | null>(null);
+	let deletingMacroName = $derived(
+		deletingMacroId ? (feedMacros.macros.find((m) => m.id === deletingMacroId)?.name ?? '') : ''
+	);
+
+	// Which macro is currently active (for the action bar)
+	let activeMacro = $derived(
+		feedMacros.activeMacroId
+			? feedMacros.macros.find((m) => m.id === feedMacros.activeMacroId) ?? null
+			: null
+	);
+
+	async function handleSaveMacro() {
+		if (newMacroName.trim()) {
+			await feedMacros.saveCurrentAsMacro(newMacroName.trim());
+			newMacroName = '';
+			isSaving = false;
+		}
+	}
+
+	function startEditing() {
+		if (!feedMacros.activeMacroId) return;
+		editingMacroId = feedMacros.activeMacroId;
+		isEditing = true;
+		activeTab = 'advanced';
+	}
+
+	async function saveEdit() {
+		if (!editingMacroId) return;
+		await feedMacros.updateMacro(editingMacroId);
+		isEditing = false;
+		editingMacroId = null;
+		activeTab = 'saved';
+	}
+
+	function cancelEdit() {
+		if (editingMacroId) {
+			feedMacros.applyMacro(editingMacroId);
+		}
+		isEditing = false;
+		editingMacroId = null;
+		activeTab = 'saved';
+	}
+
+	function requestDelete() {
+		deletingMacroId = feedMacros.activeMacroId;
+		showDeleteConfirm = true;
+	}
+
+	async function confirmDelete() {
+		if (deletingMacroId) {
+			await feedMacros.deleteMacro(deletingMacroId);
+		}
+		showDeleteConfirm = false;
+		deletingMacroId = null;
+		isEditing = false;
+		editingMacroId = null;
+	}
 
 	let selectedSubjects = $derived(feedCategories.getSelectedIds('subject'));
 	let selectedContentTypes = $derived(feedCategories.getSelectedIds('content_type'));
@@ -32,14 +115,16 @@
 	});
 
 	$effect(() => {
-		// Track filter changes to clear active macro if needed
+		// Track filter changes to clear active macro if needed (skip while editing)
 		selectedSubjects;
 		selectedContentTypes;
 		selectedRegions;
 		feedEntityFilter.selectedPageIds;
 		feedEntityFilter.selectedProfileIds;
 		feedEntityFilter.selectedFontIds;
-		feedMacros.clearActiveMacroIfChanged();
+		if (!isEditing) {
+			feedMacros.clearActiveMacroIfChanged();
+		}
 	});
 
 	async function handleRefresh() {
@@ -130,26 +215,125 @@
 	<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? 'lg:grid-cols-[295px_1fr]' : ''}">
 		<!-- Sidebar: entity tree + category trees (only in expanded layout) -->
 		{#if layout.isExpanded}
-			<aside class="overflow-y-auto flex flex-col gap-4">
-				<FeedMacros />
+			<aside class="flex flex-col min-h-0 overflow-hidden">
+				<!-- Tab headers -->
+				<div class="flex border-b border-border shrink-0">
+					<button
+						onclick={() => activeTab = 'saved'}
+						class="flex-1 px-3 py-2 text-sm font-medium transition-colors text-center
+							{activeTab === 'saved'
+							? 'border-b-2 border-primary text-foreground'
+							: 'text-muted-foreground hover:text-foreground'}"
+					>
+						Filtros Salvos
+					</button>
+					<button
+						onclick={() => activeTab = 'advanced'}
+						class="flex-1 px-3 py-2 text-sm font-medium transition-colors text-center
+							{activeTab === 'advanced'
+							? 'border-b-2 border-primary text-foreground'
+							: 'text-muted-foreground hover:text-foreground'}"
+					>
+						Filtros Avançados
+					</button>
+				</div>
 
-				<div class="border-t border-border pt-4">
-					<Collapsible.Root bind:open={advancedFiltersOpen}>
-						<Collapsible.Trigger
-							class="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-						>
-							<div class="flex items-center gap-2">
-								<Filter class="size-4" />
-								Filtros Avançados
+				<!-- Action bar (between tabs and content) -->
+				<div class="shrink-0 px-2 py-2">
+					{#if isEditing && hasEditChanges}
+						<!-- Editing mode: filters changed → Salvar / Cancelar -->
+						<div class="flex items-center gap-1.5">
+							<button
+								onclick={saveEdit}
+								class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-primary-foreground bg-primary hover:bg-primary/90 transition-colors"
+							>
+								<Check class="size-3.5" />
+								Salvar
+							</button>
+							<button
+								onclick={cancelEdit}
+								class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent transition-colors border border-border"
+							>
+								Cancelar
+							</button>
+						</div>
+					{:else if isEditing}
+						<!-- Editing mode: no changes yet → hint -->
+						<div class="flex items-center gap-1.5">
+							<span class="flex-1 text-xs text-muted-foreground px-1">Editando filtros...</span>
+							<button
+								onclick={cancelEdit}
+								class="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent transition-colors border border-border"
+							>
+								Cancelar
+							</button>
+						</div>
+					{:else if activeMacro}
+						<!-- Active saved macro → Editar / Excluir -->
+						<div class="flex items-center gap-1.5">
+							<button
+								onclick={startEditing}
+								class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors border border-border"
+							>
+								<Pencil class="size-3.5" />
+								Editar
+							</button>
+							<button
+								onclick={requestDelete}
+								class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors border border-destructive/30"
+							>
+								<Trash2 class="size-3.5" />
+								Excluir
+							</button>
+						</div>
+					{:else if hasAdvancedFilters && !feedMacros.isCurrentStateSaved}
+						<!-- Unsaved filters → Salvar filtro atual -->
+						{#if isSaving}
+							<div class="flex items-center gap-1">
+								<input
+									type="text"
+									bind:value={newMacroName}
+									placeholder="Nome do feed..."
+									class="flex-1 h-7 rounded-md border border-input bg-background px-2 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+									onkeydown={(e) => e.key === 'Enter' && handleSaveMacro()}
+									autofocus
+								/>
+								<button
+									onclick={handleSaveMacro}
+									disabled={!newMacroName.trim()}
+									class="p-1.5 text-primary hover:bg-accent rounded-md disabled:opacity-50"
+								>
+									<Check class="size-3.5" />
+								</button>
+								<button
+									onclick={() => { isSaving = false; newMacroName = ''; }}
+									class="p-1.5 text-muted-foreground hover:bg-accent rounded-md"
+								>
+									<X class="size-3.5" />
+								</button>
 							</div>
-							<ChevronRight
-								class="size-4 transition-transform duration-200 {advancedFiltersOpen ? 'rotate-90' : ''}"
-							/>
-						</Collapsible.Trigger>
-						<Collapsible.Content class="pt-3">
-							<FilterSidebar entityStore={feedEntityFilter} categoryStore={feedCategories} />
-						</Collapsible.Content>
-					</Collapsible.Root>
+						{:else}
+							<button
+								onclick={() => isSaving = true}
+								class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors border border-dashed border-primary/30"
+							>
+								<Plus class="size-3.5" />
+								Salvar filtro atual
+							</button>
+						{/if}
+					{:else}
+						<!-- Empty placeholder to reserve space -->
+						<div class="h-8"></div>
+					{/if}
+				</div>
+
+				<!-- Tab content (scrollable) -->
+				<div class="flex-1 min-h-0 overflow-y-auto px-1 py-2">
+					{#if activeTab === 'saved'}
+						<FeedMacros />
+					{:else}
+						<FilterSidebar entityStore={feedEntityFilter} categoryStore={feedCategories} />
+					{/if}
 				</div>
 			</aside>
 		{/if}
@@ -160,3 +344,19 @@
 		</div>
 	</div>
 </div>
+
+<ConfirmDialog
+	bind:open={showDeleteConfirm}
+	title="Excluir filtro salvo"
+	description={deletingMacroName ? `Excluir "${deletingMacroName}"? Esta ação não pode ser desfeita.` : 'Excluir este filtro salvo?'}
+	confirmLabel="Excluir"
+	cancelLabel="Cancelar"
+	onconfirm={confirmDelete}
+	oncancel={() => { showDeleteConfirm = false; deletingMacroId = null; }}
+>
+	{#snippet icon()}
+		<div class="flex items-center justify-center size-12 rounded-full bg-destructive/10">
+			<Trash2 class="size-6 text-destructive" />
+		</div>
+	{/snippet}
+</ConfirmDialog>
