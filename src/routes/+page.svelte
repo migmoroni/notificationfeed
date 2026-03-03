@@ -322,8 +322,14 @@
 							</button>
 						{/if}
 					{:else}
-						<!-- Empty placeholder to reserve space -->
-						<div class="h-8"></div>
+						<!-- No active macro, no filters → hint to create one -->
+						<button
+							onclick={() => activeTab = 'advanced'}
+							class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors border border-dashed border-border"
+						>
+							<Plus class="size-3.5" />
+							Criar filtro
+						</button>
 					{/if}
 				</div>
 
