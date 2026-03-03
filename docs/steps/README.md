@@ -341,7 +341,7 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 
 ---
 
-## Fase 6 — Experiência Creator: CRUD + Export
+## Fase 6 — Experiência Creator: CRUD + Export (feito)
 
 > CRUD de CreatorPages, gerenciamento de Profiles/Fonts do creator, export.
 
