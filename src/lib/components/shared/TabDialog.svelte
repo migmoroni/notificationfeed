@@ -5,8 +5,7 @@
 	import EmojiPicker from './EmojiPicker.svelte';
 	import FolderPlus from '@lucide/svelte/icons/folder-plus';
 	import FolderPen from '@lucide/svelte/icons/folder-pen';
-	import Bookmark from '@lucide/svelte/icons/bookmark';
-	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import Folder from '@lucide/svelte/icons/folder-cog';
 
 	interface Props {
 		open: boolean;
@@ -125,8 +124,7 @@
 					<FolderPen class="size-6 {config.iconColor}" />
 				{:else}
 					<div class="relative">
-						<Bookmark class="size-6 {config.iconColor}/60" />
-						<Trash2 class="size-3.5 {config.iconColor} absolute -bottom-1 -right-1.5" />
+						<Folder class="size-6 {config.iconColor}/60" />
 					</div>
 				{/if}
 			</div>
