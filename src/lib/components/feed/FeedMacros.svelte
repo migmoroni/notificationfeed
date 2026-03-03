@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { feedMacros } from '$lib/stores/feed-macros.svelte.js';
+	import { feedMacros, ALL_MACROS_ID } from '$lib/stores/feed-macros.svelte.js';
 	import { feedEntityFilter } from '$lib/stores/feed-entity-filter.svelte.js';
 	import { feedCategories } from '$lib/stores/feed-categories.svelte.js';
 	import Bookmark from '@lucide/svelte/icons/bookmark';
+	import Layers from '@lucide/svelte/icons/layers';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 
 	let hasAnyFilter = $derived(
@@ -24,8 +25,22 @@
 				: 'text-muted-foreground hover:bg-accent hover:text-foreground'}"
 		>
 			<Bookmark class="size-3.5 shrink-0" />
-			<span class="truncate">Tudo</span>
+			<span class="truncate">Todos</span>
 		</button>
+
+		<!-- "All my macros combined" — visible when 2+ saved macros -->
+		{#if feedMacros.macros.length >= 2}
+			<button
+				onclick={() => feedMacros.applyMacro(ALL_MACROS_ID)}
+				class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors text-left
+					{feedMacros.activeMacroId === ALL_MACROS_ID
+					? 'bg-primary text-primary-foreground font-medium'
+					: 'text-muted-foreground hover:bg-accent hover:text-foreground'}"
+			>
+				<Layers class="size-3.5 shrink-0" />
+				<span class="truncate">Todos dos meus filtros</span>
+			</button>
+		{/if}
 
 		<!-- Saved macros -->
 		{#each feedMacros.macros as macro (macro.id)}

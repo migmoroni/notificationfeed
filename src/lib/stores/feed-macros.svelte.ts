@@ -5,6 +5,9 @@ import type { FeedMacro } from '$lib/domain/feed-macro/feed-macro.js';
 
 export type { FeedMacro } from '$lib/domain/feed-macro/feed-macro.js';
 
+/** Sentinel ID used when "all macros combined" is active */
+export const ALL_MACROS_ID = '__all__';
+
 const repo = createFeedMacroStore();
 
 let macros = $state<FeedMacro[]>([]);
@@ -58,6 +61,36 @@ export const feedMacros = {
 		if (!id) {
 			feedEntityFilter.clearAll();
 			feedCategories.clearAll();
+			return;
+		}
+
+		if (id === ALL_MACROS_ID) {
+			// Union of all saved macros' filters
+			const allPageIds = new Set<string>();
+			const allProfileIds = new Set<string>();
+			const allFontIds = new Set<string>();
+			const allSubjectIds = new Set<string>();
+			const allContentTypeIds = new Set<string>();
+			const allRegionIds = new Set<string>();
+
+			for (const m of macros) {
+				for (const v of m.filters.pageIds) allPageIds.add(v);
+				for (const v of m.filters.profileIds) allProfileIds.add(v);
+				for (const v of m.filters.fontIds) allFontIds.add(v);
+				for (const v of m.filters.subjectIds) allSubjectIds.add(v);
+				for (const v of m.filters.contentTypeIds) allContentTypeIds.add(v);
+				for (const v of m.filters.regionIds) allRegionIds.add(v);
+			}
+
+			feedEntityFilter.clearAll();
+			for (const v of allPageIds) feedEntityFilter.togglePage(v);
+			for (const v of allProfileIds) feedEntityFilter.toggleProfile(v);
+			for (const v of allFontIds) feedEntityFilter.toggleFont(v);
+
+			feedCategories.clearAll();
+			for (const v of allSubjectIds) feedCategories.toggleCategory(v, 'subject');
+			for (const v of allContentTypeIds) feedCategories.toggleCategory(v, 'content_type');
+			for (const v of allRegionIds) feedCategories.toggleCategory(v, 'region');
 			return;
 		}
 
@@ -122,6 +155,11 @@ export const feedMacros = {
 
 		if (!activeMacroId) {
 			return !hasAnyFilter;
+		}
+
+		// "All macros combined" is always considered "saved"
+		if (activeMacroId === ALL_MACROS_ID) {
+			return true;
 		}
 
 		const macro = macros.find((m) => m.id === activeMacroId);
