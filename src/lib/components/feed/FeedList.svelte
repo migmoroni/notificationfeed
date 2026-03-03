@@ -1,8 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { PriorityFilterValue } from './PriorityFilter.svelte';
+	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
+	import type { SortedPost } from '$lib/domain/shared/feed-sorter.js';
 	import { feed } from '$lib/stores/feed.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
+	import { PRIORITY_LEVELS } from '$lib/components/shared/priority.js';
+	import { Separator } from '$lib/components/ui/separator/index.js';
 	import PostCard from './PostCard.svelte';
 	import Newspaper from '@lucide/svelte/icons/newspaper';
 
@@ -41,6 +45,21 @@
 			: entityFiltered.filter((sp) => sp.priority === filter)
 	);
 
+	// Group posts by priority level (only used when filter === 'all')
+	let groupedByPriority = $derived.by(() => {
+		if (filter !== 'all') return null;
+		const map = new Map<PriorityLevel, SortedPost[]>();
+		for (const sp of filtered) {
+			const list = map.get(sp.priority);
+			if (list) list.push(sp);
+			else map.set(sp.priority, [sp]);
+		}
+		return PRIORITY_LEVELS
+			.filter((p) => map.has(p.level))
+			.map((p) => ({ config: p, posts: map.get(p.level)! }));
+	});
+
+	// Flat visible list (for single-priority or infinite scroll total)
 	let visible = $derived(filtered.slice(0, visibleCount));
 	let hasMore = $derived(visibleCount < filtered.length);
 
@@ -68,6 +87,14 @@
 		return () => observer.disconnect();
 	});
 </script>
+
+{#snippet postGrid(posts: SortedPost[])}
+	<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}">
+		{#each posts as sortedPost (sortedPost.post.id)}
+			<PostCard {sortedPost} />
+		{/each}
+	</div>
+{/snippet}
 
 {#if feed.loading}
 	<!-- Loading skeleton -->
@@ -100,8 +127,30 @@
 			{/if}
 		</p>
 	</div>
+{:else if groupedByPriority}
+	<!-- Grouped by priority sections -->
+	<div class="flex flex-col gap-6">
+		{#each groupedByPriority as group, i (group.config.level)}
+			{#if i > 0}
+				<Separator />
+			{/if}
+			<section>
+				<h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+					{group.config.name} ({group.posts.length})
+				</h3>
+				{@render postGrid(group.posts.slice(0, visibleCount))}
+			</section>
+		{/each}
+	</div>
+
+	<!-- Infinite scroll sentinel -->
+	{#if hasMore}
+		<div bind:this={sentinel} class="h-10 flex items-center justify-center mt-3">
+			<div class="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent"></div>
+		</div>
+	{/if}
 {:else}
-	<!-- Post list -->
+	<!-- Single priority filter: flat list -->
 	<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}">
 		{#each visible as sortedPost (sortedPost.post.id)}
 			<PostCard {sortedPost} />
