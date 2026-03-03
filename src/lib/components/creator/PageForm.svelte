@@ -30,12 +30,15 @@
 
 	let { mode, initial, inheritedCategories = [], onsave, oncancel, saving = false }: Props = $props();
 
-	let title = $state(initial?.title ?? '');
-	let bio = $state(initial?.bio ?? '');
-	let tags = $state<string[]>(initial?.tags ?? []);
-	let avatar = $state<ImageAsset | null>(initial?.avatar ?? null);
-	let banner = $state<ImageAsset | null>(initial?.banner ?? null);
-	let categoryAssignments = $state<CategoryAssignment[]>(initial?.categoryAssignments ?? []);
+	// Capture initial values once (non-reactive locals)
+	// svelte-ignore state_referenced_locally
+	const _init = initial;
+	let title = $state(_init?.title ?? '');
+	let bio = $state(_init?.bio ?? '');
+	let tags = $state<string[]>(_init?.tags ?? []);
+	let avatar = $state<ImageAsset | null>(_init?.avatar ?? null);
+	let banner = $state<ImageAsset | null>(_init?.banner ?? null);
+	let categoryAssignments = $state<CategoryAssignment[]>(_init?.categoryAssignments ?? []);
 
 	let isValid = $derived(title.trim().length > 0);
 

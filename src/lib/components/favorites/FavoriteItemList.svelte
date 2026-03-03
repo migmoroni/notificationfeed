@@ -99,7 +99,7 @@
 		<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
 				{#each groupItems as item (item.state.entityId)}
 					{@const isSelected = favorites.selectedItemIds.has(item.state.entityId)}
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<!-- svelte-ignore a11y_no_static_element_interactions, a11y_click_events_have_key_events -->
 					<div
 						class="relative {favorites.isSelecting ? 'cursor-pointer' : ''}"
 						onpointerdown={() => handlePointerDown(item.state.entityId)}

@@ -33,19 +33,23 @@
 
 	let { mode, initial, inheritedCategories = [], onsave, oncancel, saving = false }: Props = $props();
 
-	let title = $state(initial?.title ?? '');
-	let tags = $state<string[]>(initial?.tags ?? []);
-	let avatar = $state<ImageAsset | null>(initial?.avatar ?? null);
-	let protocol = $state<FontProtocol>(initial?.protocol ?? 'rss');
-	let categoryAssignments = $state<CategoryAssignment[]>(initial?.categoryAssignments ?? []);
-	let defaultEnabled = $state(initial?.defaultEnabled ?? true);
+	// Capture initial values once (non-reactive locals)
+	// svelte-ignore state_referenced_locally
+	const _init = initial;
+	const _initConfig = _init?.config;
+	let title = $state(_init?.title ?? '');
+	let tags = $state<string[]>(_init?.tags ?? []);
+	let avatar = $state<ImageAsset | null>(_init?.avatar ?? null);
+	let protocol = $state<FontProtocol>(_init?.protocol ?? 'rss');
+	let categoryAssignments = $state<CategoryAssignment[]>(_init?.categoryAssignments ?? []);
+	let defaultEnabled = $state(_init?.defaultEnabled ?? true);
 
 	// Protocol-specific fields
-	let rssUrl = $state((initial?.config as FontRssConfig)?.url ?? '');
-	let atomUrl = $state((initial?.config as FontAtomConfig)?.url ?? '');
-	let nostrRelays = $state<string[]>((initial?.config as FontNostrConfig)?.relays ?? []);
-	let nostrPubkey = $state((initial?.config as FontNostrConfig)?.pubkey ?? '');
-	let nostrKinds = $state<string>((initial?.config as FontNostrConfig)?.kinds?.join(', ') ?? '');
+	let rssUrl = $state((_initConfig as FontRssConfig)?.url ?? '');
+	let atomUrl = $state((_initConfig as FontAtomConfig)?.url ?? '');
+	let nostrRelays = $state<string[]>((_initConfig as FontNostrConfig)?.relays ?? []);
+	let nostrPubkey = $state((_initConfig as FontNostrConfig)?.pubkey ?? '');
+	let nostrKinds = $state<string>((_initConfig as FontNostrConfig)?.kinds?.join(', ') ?? '');
 
 	let relayInput = $state('');
 
