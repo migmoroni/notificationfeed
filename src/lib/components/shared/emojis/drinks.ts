@@ -1,0 +1,25 @@
+import type { EmojiEntry } from './types.js';
+
+export const drinks: EmojiEntry[] = [
+	{ emoji: '🍼', name: 'baby bottle milk' },
+	{ emoji: '🥛', name: 'glass milk' },
+	{ emoji: '☕', name: 'hot beverage coffee tea' },
+	{ emoji: '🫖', name: 'teapot' },
+	{ emoji: '🍵', name: 'teacup tea' },
+	{ emoji: '🧃', name: 'beverage box juice' },
+	{ emoji: '🥤', name: 'cup straw soda' },
+	{ emoji: '🧋', name: 'bubble tea boba' },
+	{ emoji: '🫙', name: 'jar' },
+	{ emoji: '🍶', name: 'sake' },
+	{ emoji: '🍺', name: 'beer mug' },
+	{ emoji: '🍻', name: 'clinking beer mugs cheers' },
+	{ emoji: '🥂', name: 'clinking glasses champagne toast' },
+	{ emoji: '🍷', name: 'wine glass' },
+	{ emoji: '🥃', name: 'tumbler glass whiskey' },
+	{ emoji: '🍸', name: 'cocktail glass martini' },
+	{ emoji: '🍹', name: 'tropical drink' },
+	{ emoji: '🧉', name: 'mate' },
+	{ emoji: '🍾', name: 'bottle popping cork champagne' },
+	{ emoji: '🫗', name: 'pouring liquid' },
+	{ emoji: '🏺', name: 'amphora vase' },
+];

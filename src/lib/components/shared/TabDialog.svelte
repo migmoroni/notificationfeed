@@ -2,6 +2,7 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
+	import EmojiPicker from './EmojiPicker.svelte';
 	import FolderPlus from '@lucide/svelte/icons/folder-plus';
 	import FolderPen from '@lucide/svelte/icons/folder-pen';
 	import Bookmark from '@lucide/svelte/icons/bookmark';
@@ -21,14 +22,16 @@
 		open = $bindable(),
 		mode,
 		initialTitle = '',
-		initialEmoji = '',
+		initialEmoji = '⭐',
 		onconfirm,
 		oncancel
 	}: Props = $props();
 
 	// ── Form state (create / edit) ─────────────────────────────────────
 
+	// svelte-ignore state_referenced_locally
 	let title = $state(initialTitle);
+	// svelte-ignore state_referenced_locally
 	let emoji = $state(initialEmoji);
 	let titleError = $state('');
 	let emojiError = $state('');
@@ -112,7 +115,7 @@
 </script>
 
 <Dialog.Root {open} onOpenChange={handleOpenChange}>
-	<Dialog.Content class="sm:max-w-sm">
+	<Dialog.Content class="sm:max-w-fit">
 		<!-- Icon -->
 		<div class="flex justify-center pt-2 pb-1">
 			<div class="flex items-center justify-center size-12 rounded-full {config.iconBg}">
@@ -137,18 +140,14 @@
 		<!-- Form fields (create / edit only) -->
 		{#if isForm}
 			<div class="flex flex-col gap-4 py-4">
-				<div class="flex gap-3">
-					<!-- Emoji field -->
-					<div class="flex flex-col gap-1.5 w-20">
-						<label for="tab-emoji" class="text-sm font-medium">Emoji</label>
-						<Input
-							id="tab-emoji"
-							bind:value={emoji}
-							placeholder="📚"
-							class="text-center text-lg h-10"
-							maxlength={2}
-							onkeydown={handleKeydown}
-						/>
+				<!-- Title + selected emoji preview -->
+				<div class="flex gap-3 items-end">
+					<!-- Selected emoji display -->
+					<div class="flex flex-col gap-1.5 w-16 shrink-0">
+						<span class="text-sm font-medium">Emoji</span>
+						<div class="flex items-center justify-center h-10 rounded-md border border-input bg-background text-2xl">
+							{emoji || '?'}
+						</div>
 						{#if emojiError}
 							<p class="text-xs text-destructive">{emojiError}</p>
 						{/if}
@@ -170,6 +169,9 @@
 						{/if}
 					</div>
 				</div>
+
+				<!-- Emoji picker grid -->
+				<EmojiPicker value={emoji} onselect={(e) => { emoji = e; emojiError = ''; }} />
 			</div>
 		{/if}
 
