@@ -228,7 +228,11 @@ export const creator = {
 				bio: page.bio,
 				tags: [...page.tags],
 				avatar: page.avatar ? { ...page.avatar } : null,
-				banner: page.banner ? { ...page.banner } : null
+				banner: page.banner ? { ...page.banner } : null,
+				categoryAssignments: (page.categoryAssignments ?? []).map((a) => ({
+					treeId: a.treeId,
+					categoryIds: [...a.categoryIds]
+				}))
 			},
 			profiles: profiles.map((profile): ProfileSnapshot => ({
 				title: profile.title,
@@ -245,6 +249,10 @@ export const creator = {
 					avatar: font.avatar ? { ...font.avatar } : null,
 					protocol: font.protocol,
 					config: { ...font.config },
+					categoryAssignments: (font.categoryAssignments ?? []).map((a) => ({
+						treeId: a.treeId,
+						categoryIds: [...a.categoryIds]
+					})),
 					defaultEnabled: font.defaultEnabled
 				}))
 			}))

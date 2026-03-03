@@ -235,8 +235,7 @@
 											tags: font.tags,
 											avatar: font.avatar,
 											protocol: font.protocol,
-											config: font.config,
-											defaultEnabled: font.defaultEnabled
+											config: font.config,										categoryAssignments: font.categoryAssignments ?? [],											defaultEnabled: font.defaultEnabled
 										}}
 										onsave={(data) => handleUpdateFont(font.id, data)}
 										oncancel={() => (editingFontId = null)}

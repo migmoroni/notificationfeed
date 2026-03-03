@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
+	import type { CategoryAssignment } from '$lib/domain/shared/category-assignment.js';
 	import type { FontProtocol, FontConfig, FontRssConfig, FontAtomConfig, FontNostrConfig } from '$lib/domain/font/font.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
@@ -8,6 +9,7 @@
 	import * as Select from '$lib/components/ui/select/index.js';
 	import ImageUpload from './ImageUpload.svelte';
 	import TagInput from './TagInput.svelte';
+	import CategoryTreePicker from './CategoryTreePicker.svelte';
 
 	interface FontFormData {
 		title: string;
@@ -15,23 +17,27 @@
 		avatar: ImageAsset | null;
 		protocol: FontProtocol;
 		config: FontConfig;
+		categoryAssignments: CategoryAssignment[];
 		defaultEnabled: boolean;
 	}
 
 	interface Props {
 		mode: 'create' | 'edit';
 		initial?: FontFormData;
+		/** Inherited categories from parent profile (shown read-only) */
+		inheritedCategories?: CategoryAssignment[];
 		onsave: (data: FontFormData) => void;
 		oncancel: () => void;
 		saving?: boolean;
 	}
 
-	let { mode, initial, onsave, oncancel, saving = false }: Props = $props();
+	let { mode, initial, inheritedCategories = [], onsave, oncancel, saving = false }: Props = $props();
 
 	let title = $state(initial?.title ?? '');
 	let tags = $state<string[]>(initial?.tags ?? []);
 	let avatar = $state<ImageAsset | null>(initial?.avatar ?? null);
 	let protocol = $state<FontProtocol>(initial?.protocol ?? 'rss');
+	let categoryAssignments = $state<CategoryAssignment[]>(initial?.categoryAssignments ?? []);
 	let defaultEnabled = $state(initial?.defaultEnabled ?? true);
 
 	// Protocol-specific fields
@@ -83,6 +89,7 @@
 			avatar,
 			protocol,
 			config: buildConfig(),
+			categoryAssignments,
 			defaultEnabled
 		});
 	}
@@ -201,6 +208,12 @@
 		value={avatar}
 		onchange={(v) => (avatar = v)}
 		label="Avatar"
+	/>
+
+	<CategoryTreePicker
+		assignments={categoryAssignments}
+		onchange={(v) => (categoryAssignments = v)}
+		inherited={inheritedCategories}
 	/>
 
 	<div class="flex items-center gap-2">

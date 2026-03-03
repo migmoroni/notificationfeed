@@ -408,7 +408,7 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 
 - [ ] Testes unitários para todos os stores reativos
 - [ ] Testes de integração: ingestion → normalization → persistence
-- [ ] Testes de componente para telas críticas (Feed, Browse, Settings forms)
+- [ ] Testes de componente para telas críticas (Feed, Browse, Favorites, User)
 - [ ] Configurar ESLint + Prettier
   ```bash
   npm install -D eslint prettier eslint-plugin-svelte

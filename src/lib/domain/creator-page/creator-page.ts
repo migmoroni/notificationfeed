@@ -5,10 +5,12 @@
  * Contains Profiles and their Fonts. Can be synced online (Blossom)
  * or exported as JSON for offline sharing.
  *
- * Categories are derived (union of Profile categories) — never stored directly.
+ * Has its own optional categoryAssignments. Effective categories are the
+ * union of the page's own assignments + all child Profile/Font assignments.
  */
 
 import type { ImageAsset } from '../shared/image-asset.js';
+import type { CategoryAssignment } from '../shared/category-assignment.js';
 import type { PageExport } from './page-export.js';
 
 export type PageSyncStatus = 'local' | 'synced' | 'exported' | 'imported';
@@ -28,6 +30,12 @@ export interface CreatorPage {
 
 	/** Background/banner image (WEBP, max 1600x600) */
 	banner: ImageAsset | null;
+
+	/**
+	 * Category assignments — one entry per tree.
+	 * Effective categories = own + union of all child Profile/Font assignments.
+	 */
+	categoryAssignments: CategoryAssignment[];
 
 	/** Nostr public key — set when synced online */
 	nostrPublicKey: string | null;

@@ -61,6 +61,10 @@ export async function copyProfilesToCreator(
 				avatar: font.avatar ? { ...font.avatar } : null,
 				protocol: font.protocol,
 				config: { ...font.config },
+				categoryAssignments: (font.categoryAssignments ?? []).map((a) => ({
+					treeId: a.treeId,
+					categoryIds: [...a.categoryIds]
+				})),
 				defaultEnabled: font.defaultEnabled
 			});
 			copiedFonts.push(newFont);
@@ -90,6 +94,10 @@ export async function copyFontsToProfile(
 			avatar: original.avatar ? { ...original.avatar } : null,
 			protocol: original.protocol,
 			config: { ...original.config },
+			categoryAssignments: (original.categoryAssignments ?? []).map((a) => ({
+				treeId: a.treeId,
+				categoryIds: [...a.categoryIds]
+			})),
 			defaultEnabled: original.defaultEnabled
 		});
 		copiedFonts.push(newFont);

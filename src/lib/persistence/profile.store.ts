@@ -43,7 +43,7 @@ export function createProfileStore(): ProfileRepository {
 			const all = await db.profiles.getAll<Profile>();
 			const idSet = new Set(categoryIds);
 			return all.filter((p) =>
-				p.categoryAssignments.some((a) =>
+				(p.categoryAssignments ?? []).some((a) =>
 					a.categoryIds.some((cid) => idSet.has(cid))
 				)
 			);

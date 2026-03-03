@@ -68,7 +68,8 @@ export async function importNotfeedJson(pageExport: PageExport, consumerId: stri
 		bio: pageExport.page.bio ?? '',
 		tags: pageExport.page.tags ?? [],
 		avatar: pageExport.page.avatar ?? null,
-		banner: pageExport.page.banner ?? null
+		banner: pageExport.page.banner ?? null,
+		categoryAssignments: pageExport.page.categoryAssignments ?? []
 	};
 
 	const creatorPage = await pageStore.create(newPage);
@@ -108,6 +109,7 @@ export async function importNotfeedJson(pageExport: PageExport, consumerId: stri
 				avatar: fontSnapshot.avatar ?? null,
 				protocol: fontSnapshot.protocol,
 				config: fontSnapshot.config,
+				categoryAssignments: fontSnapshot.categoryAssignments ?? [],
 				defaultEnabled: fontSnapshot.defaultEnabled ?? true
 			});
 
@@ -191,6 +193,7 @@ export async function importSimpleUrls(urls: string[], consumerId: string): Prom
 			avatar: null,
 			protocol,
 			config: { url },
+			categoryAssignments: [],
 			defaultEnabled: true
 		});
 

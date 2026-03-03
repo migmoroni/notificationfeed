@@ -84,6 +84,9 @@ export async function seedMockData(): Promise<void> {
 		tags: ['tech', 'programming', 'web'],
 		avatar: null,
 		banner: null,
+		categoryAssignments: [
+			{ treeId: 'subject', categoryIds: ['subj-tech-webdev'] }
+		],
 		nostrPublicKey: null,
 		blossomRef: null,
 		syncStatus: 'local',
@@ -103,6 +106,10 @@ export async function seedMockData(): Promise<void> {
 		tags: ['news', 'world', 'brazil'],
 		avatar: null,
 		banner: null,
+		categoryAssignments: [
+			{ treeId: 'subject', categoryIds: ['subj-politics-intl'] },
+			{ treeId: 'content_type', categoryIds: ['ct-format-news'] }
+		],
 		nostrPublicKey: null,
 		blossomRef: null,
 		syncStatus: 'local',
@@ -137,7 +144,8 @@ export async function seedMockData(): Promise<void> {
 			bio: 'Hand-picked development feeds',
 			tags: ['dev', 'curated'],
 			avatar: null,
-			banner: null
+			banner: null,
+			categoryAssignments: []
 		},
 		profiles: [
 			{
@@ -154,9 +162,11 @@ export async function seedMockData(): Promise<void> {
 						tags: ['svelte'],
 						avatar: null,
 						protocol: 'atom' as const,
-						config: { url: 'https://svelte.dev/blog/rss.xml' }
+						config: { url: 'https://svelte.dev/blog/rss.xml' },
+						categoryAssignments: []
 					}
-				]
+				],
+				defaultEnabled: true
 			}
 		],
 		exportedAt: new Date().toISOString()
@@ -170,6 +180,7 @@ export async function seedMockData(): Promise<void> {
 		tags: ['dev', 'curated'],
 		avatar: null,
 		banner: null,
+		categoryAssignments: [],
 		nostrPublicKey: null,
 		blossomRef: null,
 		syncStatus: 'local',
@@ -190,6 +201,7 @@ export async function seedMockData(): Promise<void> {
 		tags: ['news', 'experiment'],
 		avatar: null,
 		banner: null,
+		categoryAssignments: [],
 		nostrPublicKey: null,
 		blossomRef: null,
 		syncStatus: 'local',
@@ -212,8 +224,7 @@ export async function seedMockData(): Promise<void> {
 		tags: ['tech', 'development'],
 		avatar: null,
 		categoryAssignments: [
-			{ treeId: 'subject', categoryIds: ['subj-tech-webdev', 'subj-tech-ai'] },
-			{ treeId: 'content_type', categoryIds: ['ct-format-news', 'ct-format-tutorial'] }
+			{ treeId: 'subject', categoryIds: ['subj-tech-webdev', 'subj-tech-ai'] }
 		],
 		defaultEnabled: true,
 		createdAt: now,
@@ -247,6 +258,9 @@ export async function seedMockData(): Promise<void> {
 		avatar: null,
 		protocol: 'rss',
 		config: { url: 'https://hnrss.org/frontpage' },
+		categoryAssignments: [
+			{ treeId: 'content_type', categoryIds: ['ct-format-news'] }
+		],
 		defaultEnabled: true,
 		createdAt: now,
 		updatedAt: now
@@ -260,6 +274,7 @@ export async function seedMockData(): Promise<void> {
 		avatar: null,
 		protocol: 'rss',
 		config: { url: 'http://feeds.bbci.co.uk/news/world/rss.xml' },
+		categoryAssignments: [],
 		defaultEnabled: true,
 		createdAt: now,
 		updatedAt: now
@@ -273,6 +288,9 @@ export async function seedMockData(): Promise<void> {
 		avatar: null,
 		protocol: 'atom',
 		config: { url: 'https://svelte.dev/blog/rss.xml' },
+		categoryAssignments: [
+			{ treeId: 'content_type', categoryIds: ['ct-format-tutorial'] }
+		],
 		defaultEnabled: true,
 		createdAt: now,
 		updatedAt: now
@@ -286,6 +304,7 @@ export async function seedMockData(): Promise<void> {
 		avatar: null,
 		protocol: 'nostr',
 		config: { relays: ['wss://relay.damus.io'], pubkey: 'npub1mockkey000000000000000000000000000000' },
+		categoryAssignments: [],
 		defaultEnabled: true,
 		createdAt: now,
 		updatedAt: now
@@ -333,6 +352,9 @@ export async function seedMockData(): Promise<void> {
 		avatar: null,
 		protocol: 'rss',
 		config: { url: 'https://krebsonsecurity.com/feed/' },
+		categoryAssignments: [
+			{ treeId: 'content_type', categoryIds: ['ct-format-analysis'] }
+		],
 		defaultEnabled: true,
 		createdAt: now,
 		updatedAt: now
@@ -346,6 +368,7 @@ export async function seedMockData(): Promise<void> {
 		avatar: null,
 		protocol: 'atom',
 		config: { url: 'https://www.nature.com/nature.rss' },
+		categoryAssignments: [],
 		defaultEnabled: true,
 		createdAt: now,
 		updatedAt: now
@@ -396,6 +419,7 @@ export async function seedMockData(): Promise<void> {
 		avatar: null,
 		protocol: 'rss',
 		config: { url: 'https://hnrss.org/frontpage' },
+		categoryAssignments: [],
 		defaultEnabled: true,
 		createdAt: now,
 		updatedAt: now
@@ -409,6 +433,7 @@ export async function seedMockData(): Promise<void> {
 		avatar: null,
 		protocol: 'atom',
 		config: { url: 'https://svelte.dev/blog/rss.xml' },
+		categoryAssignments: [],
 		defaultEnabled: true,
 		createdAt: now,
 		updatedAt: now

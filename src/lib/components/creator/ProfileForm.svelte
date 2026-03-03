@@ -7,7 +7,7 @@
 	import { Switch } from '$lib/components/ui/switch/index.js';
 	import ImageUpload from './ImageUpload.svelte';
 	import TagInput from './TagInput.svelte';
-	import CategoryPicker from './CategoryPicker.svelte';
+	import CategoryTreePicker from './CategoryTreePicker.svelte';
 
 	interface ProfileFormData {
 		title: string;
@@ -20,12 +20,14 @@
 	interface Props {
 		mode: 'create' | 'edit';
 		initial?: ProfileFormData;
+		/** Inherited categories from child fonts (shown read-only) */
+		inheritedCategories?: CategoryAssignment[];
 		onsave: (data: ProfileFormData) => void;
 		oncancel: () => void;
 		saving?: boolean;
 	}
 
-	let { mode, initial, onsave, oncancel, saving = false }: Props = $props();
+	let { mode, initial, inheritedCategories = [], onsave, oncancel, saving = false }: Props = $props();
 
 	let title = $state(initial?.title ?? '');
 	let tags = $state<string[]>(initial?.tags ?? []);
@@ -72,9 +74,10 @@
 		label="Avatar"
 	/>
 
-	<CategoryPicker
+	<CategoryTreePicker
 		assignments={categoryAssignments}
 		onchange={(v) => (categoryAssignments = v)}
+		inherited={inheritedCategories}
 	/>
 
 	<div class="flex items-center gap-2">

@@ -20,7 +20,7 @@
 	let showDeleteConfirm = $state(false);
 	let showCopyDialog = $state(false);
 
-	async function handleSave(data: { title: string; bio: string; tags: string[]; avatar: any; banner: any }) {
+	async function handleSave(data: { title: string; bio: string; tags: string[]; avatar: any; banner: any; categoryAssignments: any[] }) {
 		if (!pageId) return;
 		saving = true;
 		try {
@@ -85,7 +85,8 @@
 							bio: creatorPage.bio,
 							tags: creatorPage.tags,
 							avatar: creatorPage.avatar,
-							banner: creatorPage.banner
+							banner: creatorPage.banner,
+							categoryAssignments: creatorPage.categoryAssignments ?? []
 						}}
 						onsave={handleSave}
 						oncancel={() => (editing = false)}

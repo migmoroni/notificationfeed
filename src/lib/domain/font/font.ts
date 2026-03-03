@@ -2,15 +2,16 @@
  * Font — a technical distribution channel bound to a Profile.
  *
  * Encapsulates protocol-specific configuration (Nostr relay, RSS URL, Atom URL).
- * Inherits its Category from the parent Profile — never has its own.
+ * Has its own optional categoryAssignments that aggregate upward:
+ *   Font categories bubble up to Profile, which bubbles up to CreatorPage.
  *
  * Invariants:
  * - Always belongs to exactly one Profile. Orphan fonts are forbidden.
- * - Category is derived from the parent Profile (not stored).
  * - Can be enabled/disabled by UserConsumer (via ConsumerState).
  */
 
 import type { ImageAsset } from '../shared/image-asset.js';
+import type { CategoryAssignment } from '../shared/category-assignment.js';
 
 export type FontProtocol = 'nostr' | 'rss' | 'atom';
 
@@ -44,6 +45,12 @@ export interface Font {
 
 	protocol: FontProtocol;
 	config: FontConfig;
+
+	/**
+	 * Category assignments — one entry per tree.
+	 * Bubbles up to the parent Profile during aggregation.
+	 */
+	categoryAssignments: CategoryAssignment[];
 
 	/** Default enabled state for new consumers */
 	defaultEnabled: boolean;

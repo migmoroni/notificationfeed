@@ -22,6 +22,7 @@ export interface FontSnapshot {
 	avatar: ImageAsset | null;
 	protocol: FontProtocol;
 	config: FontConfig;
+	categoryAssignments: CategoryAssignment[];
 	defaultEnabled: boolean;
 }
 
@@ -56,6 +57,7 @@ export interface PageExport {
 		tags: string[];
 		avatar: ImageAsset | null;
 		banner: ImageAsset | null;
+		categoryAssignments: CategoryAssignment[];
 	};
 
 	/** Full profile + font tree */

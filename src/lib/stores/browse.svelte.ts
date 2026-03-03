@@ -21,6 +21,7 @@ import { createCategoryStore } from '$lib/persistence/category.store.js';
 import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
 import { createProfileStore } from '$lib/persistence/profile.store.js';
 import { createFontStore } from '$lib/persistence/font.store.js';
+import { mergeAssignments } from '$lib/domain/shared/category-aggregation.js';
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -76,10 +77,10 @@ function expandCategoryIds(selectedIds: Set<string>, allCategories: Category[]):
 	return expanded;
 }
 
-/** Check if a profile matches a tree's selected categories */
-function profileMatchesTree(profile: Profile, treeId: CategoryTreeId, expandedIds: Set<string>): boolean {
+/** Check if a set of assignments matches a tree's selected categories */
+function assignmentsMatchTree(assignments: { treeId: string; categoryIds: string[] }[], treeId: CategoryTreeId, expandedIds: Set<string>): boolean {
 	if (expandedIds.size === 0) return true; // no filter = pass
-	const assignment = (profile.categoryAssignments ?? []).find((a) => a.treeId === treeId);
+	const assignment = assignments.find((a) => a.treeId === treeId);
 	if (!assignment) return false;
 	return assignment.categoryIds.some((cid) => expandedIds.has(cid));
 }
@@ -173,7 +174,8 @@ export const browse = {
 	/**
 	 * Apply all active filters (categories + search) as intersection.
 	 * - No filters = show nothing (user must select or search)
-	 * - Categories filter profiles by assignments (AND between trees, OR within a tree)
+	 * - Categories filter entities by effective assignments (AND between trees, OR within a tree)
+	 *   Effective = entity own + aggregated child assignments.
 	 * - Search filters by title/tags across all entity types
 	 * - Both active = intersection
 	 */
@@ -199,23 +201,78 @@ export const browse = {
 			const contentTypeIds = expandCategoryIds(state.selectedByTree.content_type, state.categories);
 			const regionIds = expandCategoryIds(state.selectedByTree.region, state.categories);
 
-			// Filter profiles: AND between trees (must match both if both have selections)
-			let matchedProfiles = allProfiles;
-			if (hasCategories) {
-				matchedProfiles = allProfiles.filter((p) =>
-					profileMatchesTree(p, 'subject', subjectIds) &&
-					profileMatchesTree(p, 'content_type', contentTypeIds) &&
-					profileMatchesTree(p, 'region', regionIds)
+			// Build font-by-profile map for aggregation
+			const fontsByProfile = new Map<string, typeof allFonts>();
+			for (const f of allFonts) {
+				const list = fontsByProfile.get(f.profileId) ?? [];
+				list.push(f);
+				fontsByProfile.set(f.profileId, list);
+			}
+
+			// Compute effective profile categories (own + child fonts)
+			const profileEffective = new Map<string, import('$lib/domain/shared/category-assignment.js').CategoryAssignment[]>();
+			for (const p of allProfiles) {
+				const childFontAssignments = (fontsByProfile.get(p.id) ?? []).map(
+					(f) => f.categoryAssignments ?? []
+				);
+				profileEffective.set(
+					p.id,
+					mergeAssignments(p.categoryAssignments ?? [], ...childFontAssignments)
 				);
 			}
 
-			// Build profile IDs for font lookup
-			const profileIds = new Set(matchedProfiles.map((p) => p.id));
-			const matchedFonts = allFonts.filter((f) => profileIds.has(f.profileId));
+			// Filter fonts by their own categories only (no downward propagation)
+			let matchedFonts = allFonts;
+			if (hasCategories) {
+				matchedFonts = allFonts.filter((f) => {
+					const own = f.categoryAssignments ?? [];
+					return (
+						assignmentsMatchTree(own, 'subject', subjectIds) &&
+						assignmentsMatchTree(own, 'content_type', contentTypeIds) &&
+						assignmentsMatchTree(own, 'region', regionIds)
+					);
+				});
+			}
 
-			// Build creator page IDs from matched profiles
-			const pageIds = new Set(matchedProfiles.map((p) => p.creatorPageId).filter(Boolean));
-			const matchedPages = allPages.filter((p) => pageIds.has(p.id));
+			// Filter profiles by effective categories (own + child fonts): AND between trees
+			let matchedProfiles = allProfiles;
+			if (hasCategories) {
+				matchedProfiles = allProfiles.filter((p) => {
+					const eff = profileEffective.get(p.id) ?? [];
+					return (
+						assignmentsMatchTree(eff, 'subject', subjectIds) &&
+						assignmentsMatchTree(eff, 'content_type', contentTypeIds) &&
+						assignmentsMatchTree(eff, 'region', regionIds)
+					);
+				});
+			}
+
+			// Filter pages by effective categories (own + child profiles' effective): AND between trees
+			let matchedPages: typeof allPages = [];
+			if (hasCategories) {
+				// Compute effective page categories (own + child profiles' effective)
+				const profilesByPage = new Map<string, typeof allProfiles>();
+				for (const p of allProfiles) {
+					if (!p.creatorPageId) continue;
+					const list = profilesByPage.get(p.creatorPageId) ?? [];
+					list.push(p);
+					profilesByPage.set(p.creatorPageId, list);
+				}
+
+				matchedPages = allPages.filter((page) => {
+					const childProfileEffectives = (profilesByPage.get(page.id) ?? []).map(
+						(p) => profileEffective.get(p.id) ?? []
+					);
+					const pageEff = mergeAssignments(page.categoryAssignments ?? [], ...childProfileEffectives);
+					return (
+						assignmentsMatchTree(pageEff, 'subject', subjectIds) &&
+						assignmentsMatchTree(pageEff, 'content_type', contentTypeIds) &&
+						assignmentsMatchTree(pageEff, 'region', regionIds)
+					);
+				});
+			} else {
+				matchedPages = allPages;
+			}
 
 			// Assemble entities
 			let entities: BrowseEntity[] = [

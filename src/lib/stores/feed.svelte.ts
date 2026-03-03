@@ -21,6 +21,7 @@ import type { Font } from '$lib/domain/font/font.js';
 import type { Profile } from '$lib/domain/profile/profile.js';
 import { buildPriorityMap } from '$lib/domain/shared/priority-resolver.js';
 import { sortByPriority } from '$lib/domain/shared/feed-sorter.js';
+import { mergeAssignments } from '$lib/domain/shared/category-aggregation.js';
 import { getPosts, markAsRead as persistMarkRead } from '$lib/persistence/post.store.js';
 import { createFontStore } from '$lib/persistence/font.store.js';
 import { createProfileStore } from '$lib/persistence/profile.store.js';
@@ -69,8 +70,8 @@ function computePrioritized(): SortedPost[] {
 // ── Category filtering helpers ─────────────────────────────────────────
 
 /**
- * Build a set of fontIds whose parent profile matches the given category IDs
- * in the specified tree.
+ * Build a set of fontIds whose effective categories (font own + parent profile)
+ * match the given category IDs in the specified tree.
  */
 function fontIdsMatchingCategories(
 	treeId: 'subject' | 'content_type' | 'region',
@@ -84,9 +85,14 @@ function fontIdsMatchingCategories(
 	const matchingFontIds = new Set<string>();
 	for (const font of state.fonts) {
 		const profile = profileMap.get(font.profileId);
-		if (!profile) continue;
 
-		const assignment = profile.categoryAssignments.find((a) => a.treeId === treeId);
+		// Effective = font's own + parent profile's assignments
+		const effective = mergeAssignments(
+			font.categoryAssignments ?? [],
+			profile?.categoryAssignments ?? []
+		);
+
+		const assignment = effective.find((a) => a.treeId === treeId);
 		if (assignment && assignment.categoryIds.some((cid) => catSet.has(cid))) {
 			matchingFontIds.add(font.id);
 		}

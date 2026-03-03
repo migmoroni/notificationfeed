@@ -1,11 +1,13 @@
 <script lang="ts">
 	import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
+	import type { CategoryAssignment } from '$lib/domain/shared/category-assignment.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import ImageUpload from './ImageUpload.svelte';
 	import TagInput from './TagInput.svelte';
+	import CategoryTreePicker from './CategoryTreePicker.svelte';
 
 	interface PageFormData {
 		title: string;
@@ -13,23 +15,27 @@
 		tags: string[];
 		avatar: ImageAsset | null;
 		banner: ImageAsset | null;
+		categoryAssignments: CategoryAssignment[];
 	}
 
 	interface Props {
 		mode: 'create' | 'edit';
 		initial?: PageFormData;
+		/** Inherited categories from child profiles/fonts (shown read-only) */
+		inheritedCategories?: CategoryAssignment[];
 		onsave: (data: PageFormData) => void;
 		oncancel: () => void;
 		saving?: boolean;
 	}
 
-	let { mode, initial, onsave, oncancel, saving = false }: Props = $props();
+	let { mode, initial, inheritedCategories = [], onsave, oncancel, saving = false }: Props = $props();
 
 	let title = $state(initial?.title ?? '');
 	let bio = $state(initial?.bio ?? '');
 	let tags = $state<string[]>(initial?.tags ?? []);
 	let avatar = $state<ImageAsset | null>(initial?.avatar ?? null);
 	let banner = $state<ImageAsset | null>(initial?.banner ?? null);
+	let categoryAssignments = $state<CategoryAssignment[]>(initial?.categoryAssignments ?? []);
 
 	let isValid = $derived(title.trim().length > 0);
 
@@ -42,7 +48,8 @@
 			bio: bio.trim(),
 			tags,
 			avatar,
-			banner
+			banner,
+			categoryAssignments
 		});
 	}
 </script>
@@ -87,6 +94,12 @@
 			label="Banner"
 		/>
 	</div>
+
+	<CategoryTreePicker
+		assignments={categoryAssignments}
+		onchange={(v) => (categoryAssignments = v)}
+		inherited={inheritedCategories}
+	/>
 
 	<div class="flex gap-2 justify-end">
 		<Button variant="outline" type="button" onclick={oncancel} disabled={saving}>
