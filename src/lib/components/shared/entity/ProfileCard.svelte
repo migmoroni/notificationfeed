@@ -6,7 +6,7 @@
 	import { createFontStore } from '$lib/persistence/font.store.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
-	import FontCard from '$lib/components/browse/FontCard.svelte';
+	import FontCard from './FontCard.svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import User from '@lucide/svelte/icons/user';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';

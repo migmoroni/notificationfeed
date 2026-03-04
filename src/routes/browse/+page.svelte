@@ -4,7 +4,8 @@
 	import { browse } from '$lib/stores/browse.svelte.js';
 	import { browseEntityFilter } from '$lib/stores/browse-entity-filter.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
-	import { EntityList, SearchBar } from '$lib/components/browse/index.js';
+	import { EntityList } from '$lib/components/shared/entity/index.js';
+	import { SearchBar } from '$lib/components/browse/index.js';
 	import FilterSidebar from '$lib/components/shared/FilterSidebar.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import X from '@lucide/svelte/icons/x';

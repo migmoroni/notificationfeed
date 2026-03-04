@@ -9,9 +9,10 @@
 	interface Props {
 		entities: BrowseEntity[];
 		loading: boolean;
+		baseHref?: string;
 	}
 
-	let { entities, loading }: Props = $props();
+	let { entities, loading, baseHref = '/browse' }: Props = $props();
 
 	let pages = $derived(entities.filter((e) => e.type === 'creator_page'));
 	let profiles = $derived(entities.filter((e) => e.type === 'profile'));
@@ -35,29 +36,29 @@
 		if (entity.type !== 'profile') return '';
 		const profile = entity.data as Profile;
 		if (profile.creatorPageId) {
-			return `/browse/creator/${profile.creatorPageId}/profile/${profile.id}`;
+			return `${baseHref}/creator/${profile.creatorPageId}/profile/${profile.id}`;
 		}
-		return `/browse/profile/${profile.id}`;
+		return `${baseHref}/profile/${profile.id}`;
 	}
 
 	function pageHref(entity: BrowseEntity): string {
 		if (entity.type !== 'creator_page') return '';
-		return `/browse/creator/${entity.data.id}`;
+		return `${baseHref}/creator/${entity.data.id}`;
 	}
 
 	/**
 	 * Font URL resolved through its parent profile:
-	 * - If profile is dependent → /browse/creator/{pageId}/profile/{profileId}/font/{fontId}
-	 * - If profile is standalone → /browse/profile/{profileId}/font/{fontId}
+	 * - If profile is dependent → {baseHref}/creator/{pageId}/profile/{profileId}/font/{fontId}
+	 * - If profile is standalone → {baseHref}/profile/{profileId}/font/{fontId}
 	 */
 	function fontHref(entity: BrowseEntity): string {
 		if (entity.type !== 'font') return '';
 		const font = entity.data as Font;
 		const profile = profileMap.get(font.profileId);
 		if (profile?.creatorPageId) {
-			return `/browse/creator/${profile.creatorPageId}/profile/${font.profileId}/font/${font.id}`;
+			return `${baseHref}/creator/${profile.creatorPageId}/profile/${font.profileId}/font/${font.id}`;
 		}
-		return `/browse/profile/${font.profileId}/font/${font.id}`;
+		return `${baseHref}/profile/${font.profileId}/font/${font.id}`;
 	}
 </script>
 

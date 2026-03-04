@@ -5,7 +5,7 @@
 	import type { Font } from '$lib/domain/font/font.js';
 	import { favorites } from '$lib/stores/favorites.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
-	import { EntityCard } from '$lib/components/browse/index.js';
+	import { EntityCard } from '$lib/components/shared/entity/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import Check from '@lucide/svelte/icons/check';
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import FontPage from '$lib/components/browse/FontPage.svelte';
+	import FontPage from '$lib/components/shared/entity/FontPage.svelte';
 </script>
 
 <FontPage baseHref="/preview" />

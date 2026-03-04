@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { createProfileStore } from '$lib/persistence/profile.store.js';
-	import ProfilePage from '$lib/components/browse/ProfilePage.svelte';
+	import ProfilePage from '$lib/components/shared/entity/ProfilePage.svelte';
 
 	const profileId = $derived(page.params.profileId!);
 

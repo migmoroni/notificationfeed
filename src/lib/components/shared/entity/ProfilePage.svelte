@@ -1,103 +1,109 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import type { CreatorPage } from '$lib/domain/creator-page/creator-page.js';
 	import type { Profile } from '$lib/domain/profile/profile.js';
 	import type { Font } from '$lib/domain/font/font.js';
 	import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
+	import type { Category } from '$lib/domain/category/category.js';
 	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
-	import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
 	import { createProfileStore } from '$lib/persistence/profile.store.js';
 	import { createFontStore } from '$lib/persistence/font.store.js';
+	import { createCategoryStore } from '$lib/persistence/category.store.js';
 	import { getPosts } from '$lib/persistence/post.store.js';
-	import { ProfileCard } from '$lib/components/browse/index.js';
-	import { PostCard } from '$lib/components/feed/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
+	import FontCard from './FontCard.svelte';
+	import { PostCard } from '$lib/components/feed/index.js';
 	import { sortByPriority, type SortedPost } from '$lib/domain/shared/feed-sorter.js';
 	import { buildPriorityMap, type PriorityContext } from '$lib/domain/shared/priority-resolver.js';
+	import { formatRelativeDate } from '$lib/utils/date.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import Globe from '@lucide/svelte/icons/globe';
+	import User from '@lucide/svelte/icons/user';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
-	import ConfirmUnsubscribeDialog from '$lib/components/shared/ConfirmUnsubscribeDialog.svelte';
+	import ConfirmUnfollowDialog from '$lib/components/shared/ConfirmUnfollowDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
-	import SubscribeButton from '$lib/components/shared/SubscribeButton.svelte';
+	import FollowButton from '$lib/components/shared/FollowButton.svelte';
 	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
 
 	/**
-	 * Reusable Creator Page detail view.
+	 * Reusable Profile detail page.
 	 *
-	 * Used by both /browse/creator/{id} and /favorites/creator/{id}.
+	 * Shared between both DDD lifecycle modes:
+	 * - Standalone: rendered at /browse/profile/{id}
+	 * - Dependent: rendered at /browse/creator/{pageId}/profile/{id}
+	 *
 	 * Back button uses history.back() to respect browsing history.
 	 */
 	interface Props {
-		creatorId: string;
+		profileId: string;
 		/** Root prefix for generating child links (e.g. '/browse' or '/favorites') */
 		baseHref: string;
 	}
 
-	let { creatorId, baseHref }: Props = $props();
+	let { profileId, baseHref }: Props = $props();
 
-	let creatorPage = $state<CreatorPage | null>(null);
-	let profiles: Profile[] = $state([]);
-	let allFonts: Font[] = $state([]);
+	let profile = $state<Profile | null>(null);
+	let fonts: Font[] = $state([]);
 	let posts: CanonicalPost[] = $state([]);
+	let categoryLabels: string[] = $state([]);
 	let loading = $state(true);
 	let notFound = $state(false);
 
-	let entityState = $derived(creatorPage ? consumer.stateMap.get(creatorPage.id) : undefined);
+	let entityState = $derived(profile ? consumer.stateMap.get(profile.id) : undefined);
 	let currentPriority = $derived(entityState?.priority ?? null);
 	let isFavorite = $derived(entityState?.favorite ?? false);
-	let isSubscribed = $derived(entityState?.enabled ?? true);
-
-	let postLimit = $derived(layout.isExpanded ? 8 : 4);
-	let postGridCols = $derived(layout.isExpanded ? 'grid-cols-2' : 'grid-cols-1');
+	let isFollowing = $derived(entityState?.enabled ?? true);
 
 	let sortedPosts: SortedPost[] = $derived.by(() => {
 		if (posts.length === 0) return [];
-		const contexts: PriorityContext[] = allFonts.map(f => ({
+		const contexts: PriorityContext[] = fonts.map(f => ({
 			fontId: f.id,
 			profileId: f.profileId,
-			creatorPageId: creatorId
+			creatorPageId: profile?.creatorPageId ?? null
 		}));
 		const priorityMap = buildPriorityMap(contexts, consumer.stateMap);
 		return sortByPriority(posts, priorityMap);
 	});
 
+	import { onMount } from 'svelte';
+
 	onMount(async () => {
 		try {
-			const pageStore = createCreatorPageStore();
 			const profileStore = createProfileStore();
 			const fontStore = createFontStore();
+			const categoryStore = createCategoryStore();
 
-			const found = await pageStore.getById(creatorId);
+			const found = await profileStore.getById(profileId);
 			if (!found) {
 				notFound = true;
 				loading = false;
 				return;
 			}
 
-			creatorPage = found;
-			profiles = await profileStore.getByCreatorPageId(creatorId);
+			profile = found;
 
-			const fonts: Font[] = [];
+			// Load fonts
+			fonts = await fontStore.getByProfileId(profileId);
+
+			// Load posts from all fonts
 			const allPosts: CanonicalPost[] = [];
+			for (const font of fonts) {
+				const fontPosts = await getPosts({ fontId: font.id });
+				allPosts.push(...fontPosts);
+			}
+			posts = allPosts;
 
-			for (const profile of profiles) {
-				const profileFonts = await fontStore.getByProfileId(profile.id);
-				fonts.push(...profileFonts);
-
-				for (const font of profileFonts) {
-					const fontPosts = await getPosts({ fontId: font.id });
-					allPosts.push(...fontPosts);
+			// Resolve category labels
+			const labels: string[] = [];
+			for (const assignment of (profile.categoryAssignments ?? [])) {
+				for (const catId of assignment.categoryIds) {
+					const cat = await categoryStore.getById(catId);
+					if (cat) labels.push(cat.label);
 				}
 			}
-
-			allFonts = fonts;
-			posts = allPosts;
+			categoryLabels = labels;
 		} catch (err) {
-			console.error('[CreatorPage] Failed to load:', err);
+			console.error('[ProfilePage] Failed to load profile:', err);
 			notFound = true;
 		} finally {
 			loading = false;
@@ -105,54 +111,60 @@
 	});
 
 	let showUnfavConfirm = $state(false);
-	let showUnsubscribeConfirm = $state(false);
+	let showUnfollowConfirm = $state(false);
 
 	async function handlePriorityChange(level: PriorityLevel | null) {
-		if (!creatorPage) return;
-		await consumer.setPriority(creatorPage.id, 'creator_page', level);
+		if (!profile) return;
+		await consumer.setPriority(profile.id, 'profile', level);
 	}
 
 	async function handleFavorite() {
-		if (!creatorPage) return;
+		if (!profile) return;
 		if (isFavorite) {
 			showUnfavConfirm = true;
 			return;
 		}
-		await consumer.setFavorite(creatorPage.id, 'creator_page', true);
+		await consumer.setFavorite(profile.id, 'profile', true);
 	}
 
 	async function confirmUnfavorite() {
-		if (!creatorPage) return;
-		await consumer.setFavorite(creatorPage.id, 'creator_page', false);
+		if (!profile) return;
+		await consumer.setFavorite(profile.id, 'profile', false);
 		showUnfavConfirm = false;
 	}
 
-	async function handleSubscribe() {
-		if (!creatorPage) return;
-		if (isSubscribed) {
-			showUnsubscribeConfirm = true;
+	async function handleFollow() {
+		if (!profile) return;
+		if (isFollowing) {
+			showUnfollowConfirm = true;
 			return;
 		}
-		await consumer.toggleEnabled(creatorPage.id, 'creator_page');
+		await consumer.toggleEnabled(profile.id, 'profile');
 	}
 
-	async function confirmUnsubscribe() {
-		if (!creatorPage) return;
-		await consumer.toggleEnabled(creatorPage.id, 'creator_page');
-		showUnsubscribeConfirm = false;
+	async function confirmUnfollow() {
+		if (!profile) return;
+		await consumer.toggleEnabled(profile.id, 'profile');
+		showUnfollowConfirm = false;
 	}
 
-	function profilePageHref(profileId: string): string {
-		return `${baseHref}/creator/${creatorId}/profile/${profileId}`;
+	function fontPageHref(fontId: string): string {
+		if (profile?.creatorPageId) {
+			return `${baseHref}/creator/${profile.creatorPageId}/profile/${profileId}/font/${fontId}`;
+		}
+		return `${baseHref}/profile/${profileId}/font/${fontId}`;
 	}
 
-	function fontPageHref(profileId: string, fontId: string): string {
-		return `${baseHref}/creator/${creatorId}/profile/${profileId}/font/${fontId}`;
-	}
+	let creatorPageHref = $derived(
+		profile?.creatorPageId ? `${baseHref}/creator/${profile.creatorPageId}` : null
+	);
+
+	let postLimit = $derived(layout.isExpanded ? 8 : 4);
+	let postGridCols = $derived(layout.isExpanded ? 'grid-cols-2' : 'grid-cols-1');
 </script>
 
 <svelte:head>
-	<title>Notfeed — {creatorPage?.title ?? 'Creator Page'}</title>
+	<title>Notfeed — {profile?.title ?? 'Profile'}</title>
 </svelte:head>
 
 <div class="container mx-auto px-4 py-4 {layout.isExpanded ? 'max-w-4xl' : 'max-w-2xl'}">
@@ -173,36 +185,29 @@
 		</div>
 	{:else if notFound}
 		<div class="py-12 text-center">
-			<p class="text-sm text-muted-foreground">Creator Page não encontrada.</p>
+			<p class="text-sm text-muted-foreground">Profile não encontrado.</p>
 			<button onclick={() => history.back()} class="text-sm text-primary hover:underline mt-2 inline-block">
 				Voltar
 			</button>
 		</div>
-	{:else if creatorPage}
-		<!-- Banner -->
-		{#if creatorPage.banner?.data}
-			<div class="rounded-lg overflow-hidden mb-4" style="aspect-ratio: 3.6 / 1;">
-				<img src="data:image/webp;base64,{creatorPage.banner.data}" alt="" class="w-full h-full object-cover" />
-			</div>
-		{/if}
-
+	{:else if profile}
 		<!-- Header -->
 		<div class="flex items-start gap-4 mb-6">
-			<div class="shrink-0 w-16 h-16 rounded-lg bg-muted text-muted-foreground overflow-hidden">
-				{#if creatorPage.avatar?.data}
-					<img src="data:image/webp;base64,{creatorPage.avatar.data}" alt="" class="w-full h-full object-cover" />
+			<div class="shrink-0 w-14 h-14 rounded-lg bg-muted text-muted-foreground overflow-hidden">
+				{#if profile.avatar?.data}
+					<img src="data:image/webp;base64,{profile.avatar.data}" alt="" class="w-full h-full object-cover" />
 				{:else}
 					<div class="flex items-center justify-center w-full h-full">
-						<Globe class="size-8" />
+						<User class="size-7" />
 					</div>
 				{/if}
 			</div>
 
 			<div class="flex-1 min-w-0">
 				<div class="flex items-center gap-2 mb-1">
-					<h1 class="text-xl font-bold truncate">{creatorPage.title}</h1>
+					<h1 class="text-xl font-bold truncate">{profile.title}</h1>
 					<FavoriteButton favorite={isFavorite} size="md" onclick={handleFavorite} />
-					<SubscribeButton subscribed={isSubscribed} size="md" onclick={handleSubscribe} />
+					<FollowButton following={isFollowing} size="md" onclick={handleFollow} />
 				</div>
 
 				<!-- Priority -->
@@ -211,36 +216,45 @@
 					<PriorityButtons current={currentPriority} size="md" onchange={handlePriorityChange} />
 				</div>
 
-				{#if creatorPage.bio}
-					<p class="text-sm text-muted-foreground line-clamp-3">{creatorPage.bio}</p>
-				{/if}
-
-				{#if creatorPage.tags.length > 0}
-					<div class="flex flex-wrap gap-1 mt-2">
-						{#each creatorPage.tags as tag}
+				{#if profile.tags.length > 0}
+					<div class="flex flex-wrap gap-1 mb-2">
+						{#each profile.tags as tag}
 							<Badge variant="secondary" class="text-xs">{tag}</Badge>
 						{/each}
 					</div>
 				{/if}
+
+				{#if categoryLabels.length > 0}
+					<div class="flex flex-wrap gap-1">
+						{#each categoryLabels as label}
+							<Badge variant="outline" class="text-xs">{label}</Badge>
+						{/each}
+					</div>
+				{/if}
+
+				{#if creatorPageHref}
+					<p class="text-xs text-muted-foreground mt-2">
+						Creator Page:
+						<a href={creatorPageHref} class="text-primary hover:underline">
+							Ver Creator Page →
+						</a>
+					</p>
+				{/if}
 			</div>
 		</div>
 
-		<!-- Profiles -->
+		<!-- Fonts -->
 		<section class="mb-6">
 			<h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-				Profiles ({profiles.length})
+				Fonts ({fonts.length})
 			</h2>
 
-			{#if profiles.length === 0}
-				<p class="text-sm text-muted-foreground py-4">Nenhum profile nesta page.</p>
+			{#if fonts.length === 0}
+				<p class="text-sm text-muted-foreground">Nenhuma font neste profile.</p>
 			{:else}
 				<div class="flex flex-col gap-3">
-					{#each profiles as profile (profile.id)}
-						<ProfileCard
-							{profile}
-							profilePageHref={profilePageHref(profile.id)}
-							fontPageHref={(fontId) => fontPageHref(profile.id, fontId)}
-						/>
+					{#each fonts as font (font.id)}
+						<FontCard {font} fontPageHref={fontPageHref(font.id)} />
 					{/each}
 				</div>
 			{/if}
@@ -273,4 +287,4 @@
 </div>
 
 <ConfirmUnfavoriteDialog bind:open={showUnfavConfirm} onconfirm={confirmUnfavorite} oncancel={() => (showUnfavConfirm = false)} />
-<ConfirmUnsubscribeDialog bind:open={showUnsubscribeConfirm} title={creatorPage?.title ?? ''} onconfirm={confirmUnsubscribe} oncancel={() => (showUnsubscribeConfirm = false)} />
+<ConfirmUnfollowDialog bind:open={showUnfollowConfirm} title={profile?.title ?? ''} onconfirm={confirmUnfollow} oncancel={() => (showUnfollowConfirm = false)} />

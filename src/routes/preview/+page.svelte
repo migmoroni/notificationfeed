@@ -12,7 +12,7 @@
 	import type { Font } from '$lib/domain/font/font.js';
 	import type { BrowseEntity } from '$lib/stores/browse.svelte.js';
 	import type { SortedPost } from '$lib/domain/shared/feed-sorter.js';
-	import { EntityCard } from '$lib/components/browse/index.js';
+	import { EntityCard } from '$lib/components/shared/entity/index.js';
 	import EntityTreeFilter from '$lib/components/shared/EntityTreeFilter.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { PostCard } from '$lib/components/feed/index.js';

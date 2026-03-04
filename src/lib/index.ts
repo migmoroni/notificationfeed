@@ -75,7 +75,10 @@ export { PostCard, FeedList, PriorityFilter, CategoryFilter } from './components
 export type { PriorityFilterValue } from './components/feed/index.js';
 
 // Components — Browse
-export { CategoryTree, TreeSelector, EntityCard, EntityList, SearchBar, FontCard, FontDetail, ProfileCard } from './components/browse/index.js';
+export { SearchBar } from './components/browse/index.js';
+export { default as CategoryTree } from './components/shared/CategoryTree.svelte';
+export { default as TreeSelector } from './components/shared/TreeSelector.svelte';
+export { EntityCard, EntityList, FontCard, FontDetail, ProfileCard } from './components/shared/entity/index.js';
 
 // Components — Creator
 export {
