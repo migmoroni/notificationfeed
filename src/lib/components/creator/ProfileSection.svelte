@@ -3,6 +3,7 @@
 	import type { Font, NewFont } from '$lib/domain/font/font.js';
 	import type { NewProfile } from '$lib/domain/profile/profile.js';
 	import { creator } from '$lib/stores/creator.svelte.js';
+	import { createImagePreviewUrl } from '$lib/services/image.service.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
@@ -16,6 +17,9 @@
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Rss from '@lucide/svelte/icons/rss';
+	import Atom from '@lucide/svelte/icons/atom';
+	import Zap from '@lucide/svelte/icons/zap';
+	import User from '@lucide/svelte/icons/user';
 
 	interface Props {
 		pageId: string;
@@ -141,6 +145,15 @@
 				{:else}
 					<ChevronRight class="size-4 shrink-0 text-muted-foreground" />
 				{/if}
+				{#if profile.avatar?.data}
+					<div class="shrink-0 w-8 h-8 rounded-md overflow-hidden bg-muted">
+						<img src={createImagePreviewUrl(profile.avatar)} alt="" class="w-full h-full object-cover" />
+					</div>
+				{:else}
+					<div class="shrink-0 w-8 h-8 rounded-md bg-muted flex items-center justify-center text-muted-foreground">
+						<User class="size-4" />
+					</div>
+				{/if}
 				<span class="font-medium text-sm flex-1">{profile.title}</span>
 				<Badge variant="outline" class="text-xs">{fonts.length} font{fonts.length !== 1 ? 's' : ''}</Badge>
 				<button
@@ -207,7 +220,21 @@
 
 						{#each fonts as font (font.id)}
 							<div class="flex items-center gap-2 px-3 py-2 rounded-md border bg-background text-sm">
-								<Rss class="size-3.5 shrink-0 text-muted-foreground" />
+							{#if font.avatar?.data}
+								<div class="shrink-0 w-7 h-7 rounded overflow-hidden bg-muted">
+									<img src={createImagePreviewUrl(font.avatar)} alt="" class="w-full h-full object-cover" />
+								</div>
+							{:else}
+								<div class="shrink-0 w-7 h-7 rounded bg-muted flex items-center justify-center text-muted-foreground">
+									{#if font.protocol === 'atom'}
+										<Atom class="size-3.5" />
+									{:else if font.protocol === 'nostr'}
+										<Zap class="size-3.5" />
+									{:else}
+										<Rss class="size-3.5" />
+									{/if}
+								</div>
+							{/if}
 								<span class="flex-1 truncate">{font.title}</span>
 								<Badge variant="outline" class="text-[10px] uppercase">{font.protocol}</Badge>
 								<button

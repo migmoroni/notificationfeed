@@ -55,7 +55,7 @@
 				<a href="/pages/{page.id}" class="block group">
 					<Card.Root class="overflow-hidden hover:border-primary/50 transition-colors">
 						{#if page.banner}
-							<div class="h-20 w-full overflow-hidden">
+							<div class="w-full overflow-hidden" style="aspect-ratio: 3.6 / 1;">
 								<img
 									src={createImagePreviewUrl(page.banner)}
 									alt=""
@@ -66,13 +66,15 @@
 						<Card.Header class="pb-2">
 							<div class="flex items-start gap-3">
 								{#if page.avatar}
-									<img
-										src={createImagePreviewUrl(page.avatar)}
-										alt=""
-										class="size-10 rounded-full object-cover border shrink-0"
-									/>
+									<div class="size-10 rounded-lg overflow-hidden bg-muted border shrink-0">
+										<img
+											src={createImagePreviewUrl(page.avatar)}
+											alt=""
+											class="w-full h-full object-cover"
+										/>
+									</div>
 								{:else}
-									<div class="size-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+									<div class="size-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
 										<FileStack class="size-5 text-muted-foreground" />
 									</div>
 								{/if}

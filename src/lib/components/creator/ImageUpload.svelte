@@ -49,13 +49,15 @@
 
 	{#if previewUrl}
 		<div class="relative inline-block">
-			<img
-				src={previewUrl}
-				alt={label}
-				class={slot === 'avatar'
-					? 'size-20 rounded-full object-cover border'
-					: 'h-24 w-full max-w-md rounded-lg object-cover border'}
-			/>
+			{#if slot === 'avatar'}
+				<div class="w-16 h-16 rounded-lg overflow-hidden bg-muted border">
+					<img src={previewUrl} alt={label} class="w-full h-full object-cover" />
+				</div>
+			{:else}
+				<div class="w-full max-w-md rounded-lg overflow-hidden bg-muted border" style="aspect-ratio: 3.6 / 1;">
+					<img src={previewUrl} alt={label} class="w-full h-full object-cover" />
+				</div>
+			{/if}
 			<Button
 				variant="destructive"
 				size="icon"
@@ -71,8 +73,9 @@
 			class={[
 				'flex items-center justify-center border-2 border-dashed rounded-lg cursor-pointer',
 				'text-muted-foreground hover:border-primary hover:text-primary transition-colors',
-				slot === 'avatar' ? 'size-20 rounded-full' : 'h-24 w-full max-w-md'
+				slot === 'avatar' ? 'w-16 h-16' : 'w-full max-w-md'
 			].join(' ')}
+			style={slot === 'banner' ? 'aspect-ratio: 3.6 / 1;' : undefined}
 			disabled={loading}
 			onclick={() => fileInput.click()}
 		>

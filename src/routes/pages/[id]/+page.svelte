@@ -5,12 +5,14 @@
 	import { activeUser } from '$lib/stores/active-user.svelte.js';
 	import { creator } from '$lib/stores/creator.svelte.js';
 	import { PageForm, ProfileSection, PublishButton, ExportButton, CopyFromConsumerDialog } from '$lib/components/creator/index.js';
+	import { createImagePreviewUrl } from '$lib/services/image.service.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import ConfirmDialog from '$lib/components/shared/ConfirmDialog.svelte';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Copy from '@lucide/svelte/icons/copy';
+	import Globe from '@lucide/svelte/icons/globe';
 
 	let pageId = $derived(page.params.id!);
 	let creatorPage = $derived(creator.pages.find((p) => p.id === pageId));
@@ -54,12 +56,28 @@
 		</div>
 	{:else}
 		<!-- Header -->
+		{#if creatorPage.banner?.data}
+			<div class="rounded-lg overflow-hidden mb-4" style="aspect-ratio: 3.6 / 1;">
+				<img src={createImagePreviewUrl(creatorPage.banner)} alt="" class="w-full h-full object-cover" />
+			</div>
+		{/if}
 		<div class="flex items-start justify-between gap-4 mb-6">
-			<div class="flex-1 min-w-0">
-				<h1 class="text-xl font-bold truncate">{creatorPage.title}</h1>
-				{#if creatorPage.bio}
-					<p class="text-sm text-muted-foreground mt-1 line-clamp-2">{creatorPage.bio}</p>
+			<div class="flex items-start gap-3 flex-1 min-w-0">
+				{#if creatorPage.avatar?.data}
+					<div class="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-muted">
+						<img src={createImagePreviewUrl(creatorPage.avatar)} alt="" class="w-full h-full object-cover" />
+					</div>
+				{:else}
+					<div class="shrink-0 w-14 h-14 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+						<Globe class="size-7" />
+					</div>
 				{/if}
+				<div class="flex-1 min-w-0">
+					<h1 class="text-xl font-bold truncate">{creatorPage.title}</h1>
+					{#if creatorPage.bio}
+						<p class="text-sm text-muted-foreground mt-1 line-clamp-2">{creatorPage.bio}</p>
+					{/if}
+				</div>
 			</div>
 			<div class="flex items-center gap-2 shrink-0">
 				<PublishButton page={creatorPage} />
