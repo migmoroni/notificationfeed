@@ -11,6 +11,7 @@
 
 	interface PageFormData {
 		title: string;
+		tagline: string;
 		bio: string;
 		tags: string[];
 		avatar: ImageAsset | null;
@@ -34,6 +35,7 @@
 	// svelte-ignore state_referenced_locally
 	const _init = initial;
 	let title = $state(_init?.title ?? '');
+	let tagline = $state(_init?.tagline ?? '');
 	let bio = $state(_init?.bio ?? '');
 	let tags = $state<string[]>(_init?.tags ?? []);
 	let avatar = $state<ImageAsset | null>(_init?.avatar ?? null);
@@ -48,6 +50,7 @@
 
 		onsave({
 			title: title.trim(),
+			tagline: tagline.trim(),
 			bio: bio.trim(),
 			tags,
 			avatar,
@@ -65,6 +68,16 @@
 			bind:value={title}
 			placeholder="Nome da sua página"
 			required
+		/>
+	</div>
+
+	<div class="space-y-2">
+		<Label for="page-tagline">Frase de abertura</Label>
+		<Input
+			id="page-tagline"
+			bind:value={tagline}
+			placeholder="Uma frase curta que apresenta sua página…"
+			maxlength={120}
 		/>
 	</div>
 

@@ -53,6 +53,7 @@ export interface PageExport {
 	/** Page metadata */
 	page: {
 		title: string;
+		tagline: string;
 		bio: string;
 		tags: string[];
 		avatar: ImageAsset | null;

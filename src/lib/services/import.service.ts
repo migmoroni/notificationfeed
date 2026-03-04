@@ -65,6 +65,7 @@ export async function importNotfeedJson(pageExport: PageExport, consumerId: stri
 	const newPage: NewCreatorPage = {
 		ownerId: consumerId,
 		title: pageExport.page.title,
+		tagline: pageExport.page.tagline ?? '',
 		bio: pageExport.page.bio ?? '',
 		tags: pageExport.page.tags ?? [],
 		avatar: pageExport.page.avatar ?? null,

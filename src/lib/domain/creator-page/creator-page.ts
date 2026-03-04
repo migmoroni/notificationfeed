@@ -22,6 +22,8 @@ export interface CreatorPage {
 	ownerId: string;
 
 	title: string;
+	/** Short opening phrase — shown above bio, used with links */
+	tagline: string;
 	bio: string;
 	tags: string[];
 

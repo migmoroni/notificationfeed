@@ -180,6 +180,9 @@
 				<!-- Preview -->
 				<div class="rounded-lg border bg-card p-4 space-y-2">
 					<h3 class="font-semibold">{parsedExport.page.title}</h3>
+					{#if parsedExport.page.tagline}
+						<p class="text-sm font-medium">{parsedExport.page.tagline}</p>
+					{/if}
 					{#if parsedExport.page.bio}
 						<p class="text-sm text-muted-foreground">{parsedExport.page.bio}</p>
 					{/if}

@@ -80,6 +80,9 @@
 								{/if}
 								<div class="flex-1 min-w-0">
 									<Card.Title class="text-base truncate">{page.title}</Card.Title>
+									{#if page.tagline}
+										<p class="text-xs font-medium mt-0.5 truncate">{page.tagline}</p>
+									{/if}
 									{#if page.bio}
 										<Card.Description class="line-clamp-2 text-xs mt-0.5">
 											{page.bio}

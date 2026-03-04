@@ -22,7 +22,7 @@
 	let showDeleteConfirm = $state(false);
 	let showCopyDialog = $state(false);
 
-	async function handleSave(data: { title: string; bio: string; tags: string[]; avatar: any; banner: any; categoryAssignments: any[] }) {
+	async function handleSave(data: { title: string; tagline: string; bio: string; tags: string[]; avatar: any; banner: any; categoryAssignments: any[] }) {
 		if (!pageId) return;
 		saving = true;
 		try {
@@ -74,6 +74,9 @@
 				{/if}
 				<div class="flex-1 min-w-0">
 					<h1 class="text-xl font-bold truncate">{creatorPage.title}</h1>
+					{#if creatorPage.tagline}
+						<p class="text-sm font-medium mt-0.5">{creatorPage.tagline}</p>
+					{/if}
 					{#if creatorPage.bio}
 						<p class="text-sm text-muted-foreground mt-1 line-clamp-2">{creatorPage.bio}</p>
 					{/if}
@@ -99,8 +102,7 @@
 					<PageForm
 						mode="edit"
 						initial={{
-							title: creatorPage.title,
-							bio: creatorPage.bio,
+							title: creatorPage.title,						tagline: creatorPage.tagline,							bio: creatorPage.bio,
 							tags: creatorPage.tags,
 							avatar: creatorPage.avatar,
 							banner: creatorPage.banner,
@@ -120,7 +122,7 @@
 							{/each}
 						</div>
 					{/if}
-					{#if !creatorPage.bio && creatorPage.tags.length === 0}
+					{#if !creatorPage.bio && !creatorPage.tagline && creatorPage.tags.length === 0}
 						<p class="text-xs text-muted-foreground italic">Nenhuma informação adicional.</p>
 					{/if}
 				</div>

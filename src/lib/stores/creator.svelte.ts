@@ -225,6 +225,7 @@ export const creator = {
 			creatorDisplayName: state.user.displayName,
 			page: {
 				title: page.title,
+				tagline: page.tagline,
 				bio: page.bio,
 				tags: [...page.tags],
 				avatar: page.avatar ? { ...page.avatar } : null,

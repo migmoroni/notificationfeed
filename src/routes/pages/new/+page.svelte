@@ -8,7 +8,7 @@
 
 	let saving = $state(false);
 
-	async function handleSave(data: { title: string; bio: string; tags: string[]; avatar: any; banner: any; categoryAssignments: any[] }) {
+	async function handleSave(data: { title: string; tagline: string; bio: string; tags: string[]; avatar: any; banner: any; categoryAssignments: any[] }) {
 		if (!activeUser.isCreator) return;
 		saving = true;
 		try {

@@ -211,6 +211,10 @@
 					<PriorityButtons current={currentPriority} size="md" onchange={handlePriorityChange} />
 				</div>
 
+				{#if creatorPage.tagline}
+					<p class="text-sm font-medium mt-1">{creatorPage.tagline}</p>
+				{/if}
+
 				{#if creatorPage.bio}
 					<p class="text-sm text-muted-foreground line-clamp-3">{creatorPage.bio}</p>
 				{/if}
