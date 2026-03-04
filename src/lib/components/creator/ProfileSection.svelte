@@ -10,7 +10,7 @@
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import ProfileForm from './ProfileForm.svelte';
 	import FontForm from './FontForm.svelte';
-	import ConfirmDialog from '$lib/components/shared/ConfirmDialog.svelte';
+	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';

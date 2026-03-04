@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
-	import { PRIORITY_LEVELS } from '$lib/components/shared/priority.js';
+	import { PRIORITY_LEVELS } from '$lib/components/shared/priority/priority.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 
 	export type PriorityFilterValue = PriorityLevel | 'all';

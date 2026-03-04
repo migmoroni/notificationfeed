@@ -3,7 +3,7 @@
 	import { creator } from '$lib/stores/creator.svelte.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
-	import ConfirmDialog from '$lib/components/shared/ConfirmDialog.svelte';
+	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
 	import Upload from '@lucide/svelte/icons/upload';
 	import Check from '@lucide/svelte/icons/check';
 

@@ -3,21 +3,21 @@
 	import type { ConsumerEntityType, PriorityLevel } from '$lib/domain/shared/consumer-state.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
-	import PriorityBadge from '$lib/components/shared/PriorityBadge.svelte';
+	import PriorityBadge from '$lib/components/shared/priority/PriorityBadge.svelte';
 	import Globe from '@lucide/svelte/icons/globe';
 	import User from '@lucide/svelte/icons/user';
 	import Rss from '@lucide/svelte/icons/rss';
 	import Atom from '@lucide/svelte/icons/atom';
 	import Zap from '@lucide/svelte/icons/zap';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
-	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
-	import ConfirmUnsubscribeDialog from '$lib/components/shared/ConfirmUnsubscribeDialog.svelte';
-	import ConfirmUnfollowDialog from '$lib/components/shared/ConfirmUnfollowDialog.svelte';
-	import ConfirmDeactivateDialog from '$lib/components/shared/ConfirmDeactivateDialog.svelte';
+	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
+	import ConfirmUnsubscribeDialog from '$lib/components/shared/dialog/ConfirmUnsubscribeDialog.svelte';
+	import ConfirmUnfollowDialog from '$lib/components/shared/dialog/ConfirmUnfollowDialog.svelte';
+	import ConfirmDeactivateDialog from '$lib/components/shared/dialog/ConfirmDeactivateDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
-	import SubscribeButton from '$lib/components/shared/SubscribeButton.svelte';
-	import FollowButton from '$lib/components/shared/FollowButton.svelte';
-	import ActiveButton from '$lib/components/shared/ActiveButton.svelte';
+	import SubscribeButton from '$lib/components/shared/activeContent/SubscribeButton.svelte';
+	import FollowButton from '$lib/components/shared/activeContent/FollowButton.svelte';
+	import ActiveButton from '$lib/components/shared/activeContent/ActiveButton.svelte';
 
 	interface Props {
 		entity: BrowseEntity;

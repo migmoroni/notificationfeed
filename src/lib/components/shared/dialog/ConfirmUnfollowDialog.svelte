@@ -1,6 +1,6 @@
 <script lang="ts">
-	import ConfirmDialog from '$lib/components/shared/ConfirmDialog.svelte';
-	import UserMinus from '@lucide/svelte/icons/user-minus';
+	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
+	import EyeOff from '@lucide/svelte/icons/eye-off';
 
 	interface Props {
 		open: boolean;
@@ -13,22 +13,22 @@
 
 	let description = $derived(
 		title
-			? `Cancelar inscrição de "${title}"? Você deixará de receber posts desta página.`
-			: 'Cancelar inscrição? Você deixará de receber posts desta página.'
+			? `Deixar de seguir "${title}"? Você não receberá mais seus posts.`
+			: 'Deixar de seguir? Você não receberá mais posts desta fonte.'
 	);
 </script>
 
 <ConfirmDialog
 	bind:open
-	title="Cancelar inscrição"
+	title="Deixar de seguir"
 	{description}
-	confirmLabel="Cancelar inscrição"
+	confirmLabel="Deixar de seguir"
 	{onconfirm}
 	{oncancel}
 >
 	{#snippet icon()}
 		<div class="flex items-center justify-center size-12 rounded-full bg-destructive/10">
-			<UserMinus class="size-6 text-destructive" />
+			<EyeOff class="size-6 text-destructive" />
 		</div>
 	{/snippet}
 </ConfirmDialog>

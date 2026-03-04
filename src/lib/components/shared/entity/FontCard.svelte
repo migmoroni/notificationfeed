@@ -14,11 +14,11 @@
 	import Zap from '@lucide/svelte/icons/zap';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
-	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
-	import ConfirmDeactivateDialog from '$lib/components/shared/ConfirmDeactivateDialog.svelte';
+	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
+	import ConfirmDeactivateDialog from '$lib/components/shared/dialog/ConfirmDeactivateDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
-	import ActiveButton from '$lib/components/shared/ActiveButton.svelte';
-	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
+	import ActiveButton from '$lib/components/shared/activeContent/ActiveButton.svelte';
+	import PriorityButtons from '$lib/components/shared/priority/PriorityButtons.svelte';
 	import { onMount } from 'svelte';
 
 	interface Props {

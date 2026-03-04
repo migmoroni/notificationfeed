@@ -8,7 +8,7 @@
 	import { createImagePreviewUrl } from '$lib/services/image.service.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
-	import ConfirmDialog from '$lib/components/shared/ConfirmDialog.svelte';
+	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Copy from '@lucide/svelte/icons/copy';

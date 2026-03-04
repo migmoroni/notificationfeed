@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ConfirmDialog from '$lib/components/shared/ConfirmDialog.svelte';
+	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
 	import StarOff from '@lucide/svelte/icons/star-off';
 
 	interface Props {

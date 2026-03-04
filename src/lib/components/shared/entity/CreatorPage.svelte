@@ -19,11 +19,11 @@
 	import { buildPriorityMap, type PriorityContext } from '$lib/domain/shared/priority-resolver.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Globe from '@lucide/svelte/icons/globe';
-	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
-	import ConfirmUnsubscribeDialog from '$lib/components/shared/ConfirmUnsubscribeDialog.svelte';
+	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
+	import ConfirmUnsubscribeDialog from '$lib/components/shared/dialog/ConfirmUnsubscribeDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
-	import SubscribeButton from '$lib/components/shared/SubscribeButton.svelte';
-	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
+	import SubscribeButton from '$lib/components/shared/activeContent/SubscribeButton.svelte';
+	import PriorityButtons from '$lib/components/shared/priority/PriorityButtons.svelte';
 
 	/**
 	 * Reusable Creator Page detail view.

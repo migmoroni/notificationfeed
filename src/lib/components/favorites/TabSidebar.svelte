@@ -6,7 +6,7 @@
 	import Ellipsis from '@lucide/svelte/icons/ellipsis';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
-	import TabDialog from '$lib/components/shared/TabDialog.svelte';
+	import TabDialog from '$lib/components/shared/dialog/TabDialog.svelte';
 
 	let showCreateDialog = $state(false);
 	let editingTab = $state<{ id: string; title: string; emoji: string } | null>(null);

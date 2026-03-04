@@ -8,7 +8,7 @@
 		SelectionBar,
 		TabAssignmentDialog
 	} from '$lib/components/favorites/index.js';
-	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
+	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
 
 	let showAssignment = $state(false);
 	let showRemoveConfirm = $state(false);

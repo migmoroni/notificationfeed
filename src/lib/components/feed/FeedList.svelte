@@ -5,7 +5,7 @@
 	import type { SortedPost } from '$lib/domain/shared/feed-sorter.js';
 	import { feed } from '$lib/stores/feed.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
-	import { PRIORITY_LEVELS } from '$lib/components/shared/priority.js';
+	import { PRIORITY_LEVELS } from '$lib/components/shared/priority/priority.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import PostCard from './PostCard.svelte';
 	import Newspaper from '@lucide/svelte/icons/newspaper';

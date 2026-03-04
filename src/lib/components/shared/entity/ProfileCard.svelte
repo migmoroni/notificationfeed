@@ -10,11 +10,11 @@
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import User from '@lucide/svelte/icons/user';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
-	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
-	import ConfirmUnfollowDialog from '$lib/components/shared/ConfirmUnfollowDialog.svelte';
+	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
+	import ConfirmUnfollowDialog from '$lib/components/shared/dialog/ConfirmUnfollowDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
-	import FollowButton from '$lib/components/shared/FollowButton.svelte';
-	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
+	import FollowButton from '$lib/components/shared/activeContent/FollowButton.svelte';
+	import PriorityButtons from '$lib/components/shared/priority/PriorityButtons.svelte';
 
 	interface Props {
 		profile: Profile;

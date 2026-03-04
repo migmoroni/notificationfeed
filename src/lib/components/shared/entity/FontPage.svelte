@@ -20,11 +20,11 @@
 	import Rss from '@lucide/svelte/icons/rss';
 	import Atom from '@lucide/svelte/icons/atom';
 	import Zap from '@lucide/svelte/icons/zap';
-	import ConfirmUnfavoriteDialog from '$lib/components/shared/ConfirmUnfavoriteDialog.svelte';
-	import ConfirmDeactivateDialog from '$lib/components/shared/ConfirmDeactivateDialog.svelte';
+	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
+	import ConfirmDeactivateDialog from '$lib/components/shared/dialog/ConfirmDeactivateDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
-	import ActiveButton from '$lib/components/shared/ActiveButton.svelte';
-	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
+	import ActiveButton from '$lib/components/shared/activeContent/ActiveButton.svelte';
+	import PriorityButtons from '$lib/components/shared/priority/PriorityButtons.svelte';
 
 	let font = $state<Font | null>(null);
 	let parentProfile = $state<Profile | null>(null);

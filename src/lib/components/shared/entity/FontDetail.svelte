@@ -7,9 +7,9 @@
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import { formatRelativeDate } from '$lib/utils/date.js';
-	import PriorityButtons from '$lib/components/shared/PriorityButtons.svelte';
-	import ConfirmDeactivateDialog from '$lib/components/shared/ConfirmDeactivateDialog.svelte';
-	import ActiveButton from '$lib/components/shared/ActiveButton.svelte';
+	import PriorityButtons from '$lib/components/shared/priority/PriorityButtons.svelte';
+	import ConfirmDeactivateDialog from '$lib/components/shared/dialog/ConfirmDeactivateDialog.svelte';
+	import ActiveButton from '$lib/components/shared/activeContent/ActiveButton.svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Rss from '@lucide/svelte/icons/rss';
 	import Atom from '@lucide/svelte/icons/atom';

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SortedPost } from '$lib/domain/shared/feed-sorter.js';
-	import PriorityBadge from '$lib/components/shared/PriorityBadge.svelte';
+	import PriorityBadge from '$lib/components/shared/priority/PriorityBadge.svelte';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { feed } from '$lib/stores/feed.svelte.js';
 	import { formatRelativeDate } from '$lib/utils/date.js';

@@ -8,7 +8,7 @@
 	import { FeedList, PriorityFilter } from '$lib/components/feed/index.js';
 	import FeedMacros from '$lib/components/feed/FeedMacros.svelte';
 	import FilterSidebar from '$lib/components/shared/FilterSidebar.svelte';
-	import ConfirmDialog from '$lib/components/shared/ConfirmDialog.svelte';
+	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
 	import type { PriorityFilterValue } from '$lib/components/feed/index.js';
 	import { formatRelativeDate } from '$lib/utils/date.js';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
