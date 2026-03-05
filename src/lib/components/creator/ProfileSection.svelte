@@ -13,6 +13,7 @@
 	import ProfileForm from './ProfileForm.svelte';
 	import FontForm from './FontForm.svelte';
 	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
+	import EmojiPicker from '$lib/components/shared/EmojiPicker.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
@@ -23,7 +24,6 @@
 	import Zap from '@lucide/svelte/icons/zap';
 	import User from '@lucide/svelte/icons/user';
 	import FolderPlus from '@lucide/svelte/icons/folder-plus';
-	import Folder from '@lucide/svelte/icons/folder';
 	import X from '@lucide/svelte/icons/x';
 	import ArrowUp from '@lucide/svelte/icons/arrow-up';
 	import ArrowDown from '@lucide/svelte/icons/arrow-down';
@@ -53,14 +53,23 @@
 	let addingSectionFor = $state<{ containerType: SectionContainerType; containerId: string } | null>(null);
 	let newSectionTitle = $state('');
 	let newSectionColor = $state(SECTION_COLORS[0]);
+	let newSectionEmoji = $state('🗂️');
+	let newSectionHideTitle = $state(false);
+	let showNewSectionEmojiPicker = $state(false);
 	let editingSectionId = $state<string | null>(null);
 	let editSectionTitle = $state('');
 	let editSectionColor = $state('');
+	let editSectionEmoji = $state('🗂️');
+	let editSectionHideTitle = $state(false);
+	let showEditSectionEmojiPicker = $state(false);
 
 	// Font section add state
 	let addingFontSectionForProfileId = $state<string | null>(null);
 	let newFontSectionTitle = $state('');
 	let newFontSectionColor = $state(SECTION_COLORS[0]);
+	let newFontSectionEmoji = $state('🗂️');
+	let newFontSectionHideTitle = $state(false);
+	let showNewFontSectionEmojiPicker = $state(false);
 
 	let profiles = $derived(creator.getProfilesForPage(pageId));
 	let pageSections = $derived(creator.getSectionsForContainer('creator', pageId));
@@ -96,10 +105,15 @@
 			await creator.createSection(containerType, containerId, {
 				title,
 				color: newSectionColor,
+				emoji: newSectionEmoji,
+				hideTitle: newSectionHideTitle,
 				order: siblings.length
 			});
 			newSectionTitle = '';
 			newSectionColor = SECTION_COLORS[(siblings.length + 1) % SECTION_COLORS.length];
+			newSectionEmoji = '🗂️';
+			newSectionHideTitle = false;
+			showNewSectionEmojiPicker = false;
 			addingSectionFor = null;
 		} finally {
 			saving = false;
@@ -116,10 +130,15 @@
 			await creator.createSection('profile', profileId, {
 				title,
 				color: newFontSectionColor,
+				emoji: newFontSectionEmoji,
+				hideTitle: newFontSectionHideTitle,
 				order: siblings.length
 			});
 			newFontSectionTitle = '';
 			newFontSectionColor = SECTION_COLORS[(siblings.length + 1) % SECTION_COLORS.length];
+			newFontSectionEmoji = '🗂️';
+			newFontSectionHideTitle = false;
+			showNewFontSectionEmojiPicker = false;
 			addingFontSectionForProfileId = null;
 		} finally {
 			saving = false;
@@ -130,6 +149,9 @@
 		editingSectionId = section.id;
 		editSectionTitle = section.title;
 		editSectionColor = section.color;
+		editSectionEmoji = section.emoji;
+		editSectionHideTitle = section.hideTitle;
+		showEditSectionEmojiPicker = false;
 	}
 
 	async function handleUpdateSection() {
@@ -139,8 +161,9 @@
 
 		saving = true;
 		try {
-			await creator.updateSection(editingSectionId, { title, color: editSectionColor });
+			await creator.updateSection(editingSectionId, { title, color: editSectionColor, emoji: editSectionEmoji, hideTitle: editSectionHideTitle });
 			editingSectionId = null;
+			showEditSectionEmojiPicker = false;
 		} finally {
 			saving = false;
 		}
@@ -314,32 +337,45 @@
 
 		<!-- Inline font section creation -->
 		{#if addingFontSectionForProfileId === profile.id}
-			<div class="flex items-center gap-2 border rounded-lg p-2 bg-muted/20">
-				<Folder class="size-4 text-muted-foreground shrink-0" />
-				<Input
-					class="h-7 text-xs flex-1"
-					placeholder="Nome da seção (max 30)"
-					maxlength={30}
-					bind:value={newFontSectionTitle}
-					onkeydown={(e) => { if (e.key === 'Enter') handleCreateFontSection(profile.id); }}
-				/>
-				<div class="flex gap-0.5 shrink-0">
-					{#each SECTION_COLORS as c}
-						<button
-							type="button"
-							aria-label="Cor {c}"
-							class="w-4 h-4 rounded-full border-2 transition-transform"
-							style="background:{c}; border-color:{newFontSectionColor === c ? 'white' : c}; {newFontSectionColor === c ? 'transform:scale(1.25)' : ''}"
-							onclick={() => (newFontSectionColor = c)}
-						></button>
-					{/each}
+			<div class="border rounded-lg p-2 bg-muted/20 space-y-1.5">
+				<div class="flex items-center gap-2">
+					<button type="button" class="text-lg shrink-0 w-7 h-7 flex items-center justify-center rounded hover:bg-accent" onclick={() => (showNewFontSectionEmojiPicker = !showNewFontSectionEmojiPicker)}>
+						{newFontSectionEmoji}
+					</button>
+					<Input
+						class="h-7 text-xs flex-1"
+						placeholder="Nome da seção (max 30)"
+						maxlength={30}
+						bind:value={newFontSectionTitle}
+						onkeydown={(e) => { if (e.key === 'Enter') handleCreateFontSection(profile.id); }}
+					/>
+					<Button variant="outline" size="sm" class="h-7 text-xs" disabled={saving || !newFontSectionTitle.trim()} onclick={() => handleCreateFontSection(profile.id)}>
+						Criar
+					</Button>
+					<button type="button" class="p-1 hover:bg-accent rounded" onclick={() => (addingFontSectionForProfileId = null)}>
+						<X class="size-3.5" />
+					</button>
 				</div>
-				<Button variant="outline" size="sm" class="h-7 text-xs" disabled={saving || !newFontSectionTitle.trim()} onclick={() => handleCreateFontSection(profile.id)}>
-					Criar
-				</Button>
-				<button type="button" class="p-1 hover:bg-accent rounded" onclick={() => (addingFontSectionForProfileId = null)}>
-					<X class="size-3.5" />
-				</button>
+				<div class="flex items-center gap-1.5">
+					<div class="flex gap-0.5 shrink-0">
+						{#each SECTION_COLORS as c}
+							<button
+								type="button"
+								aria-label="Cor {c}"
+								class="w-4 h-4 rounded-full border-2 transition-transform"
+								style="background:{c}; border-color:{newFontSectionColor === c ? 'white' : c}; {newFontSectionColor === c ? 'transform:scale(1.25)' : ''}"
+								onclick={() => (newFontSectionColor = c)}
+							></button>
+						{/each}
+					</div>
+					<label class="flex items-center gap-1 ml-auto text-[10px] text-muted-foreground cursor-pointer select-none">
+						<input type="checkbox" class="rounded" bind:checked={newFontSectionHideTitle} />
+						Ocultar título
+					</label>
+				</div>
+				{#if showNewFontSectionEmojiPicker}
+					<EmojiPicker value={newFontSectionEmoji} onselect={(e) => { newFontSectionEmoji = e; showNewFontSectionEmojiPicker = false; }} />
+				{/if}
 			</div>
 		{/if}
 
@@ -348,23 +384,41 @@
 			{@const sectionFonts = fontsBySection.get(section.id) ?? []}
 			{#if editingSectionId === section.id}
 				<!-- Editing section inline -->
-				<div class="flex items-center gap-2 p-2 rounded-lg border" style="border-left: 3px solid {section.color};">
-					<Input class="h-7 text-xs flex-1" maxlength={30} bind:value={editSectionTitle} onkeydown={(e) => { if (e.key === 'Enter') handleUpdateSection(); }} />
-					<div class="flex gap-0.5 shrink-0">
-						{#each SECTION_COLORS as c}
-							<button type="button" aria-label="Cor {c}" class="w-4 h-4 rounded-full border-2 transition-transform" style="background:{c}; border-color:{editSectionColor === c ? 'white' : c}; {editSectionColor === c ? 'transform:scale(1.25)' : ''}" onclick={() => (editSectionColor = c)}></button>
-						{/each}
+				<div class="border rounded-lg p-2 space-y-1.5" style="border-left: 3px solid {section.color};">
+					<div class="flex items-center gap-2">
+						<button type="button" class="text-lg shrink-0 w-7 h-7 flex items-center justify-center rounded hover:bg-accent" onclick={() => (showEditSectionEmojiPicker = !showEditSectionEmojiPicker)}>
+							{editSectionEmoji}
+						</button>
+						<Input class="h-7 text-xs flex-1" maxlength={30} bind:value={editSectionTitle} onkeydown={(e) => { if (e.key === 'Enter') handleUpdateSection(); }} />
+						<Button variant="outline" size="sm" class="h-7 text-xs" disabled={saving || !editSectionTitle.trim()} onclick={() => handleUpdateSection()}>Salvar</Button>
+						<button type="button" class="p-1 hover:bg-accent rounded" onclick={() => (editingSectionId = null)}>
+							<X class="size-3.5" />
+						</button>
 					</div>
-					<Button variant="outline" size="sm" class="h-7 text-xs" disabled={saving || !editSectionTitle.trim()} onclick={() => handleUpdateSection()}>Salvar</Button>
-					<button type="button" class="p-1 hover:bg-accent rounded" onclick={() => (editingSectionId = null)}>
-						<X class="size-3.5" />
-					</button>
+					<div class="flex items-center gap-1.5">
+						<div class="flex gap-0.5 shrink-0">
+							{#each SECTION_COLORS as c}
+								<button type="button" aria-label="Cor {c}" class="w-4 h-4 rounded-full border-2 transition-transform" style="background:{c}; border-color:{editSectionColor === c ? 'white' : c}; {editSectionColor === c ? 'transform:scale(1.25)' : ''}" onclick={() => (editSectionColor = c)}></button>
+							{/each}
+						</div>
+						<label class="flex items-center gap-1 ml-auto text-[10px] text-muted-foreground cursor-pointer select-none">
+							<input type="checkbox" class="rounded" bind:checked={editSectionHideTitle} />
+							Ocultar título
+						</label>
+					</div>
+					{#if showEditSectionEmojiPicker}
+						<EmojiPicker value={editSectionEmoji} onselect={(e) => { editSectionEmoji = e; showEditSectionEmojiPicker = false; }} />
+					{/if}
 				</div>
 			{:else}
 				<div class="rounded-lg border" style="border-left: 3px solid {section.color};">
 					<div class="flex items-center gap-2 px-3 py-1.5">
-						<Folder class="size-3.5" style="color:{section.color};" />
-						<span class="text-xs font-medium flex-1">{section.title}</span>
+						{#if !section.hideTitle}
+							<span class="text-sm" style="color:{section.color};">{section.emoji}</span>
+							<span class="text-xs font-medium flex-1">{section.title}</span>
+						{:else}
+							<span class="flex-1"></span>
+						{/if}
 						<Badge variant="outline" class="text-[10px]">{sectionFonts.length}</Badge>
 						<button type="button" class="p-0.5 hover:bg-accent rounded" onclick={() => handleMoveSectionUp(profile.id, section)}>
 							<ArrowUp class="size-3 text-muted-foreground" />
@@ -521,32 +575,45 @@
 
 	<!-- Inline page-level section creation -->
 	{#if addingSectionFor?.containerType === 'creator' && addingSectionFor?.containerId === pageId}
-		<div class="flex items-center gap-2 border rounded-lg p-3 bg-muted/20">
-			<Folder class="size-4 text-muted-foreground shrink-0" />
-			<Input
-				class="h-8 text-sm flex-1"
-				placeholder="Nome da seção (max 30)"
-				maxlength={30}
-				bind:value={newSectionTitle}
-				onkeydown={(e) => { if (e.key === 'Enter') handleCreateSection('creator', pageId); }}
-			/>
-			<div class="flex gap-1 shrink-0">
-				{#each SECTION_COLORS as c}
-					<button
-						type="button"
-						aria-label="Cor {c}"
-						class="w-5 h-5 rounded-full border-2 transition-transform"
-						style="background:{c}; border-color:{newSectionColor === c ? 'white' : c}; {newSectionColor === c ? 'transform:scale(1.2)' : ''}"
-						onclick={() => (newSectionColor = c)}
-					></button>
-				{/each}
+		<div class="border rounded-lg p-3 bg-muted/20 space-y-2">
+			<div class="flex items-center gap-2">
+				<button type="button" class="text-xl shrink-0 w-8 h-8 flex items-center justify-center rounded hover:bg-accent" onclick={() => (showNewSectionEmojiPicker = !showNewSectionEmojiPicker)}>
+					{newSectionEmoji}
+				</button>
+				<Input
+					class="h-8 text-sm flex-1"
+					placeholder="Nome da seção (max 30)"
+					maxlength={30}
+					bind:value={newSectionTitle}
+					onkeydown={(e) => { if (e.key === 'Enter') handleCreateSection('creator', pageId); }}
+				/>
+				<Button variant="outline" size="sm" disabled={saving || !newSectionTitle.trim()} onclick={() => handleCreateSection('creator', pageId)}>
+					Criar
+				</Button>
+				<button type="button" class="p-1 hover:bg-accent rounded" onclick={() => (addingSectionFor = null)}>
+					<X class="size-4" />
+				</button>
 			</div>
-			<Button variant="outline" size="sm" disabled={saving || !newSectionTitle.trim()} onclick={() => handleCreateSection('creator', pageId)}>
-				Criar
-			</Button>
-			<button type="button" class="p-1 hover:bg-accent rounded" onclick={() => (addingSectionFor = null)}>
-				<X class="size-4" />
-			</button>
+			<div class="flex items-center gap-2">
+				<div class="flex gap-1 shrink-0">
+					{#each SECTION_COLORS as c}
+						<button
+							type="button"
+							aria-label="Cor {c}"
+							class="w-5 h-5 rounded-full border-2 transition-transform"
+							style="background:{c}; border-color:{newSectionColor === c ? 'white' : c}; {newSectionColor === c ? 'transform:scale(1.2)' : ''}"
+							onclick={() => (newSectionColor = c)}
+						></button>
+					{/each}
+				</div>
+				<label class="flex items-center gap-1.5 ml-auto text-xs text-muted-foreground cursor-pointer select-none">
+					<input type="checkbox" class="rounded" bind:checked={newSectionHideTitle} />
+					Ocultar título
+				</label>
+			</div>
+			{#if showNewSectionEmojiPicker}
+				<EmojiPicker value={newSectionEmoji} onselect={(e) => { newSectionEmoji = e; showNewSectionEmojiPicker = false; }} />
+			{/if}
 		</div>
 	{/if}
 
@@ -571,23 +638,41 @@
 	{#each pageSections as section (section.id)}
 		{@const sectionProfiles = profilesBySection.get(section.id) ?? []}
 		{#if editingSectionId === section.id}
-			<div class="flex items-center gap-2 p-3 rounded-lg border" style="border-left: 4px solid {section.color};">
-				<Input class="h-8 text-sm flex-1" maxlength={30} bind:value={editSectionTitle} onkeydown={(e) => { if (e.key === 'Enter') handleUpdateSection(); }} />
-				<div class="flex gap-1 shrink-0">
-					{#each SECTION_COLORS as c}
-						<button type="button" aria-label="Cor {c}" class="w-5 h-5 rounded-full border-2 transition-transform" style="background:{c}; border-color:{editSectionColor === c ? 'white' : c}; {editSectionColor === c ? 'transform:scale(1.2)' : ''}" onclick={() => (editSectionColor = c)}></button>
-					{/each}
+			<div class="border rounded-lg p-3 space-y-2" style="border-left: 4px solid {section.color};">
+				<div class="flex items-center gap-2">
+					<button type="button" class="text-xl shrink-0 w-8 h-8 flex items-center justify-center rounded hover:bg-accent" onclick={() => (showEditSectionEmojiPicker = !showEditSectionEmojiPicker)}>
+						{editSectionEmoji}
+					</button>
+					<Input class="h-8 text-sm flex-1" maxlength={30} bind:value={editSectionTitle} onkeydown={(e) => { if (e.key === 'Enter') handleUpdateSection(); }} />
+					<Button variant="outline" size="sm" disabled={saving || !editSectionTitle.trim()} onclick={() => handleUpdateSection()}>Salvar</Button>
+					<button type="button" class="p-1 hover:bg-accent rounded" onclick={() => (editingSectionId = null)}>
+						<X class="size-4" />
+					</button>
 				</div>
-				<Button variant="outline" size="sm" disabled={saving || !editSectionTitle.trim()} onclick={() => handleUpdateSection()}>Salvar</Button>
-				<button type="button" class="p-1 hover:bg-accent rounded" onclick={() => (editingSectionId = null)}>
-					<X class="size-4" />
-				</button>
+				<div class="flex items-center gap-2">
+					<div class="flex gap-1 shrink-0">
+						{#each SECTION_COLORS as c}
+							<button type="button" aria-label="Cor {c}" class="w-5 h-5 rounded-full border-2 transition-transform" style="background:{c}; border-color:{editSectionColor === c ? 'white' : c}; {editSectionColor === c ? 'transform:scale(1.2)' : ''}" onclick={() => (editSectionColor = c)}></button>
+						{/each}
+					</div>
+					<label class="flex items-center gap-1.5 ml-auto text-xs text-muted-foreground cursor-pointer select-none">
+						<input type="checkbox" class="rounded" bind:checked={editSectionHideTitle} />
+						Ocultar título
+					</label>
+				</div>
+				{#if showEditSectionEmojiPicker}
+					<EmojiPicker value={editSectionEmoji} onselect={(e) => { editSectionEmoji = e; showEditSectionEmojiPicker = false; }} />
+				{/if}
 			</div>
 		{:else}
 			<div class="rounded-lg border space-y-2" style="border-left: 4px solid {section.color};">
 				<div class="flex items-center gap-2 px-4 py-2">
-					<Folder class="size-4" style="color:{section.color};" />
-					<span class="text-sm font-semibold flex-1">{section.title}</span>
+					{#if !section.hideTitle}
+						<span class="text-base">{section.emoji}</span>
+						<span class="text-sm font-semibold flex-1">{section.title}</span>
+					{:else}
+						<span class="flex-1"></span>
+					{/if}
 					<Badge variant="outline" class="text-xs">{sectionProfiles.length} profile{sectionProfiles.length !== 1 ? 's' : ''}</Badge>
 					<button type="button" class="p-1 hover:bg-accent rounded" onclick={() => handleMoveSectionUp(pageId, section)}>
 						<ArrowUp class="size-3.5 text-muted-foreground" />

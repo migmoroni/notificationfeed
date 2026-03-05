@@ -33,6 +33,12 @@ export interface Section {
 	/** CSS color value (e.g. '#4a90d9', 'oklch(...)') */
 	color: string;
 
+	/** Emoji icon displayed alongside the section (default '🗂️') */
+	emoji: string;
+
+	/** When true, title and emoji are hidden in display — only the colored border is shown */
+	hideTitle: boolean;
+
 	/** Sort order among siblings in the same container (0-based) */
 	order: number;
 

@@ -21,7 +21,6 @@
 	import { formatRelativeDate } from '$lib/utils/date.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import User from '@lucide/svelte/icons/user';
-	import Folder from '@lucide/svelte/icons/folder';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
 	import ConfirmUnfollowDialog from '$lib/components/shared/dialog/ConfirmUnfollowDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
@@ -265,8 +264,12 @@
 						{@const sectionFonts = fonts.filter((f) => f.sectionId === section.id)}
 						<div class="rounded-lg border" style="border-left: 3px solid {section.color};">
 							<div class="flex items-center gap-2 px-3 py-2">
-								<Folder class="size-4" style="color:{section.color};" />
-								<span class="text-sm font-semibold flex-1">{section.title}</span>
+								{#if !section.hideTitle}
+									<span class="text-base" style="color:{section.color};">{section.emoji}</span>
+									<span class="text-sm font-semibold flex-1">{section.title}</span>
+								{:else}
+									<span class="flex-1"></span>
+								{/if}
 								<Badge variant="outline" class="text-xs">{sectionFonts.length}</Badge>
 							</div>
 							{#if sectionFonts.length > 0}

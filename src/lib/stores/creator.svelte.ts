@@ -250,7 +250,7 @@ export const creator = {
 		return section;
 	},
 
-	async updateSection(sectionId: string, data: Partial<Pick<Section, 'title' | 'color' | 'order'>>): Promise<Section> {
+	async updateSection(sectionId: string, data: Partial<Pick<Section, 'title' | 'color' | 'order' | 'emoji' | 'hideTitle'>>): Promise<Section> {
 		const loc = findSectionLocation(sectionId);
 		if (!loc) throw new Error(`Section not found: ${sectionId}`);
 
@@ -360,7 +360,7 @@ export const creator = {
 					categoryIds: [...a.categoryIds]
 				})),
 				sections: pageSections.length > 0
-					? pageSections.map((s): SectionSnapshot => ({ title: s.title, color: s.color, order: s.order }))
+					? pageSections.map((s): SectionSnapshot => ({ title: s.title, color: s.color, order: s.order, emoji: s.emoji, hideTitle: s.hideTitle }))
 					: undefined
 			},
 			profiles: profiles.map((profile): ProfileSnapshot => {
@@ -380,7 +380,7 @@ export const creator = {
 					defaultEnabled: profile.defaultEnabled,
 					sectionId: pageSectionIndex !== null && pageSectionIndex >= 0 ? pageSectionIndex : null,
 					sections: profileSections.length > 0
-						? profileSections.map((s): SectionSnapshot => ({ title: s.title, color: s.color, order: s.order }))
+						? profileSections.map((s): SectionSnapshot => ({ title: s.title, color: s.color, order: s.order, emoji: s.emoji, hideTitle: s.hideTitle }))
 						: undefined,
 					fonts: profile.fonts.map((font): FontSnapshot => {
 						const fontSectionIndex = font.sectionId

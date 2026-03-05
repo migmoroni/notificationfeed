@@ -12,7 +12,6 @@
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import User from '@lucide/svelte/icons/user';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
-	import Folder from '@lucide/svelte/icons/folder';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
 	import ConfirmUnfollowDialog from '$lib/components/shared/dialog/ConfirmUnfollowDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
@@ -167,8 +166,12 @@
 							{@const sectionFonts = fonts.filter((f) => f.sectionId === section.id)}
 							<div class="rounded-lg border" style="border-left: 3px solid {section.color};">
 								<div class="flex items-center gap-2 px-2 py-1.5">
-									<Folder class="size-3.5" style="color:{section.color};" />
-									<span class="text-xs font-medium flex-1">{section.title}</span>
+									{#if !section.hideTitle}
+										<span class="text-sm" style="color:{section.color};">{section.emoji}</span>
+										<span class="text-xs font-medium flex-1">{section.title}</span>
+									{:else}
+										<span class="flex-1"></span>
+									{/if}
 									<Badge variant="outline" class="text-[10px]">{sectionFonts.length}</Badge>
 								</div>
 								{#if sectionFonts.length > 0}

@@ -8,7 +8,6 @@
 	import Zap from '@lucide/svelte/icons/zap';
 	import User from '@lucide/svelte/icons/user';
 	import FileText from '@lucide/svelte/icons/file-text';
-	import Folder from '@lucide/svelte/icons/folder';
 
 	interface Props {
 		store: EntityFilterStore;
@@ -157,8 +156,10 @@
 							{#if sectionFonts.length > 0}
 								<div class="rounded border mt-0.5 mb-0.5" style="border-left: 2px solid {section.color};">
 									<div class="flex items-center gap-1 px-1 py-0.5">
-										<Folder class="size-2.5" style="color:{section.color};" />
-										<span class="text-[10px] font-medium text-muted-foreground">{section.title}</span>
+										{#if !section.hideTitle}
+											<span class="text-xs" style="color:{section.color};">{section.emoji}</span>
+											<span class="text-[10px] font-medium text-muted-foreground">{section.title}</span>
+										{/if}
 									</div>
 									<div class="flex flex-col gap-0.5 px-0.5 pb-0.5">
 										{#each sectionFonts as font (font.id)}
@@ -254,8 +255,12 @@
 							{#if sectionProfiles.length > 0}
 								<div class="rounded border mt-1 mb-0.5" style="border-left: 3px solid {section.color};">
 									<div class="flex items-center gap-1.5 px-1.5 py-1">
-										<Folder class="size-3" style="color:{section.color};" />
-										<span class="text-[11px] font-medium text-muted-foreground flex-1">{section.title}</span>
+										{#if !section.hideTitle}
+											<span class="text-sm" style="color:{section.color};">{section.emoji}</span>
+											<span class="text-[11px] font-medium text-muted-foreground flex-1">{section.title}</span>
+										{:else}
+											<span class="flex-1"></span>
+										{/if}
 									</div>
 									<div class="flex flex-col gap-0.5 px-0.5 pb-0.5">
 										{#each sectionProfiles as profile (profile.id)}

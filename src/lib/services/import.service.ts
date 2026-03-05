@@ -101,6 +101,8 @@ export async function importNotfeedJson(pageExport: PageExport, consumerId: stri
 				title: ss.title,
 				color: ss.color,
 				order: ss.order,
+				emoji: ss.emoji ?? '🗂️',
+				hideTitle: ss.hideTitle ?? false,
 				createdAt: new Date()
 			};
 			pageSections.push(section);
@@ -144,6 +146,8 @@ export async function importNotfeedJson(pageExport: PageExport, consumerId: stri
 					title: ss.title,
 					color: ss.color,
 					order: ss.order,
+					emoji: ss.emoji ?? '🗂️',
+					hideTitle: ss.hideTitle ?? false,
 					createdAt: new Date()
 				};
 				profileSections.push(section);

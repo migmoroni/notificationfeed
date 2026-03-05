@@ -20,6 +20,8 @@ export interface SectionSnapshot {
 	title: string;
 	color: string;
 	order: number;
+	emoji?: string;
+	hideTitle?: boolean;
 }
 
 /** Snapshot of a Font within the export (no internal IDs) */
