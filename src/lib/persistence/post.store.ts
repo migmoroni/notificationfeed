@@ -1,10 +1,11 @@
 /**
  * Post store — persistence for canonical posts.
  *
- * Posts are not domain entities; they are ingested, normalized, and stored here.
+ * Posts are grouped by fontId into PostContainer records (one IndexedDB
+ * record per font) for efficient bulk lookup.
  */
 
-import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
+import type { CanonicalPost, PostContainer } from '$lib/normalization/canonical-post.js';
 import { getDatabase } from './db.js';
 
 export interface PostQuery {
@@ -15,8 +16,31 @@ export interface PostQuery {
 
 export async function savePosts(posts: CanonicalPost[]): Promise<void> {
 	const db = await getDatabase();
+
+	// Group incoming posts by fontId
+	const grouped = new Map<string, CanonicalPost[]>();
 	for (const post of posts) {
-		await db.posts.put(post);
+		let arr = grouped.get(post.fontId);
+		if (!arr) {
+			arr = [];
+			grouped.set(post.fontId, arr);
+		}
+		arr.push(post);
+	}
+
+	// Merge into existing containers
+	for (const [fontId, newPosts] of grouped) {
+		const container = await db.posts.getById<PostContainer>(fontId);
+		if (container) {
+			const existingIds = new Set(container.posts.map((p) => p.id));
+			const unique = newPosts.filter((p) => !existingIds.has(p.id));
+			if (unique.length > 0) {
+				container.posts.push(...unique);
+				await db.posts.put(container);
+			}
+		} else {
+			await db.posts.put({ fontId, posts: newPosts } satisfies PostContainer);
+		}
 	}
 }
 
@@ -26,9 +50,11 @@ export async function getPosts(query?: PostQuery): Promise<CanonicalPost[]> {
 	let posts: CanonicalPost[];
 
 	if (query?.fontId) {
-		posts = await db.posts.query<CanonicalPost>('fontId', query.fontId);
+		const container = await db.posts.getById<PostContainer>(query.fontId);
+		posts = container?.posts ?? [];
 	} else {
-		posts = await db.posts.getAll<CanonicalPost>();
+		const containers = await db.posts.getAll<PostContainer>();
+		posts = containers.flatMap((c) => c.posts);
 	}
 
 	// Sort by publishedAt descending
@@ -45,18 +71,19 @@ export async function getPosts(query?: PostQuery): Promise<CanonicalPost[]> {
 	return posts;
 }
 
-export async function markAsRead(postId: string): Promise<void> {
+export async function markAsRead(fontId: string, postId: string): Promise<void> {
 	const db = await getDatabase();
-	const post = await db.posts.getById<CanonicalPost>(postId);
-	if (post) {
-		await db.posts.put({ ...post, read: true });
+	const container = await db.posts.getById<PostContainer>(fontId);
+	if (!container) return;
+
+	const idx = container.posts.findIndex((p) => p.id === postId);
+	if (idx >= 0) {
+		container.posts[idx] = { ...container.posts[idx], read: true };
+		await db.posts.put(container);
 	}
 }
 
 export async function deletePostsByFontId(fontId: string): Promise<void> {
 	const db = await getDatabase();
-	const posts = await db.posts.query<CanonicalPost>('fontId', fontId);
-	for (const post of posts) {
-		await db.posts.delete(post.id);
-	}
+	await db.posts.delete(fontId);
 }

@@ -38,3 +38,13 @@ export interface CanonicalPost {
 	/** Whether the user has read this post */
 	read: boolean;
 }
+
+/**
+ * PostContainer — groups all posts for a single Font.
+ *
+ * Stored as one IndexedDB record per fontId for efficient bulk lookup.
+ */
+export interface PostContainer {
+	fontId: string;
+	posts: CanonicalPost[];
+}

@@ -75,9 +75,7 @@ async function initIndexedDB(): Promise<Database> {
 			const csStore = idb.createObjectStore('consumerStates', { keyPath: 'entityId' });
 			csStore.createIndex('entityType', 'entityType', { unique: false });
 
-			const postStore = idb.createObjectStore('posts', { keyPath: 'id' });
-			postStore.createIndex('fontId', 'fontId', { unique: false });
-			postStore.createIndex('publishedAt', 'publishedAt', { unique: false });
+			idb.createObjectStore('posts', { keyPath: 'fontId' });
 
 			idb.createObjectStore('favoriteTabs', { keyPath: 'id' });
 			idb.createObjectStore('feedMacros', { keyPath: 'id' });

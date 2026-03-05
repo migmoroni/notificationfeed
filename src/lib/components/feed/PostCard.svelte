@@ -15,7 +15,7 @@
 
 	function handleClick() {
 		if (!sortedPost.post.read) {
-			feed.markRead(sortedPost.post.id);
+			feed.markRead(sortedPost.post.fontId, sortedPost.post.id);
 		}
 		if (sortedPost.post.url) {
 			window.open(sortedPost.post.url, '_blank', 'noopener,noreferrer');

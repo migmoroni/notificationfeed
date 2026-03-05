@@ -65,9 +65,11 @@ export const previewFeed = {
 			}
 
 			// Load posts for these fonts
-			const allPosts = await getPosts();
-			state.posts = allPosts
-				.filter((p) => fontIds.has(p.fontId))
+			const postArrays = await Promise.all(
+				Array.from(fontIds).map((fontId) => getPosts({ fontId }))
+			);
+			state.posts = postArrays
+				.flat()
 				.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 		} finally {
 			state.loading = false;

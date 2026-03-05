@@ -158,8 +158,8 @@ export const feed = {
 		}
 	},
 
-	async markRead(postId: string): Promise<void> {
-		await persistMarkRead(postId);
+	async markRead(fontId: string, postId: string): Promise<void> {
+		await persistMarkRead(fontId, postId);
 
 		// Optimistic update
 		const idx = state.posts.findIndex((p) => p.id === postId);
