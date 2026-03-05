@@ -7,7 +7,7 @@ export type { UserCreator, NewUserCreator, NostrKeypair, SyncStatus } from './do
 
 // Domain — CreatorPage
 export type { CreatorPage, NewCreatorPage, PageSyncStatus } from './domain/creator-page/creator-page.js';
-export type { PageExport, ProfileSnapshot, FontSnapshot } from './domain/creator-page/page-export.js';
+export type { PageExport, ProfileSnapshot, FontSnapshot, SectionSnapshot } from './domain/creator-page/page-export.js';
 
 // Domain — Profile
 export type { Profile, NewProfile } from './domain/profile/profile.js';
@@ -26,6 +26,9 @@ export { SUGGESTED_CATEGORIES_PER_TREE, validateAssignments } from './domain/sha
 // Domain — Favorite Tab
 export type { FavoriteTab } from './domain/favorite-tab/favorite-tab.js';
 export type { FavoriteTabRepository } from './domain/favorite-tab/favorite-tab.js';
+
+// Domain — Section
+export type { Section, NewSection, SectionContainerType, SectionContainer, SectionRepository } from './domain/section/section.js';
 
 // Domain — Shared Value Objects
 export type { ImageAsset, ImageSlot, AcceptedImageFormat } from './domain/shared/image-asset.js';

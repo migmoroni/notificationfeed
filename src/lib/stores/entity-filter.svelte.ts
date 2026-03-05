@@ -12,11 +12,12 @@
 import type { CreatorPage } from '$lib/domain/creator-page/creator-page.js';
 import type { Profile } from '$lib/domain/profile/profile.js';
 import type { Font } from '$lib/domain/font/font.js';
+import type { Section, SectionContainerType, SectionContainer } from '$lib/domain/section/section.js';
 import type { EntityFilterStore } from './entity-filter.types.js';
 
 export interface EntityFilterDataSource {
 	/** Load all data needed for this filter. Called on mount. */
-	load(): Promise<{ pages: CreatorPage[]; profiles: Profile[]; fonts: Font[] }>;
+	load(): Promise<{ pages: CreatorPage[]; profiles: Profile[]; fonts: Font[]; sectionContainers?: SectionContainer[] }>;
 	/** Return currently active profiles (profiles that have fonts). */
 	getProfiles(): Profile[];
 	/** Return currently active fonts. */
@@ -28,6 +29,7 @@ export function createEntityFilter(source: EntityFilterDataSource): EntityFilter
 	let selectedProfileIds = $state<Set<string>>(new Set());
 	let selectedFontIds = $state<Set<string>>(new Set());
 	let pages = $state<CreatorPage[]>([]);
+	let sectionContainers = $state<SectionContainer[]>([]);
 
 	function getActiveProfiles(): Profile[] {
 		const fontProfileIds = new Set(source.getFonts().map((f) => f.profileId));
@@ -50,6 +52,7 @@ export function createEntityFilter(source: EntityFilterDataSource): EntityFilter
 		async loadPages(): Promise<void> {
 			const data = await source.load();
 			pages = data.pages;
+			sectionContainers = data.sectionContainers ?? [];
 		},
 
 		getPages(): { id: string; title: string; avatarData: string | null; profileCount: number }[] {
@@ -99,6 +102,12 @@ export function createEntityFilter(source: EntityFilterDataSource): EntityFilter
 			return getActiveProfiles()
 				.filter((p) => !p.creatorPageId)
 				.sort((a, b) => a.title.localeCompare(b.title));
+		},
+
+		getSections(containerType: SectionContainerType, containerId: string): Section[] {
+			const container = sectionContainers.find((c) => c.containerId === containerId);
+			if (!container) return [];
+			return [...container.sections].sort((a, b) => a.order - b.order);
 		},
 
 		// ── Selection ────────────────────────────────────────────────────

@@ -37,6 +37,9 @@ export interface Font {
 	/** Profile this font belongs to (mandatory) */
 	profileId: string;
 
+	/** Section within the parent Profile (visual grouping only, null = unsectioned) */
+	sectionId: string | null;
+
 	title: string;
 	tags: string[];
 

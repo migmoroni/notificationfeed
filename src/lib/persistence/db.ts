@@ -21,6 +21,7 @@ export interface Database {
 	posts: TableOps;
 	favoriteTabs: TableOps;
 	feedMacros: TableOps;
+	sections: TableOps;
 }
 
 export interface TableOps {
@@ -80,6 +81,8 @@ async function initIndexedDB(): Promise<Database> {
 
 			idb.createObjectStore('favoriteTabs', { keyPath: 'id' });
 			idb.createObjectStore('feedMacros', { keyPath: 'id' });
+
+			idb.createObjectStore('sections', { keyPath: 'containerId' });
 		};
 
 		request.onsuccess = () => {
@@ -93,7 +96,8 @@ async function initIndexedDB(): Promise<Database> {
 				consumerStates: createIndexedDBTable(idb, 'consumerStates'),
 				posts: createIndexedDBTable(idb, 'posts'),
 				favoriteTabs: createIndexedDBTable(idb, 'favoriteTabs'),
-				feedMacros: createIndexedDBTable(idb, 'feedMacros')
+				feedMacros: createIndexedDBTable(idb, 'feedMacros'),
+				sections: createIndexedDBTable(idb, 'sections')
 			});
 		};
 

@@ -15,6 +15,13 @@ import type { ImageAsset } from '../shared/image-asset.js';
 import type { FontProtocol, FontConfig } from '../font/font.js';
 import type { CategoryAssignment } from '../shared/category-assignment.js';
 
+/** Snapshot of a Section within the export (no internal IDs) */
+export interface SectionSnapshot {
+	title: string;
+	color: string;
+	order: number;
+}
+
 /** Snapshot of a Font within the export (no internal IDs) */
 export interface FontSnapshot {
 	title: string;
@@ -24,6 +31,8 @@ export interface FontSnapshot {
 	config: FontConfig;
 	categoryAssignments: CategoryAssignment[];
 	defaultEnabled: boolean;
+	/** Index into parent profile's sections[] (null = unsectioned) */
+	sectionId?: number | null;
 }
 
 /** Snapshot of a Profile within the export (no internal IDs) */
@@ -33,6 +42,10 @@ export interface ProfileSnapshot {
 	avatar: ImageAsset | null;
 	categoryAssignments: CategoryAssignment[];
 	defaultEnabled: boolean;
+	/** Index into page-level sections[] (null = unsectioned) */
+	sectionId?: number | null;
+	/** Sections that group this profile's fonts */
+	sections?: SectionSnapshot[];
 	fonts: FontSnapshot[];
 }
 
@@ -59,6 +72,8 @@ export interface PageExport {
 		avatar: ImageAsset | null;
 		banner: ImageAsset | null;
 		categoryAssignments: CategoryAssignment[];
+		/** Sections that group profiles within this page */
+		sections?: SectionSnapshot[];
 	};
 
 	/** Full profile + font tree */

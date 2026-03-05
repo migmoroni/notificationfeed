@@ -7,6 +7,7 @@
 
 import type { Profile } from '$lib/domain/profile/profile.js';
 import type { Font } from '$lib/domain/font/font.js';
+import type { Section, SectionContainerType, SectionContainer } from '$lib/domain/section/section.js';
 
 export interface EntityFilterStore {
 	readonly selectedPageIds: Set<string>;
@@ -20,6 +21,7 @@ export interface EntityFilterStore {
 	getProfiles(pageId?: string): Profile[];
 	getFonts(profileId: string): Font[];
 	getStandaloneProfiles(): Profile[];
+	getSections(containerType: SectionContainerType, containerId: string): Section[];
 
 	isPageSelected(pageId: string): boolean;
 	isProfileSelected(profileId: string): boolean;

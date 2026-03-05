@@ -220,6 +220,7 @@ export async function seedMockData(): Promise<void> {
 		ownerType: 'consumer',
 		ownerId: IDS.consumer,
 		creatorPageId: IDS.pageTechBlog,
+		sectionId: null,
 		title: 'Tech Sources',
 		tags: ['tech', 'development'],
 		avatar: null,
@@ -236,6 +237,7 @@ export async function seedMockData(): Promise<void> {
 		ownerType: 'consumer',
 		ownerId: IDS.consumer,
 		creatorPageId: null,
+		sectionId: null,
 		title: 'News Sources',
 		tags: ['news', 'world'],
 		avatar: null,
@@ -253,6 +255,7 @@ export async function seedMockData(): Promise<void> {
 	await db.fonts.put({
 		id: IDS.fontRss1,
 		profileId: IDS.profileTech,
+		sectionId: null,
 		title: 'Hacker News RSS',
 		tags: ['hackernews', 'tech'],
 		avatar: null,
@@ -269,6 +272,7 @@ export async function seedMockData(): Promise<void> {
 	await db.fonts.put({
 		id: IDS.fontRss2,
 		profileId: IDS.profileNews,
+		sectionId: null,
 		title: 'BBC World RSS',
 		tags: ['bbc', 'world'],
 		avatar: null,
@@ -283,6 +287,7 @@ export async function seedMockData(): Promise<void> {
 	await db.fonts.put({
 		id: IDS.fontAtom1,
 		profileId: IDS.profileTech,
+		sectionId: null,
 		title: 'Svelte Blog (Atom)',
 		tags: ['svelte', 'framework'],
 		avatar: null,
@@ -299,6 +304,7 @@ export async function seedMockData(): Promise<void> {
 	await db.fonts.put({
 		id: IDS.fontNostr1,
 		profileId: IDS.profileTech,
+		sectionId: null,
 		title: 'Nostr Dev Updates',
 		tags: ['nostr', 'protocol'],
 		avatar: null,
@@ -315,6 +321,7 @@ export async function seedMockData(): Promise<void> {
 		ownerType: 'consumer',
 		ownerId: IDS.consumer,
 		creatorPageId: IDS.pageTechBlog,
+		sectionId: null,
 		title: 'Security & Privacy',
 		tags: ['security', 'privacy', 'infosec'],
 		avatar: null,
@@ -332,6 +339,7 @@ export async function seedMockData(): Promise<void> {
 		ownerType: 'consumer',
 		ownerId: IDS.consumer,
 		creatorPageId: IDS.pageNewsDaily,
+		sectionId: null,
 		title: 'Science & Health',
 		tags: ['science', 'health', 'research'],
 		avatar: null,
@@ -347,6 +355,7 @@ export async function seedMockData(): Promise<void> {
 	await db.fonts.put({
 		id: IDS.fontRss3,
 		profileId: IDS.profileSecurity,
+		sectionId: null,
 		title: 'Krebs on Security',
 		tags: ['security', 'infosec'],
 		avatar: null,
@@ -363,6 +372,7 @@ export async function seedMockData(): Promise<void> {
 	await db.fonts.put({
 		id: IDS.fontAtom2,
 		profileId: IDS.profileScienceNews,
+		sectionId: null,
 		title: 'Nature News (Atom)',
 		tags: ['science', 'research'],
 		avatar: null,
@@ -381,6 +391,7 @@ export async function seedMockData(): Promise<void> {
 		ownerType: 'creator',
 		ownerId: IDS.creator,
 		creatorPageId: IDS.pageCreatorPublished,
+		sectionId: null,
 		title: 'Frontend Sources',
 		tags: ['frontend', 'web'],
 		avatar: null,
@@ -398,6 +409,7 @@ export async function seedMockData(): Promise<void> {
 		ownerType: 'creator',
 		ownerId: IDS.creator,
 		creatorPageId: IDS.pageCreatorDraft,
+		sectionId: null,
 		title: 'News Draft Profile',
 		tags: ['news'],
 		avatar: null,
@@ -414,6 +426,7 @@ export async function seedMockData(): Promise<void> {
 	await db.fonts.put({
 		id: IDS.fontCreatorRss1,
 		profileId: IDS.profileCreator1,
+		sectionId: null,
 		title: 'Hacker News (Creator)',
 		tags: ['hackernews'],
 		avatar: null,
@@ -428,6 +441,7 @@ export async function seedMockData(): Promise<void> {
 	await db.fonts.put({
 		id: IDS.fontCreatorAtom1,
 		profileId: IDS.profileCreator1,
+		sectionId: null,
 		title: 'Svelte Blog (Creator)',
 		tags: ['svelte'],
 		avatar: null,

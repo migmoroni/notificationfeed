@@ -8,11 +8,13 @@
 import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
 import { createProfileStore } from '$lib/persistence/profile.store.js';
 import { createFontStore } from '$lib/persistence/font.store.js';
+import { createSectionStore } from '$lib/persistence/section.store.js';
 import { createEntityFilter } from './entity-filter.svelte.js';
 
 const pageRepo = createCreatorPageStore();
 const profileRepo = createProfileStore();
 const fontRepo = createFontStore();
+const sectionRepo = createSectionStore();
 
 /** Loaded snapshots — reactive so the UI updates after loadPages(). */
 let loadedProfiles = $state<import('$lib/domain/profile/profile.js').Profile[]>([]);
@@ -20,14 +22,15 @@ let loadedFonts = $state<import('$lib/domain/font/font.js').Font[]>([]);
 
 export const browseEntityFilter = createEntityFilter({
 	async load() {
-		const [pages, profiles, fonts] = await Promise.all([
+		const [pages, profiles, fonts, sectionContainers] = await Promise.all([
 			pageRepo.getAll(),
 			profileRepo.getAll(),
-			fontRepo.getAll()
+			fontRepo.getAll(),
+			sectionRepo.getAll()
 		]);
 		loadedProfiles = profiles;
 		loadedFonts = fonts;
-		return { pages, profiles, fonts };
+		return { pages, profiles, fonts, sectionContainers };
 	},
 	getProfiles() { return loadedProfiles; },
 	getFonts() { return loadedFonts; }

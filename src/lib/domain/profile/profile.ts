@@ -45,6 +45,9 @@ export interface Profile {
 	 */
 	creatorPageId: string | null;
 
+	/** Section within the parent CreatorPage (visual grouping only, null = unsectioned) */
+	sectionId: string | null;
+
 	title: string;
 	tags: string[];
 

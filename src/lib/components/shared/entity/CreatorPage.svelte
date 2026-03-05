@@ -3,6 +3,7 @@
 	import type { CreatorPage } from '$lib/domain/creator-page/creator-page.js';
 	import type { Profile } from '$lib/domain/profile/profile.js';
 	import type { Font } from '$lib/domain/font/font.js';
+	import type { Section } from '$lib/domain/section/section.js';
 	import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
@@ -10,6 +11,7 @@
 	import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
 	import { createProfileStore } from '$lib/persistence/profile.store.js';
 	import { createFontStore } from '$lib/persistence/font.store.js';
+	import { createSectionStore } from '$lib/persistence/section.store.js';
 	import { getPosts } from '$lib/persistence/post.store.js';
 	import ProfileCard from './ProfileCard.svelte';
 	import { PostCard } from '$lib/components/feed/index.js';
@@ -19,6 +21,7 @@
 	import { buildPriorityMap, type PriorityContext } from '$lib/domain/shared/priority-resolver.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Globe from '@lucide/svelte/icons/globe';
+	import Folder from '@lucide/svelte/icons/folder';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
 	import ConfirmUnsubscribeDialog from '$lib/components/shared/dialog/ConfirmUnsubscribeDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
@@ -42,6 +45,7 @@
 	let creatorPage = $state<CreatorPage | null>(null);
 	let profiles: Profile[] = $state([]);
 	let allFonts: Font[] = $state([]);
+	let sections: Section[] = $state([]);
 	let posts: CanonicalPost[] = $state([]);
 	let loading = $state(true);
 	let notFound = $state(false);
@@ -70,6 +74,7 @@
 			const pageStore = createCreatorPageStore();
 			const profileStore = createProfileStore();
 			const fontStore = createFontStore();
+			const sectionStore = createSectionStore();
 
 			const found = await pageStore.getById(creatorId);
 			if (!found) {
@@ -80,6 +85,8 @@
 
 			creatorPage = found;
 			profiles = await profileStore.getByCreatorPageId(creatorId);
+			const container = await sectionStore.getByContainer(creatorId);
+			sections = container?.sections ?? [];
 
 			const fonts: Font[] = [];
 			const allPosts: CanonicalPost[] = [];
@@ -237,7 +244,50 @@
 
 			{#if profiles.length === 0}
 				<p class="text-sm text-muted-foreground py-4">Nenhum profile nesta page.</p>
+			{:else if sections.length > 0}
+				<!-- Section-grouped layout -->
+				<div class="flex flex-col gap-4">
+					{#each sections as section (section.id)}
+						{@const sectionProfiles = profiles.filter((p) => p.sectionId === section.id)}
+						<div class="rounded-lg border" style="border-left: 4px solid {section.color};">
+							<div class="flex items-center gap-2 px-3 py-2">
+								<Folder class="size-4" style="color:{section.color};" />
+								<span class="text-sm font-semibold flex-1">{section.title}</span>
+								<Badge variant="outline" class="text-xs">{sectionProfiles.length}</Badge>
+							</div>
+							{#if sectionProfiles.length > 0}
+								<div class="px-3 pb-3 flex flex-col gap-3">
+									{#each sectionProfiles as profile (profile.id)}
+										<ProfileCard
+											{profile}
+											profilePageHref={profilePageHref(profile.id)}
+											fontPageHref={(fontId) => fontPageHref(profile.id, fontId)}
+										/>
+									{/each}
+								</div>
+							{/if}
+						</div>
+					{/each}
+
+					<!-- Unsectioned profiles -->
+					{#if true}
+						{@const unsectioned = profiles.filter((p) => p.sectionId === null)}
+						{#if unsectioned.length > 0}
+							<div class="text-xs text-muted-foreground uppercase tracking-wider px-1">Sem seção</div>
+							<div class="flex flex-col gap-3">
+								{#each unsectioned as profile (profile.id)}
+									<ProfileCard
+										{profile}
+										profilePageHref={profilePageHref(profile.id)}
+										fontPageHref={(fontId) => fontPageHref(profile.id, fontId)}
+									/>
+								{/each}
+							</div>
+						{/if}
+					{/if}
+				</div>
 			{:else}
+				<!-- Flat layout (no sections) -->
 				<div class="flex flex-col gap-3">
 					{#each profiles as profile (profile.id)}
 						<ProfileCard

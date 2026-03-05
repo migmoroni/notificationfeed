@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Profile } from '$lib/domain/profile/profile.js';
 	import type { Font } from '$lib/domain/font/font.js';
+	import type { Section } from '$lib/domain/section/section.js';
 	import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 	import type { Category } from '$lib/domain/category/category.js';
 	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
@@ -8,6 +9,7 @@
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { createProfileStore } from '$lib/persistence/profile.store.js';
 	import { createFontStore } from '$lib/persistence/font.store.js';
+	import { createSectionStore } from '$lib/persistence/section.store.js';
 	import { createCategoryStore } from '$lib/persistence/category.store.js';
 	import { getPosts } from '$lib/persistence/post.store.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
@@ -19,6 +21,7 @@
 	import { formatRelativeDate } from '$lib/utils/date.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import User from '@lucide/svelte/icons/user';
+	import Folder from '@lucide/svelte/icons/folder';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
 	import ConfirmUnfollowDialog from '$lib/components/shared/dialog/ConfirmUnfollowDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
@@ -44,6 +47,7 @@
 
 	let profile = $state<Profile | null>(null);
 	let fonts: Font[] = $state([]);
+	let fontSections: Section[] = $state([]);
 	let posts: CanonicalPost[] = $state([]);
 	let categoryLabels: string[] = $state([]);
 	let loading = $state(true);
@@ -71,6 +75,7 @@
 		try {
 			const profileStore = createProfileStore();
 			const fontStore = createFontStore();
+			const sectionStore = createSectionStore();
 			const categoryStore = createCategoryStore();
 
 			const found = await profileStore.getById(profileId);
@@ -84,6 +89,8 @@
 
 			// Load fonts
 			fonts = await fontStore.getByProfileId(profileId);
+			const container = await sectionStore.getByContainer(profileId);
+			fontSections = container?.sections ?? [];
 
 			// Load posts from all fonts
 			const allPosts: CanonicalPost[] = [];
@@ -251,7 +258,42 @@
 
 			{#if fonts.length === 0}
 				<p class="text-sm text-muted-foreground">Nenhuma font neste profile.</p>
+			{:else if fontSections.length > 0}
+				<!-- Section-grouped layout -->
+				<div class="flex flex-col gap-4">
+					{#each fontSections as section (section.id)}
+						{@const sectionFonts = fonts.filter((f) => f.sectionId === section.id)}
+						<div class="rounded-lg border" style="border-left: 3px solid {section.color};">
+							<div class="flex items-center gap-2 px-3 py-2">
+								<Folder class="size-4" style="color:{section.color};" />
+								<span class="text-sm font-semibold flex-1">{section.title}</span>
+								<Badge variant="outline" class="text-xs">{sectionFonts.length}</Badge>
+							</div>
+							{#if sectionFonts.length > 0}
+								<div class="px-3 pb-3 flex flex-col gap-3">
+									{#each sectionFonts as font (font.id)}
+										<FontCard {font} fontPageHref={fontPageHref(font.id)} />
+									{/each}
+								</div>
+							{/if}
+						</div>
+					{/each}
+
+					<!-- Unsectioned fonts -->
+					{#if true}
+						{@const unsectioned = fonts.filter((f) => f.sectionId === null)}
+						{#if unsectioned.length > 0}
+							<div class="text-xs text-muted-foreground uppercase tracking-wider px-1">Sem seção</div>
+							<div class="flex flex-col gap-3">
+								{#each unsectioned as font (font.id)}
+									<FontCard {font} fontPageHref={fontPageHref(font.id)} />
+								{/each}
+							</div>
+						{/if}
+					{/if}
+				</div>
 			{:else}
+				<!-- Flat layout (no sections) -->
 				<div class="flex flex-col gap-3">
 					{#each fonts as font (font.id)}
 						<FontCard {font} fontPageHref={fontPageHref(font.id)} />

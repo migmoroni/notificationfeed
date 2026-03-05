@@ -40,6 +40,7 @@ export async function copyProfilesToCreator(
 			ownerType: 'creator',
 			ownerId: creatorId,
 			creatorPageId,
+			sectionId: null,
 			title: original.title,
 			tags: [...original.tags],
 			avatar: original.avatar ? { ...original.avatar } : null,
@@ -56,6 +57,7 @@ export async function copyProfilesToCreator(
 		for (const font of fonts) {
 			const newFont = await fontRepo.create({
 				profileId: newProfile.id,
+				sectionId: null,
 				title: font.title,
 				tags: [...font.tags],
 				avatar: font.avatar ? { ...font.avatar } : null,
@@ -89,6 +91,7 @@ export async function copyFontsToProfile(
 
 		const newFont = await fontRepo.create({
 			profileId: targetProfileId,
+			sectionId: null,
 			title: original.title,
 			tags: [...original.tags],
 			avatar: original.avatar ? { ...original.avatar } : null,

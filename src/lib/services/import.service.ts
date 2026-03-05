@@ -8,9 +8,11 @@
 
 import type { PageExport } from '$lib/domain/creator-page/page-export.js';
 import type { NewCreatorPage } from '$lib/domain/creator-page/creator-page.js';
+import type { Section } from '$lib/domain/section/section.js';
 import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
 import { createProfileStore } from '$lib/persistence/profile.store.js';
 import { createFontStore } from '$lib/persistence/font.store.js';
+import { createSectionStore } from '$lib/persistence/section.store.js';
 import { getDatabase } from '$lib/persistence/db.js';
 
 export interface ImportResult {
@@ -51,6 +53,7 @@ export async function importNotfeedJson(pageExport: PageExport, consumerId: stri
 	const pageStore = createCreatorPageStore();
 	const profileStore = createProfileStore();
 	const fontStore = createFontStore();
+	const sectionStore = createSectionStore();
 
 	// Check for existing import with same exportId
 	const existing = await pageStore.getByExportId(pageExport.exportId);
@@ -87,12 +90,40 @@ export async function importNotfeedJson(pageExport: PageExport, consumerId: stri
 	const profileIds: string[] = [];
 	const fontIds: string[] = [];
 
+	// Create page-level sections (index → new section id)
+	const pageSectionMap = new Map<number, string>();
+	if (pageExport.page.sections) {
+		const pageSections: Section[] = [];
+		for (let i = 0; i < pageExport.page.sections.length; i++) {
+			const ss = pageExport.page.sections[i];
+			const section: Section = {
+				id: crypto.randomUUID(),
+				title: ss.title,
+				color: ss.color,
+				order: ss.order,
+				createdAt: new Date()
+			};
+			pageSections.push(section);
+			pageSectionMap.set(i, section.id);
+		}
+		await sectionStore.saveContainer({
+			containerId: creatorPage.id,
+			containerType: 'creator',
+			sections: pageSections
+		});
+	}
+
 	// Create Profiles and their Fonts
 	for (const profileSnapshot of pageExport.profiles) {
+		const profileSectionId = profileSnapshot.sectionId != null
+			? pageSectionMap.get(profileSnapshot.sectionId) ?? null
+			: null;
+
 		const profile = await profileStore.create({
 			ownerType: 'consumer',
 			ownerId: consumerId,
 			creatorPageId: creatorPage.id,
+			sectionId: profileSectionId,
 			title: profileSnapshot.title,
 			tags: profileSnapshot.tags ?? [],
 			avatar: profileSnapshot.avatar ?? null,
@@ -102,9 +133,37 @@ export async function importNotfeedJson(pageExport: PageExport, consumerId: stri
 
 		profileIds.push(profile.id);
 
+		// Create profile-level sections (index → new section id)
+		const fontSectionMap = new Map<number, string>();
+		if (profileSnapshot.sections) {
+			const profileSections: Section[] = [];
+			for (let i = 0; i < profileSnapshot.sections.length; i++) {
+				const ss = profileSnapshot.sections[i];
+				const section: Section = {
+					id: crypto.randomUUID(),
+					title: ss.title,
+					color: ss.color,
+					order: ss.order,
+					createdAt: new Date()
+				};
+				profileSections.push(section);
+				fontSectionMap.set(i, section.id);
+			}
+			await sectionStore.saveContainer({
+				containerId: profile.id,
+				containerType: 'profile',
+				sections: profileSections
+			});
+		}
+
 		for (const fontSnapshot of (profileSnapshot.fonts ?? [])) {
+			const fontSectionId = fontSnapshot.sectionId != null
+				? fontSectionMap.get(fontSnapshot.sectionId) ?? null
+				: null;
+
 			const font = await fontStore.create({
 				profileId: profile.id,
+				sectionId: fontSectionId,
 				title: fontSnapshot.title,
 				tags: fontSnapshot.tags ?? [],
 				avatar: fontSnapshot.avatar ?? null,
@@ -166,6 +225,7 @@ export async function importSimpleUrls(urls: string[], consumerId: string): Prom
 		ownerType: 'consumer',
 		ownerId: consumerId,
 		creatorPageId: null,
+		sectionId: null,
 		title: `Import (${new Date().toLocaleDateString('pt-BR')})`,
 		tags: ['importado'],
 		avatar: null,
@@ -189,6 +249,7 @@ export async function importSimpleUrls(urls: string[], consumerId: string): Prom
 
 		const font = await fontStore.create({
 			profileId: profile.id,
+			sectionId: null,
 			title,
 			tags: [],
 			avatar: null,

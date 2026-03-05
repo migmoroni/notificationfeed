@@ -1,15 +1,18 @@
 <script lang="ts">
 	import type { Profile } from '$lib/domain/profile/profile.js';
 	import type { Font } from '$lib/domain/font/font.js';
+	import type { Section } from '$lib/domain/section/section.js';
 	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { createFontStore } from '$lib/persistence/font.store.js';
+	import { createSectionStore } from '$lib/persistence/section.store.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import FontCard from './FontCard.svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import User from '@lucide/svelte/icons/user';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
+	import Folder from '@lucide/svelte/icons/folder';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
 	import ConfirmUnfollowDialog from '$lib/components/shared/dialog/ConfirmUnfollowDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
@@ -27,6 +30,7 @@
 
 	let open = $state(false);
 	let fonts: Font[] = $state([]);
+	let fontSections: Section[] = $state([]);
 	let loadingFonts = $state(false);
 	let loaded = $state(false);
 	let showUnfavConfirm = $state(false);
@@ -42,7 +46,10 @@
 		loadingFonts = true;
 		try {
 			const fontStore = createFontStore();
+			const sectionStore = createSectionStore();
 			fonts = await fontStore.getByProfileId(profile.id);
+			const container = await sectionStore.getByContainer(profile.id);
+			fontSections = container?.sections ?? [];
 			loaded = true;
 		} finally {
 			loadingFonts = false;
@@ -153,6 +160,40 @@
 					</div>
 				{:else if fonts.length === 0 && loaded}
 					<p class="text-xs text-muted-foreground">Nenhuma font neste profile.</p>
+				{:else if loaded && fontSections.length > 0}
+					<!-- Section-grouped fonts -->
+					<div class="flex flex-col gap-3">
+						{#each fontSections as section (section.id)}
+							{@const sectionFonts = fonts.filter((f) => f.sectionId === section.id)}
+							<div class="rounded-lg border" style="border-left: 3px solid {section.color};">
+								<div class="flex items-center gap-2 px-2 py-1.5">
+									<Folder class="size-3.5" style="color:{section.color};" />
+									<span class="text-xs font-medium flex-1">{section.title}</span>
+									<Badge variant="outline" class="text-[10px]">{sectionFonts.length}</Badge>
+								</div>
+								{#if sectionFonts.length > 0}
+									<div class="px-2 pb-2 flex flex-col gap-2">
+										{#each sectionFonts as font (font.id)}
+											<FontCard {font} fontPageHref={fontPageHref(font.id)} />
+										{/each}
+									</div>
+								{/if}
+							</div>
+						{/each}
+
+						<!-- Unsectioned fonts -->
+						{#if true}
+							{@const unsectioned = fonts.filter((f) => f.sectionId === null)}
+							{#if unsectioned.length > 0}
+								<div class="text-[10px] text-muted-foreground uppercase tracking-wider px-1">Sem seção</div>
+								<div class="flex flex-col gap-2">
+									{#each unsectioned as font (font.id)}
+										<FontCard {font} fontPageHref={fontPageHref(font.id)} />
+									{/each}
+								</div>
+							{/if}
+						{/if}
+					</div>
 				{:else if loaded}
 					<div class="flex flex-col gap-2">
 						{#each fonts as font (font.id)}
