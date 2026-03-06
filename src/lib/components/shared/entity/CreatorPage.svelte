@@ -238,7 +238,7 @@
 			{/if}
 
 			{#if creatorPage.bio}
-				<p class="text-sm text-muted-foreground leading-relaxed max-w-2xl">{creatorPage.bio}</p>
+				<div class="text-sm text-muted-foreground leading-relaxed max-w-2xl prose prose-sm dark:prose-invert">{@html creatorPage.bio}</div>
 			{/if}
 
 			{#if categoryLabels.length > 0}

@@ -371,6 +371,7 @@ export const creator = {
 
 				return {
 					title: profile.title,
+					bio: profile.bio ?? '',
 					tags: [...profile.tags],
 					avatar: profile.avatar ? { ...profile.avatar } : null,
 					categoryAssignments: profile.categoryAssignments.map((a) => ({
@@ -388,6 +389,7 @@ export const creator = {
 							: null;
 						return {
 							title: font.title,
+							bio: font.bio ?? '',
 							tags: [...font.tags],
 							avatar: font.avatar ? { ...font.avatar } : null,
 							protocol: font.protocol,
