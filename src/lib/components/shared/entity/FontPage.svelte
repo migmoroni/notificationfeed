@@ -9,6 +9,7 @@
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { createFontStore } from '$lib/persistence/font.store.js';
 	import { createProfileStore } from '$lib/persistence/profile.store.js';
+	import { createCategoryStore } from '$lib/persistence/category.store.js';
 	import { getPosts } from '$lib/persistence/post.store.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
@@ -20,6 +21,8 @@
 	import Rss from '@lucide/svelte/icons/rss';
 	import Atom from '@lucide/svelte/icons/atom';
 	import Zap from '@lucide/svelte/icons/zap';
+	import User from '@lucide/svelte/icons/user';
+	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
 	import ConfirmDeactivateDialog from '$lib/components/shared/dialog/ConfirmDeactivateDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
@@ -37,6 +40,7 @@
 	let { baseHref }: Props = $props();
 
 	let posts = $state<CanonicalPost[]>([]);
+	let categoryLabels: string[] = $state([]);
 	let showUnfavConfirm = $state(false);
 	let showDeactivateConfirm = $state(false);
 	let loading = $state(true);
@@ -70,6 +74,7 @@
 		try {
 			const fontStore = createFontStore();
 			const profileStore = createProfileStore();
+			const categoryStore = createCategoryStore();
 
 			const found = await fontStore.getById(fontId);
 			if (!found) {
@@ -86,6 +91,16 @@
 			// Load ALL posts for this font
 			const result = await getPosts({ fontId: found.id });
 			posts = result;
+
+			// Resolve category labels
+			const labels: string[] = [];
+			for (const assignment of (found.categoryAssignments ?? [])) {
+				for (const catId of assignment.categoryIds) {
+					const cat = await categoryStore.getById(catId);
+					if (cat) labels.push(cat.label);
+				}
+			}
+			categoryLabels = labels;
 		} catch (err) {
 			console.error('[FontPage] Failed to load font:', err);
 			notFound = true;
@@ -137,7 +152,7 @@
 		return `${baseHref}/profile/${parentProfile.id}`;
 	});
 
-	let postGridCols = $derived(layout.isExpanded ? 'grid-cols-2' : 'grid-cols-1');
+	let postGridCols = $derived(layout.isExpanded ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2');
 </script>
 
 <svelte:head>
@@ -167,69 +182,74 @@
 		</div>
 	{:else if font}
 		<!-- Header -->
-		<div class="flex items-start gap-4 mb-6">
-			<div class="flex items-center justify-center size-14 shrink-0 rounded-lg bg-muted text-muted-foreground overflow-hidden">
-				{#if font.avatar?.data}
-					<img src="data:image/webp;base64,{font.avatar.data}" alt="" class="size-14 object-cover" />
-				{:else if font.protocol === 'atom'}
-					<Atom class="size-7" />
-				{:else if font.protocol === 'nostr'}
-					<Zap class="size-7" />
-				{:else}
-					<Rss class="size-7" />
-				{/if}
-			</div>
-
-			<div class="flex-1 min-w-0">
-				<div class="flex items-center gap-2 mb-1">
-					<h1 class="text-xl font-bold truncate">{font.title}</h1>
-					<Badge variant="outline" class="text-[10px] px-1.5 py-0 shrink-0">
-						{protocolBadge[font.protocol] ?? font.protocol}
-					</Badge>
-					<FavoriteButton favorite={isFavorite} size="md" onclick={handleFavorite} />
-				</div>
-
-				<!-- Config info -->
-				<div class="text-xs text-muted-foreground mb-2">
-					{#if font.protocol === 'nostr'}
-						{@const nostrConfig = font.config as import('$lib/domain/font/font.js').FontNostrConfig}
-						<p>Relays: {nostrConfig.relays?.join(', ') ?? '—'}</p>
-						<p class="truncate">Pubkey: {nostrConfig.pubkey ?? '—'}</p>
+		<div class="mb-10 px-2">
+			<div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-6">
+				<!-- Avatar / Protocol Icon -->
+				<div class="shrink-0 w-20 h-20 rounded-xl bg-muted text-muted-foreground overflow-hidden shadow-sm flex items-center justify-center">
+					{#if font.avatar?.data}
+						<img src="data:image/webp;base64,{font.avatar.data}" alt="" class="w-full h-full object-cover" />
+					{:else if font.protocol === 'atom'}
+						<Atom class="size-10" />
+					{:else if font.protocol === 'nostr'}
+						<Zap class="size-10" />
 					{:else}
-						{@const feedConfig = font.config as import('$lib/domain/font/font.js').FontRssConfig}
-						<p class="truncate">URL: {feedConfig.url ?? '—'}</p>
+						<Rss class="size-10" />
 					{/if}
 				</div>
 
-				{#if font.tags.length > 0}
-					<div class="flex flex-wrap gap-1 mb-2">
-						{#each font.tags as tag}
-							<Badge variant="secondary" class="text-xs">{tag}</Badge>
-						{/each}
-					</div>
-				{/if}
+				<div class="flex-1 min-w-0 w-full">
+					<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+						<div class="flex items-center gap-3 w-full">
+							<h1 class="text-2xl font-extrabold tracking-tight truncate">{font.title}</h1>
+							<Badge variant="secondary" class="text-xs uppercase px-2 py-0.5 shrink-0 bg-secondary/50">
+								{protocolBadge[font.protocol] ?? font.protocol}
+							</Badge>
+						</div>
 
-				<!-- Parent profile link -->
-				{#if parentProfile && parentProfileHref}
-					<p class="text-xs text-muted-foreground">
-						Profile:
-						<a href={parentProfileHref} class="text-primary hover:underline">
-							{parentProfile.title}
-						</a>
-					</p>
-				{/if}
+						<!-- Actions grouped together -->
+						<div class="flex items-center gap-2 p-1.5 bg-background shadow-sm border rounded-xl w-fit">
+							<PriorityButtons current={currentPriority} size="md" onchange={handlePriorityChange} />
+							<div class="w-px h-6 bg-border mx-0.5"></div>
+							<FavoriteButton favorite={isFavorite} size="md" onclick={handleFavorite} />
+							<ActiveButton active={isEnabled} size="md" onclick={handleToggleActive} />
+						</div>
+					</div>
+
+					<!-- Config info -->
+					<div class="text-sm font-medium text-muted-foreground mb-4 max-w-2xl bg-muted/30 rounded-md p-3">
+						{#if font.protocol === 'nostr'}
+							{@const nostrConfig = font.config as import('$lib/domain/font/font.js').FontNostrConfig}
+							<p><strong>Relays:</strong> {nostrConfig.relays?.join(', ') ?? '—'}</p>
+							<p class="truncate mt-1"><strong>Pubkey:</strong> {nostrConfig.pubkey ?? '—'}</p>
+						{:else}
+							{@const feedConfig = font.config as import('$lib/domain/font/font.js').FontRssConfig}
+							<p class="truncate"><strong>URL:</strong> <a href={feedConfig.url} target="_blank" rel="noopener noreferrer" class="hover:underline">{feedConfig.url ?? '—'}</a></p>
+						{/if}
+					</div>
+
+					{#if categoryLabels.length > 0}
+						<div class="flex flex-wrap gap-1.5 mt-2">
+							{#each categoryLabels as label}
+								<Badge variant="outline" class="text-xs font-medium bg-background text-foreground/80">{label}</Badge>
+							{/each}
+						</div>
+					{/if}
+
+					<!-- Parent profile link -->
+					{#if parentProfile && parentProfileHref}
+						<div class="mt-2">
+							<a href={parentProfileHref} class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-muted/30 text-xs font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors">
+								<User class="size-3.5" />
+								<span>Parte de: <strong class="font-semibold text-foreground tracking-tight ml-0.5">{parentProfile.title}</strong></span>
+								<ArrowUpRight class="size-3.5 opacity-70 ml-1" />
+							</a>
+						</div>
+					{/if}
+				</div>
 			</div>
 		</div>
 
-		<!-- Priority actions -->
-		<div class="flex items-center gap-2 mb-6">
-			<span class="text-xs text-muted-foreground">Prioridade:</span>
-			<PriorityButtons current={currentPriority} size="md" onchange={handlePriorityChange} />
-
-			<ActiveButton active={isEnabled} size="md" onclick={handleToggleActive} />
-		</div>
-
-		<Separator class="mb-6" />
+		<Separator class="mb-8" />
 
 		<!-- All Posts -->
 		<section>

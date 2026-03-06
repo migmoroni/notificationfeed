@@ -5,12 +5,14 @@
 	import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 	import type { Category } from '$lib/domain/category/category.js';
 	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
+	import type { CreatorPage } from '$lib/domain/creator-page/creator-page.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { createProfileStore } from '$lib/persistence/profile.store.js';
 	import { createFontStore } from '$lib/persistence/font.store.js';
 	import { createSectionStore } from '$lib/persistence/section.store.js';
 	import { createCategoryStore } from '$lib/persistence/category.store.js';
+	import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
 	import { getPosts } from '$lib/persistence/post.store.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
@@ -21,6 +23,8 @@
 	import { formatRelativeDate } from '$lib/utils/date.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import User from '@lucide/svelte/icons/user';
+	import Globe from '@lucide/svelte/icons/globe';
+	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
 	import ConfirmUnfollowDialog from '$lib/components/shared/dialog/ConfirmUnfollowDialog.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
@@ -45,6 +49,7 @@
 	let { profileId, baseHref }: Props = $props();
 
 	let profile = $state<Profile | null>(null);
+	let parentPage = $state<CreatorPage | null>(null);
 	let fonts: Font[] = $state([]);
 	let fontSections: Section[] = $state([]);
 	let posts: CanonicalPost[] = $state([]);
@@ -76,6 +81,7 @@
 			const fontStore = createFontStore();
 			const sectionStore = createSectionStore();
 			const categoryStore = createCategoryStore();
+			const pageStore = createCreatorPageStore();
 
 			const found = await profileStore.getById(profileId);
 			if (!found) {
@@ -85,6 +91,10 @@
 			}
 
 			profile = found;
+			
+			if (profile.creatorPageId) {
+				parentPage = await pageStore.getById(profile.creatorPageId);
+			}
 
 			// Load fonts
 			fonts = await fontStore.getByProfileId(profileId);
@@ -165,8 +175,8 @@
 		profile?.creatorPageId ? `${baseHref}/creator/${profile.creatorPageId}` : null
 	);
 
-	let postLimit = $derived(layout.isExpanded ? 8 : 4);
-	let postGridCols = $derived(layout.isExpanded ? 'grid-cols-2' : 'grid-cols-1');
+	let postLimit = $derived(layout.isExpanded ? 12 : 6);
+	let postGridCols = $derived(layout.isExpanded ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2');
 </script>
 
 <svelte:head>
@@ -198,56 +208,49 @@
 		</div>
 	{:else if profile}
 		<!-- Header -->
-		<div class="flex items-start gap-4 mb-6">
-			<div class="shrink-0 w-14 h-14 rounded-lg bg-muted text-muted-foreground overflow-hidden">
-				{#if profile.avatar?.data}
-					<img src="data:image/webp;base64,{profile.avatar.data}" alt="" class="w-full h-full object-cover" />
-				{:else}
-					<div class="flex items-center justify-center w-full h-full">
-						<User class="size-7" />
-					</div>
-				{/if}
-			</div>
-
-			<div class="flex-1 min-w-0">
-				<div class="flex items-center gap-2 mb-1">
-					<h1 class="text-xl font-bold truncate">{profile.title}</h1>
-					<FavoriteButton favorite={isFavorite} size="md" onclick={handleFavorite} />
-					<FollowButton following={isFollowing} size="md" onclick={handleFollow} />
+		<div class="mb-10 px-2">
+			<div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-6">
+				<!-- Avatar -->
+				<div class="shrink-0 w-20 h-20 rounded-xl bg-muted text-muted-foreground overflow-hidden shadow-sm flex items-center justify-center">
+					{#if profile.avatar?.data}
+						<img src="data:image/webp;base64,{profile.avatar.data}" alt="" class="w-full h-full object-cover" />
+					{:else}
+						<User class="size-10" />
+					{/if}
 				</div>
 
-				<!-- Priority -->
-				<div class="flex items-center gap-2 mb-2">
-					<span class="text-xs text-muted-foreground">Prioridade:</span>
-					<PriorityButtons current={currentPriority} size="md" onchange={handlePriorityChange} />
+				<div class="flex-1 min-w-0 w-full">
+					<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+						<h1 class="text-2xl font-extrabold tracking-tight truncate">{profile.title}</h1>
+						<!-- Actions grouped together -->
+						<div class="flex items-center gap-2 p-1.5 bg-background shadow-sm border rounded-xl">							<PriorityButtons current={currentPriority} size="md" onchange={handlePriorityChange} />
+							<div class="w-px h-6 bg-border mx-0.5"></div>							<FavoriteButton favorite={isFavorite} size="md" onclick={handleFavorite} />
+							<FollowButton following={isFollowing} size="md" onclick={handleFollow} />
+						</div>
+					</div>
+
+					{#if categoryLabels.length > 0}
+						<div class="flex flex-wrap gap-1.5 mt-2">
+							{#each categoryLabels as label}
+								<Badge variant="outline" class="text-xs font-medium bg-background text-foreground/80">{label}</Badge>
+							{/each}
+						</div>
+					{/if}
+
+					{#if creatorPageHref && parentPage}
+						<div class="mt-4">
+							<a href={creatorPageHref} class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-muted/30 text-xs font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors">
+								<Globe class="size-3.5" />
+								<span>Parte de <strong class="font-semibold text-foreground tracking-tight ml-0.5">{parentPage.title}</strong></span>
+								<ArrowUpRight class="size-3.5 opacity-70 ml-1" />
+							</a>
+						</div>
+					{/if}
 				</div>
-
-				{#if profile.tags.length > 0}
-					<div class="flex flex-wrap gap-1 mb-2">
-						{#each profile.tags as tag}
-							<Badge variant="secondary" class="text-xs">{tag}</Badge>
-						{/each}
-					</div>
-				{/if}
-
-				{#if categoryLabels.length > 0}
-					<div class="flex flex-wrap gap-1">
-						{#each categoryLabels as label}
-							<Badge variant="outline" class="text-xs">{label}</Badge>
-						{/each}
-					</div>
-				{/if}
-
-				{#if creatorPageHref}
-					<p class="text-xs text-muted-foreground mt-2">
-						Creator Page:
-						<a href={creatorPageHref} class="text-primary hover:underline">
-							Ver Creator Page →
-						</a>
-					</p>
-				{/if}
 			</div>
 		</div>
+
+		<Separator class="mb-8" />
 
 		<!-- Fonts -->
 		<section class="mb-6">
@@ -273,7 +276,7 @@
 								<Badge variant="outline" class="text-xs">{sectionFonts.length}</Badge>
 							</div>
 							{#if sectionFonts.length > 0}
-								<div class="px-3 pb-3 flex flex-col gap-3">
+								<div class="px-3 pb-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
 									{#each sectionFonts as font (font.id)}
 										<FontCard {font} fontPageHref={fontPageHref(font.id)} />
 									{/each}
@@ -287,7 +290,7 @@
 						{@const unsectioned = fonts.filter((f) => f.sectionId === null)}
 						{#if unsectioned.length > 0}
 							<div class="text-xs text-muted-foreground uppercase tracking-wider px-1">Sem seção</div>
-							<div class="flex flex-col gap-3">
+							<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 								{#each unsectioned as font (font.id)}
 									<FontCard {font} fontPageHref={fontPageHref(font.id)} />
 								{/each}
@@ -297,7 +300,7 @@
 				</div>
 			{:else}
 				<!-- Flat layout (no sections) -->
-				<div class="flex flex-col gap-3">
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 					{#each fonts as font (font.id)}
 						<FontCard {font} fontPageHref={fontPageHref(font.id)} />
 					{/each}

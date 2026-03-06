@@ -7,7 +7,6 @@
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import { formatRelativeDate } from '$lib/utils/date.js';
-	import PriorityButtons from '$lib/components/shared/priority/PriorityButtons.svelte';
 	import ConfirmDeactivateDialog from '$lib/components/shared/dialog/ConfirmDeactivateDialog.svelte';
 	import ActiveButton from '$lib/components/shared/activeContent/ActiveButton.svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
@@ -35,7 +34,6 @@
 	let loaded = $state(false);
 
 	let entityState = $derived(consumer.stateMap.get(font.id));
-	let currentPriority = $derived(entityState?.priority ?? null);
 	let isFavorite = $derived(entityState?.favorite ?? false);
 	let isEnabled = $derived(entityState?.enabled ?? true);
 
@@ -62,10 +60,6 @@
 		if (open && !loaded) {
 			loadPosts();
 		}
-	}
-
-	async function handlePriorityChange(level: PriorityLevel | null) {
-		await consumer.setPriority(font.id, 'font', level);
 	}
 
 	async function handleFavorite() {
@@ -134,11 +128,8 @@
 				</div>
 
 				<!-- Actions -->
-				<div class="flex items-center gap-2 mb-3">
-					<PriorityButtons current={currentPriority} size="sm" onchange={handlePriorityChange} />
-
+				<div class="flex items-center gap-1.5 mb-3">
 					<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
-
 					<ActiveButton active={isEnabled} onclick={handleToggleActive} />
 				</div>
 

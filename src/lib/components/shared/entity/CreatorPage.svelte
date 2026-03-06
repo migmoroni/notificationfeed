@@ -12,6 +12,7 @@
 	import { createProfileStore } from '$lib/persistence/profile.store.js';
 	import { createFontStore } from '$lib/persistence/font.store.js';
 	import { createSectionStore } from '$lib/persistence/section.store.js';
+	import { createCategoryStore } from '$lib/persistence/category.store.js';
 	import { getPosts } from '$lib/persistence/post.store.js';
 	import ProfileCard from './ProfileCard.svelte';
 	import { PostCard } from '$lib/components/feed/index.js';
@@ -46,6 +47,7 @@
 	let allFonts: Font[] = $state([]);
 	let sections: Section[] = $state([]);
 	let posts: CanonicalPost[] = $state([]);
+	let categoryLabels: string[] = $state([]);
 	let loading = $state(true);
 	let notFound = $state(false);
 
@@ -54,8 +56,8 @@
 	let isFavorite = $derived(entityState?.favorite ?? false);
 	let isSubscribed = $derived(entityState?.enabled ?? true);
 
-	let postLimit = $derived(layout.isExpanded ? 8 : 4);
-	let postGridCols = $derived(layout.isExpanded ? 'grid-cols-2' : 'grid-cols-1');
+	let postLimit = $derived(layout.isExpanded ? 12 : 6);
+	let postGridCols = $derived(layout.isExpanded ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2');
 
 	let sortedPosts: SortedPost[] = $derived.by(() => {
 		if (posts.length === 0) return [];
@@ -74,6 +76,7 @@
 			const profileStore = createProfileStore();
 			const fontStore = createFontStore();
 			const sectionStore = createSectionStore();
+			const categoryStore = createCategoryStore();
 
 			const found = await pageStore.getById(creatorId);
 			if (!found) {
@@ -102,6 +105,16 @@
 
 			allFonts = fonts;
 			posts = allPosts;
+
+			// Resolve category labels
+			const labels: string[] = [];
+			for (const assignment of (creatorPage.categoryAssignments ?? [])) {
+				for (const catId of assignment.categoryIds) {
+					const cat = await categoryStore.getById(catId);
+					if (cat) labels.push(cat.label);
+				}
+			}
+			categoryLabels = labels;
 		} catch (err) {
 			console.error('[CreatorPage] Failed to load:', err);
 			notFound = true;
@@ -185,54 +198,56 @@
 			</button>
 		</div>
 	{:else if creatorPage}
-		<!-- Banner -->
-		{#if creatorPage.banner?.data}
-			<div class="rounded-lg overflow-hidden mb-4" style="aspect-ratio: 3.6 / 1;">
-				<img src="data:image/webp;base64,{creatorPage.banner.data}" alt="" class="w-full h-full object-cover" />
-			</div>
-		{/if}
-
-		<!-- Header -->
-		<div class="flex items-start gap-4 mb-6">
-			<div class="shrink-0 w-16 h-16 rounded-lg bg-muted text-muted-foreground overflow-hidden">
-				{#if creatorPage.avatar?.data}
-					<img src="data:image/webp;base64,{creatorPage.avatar.data}" alt="" class="w-full h-full object-cover" />
-				{:else}
-					<div class="flex items-center justify-center w-full h-full">
-						<Globe class="size-8" />
-					</div>
-				{/if}
-			</div>
-
-			<div class="flex-1 min-w-0">
-				<div class="flex items-center gap-2 mb-1">
-					<h1 class="text-xl font-bold truncate">{creatorPage.title}</h1>
-					<FavoriteButton favorite={isFavorite} size="md" onclick={handleFavorite} />
-					<SubscribeButton subscribed={isSubscribed} size="md" onclick={handleSubscribe} />
+		<!-- Banner & Avatar Header -->
+		<div class="relative mb-16">
+			<!-- Banner -->
+			{#if creatorPage.banner?.data}
+				<div class="rounded-t-xl overflow-hidden bg-muted" style="aspect-ratio: 3.6 / 1;">
+					<img src="data:image/webp;base64,{creatorPage.banner.data}" alt="" class="w-full h-full object-cover" />
 				</div>
+			{:else}
+				<div class="rounded-t-xl bg-gradient-to-r from-muted to-muted/50" style="aspect-ratio: 3.6 / 1;"></div>
+			{/if}
 
-				<!-- Priority -->
-				<div class="flex items-center gap-2 mb-2">
-					<span class="text-xs text-muted-foreground">Prioridade:</span>
-					<PriorityButtons current={currentPriority} size="md" onchange={handlePriorityChange} />
+			<!-- Avatar -->
+			<div class="absolute -bottom-12 left-6">
+				<div class="w-24 h-24 rounded-xl border-4 border-background bg-muted text-muted-foreground overflow-hidden shadow-sm flex items-center justify-center">
+					{#if creatorPage.avatar?.data}
+						<img src="data:image/webp;base64,{creatorPage.avatar.data}" alt="" class="w-full h-full object-cover" />
+					{:else}
+						<Globe class="size-10" />
+					{/if}
 				</div>
-
-				{#if creatorPage.tagline}
-					<p class="text-sm font-medium mt-1">{creatorPage.tagline}</p>
-				{/if}
-
-				{#if creatorPage.bio}
-					<p class="text-sm text-muted-foreground line-clamp-3">{creatorPage.bio}</p>
-				{/if}
-
-				{#if creatorPage.tags.length > 0}
-					<div class="flex flex-wrap gap-1 mt-2">
-						{#each creatorPage.tags as tag}
-							<Badge variant="secondary" class="text-xs">{tag}</Badge>
-						{/each}
-					</div>
-				{/if}
 			</div>
+			
+			<!-- Actions (Right side of avatar, bottom of banner) -->
+			<div class="absolute -bottom-14 right-4 flex items-center gap-2 p-1.5 bg-background shadow-md border rounded-xl z-10 transition-all hover:shadow-lg">
+				<PriorityButtons current={currentPriority} size="md" onchange={handlePriorityChange} />
+				<div class="w-px h-6 bg-border mx-0.5"></div>
+				<FavoriteButton favorite={isFavorite} size="md" onclick={handleFavorite} />
+				<SubscribeButton subscribed={isSubscribed} size="md" onclick={handleSubscribe} />
+			</div>
+		</div>
+
+		<!-- Info -->
+		<div class="px-6 mb-8">
+			<h1 class="text-2xl font-extrabold tracking-tight mb-1">{creatorPage.title}</h1>
+
+			{#if creatorPage.tagline}
+				<p class="text-base font-medium text-foreground mb-2">{creatorPage.tagline}</p>
+			{/if}
+
+			{#if creatorPage.bio}
+				<p class="text-sm text-muted-foreground leading-relaxed max-w-2xl">{creatorPage.bio}</p>
+			{/if}
+
+			{#if categoryLabels.length > 0}
+				<div class="flex flex-wrap gap-1.5 mt-3">
+					{#each categoryLabels as label}
+						<Badge variant="outline" class="text-xs font-medium bg-background text-foreground/80">{label}</Badge>
+					{/each}
+				</div>
+			{/if}
 		</div>
 
 		<!-- Profiles -->
@@ -259,12 +274,11 @@
 								<Badge variant="outline" class="text-xs">{sectionProfiles.length}</Badge>
 							</div>
 							{#if sectionProfiles.length > 0}
-								<div class="px-3 pb-3 flex flex-col gap-3">
+								<div class="px-3 pb-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
 									{#each sectionProfiles as profile (profile.id)}
 										<ProfileCard
 											{profile}
 											profilePageHref={profilePageHref(profile.id)}
-											fontPageHref={(fontId) => fontPageHref(profile.id, fontId)}
 										/>
 									{/each}
 								</div>
@@ -277,12 +291,12 @@
 						{@const unsectioned = profiles.filter((p) => p.sectionId === null)}
 						{#if unsectioned.length > 0}
 							<div class="text-xs text-muted-foreground uppercase tracking-wider px-1">Sem seção</div>
-							<div class="flex flex-col gap-3">
+							<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 								{#each unsectioned as profile (profile.id)}
 									<ProfileCard
 										{profile}
 										profilePageHref={profilePageHref(profile.id)}
-										fontPageHref={(fontId) => fontPageHref(profile.id, fontId)}
+
 									/>
 								{/each}
 							</div>
@@ -291,12 +305,11 @@
 				</div>
 			{:else}
 				<!-- Flat layout (no sections) -->
-				<div class="flex flex-col gap-3">
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 					{#each profiles as profile (profile.id)}
 						<ProfileCard
 							{profile}
 							profilePageHref={profilePageHref(profile.id)}
-							fontPageHref={(fontId) => fontPageHref(profile.id, fontId)}
 						/>
 					{/each}
 				</div>

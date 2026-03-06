@@ -134,17 +134,9 @@
 				{/if}
 			</div>
 
-			{#if entity.data.tags.length > 0}
-				<div class="flex flex-wrap gap-1 mt-1">
-					{#each entity.data.tags.slice(0, 4) as tag}
-						<span class="text-[11px] text-muted-foreground bg-muted rounded px-1.5 py-0.5">{tag}</span>
-					{/each}
-				</div>
-			{/if}
-
 			<!-- Actions row -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="flex items-center gap-2 mt-2" onclick={stopPropagation} onkeydown={() => {}}>
+			<div class="flex items-center gap-2 mt-auto pt-2" onclick={stopPropagation} onkeydown={() => {}}>
 				<!-- Priority label (read-only) -->
 				{#if currentPriority}
 					<PriorityBadge level={currentPriority} />
