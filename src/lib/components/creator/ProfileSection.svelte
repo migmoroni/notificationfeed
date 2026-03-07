@@ -298,6 +298,7 @@
 				mode="edit"
 				initial={{
 					title: font.title,
+					bio: font.bio ?? '',
 					tags: font.tags,
 					avatar: font.avatar,
 					protocol: font.protocol,
@@ -539,6 +540,7 @@
 						mode="edit"
 						initial={{
 							title: profile.title,
+							bio: profile.bio ?? '',
 							tags: profile.tags,
 							avatar: profile.avatar,
 							categoryAssignments: profile.categoryAssignments,

@@ -215,6 +215,10 @@
 						</div>
 					</div>
 
+					{#if font.bio}
+						<p class="text-sm text-muted-foreground leading-relaxed max-w-2xl mt-1 mb-3">{font.bio}</p>
+					{/if}
+
 					<!-- Config info -->
 					<div class="text-sm font-medium text-muted-foreground mb-4 max-w-2xl bg-muted/30 rounded-md p-3">
 						{#if font.protocol === 'nostr'}

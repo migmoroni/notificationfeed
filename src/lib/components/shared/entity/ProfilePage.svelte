@@ -222,6 +222,9 @@
 				<div class="flex-1 min-w-0 w-full">
 					<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
 						<h1 class="text-2xl font-extrabold tracking-tight truncate">{profile.title}</h1>
+						{#if profile.bio}
+							<p class="text-sm text-muted-foreground leading-relaxed max-w-2xl mt-1">{profile.bio}</p>
+						{/if}
 						<!-- Actions grouped together -->
 						<div class="flex items-center gap-2 p-1.5 bg-background shadow-sm border rounded-xl">							<PriorityButtons current={currentPriority} size="md" onchange={handlePriorityChange} />
 							<div class="w-px h-6 bg-border mx-0.5"></div>							<FavoriteButton favorite={isFavorite} size="md" onclick={handleFavorite} />

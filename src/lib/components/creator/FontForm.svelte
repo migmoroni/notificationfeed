@@ -6,6 +6,7 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Switch } from '$lib/components/ui/switch/index.js';
+	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import ImageUpload from './ImageUpload.svelte';
 	import TagInput from './TagInput.svelte';
@@ -13,6 +14,7 @@
 
 	interface FontFormData {
 		title: string;
+		bio: string;
 		tags: string[];
 		avatar: ImageAsset | null;
 		protocol: FontProtocol;
@@ -38,6 +40,7 @@
 	const _init = initial;
 	const _initConfig = _init?.config;
 	let title = $state(_init?.title ?? '');
+	let bio = $state(_init?.bio ?? '');
 	let tags = $state<string[]>(_init?.tags ?? []);
 	let avatar = $state<ImageAsset | null>(_init?.avatar ?? null);
 	let protocol = $state<FontProtocol>(_init?.protocol ?? 'rss');
@@ -89,6 +92,7 @@
 
 		onsave({
 			title: title.trim(),
+			bio: bio.trim(),
 			tags,
 			avatar,
 			protocol,
@@ -123,6 +127,16 @@
 			bind:value={title}
 			placeholder="Nome da font"
 			required
+		/>
+	</div>
+
+	<div class="space-y-2">
+		<Label for="font-bio">Bio</Label>
+		<Textarea
+			id="font-bio"
+			bind:value={bio}
+			placeholder="Descrição da font"
+			rows={3}
 		/>
 	</div>
 

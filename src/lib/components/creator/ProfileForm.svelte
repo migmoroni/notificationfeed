@@ -5,12 +5,14 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Switch } from '$lib/components/ui/switch/index.js';
+	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import ImageUpload from './ImageUpload.svelte';
 	import TagInput from './TagInput.svelte';
 	import CategoryTreePicker from './CategoryTreePicker.svelte';
 
 	interface ProfileFormData {
 		title: string;
+		bio: string;
 		tags: string[];
 		avatar: ImageAsset | null;
 		categoryAssignments: CategoryAssignment[];
@@ -33,6 +35,7 @@
 	// svelte-ignore state_referenced_locally
 	const _init = initial;
 	let title = $state(_init?.title ?? '');
+	let bio = $state(_init?.bio ?? '');
 	let tags = $state<string[]>(_init?.tags ?? []);
 	let avatar = $state<ImageAsset | null>(_init?.avatar ?? null);
 	let categoryAssignments = $state<CategoryAssignment[]>(_init?.categoryAssignments ?? []);
@@ -46,6 +49,7 @@
 
 		onsave({
 			title: title.trim(),
+			bio: bio.trim(),
 			tags,
 			avatar,
 			categoryAssignments,
@@ -62,6 +66,16 @@
 			bind:value={title}
 			placeholder="Nome do profile"
 			required
+		/>
+	</div>
+
+	<div class="space-y-2">
+		<Label for="profile-bio">Bio</Label>
+		<Textarea
+			id="profile-bio"
+			bind:value={bio}
+			placeholder="Descrição do profile"
+			rows={3}
 		/>
 	</div>
 
