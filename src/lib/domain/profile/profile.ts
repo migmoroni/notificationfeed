@@ -49,7 +49,6 @@ export interface Profile {
 	sectionId: string | null;
 
 	title: string;
-	bio: string;
 	tags: string[];
 
 	/** Avatar image (WEBP, max 512x512) */

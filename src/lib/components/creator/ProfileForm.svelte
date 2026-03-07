@@ -8,11 +8,9 @@
 	import ImageUpload from './ImageUpload.svelte';
 	import TagInput from './TagInput.svelte';
 	import CategoryTreePicker from './CategoryTreePicker.svelte';
-	import RichTextEditor from './RichTextEditor.svelte';
 
 	interface ProfileFormData {
 		title: string;
-		bio: string;
 		tags: string[];
 		avatar: ImageAsset | null;
 		categoryAssignments: CategoryAssignment[];
@@ -35,7 +33,6 @@
 	// svelte-ignore state_referenced_locally
 	const _init = initial;
 	let title = $state(_init?.title ?? '');
-	let bio = $state(_init?.bio ?? '');
 	let tags = $state<string[]>(_init?.tags ?? []);
 	let avatar = $state<ImageAsset | null>(_init?.avatar ?? null);
 	let categoryAssignments = $state<CategoryAssignment[]>(_init?.categoryAssignments ?? []);
@@ -49,7 +46,6 @@
 
 		onsave({
 			title: title.trim(),
-			bio: bio.trim(),
 			tags,
 			avatar,
 			categoryAssignments,
@@ -66,15 +62,6 @@
 			bind:value={title}
 			placeholder="Nome do profile"
 			required
-		/>
-	</div>
-
-	<div class="space-y-2">
-		<Label>Bio</Label>
-		<RichTextEditor
-			value={bio}
-			onchange={(v) => (bio = v)}
-			placeholder="Descreva este profile…"
 		/>
 	</div>
 

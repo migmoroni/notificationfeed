@@ -227,10 +227,6 @@
 						{/if}
 					</div>
 
-					{#if font.bio}
-						<div class="text-sm text-muted-foreground leading-relaxed max-w-2xl prose prose-sm dark:prose-invert">{@html font.bio}</div>
-					{/if}
-
 					{#if categoryLabels.length > 0}
 						<div class="flex flex-wrap gap-1.5 mt-2">
 							{#each categoryLabels as label}

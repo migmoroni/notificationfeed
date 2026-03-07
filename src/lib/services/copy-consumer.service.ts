@@ -42,7 +42,6 @@ export async function copyProfilesToCreator(
 			creatorPageId,
 			sectionId: null,
 			title: original.title,
-			bio: original.bio ?? '',
 			tags: [...original.tags],
 			avatar: original.avatar ? { ...original.avatar } : null,
 			categoryAssignments: original.categoryAssignments.map((a) => ({
@@ -60,7 +59,6 @@ export async function copyProfilesToCreator(
 				profileId: newProfile.id,
 				sectionId: null,
 				title: font.title,
-				bio: font.bio ?? '',
 				tags: [...font.tags],
 				avatar: font.avatar ? { ...font.avatar } : null,
 				protocol: font.protocol,
@@ -95,7 +93,6 @@ export async function copyFontsToProfile(
 			profileId: targetProfileId,
 			sectionId: null,
 			title: original.title,
-			bio: original.bio ?? '',
 			tags: [...original.tags],
 			avatar: original.avatar ? { ...original.avatar } : null,
 			protocol: original.protocol,

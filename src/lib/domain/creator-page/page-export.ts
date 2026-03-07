@@ -27,7 +27,6 @@ export interface SectionSnapshot {
 /** Snapshot of a Font within the export (no internal IDs) */
 export interface FontSnapshot {
 	title: string;
-	bio: string;
 	tags: string[];
 	avatar: ImageAsset | null;
 	protocol: FontProtocol;
@@ -41,7 +40,6 @@ export interface FontSnapshot {
 /** Snapshot of a Profile within the export (no internal IDs) */
 export interface ProfileSnapshot {
 	title: string;
-	bio: string;
 	tags: string[];
 	avatar: ImageAsset | null;
 	categoryAssignments: CategoryAssignment[];

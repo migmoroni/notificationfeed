@@ -10,11 +10,9 @@
 	import ImageUpload from './ImageUpload.svelte';
 	import TagInput from './TagInput.svelte';
 	import CategoryTreePicker from './CategoryTreePicker.svelte';
-	import RichTextEditor from './RichTextEditor.svelte';
 
 	interface FontFormData {
 		title: string;
-		bio: string;
 		tags: string[];
 		avatar: ImageAsset | null;
 		protocol: FontProtocol;
@@ -40,7 +38,6 @@
 	const _init = initial;
 	const _initConfig = _init?.config;
 	let title = $state(_init?.title ?? '');
-	let bio = $state(_init?.bio ?? '');
 	let tags = $state<string[]>(_init?.tags ?? []);
 	let avatar = $state<ImageAsset | null>(_init?.avatar ?? null);
 	let protocol = $state<FontProtocol>(_init?.protocol ?? 'rss');
@@ -92,7 +89,6 @@
 
 		onsave({
 			title: title.trim(),
-			bio: bio.trim(),
 			tags,
 			avatar,
 			protocol,
@@ -127,15 +123,6 @@
 			bind:value={title}
 			placeholder="Nome da font"
 			required
-		/>
-	</div>
-
-	<div class="space-y-2">
-		<Label>Bio</Label>
-		<RichTextEditor
-			value={bio}
-			onchange={(v) => (bio = v)}
-			placeholder="Descreva esta font…"
 		/>
 	</div>
 

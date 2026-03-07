@@ -149,7 +149,8 @@ export async function seedMockData(): Promise<void> {
 		},
 		profiles: [
 			{
-				title: 'Frontend Sources',			bio: '',				tags: ['frontend', 'web'],
+				title: 'Frontend Sources',
+				tags: ['frontend', 'web'],
 				avatar: null,
 				categoryAssignments: [
 					{ treeId: 'subject', categoryIds: ['subj-tech-webdev'] },
@@ -157,7 +158,8 @@ export async function seedMockData(): Promise<void> {
 				],
 				fonts: [
 					{
-						title: 'Svelte Blog (Atom)',					bio: '',						tags: ['svelte'],
+						title: 'Svelte Blog (Atom)',
+						tags: ['svelte'],
 						avatar: null,
 						protocol: 'atom' as const,
 						config: { url: 'https://svelte.dev/blog/rss.xml' },
@@ -220,7 +222,6 @@ export async function seedMockData(): Promise<void> {
 		creatorPageId: IDS.pageTechBlog,
 		sectionId: null,
 		title: 'Tech Sources',
-		bio: '',
 		tags: ['tech', 'development'],
 		avatar: null,
 		categoryAssignments: [
@@ -238,7 +239,6 @@ export async function seedMockData(): Promise<void> {
 		creatorPageId: null,
 		sectionId: null,
 		title: 'News Sources',
-		bio: '',
 		tags: ['news', 'world'],
 		avatar: null,
 		categoryAssignments: [
@@ -257,7 +257,6 @@ export async function seedMockData(): Promise<void> {
 		profileId: IDS.profileTech,
 		sectionId: null,
 		title: 'Hacker News RSS',
-		bio: '',
 		tags: ['hackernews', 'tech'],
 		avatar: null,
 		protocol: 'rss',
@@ -275,7 +274,6 @@ export async function seedMockData(): Promise<void> {
 		profileId: IDS.profileNews,
 		sectionId: null,
 		title: 'BBC World RSS',
-		bio: '',
 		tags: ['bbc', 'world'],
 		avatar: null,
 		protocol: 'rss',
@@ -291,7 +289,6 @@ export async function seedMockData(): Promise<void> {
 		profileId: IDS.profileTech,
 		sectionId: null,
 		title: 'Svelte Blog (Atom)',
-		bio: '',
 		tags: ['svelte', 'framework'],
 		avatar: null,
 		protocol: 'atom',
@@ -309,7 +306,6 @@ export async function seedMockData(): Promise<void> {
 		profileId: IDS.profileTech,
 		sectionId: null,
 		title: 'Nostr Dev Updates',
-		bio: '',
 		tags: ['nostr', 'protocol'],
 		avatar: null,
 		protocol: 'nostr',
@@ -327,7 +323,6 @@ export async function seedMockData(): Promise<void> {
 		creatorPageId: IDS.pageTechBlog,
 		sectionId: null,
 		title: 'Security & Privacy',
-		bio: '',
 		tags: ['security', 'privacy', 'infosec'],
 		avatar: null,
 		categoryAssignments: [
@@ -346,7 +341,6 @@ export async function seedMockData(): Promise<void> {
 		creatorPageId: IDS.pageNewsDaily,
 		sectionId: null,
 		title: 'Science & Health',
-		bio: '',
 		tags: ['science', 'health', 'research'],
 		avatar: null,
 		categoryAssignments: [
@@ -363,7 +357,6 @@ export async function seedMockData(): Promise<void> {
 		profileId: IDS.profileSecurity,
 		sectionId: null,
 		title: 'Krebs on Security',
-		bio: '',
 		tags: ['security', 'infosec'],
 		avatar: null,
 		protocol: 'rss',
@@ -381,7 +374,6 @@ export async function seedMockData(): Promise<void> {
 		profileId: IDS.profileScienceNews,
 		sectionId: null,
 		title: 'Nature News (Atom)',
-		bio: '',
 		tags: ['science', 'research'],
 		avatar: null,
 		protocol: 'atom',
@@ -401,7 +393,6 @@ export async function seedMockData(): Promise<void> {
 		creatorPageId: IDS.pageCreatorPublished,
 		sectionId: null,
 		title: 'Frontend Sources',
-		bio: '',
 		tags: ['frontend', 'web'],
 		avatar: null,
 		categoryAssignments: [
@@ -420,7 +411,6 @@ export async function seedMockData(): Promise<void> {
 		creatorPageId: IDS.pageCreatorDraft,
 		sectionId: null,
 		title: 'News Draft Profile',
-		bio: '',
 		tags: ['news'],
 		avatar: null,
 		categoryAssignments: [
@@ -438,7 +428,6 @@ export async function seedMockData(): Promise<void> {
 		profileId: IDS.profileCreator1,
 		sectionId: null,
 		title: 'Hacker News (Creator)',
-		bio: '',
 		tags: ['hackernews'],
 		avatar: null,
 		protocol: 'rss',
@@ -454,7 +443,6 @@ export async function seedMockData(): Promise<void> {
 		profileId: IDS.profileCreator1,
 		sectionId: null,
 		title: 'Svelte Blog (Creator)',
-		bio: '',
 		tags: ['svelte'],
 		avatar: null,
 		protocol: 'atom',

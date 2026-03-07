@@ -2,12 +2,12 @@
 	import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
 	import type { CategoryAssignment } from '$lib/domain/shared/category-assignment.js';
 	import { Input } from '$lib/components/ui/input/index.js';
+	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import ImageUpload from './ImageUpload.svelte';
 	import TagInput from './TagInput.svelte';
 	import CategoryTreePicker from './CategoryTreePicker.svelte';
-	import RichTextEditor from './RichTextEditor.svelte';
 
 	interface PageFormData {
 		title: string;
@@ -83,10 +83,11 @@
 
 	<div class="space-y-2">
 		<Label for="page-bio">Bio</Label>
-		<RichTextEditor
-			value={bio}
-			onchange={(v) => (bio = v)}
+		<Textarea
+			id="page-bio"
+			bind:value={bio}
 			placeholder="Descreva sua página…"
+			rows={3}
 		/>
 	</div>
 
