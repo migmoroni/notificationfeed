@@ -12,7 +12,7 @@
 
 	let exporting = $state(false);
 
-	let isPublished = $derived(page.publishedSnapshot !== null);
+	let isPublished = $derived(page.publishedVersion > 0);
 
 	async function handleExport() {
 		exporting = true;

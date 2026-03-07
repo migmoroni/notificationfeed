@@ -4,7 +4,6 @@
 
 import type { CreatorPageRepository, PageSyncStatus } from '$lib/domain/creator-page/creator-page.js';
 import type { CreatorPage, NewCreatorPage } from '$lib/domain/creator-page/creator-page.js';
-import type { PageExport } from '$lib/domain/creator-page/page-export.js';
 import { getDatabase } from './db.js';
 
 export function createCreatorPageStore(): CreatorPageRepository {
@@ -40,7 +39,6 @@ export function createCreatorPageStore(): CreatorPageRepository {
 				blossomRef: null,
 				syncStatus: 'local',
 				exportId: null,
-				publishedSnapshot: null,
 				publishedAt: null,
 				publishedVersion: 0,
 				createdAt: now,
@@ -79,12 +77,11 @@ export function createCreatorPageStore(): CreatorPageRepository {
 			await db.creatorPages.put(existing);
 		},
 
-		async setPublished(id: string, snapshot: PageExport, version: number): Promise<void> {
+		async setPublished(id: string, version: number): Promise<void> {
 			const db = await getDatabase();
 			const existing = await db.creatorPages.getById<CreatorPage>(id);
 			if (!existing) throw new Error(`CreatorPage not found: ${id}`);
 
-			existing.publishedSnapshot = snapshot;
 			existing.publishedAt = new Date();
 			existing.publishedVersion = version;
 			existing.syncStatus = 'exported';

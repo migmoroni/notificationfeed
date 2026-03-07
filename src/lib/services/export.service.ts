@@ -2,12 +2,12 @@
  * Export Service — builds and downloads .notfeed.json files.
  *
  * Only exports from published snapshots. The page must be published first.
- * The exported file is identical to the publishedSnapshot stored on the page.
+ * The exported file is loaded from the pagePublications store.
  */
 
 import type { PageExport } from '$lib/domain/creator-page/page-export.js';
 import { PAGE_EXPORT_EXTENSION, PAGE_EXPORT_MIME } from '$lib/domain/creator-page/page-export.js';
-import { creator } from '$lib/stores/creator.svelte.js';
+import { createPagePublicationStore } from '$lib/persistence/page-publication.store.js';
 
 /**
  * Download a PageExport as a .notfeed.json file.
@@ -38,13 +38,12 @@ export function downloadPageExport(pageExport: PageExport): void {
  * Throws if the page is not published.
  */
 export async function exportPage(pageId: string): Promise<void> {
-	const tree = creator.getPageTree(pageId);
-	if (!tree) throw new Error(`CreatorPage not found: ${pageId}`);
+	const pubRepo = createPagePublicationStore();
+	const publication = await pubRepo.getByPageId(pageId);
 
-	const { page } = tree;
-	if (!page.publishedSnapshot) {
+	if (!publication) {
 		throw new Error('A página precisa ser publicada antes de exportar.');
 	}
 
-	downloadPageExport(page.publishedSnapshot);
+	downloadPageExport(publication.snapshot);
 }

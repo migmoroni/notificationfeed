@@ -16,7 +16,7 @@
 	let showConfirm = $state(false);
 	let publishing = $state(false);
 
-	let isPublished = $derived(page.publishedSnapshot !== null);
+	let isPublished = $derived(page.publishedVersion > 0);
 	let versionLabel = $derived(
 		isPublished ? `v${page.publishedVersion}` : null
 	);

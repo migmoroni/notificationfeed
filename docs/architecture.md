@@ -155,7 +155,7 @@ A rota standalone (`/browse/profile/{id}`) detecta profiles dependentes e redire
 ## ADR-024: Publish como snapshot versionado
 
 **Contexto**: Creators editam CreatorPages livremente. Publicar deve gerar uma "foto" imutável da page atual, sem afetar o rascunho em edição.  
-**Decisão**: `publishPage()` no creator store constrói um `PageExport` snapshot a partir dos dados live (page + profiles + fonts), incrementa `publishedVersion` e persiste `publishedSnapshot`, `publishedAt` e `publishedVersion` no CreatorPage. O snapshot segue o mesmo formato de `.notfeed.json` para export. `exportId` é gerado via `crypto.randomUUID()` na primeira publicação.  
+**Decisão**: `publishPage()` no creator store constrói um `PageExport` snapshot a partir dos dados live (page + profiles + fonts), incrementa `publishedVersion` e persiste o snapshot em `pagePublications` (store dedicado, keyPath: `pageId`). `publishedAt` e `publishedVersion` são mantidos no CreatorPage como metadados leves. O snapshot segue o mesmo formato de `.notfeed.json` para export. `exportId` é gerado via `crypto.randomUUID()` na primeira publicação.  
 **Consequência**: Edições depois de publicar não aparecem no preview/export até nova publicação. Consumers que importam o `.notfeed.json` recebem exatamente o que foi publicado. Versionamento permite rastrear mudanças.
 
 ## ADR-025: Separação creator/consumer com ownerType

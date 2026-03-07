@@ -24,7 +24,7 @@
 		return { post, priority: 3 };
 	}
 
-	let publishedPages = $derived(creator.pages.filter((p) => p.publishedSnapshot !== null));
+	let publishedPages = $derived(creator.pages.filter((p) => p.publishedVersion > 0));
 
 	let allProfiles: Profile[] = $state([]);
 	let allFonts: Font[] = $state([]);

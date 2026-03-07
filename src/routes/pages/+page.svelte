@@ -92,7 +92,7 @@
 							</div>
 						</Card.Header>
 						<Card.Footer class="pt-0 gap-2">
-							{#if page.publishedSnapshot}
+							{#if page.publishedVersion > 0}
 								<Badge variant="secondary" class="gap-1 text-xs">
 									<Check class="size-3" />
 									v{page.publishedVersion}

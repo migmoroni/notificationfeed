@@ -91,7 +91,6 @@ export async function seedMockData(): Promise<void> {
 		blossomRef: null,
 		syncStatus: 'local',
 		exportId: null,
-		publishedSnapshot: null,
 		publishedAt: null,
 		publishedVersion: 0,
 		createdAt: now,
@@ -114,7 +113,6 @@ export async function seedMockData(): Promise<void> {
 		blossomRef: null,
 		syncStatus: 'local',
 		exportId: null,
-		publishedSnapshot: null,
 		publishedAt: null,
 		publishedVersion: 0,
 		createdAt: now,
@@ -135,7 +133,7 @@ export async function seedMockData(): Promise<void> {
 
 	// ── Creator Pages (owned by creator user) ──────────────────────
 
-	// Published page — has a snapshot
+	// Published page — has a snapshot stored separately
 	const publishedSnapshot = {
 		exportId: 'export-mock-001',
 		version: 1,
@@ -172,6 +170,13 @@ export async function seedMockData(): Promise<void> {
 		exportedAt: new Date().toISOString()
 	};
 
+	await db.pagePublications.put({
+		pageId: IDS.pageCreatorPublished,
+		version: 1,
+		snapshot: publishedSnapshot,
+		publishedAt: now
+	});
+
 	await db.creatorPages.put({
 		id: IDS.pageCreatorPublished,
 		ownerId: IDS.creator,
@@ -185,7 +190,6 @@ export async function seedMockData(): Promise<void> {
 		blossomRef: null,
 		syncStatus: 'local',
 		exportId: 'export-mock-001',
-		publishedSnapshot,
 		publishedAt: now,
 		publishedVersion: 1,
 		createdAt: now,
@@ -206,7 +210,6 @@ export async function seedMockData(): Promise<void> {
 		blossomRef: null,
 		syncStatus: 'local',
 		exportId: null,
-		publishedSnapshot: null,
 		publishedAt: null,
 		publishedVersion: 0,
 		createdAt: now,

@@ -18,6 +18,7 @@ import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
 import { createProfileStore } from '$lib/persistence/profile.store.js';
 import { createFontStore } from '$lib/persistence/font.store.js';
 import { createSectionStore } from '$lib/persistence/section.store.js';
+import { createPagePublicationStore } from '$lib/persistence/page-publication.store.js';
 import { getDatabase } from '$lib/persistence/db.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
@@ -406,7 +407,15 @@ export const creator = {
 			})
 		};
 
-		await pageRepo.setPublished(pageId, $state.snapshot(snapshot), newVersion);
+		const pubRepo = createPagePublicationStore();
+		await pubRepo.save({
+			pageId,
+			version: newVersion,
+			snapshot: $state.snapshot(snapshot),
+			publishedAt: new Date()
+		});
+
+		await pageRepo.setPublished(pageId, newVersion);
 
 		// Update local state
 		const updatedPage = await pageRepo.getById(pageId);
