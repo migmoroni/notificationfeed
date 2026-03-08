@@ -56,10 +56,9 @@ export function createEntityFilter(source: EntityFilterDataSource): EntityFilter
 		},
 
 		getPages(): { id: string; title: string; avatarData: string | null; profileCount: number }[] {
-			const profiles = getActiveProfiles();
 			const pageProfileCount = new Map<string, number>();
 
-			for (const profile of profiles) {
+			for (const profile of source.getProfiles()) {
 				if (!profile.creatorPageId) continue;
 				pageProfileCount.set(
 					profile.creatorPageId,
@@ -67,29 +66,24 @@ export function createEntityFilter(source: EntityFilterDataSource): EntityFilter
 				);
 			}
 
-			const pageMap = new Map(pages.map((p) => [p.id, p]));
-			const results: { id: string; title: string; avatarData: string | null; profileCount: number }[] = [];
-
-			for (const [pageId, count] of pageProfileCount) {
-				const page = pageMap.get(pageId);
-				results.push({
-					id: pageId,
-					title: page?.title ?? `Page ${pageId.slice(-4)}`,
-					avatarData: page?.avatar?.data ?? null,
-					profileCount: count
-				});
-			}
-			return results.sort((a, b) => a.title.localeCompare(b.title));
+			return pages
+				.map((p) => ({
+					id: p.id,
+					title: p.title,
+					avatarData: p.avatar?.data ?? null,
+					profileCount: pageProfileCount.get(p.id) ?? 0
+				}))
+				.sort((a, b) => a.title.localeCompare(b.title));
 		},
 
 		getProfiles(pageId?: string): Profile[] {
-			const profiles = getActiveProfiles();
+			const profiles = source.getProfiles();
 			if (pageId) {
 				return profiles
 					.filter((p) => p.creatorPageId === pageId)
 					.sort((a, b) => a.title.localeCompare(b.title));
 			}
-			return profiles.sort((a, b) => a.title.localeCompare(b.title));
+			return [...profiles].sort((a, b) => a.title.localeCompare(b.title));
 		},
 
 		getFonts(profileId: string): Font[] {
@@ -99,7 +93,7 @@ export function createEntityFilter(source: EntityFilterDataSource): EntityFilter
 		},
 
 		getStandaloneProfiles(): Profile[] {
-			return getActiveProfiles()
+			return source.getProfiles()
 				.filter((p) => !p.creatorPageId)
 				.sort((a, b) => a.title.localeCompare(b.title));
 		},
@@ -178,6 +172,28 @@ export function createEntityFilter(source: EntityFilterDataSource): EntityFilter
 
 		get totalSelected(): number {
 			return selectedPageIds.size + selectedProfileIds.size + selectedFontIds.size;
+		},
+
+		getAllowedProfileIds(): Set<string> {
+			if (!this.hasFilters) return new Set();
+
+			const allowed = new Set<string>();
+			const allProfiles = source.getProfiles();
+
+			for (const pageId of selectedPageIds) {
+				const pageProfiles = allProfiles.filter((p) => p.creatorPageId === pageId);
+				const selectedInPage = pageProfiles.filter((p) => selectedProfileIds.has(p.id));
+				const profilesToUse = selectedInPage.length > 0 ? selectedInPage : pageProfiles;
+				for (const p of profilesToUse) allowed.add(p.id);
+			}
+
+			for (const profileId of selectedProfileIds) {
+				const profile = allProfiles.find((p) => p.id === profileId);
+				if (profile?.creatorPageId && selectedPageIds.has(profile.creatorPageId)) continue;
+				allowed.add(profileId);
+			}
+
+			return allowed;
 		},
 
 		getAllowedFontIds(): Set<string> {

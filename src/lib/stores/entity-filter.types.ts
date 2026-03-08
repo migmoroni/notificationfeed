@@ -32,5 +32,6 @@ export interface EntityFilterStore {
 	toggleFont(fontId: string): void;
 	clearAll(): void;
 
+	getAllowedProfileIds(): Set<string>;
 	getAllowedFontIds(): Set<string>;
 }

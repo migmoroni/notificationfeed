@@ -4,7 +4,7 @@
 	import { activeUser } from '$lib/stores/active-user.svelte.js';
 	import { creator } from '$lib/stores/creator.svelte.js';
 	import { previewFeed } from '$lib/stores/preview-feed.svelte.js';
-	import { browseEntityFilter } from '$lib/stores/browse-entity-filter.svelte.js';
+	import { previewEntityFilter } from '$lib/stores/preview-entity-filter.svelte.js';
 	import { createProfileStore } from '$lib/persistence/profile.store.js';
 	import { createFontStore } from '$lib/persistence/font.store.js';
 	import type { CreatorPage } from '$lib/domain/creator-page/creator-page.js';
@@ -48,7 +48,7 @@
 			allFonts = fs;
 			await previewFeed.loadPreviewFeed(publishedPages);
 		}
-		await browseEntityFilter.loadPages();
+		await previewEntityFilter.loadPages();
 		loading = false;
 	});
 
@@ -61,20 +61,19 @@
 
 	// Apply entity filter
 	let filteredEntities = $derived.by(() => {
-		if (!browseEntityFilter.hasFilters) return allEntities;
-		const allowedFonts = browseEntityFilter.getAllowedFontIds();
+		if (!previewEntityFilter.hasFilters) return allEntities;
+		const allowedFonts = previewEntityFilter.getAllowedFontIds();
+		const allowedProfiles = previewEntityFilter.getAllowedProfileIds();
 		return allEntities.filter((e) => {
 			if (e.type === 'font') return allowedFonts.has(e.data.id);
 			if (e.type === 'profile') {
-				return allFonts.some(
-					(f) => f.profileId === e.data.id && allowedFonts.has(f.id)
-				);
+				return allowedProfiles.has(e.data.id);
 			}
 			if (e.type === 'creator_page') {
 				return allProfiles.some(
 					(p) =>
 						p.creatorPageId === e.data.id &&
-						allFonts.some((f) => f.profileId === p.id && allowedFonts.has(f.id))
+						allowedProfiles.has(p.id)
 				);
 			}
 			return true;
@@ -136,7 +135,7 @@
 		<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? 'lg:grid-cols-[295px_1fr]' : 'md:grid-cols-[265px_1fr]'}">
 			<!-- Sidebar -->
 			<aside class="overflow-y-auto">
-				<EntityTreeFilter store={browseEntityFilter} />
+				<EntityTreeFilter store={previewEntityFilter} />
 			</aside>
 
 			<!-- Main content -->

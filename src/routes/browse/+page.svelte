@@ -14,6 +14,9 @@
 	let allowedFontIds = $derived(
 		browseEntityFilter.hasFilters ? [...browseEntityFilter.getAllowedFontIds()] : []
 	);
+	let allowedProfileIds = $derived(
+		browseEntityFilter.hasFilters ? browseEntityFilter.getAllowedProfileIds() : new Set<string>()
+	);
 
 	let hasAnyFilter = $derived(browse.hasFilters || browseEntityFilter.hasFilters);
 
@@ -34,20 +37,14 @@
 		return browse.entities.filter((e) => {
 			if (e.type === 'font') return fontSet.has(e.data.id);
 			if (e.type === 'profile') {
-				// keep profile if any of its fonts is allowed
-				return browse.entities.some(
-					(f) => f.type === 'font' && f.data.profileId === e.data.id && fontSet.has(f.data.id)
-				);
+				return allowedProfileIds.has(e.data.id);
 			}
 			if (e.type === 'creator_page') {
-				// keep page if any of its profiles has an allowed font
 				return browse.entities.some(
 					(p) =>
 						p.type === 'profile' &&
 						p.data.creatorPageId === e.data.id &&
-						browse.entities.some(
-							(f) => f.type === 'font' && f.data.profileId === p.data.id && fontSet.has(f.data.id)
-						)
+						allowedProfileIds.has(p.data.id)
 				);
 			}
 			return true;
