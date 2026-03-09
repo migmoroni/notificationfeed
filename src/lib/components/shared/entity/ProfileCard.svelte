@@ -74,7 +74,7 @@
 				<div class="flex-1 min-w-0">
 					<span class="text-sm font-medium truncate">{profile.title}</span>
 				</div>
-				<ArrowUpRight class="size-4 shrink-0 text-muted-foreground" />
+				
 			</a>
 
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -82,8 +82,13 @@
 				{#if currentPriority}
 					<PriorityBadge level={currentPriority} />
 				{/if}
+				
+				<!--
 				<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
 				<FollowButton following={isEnabled} onclick={handleFollow} />
+				-->
+
+				<ArrowUpRight class="size-4 shrink-0 text-muted-foreground" />
 			</div>
 		</div>
 	</div>

@@ -92,7 +92,7 @@
 						
 					</div>
 				</div>
-				<ArrowUpRight class="size-4 shrink-0 text-muted-foreground" />
+				
 			</a>
 
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -100,8 +100,12 @@
 				{#if currentPriority}
 					<PriorityBadge level={currentPriority} />
 				{/if}
+				<!--
 				<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
 				<ActiveButton active={isEnabled} onclick={handleToggleActive} />
+				-->
+
+				<ArrowUpRight class="size-4 shrink-0 text-muted-foreground" />
 			</div>
 		</div>
 	</div>
