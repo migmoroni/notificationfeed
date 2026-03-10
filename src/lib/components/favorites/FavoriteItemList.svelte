@@ -1,8 +1,6 @@
 <script lang="ts">
 	import type { FavoriteItem } from '$lib/stores/favorites.svelte.js';
 	import type { BrowseEntity } from '$lib/stores/browse.svelte.js';
-	import type { Profile } from '$lib/domain/profile/profile.js';
-	import type { Font } from '$lib/domain/font/font.js';
 	import { favorites } from '$lib/stores/favorites.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { EntityCard } from '$lib/components/shared/entity/index.js';
@@ -39,17 +37,10 @@
 		switch (item.entityType) {
 			case 'creator_page':
 				return `/favorites/creator/${entity.id}`;
-			case 'profile': {
-				const profile = entity as Profile;
-				if (profile.creatorPageId) {
-					return `/favorites/creator/${profile.creatorPageId}/profile/${profile.id}`;
-				}
-				return `/favorites/profile/${profile.id}`;
-			}
-			case 'font': {
-				const font = entity as Font;
-				return `/favorites/profile/${font.profileId}/font/${font.id}`;
-			}
+			case 'profile':
+				return `/favorites/profile/${entity.id}`;
+			case 'font':
+				return `/favorites/font/${entity.id}`;
 			default:
 				return '#';
 		}

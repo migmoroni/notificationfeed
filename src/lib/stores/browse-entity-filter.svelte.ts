@@ -9,29 +9,43 @@ import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
 import { createProfileStore } from '$lib/persistence/profile.store.js';
 import { createFontStore } from '$lib/persistence/font.store.js';
 import { createSectionStore } from '$lib/persistence/section.store.js';
+import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
+import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
 import { createEntityFilter } from './entity-filter.svelte.js';
+import type { CreatorProfile } from '$lib/domain/creator-profile/creator-profile.js';
+import type { ProfileFont } from '$lib/domain/profile-font/profile-font.js';
 
 const pageRepo = createCreatorPageStore();
 const profileRepo = createProfileStore();
 const fontRepo = createFontStore();
 const sectionRepo = createSectionStore();
+const creatorProfileRepo = createCreatorProfileStore();
+const profileFontRepo = createProfileFontStore();
 
 /** Loaded snapshots — reactive so the UI updates after loadPages(). */
 let loadedProfiles = $state<import('$lib/domain/profile/profile.js').Profile[]>([]);
 let loadedFonts = $state<import('$lib/domain/font/font.js').Font[]>([]);
+let loadedCreatorProfiles = $state<CreatorProfile[]>([]);
+let loadedProfileFonts = $state<ProfileFont[]>([]);
 
 export const browseEntityFilter = createEntityFilter({
 	async load() {
-		const [pages, profiles, fonts, sectionContainers] = await Promise.all([
+		const [pages, profiles, fonts, sectionContainers, creatorProfiles, profileFonts] = await Promise.all([
 			pageRepo.getAll(),
 			profileRepo.getAll(),
 			fontRepo.getAll(),
-			sectionRepo.getAll()
+			sectionRepo.getAll(),
+			creatorProfileRepo.getAll(),
+			profileFontRepo.getAll()
 		]);
 		loadedProfiles = profiles;
 		loadedFonts = fonts;
-		return { pages, profiles, fonts, sectionContainers };
+		loadedCreatorProfiles = creatorProfiles;
+		loadedProfileFonts = profileFonts;
+		return { pages, profiles, fonts, creatorProfiles, profileFonts, sectionContainers };
 	},
 	getProfiles() { return loadedProfiles; },
-	getFonts() { return loadedFonts; }
+	getFonts() { return loadedFonts; },
+	getCreatorProfiles() { return loadedCreatorProfiles; },
+	getProfileFonts() { return loadedProfileFonts; }
 });

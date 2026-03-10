@@ -1,13 +1,15 @@
 /**
- * Font — a technical distribution channel bound to a Profile.
+ * Font — a technical distribution channel for content.
  *
  * Encapsulates protocol-specific configuration (Nostr relay, RSS URL, Atom URL).
+ * Fonts are independent entities. Relationships to Profiles are managed via
+ * the ProfileFont junction store (N:N). A font can exist standalone or be
+ * linked to one or more Profiles.
+ *
  * Has its own optional categoryAssignments that aggregate upward:
  *   Font categories bubble up to Profile, which bubbles up to CreatorPage.
  *
- * Invariants:
- * - Always belongs to exactly one Profile. Orphan fonts are forbidden.
- * - Can be enabled/disabled by UserConsumer (via ConsumerState).
+ * Can be enabled/disabled by UserConsumer (via ConsumerState).
  */
 
 import type { ImageAsset } from '../shared/image-asset.js';
@@ -33,12 +35,6 @@ export type FontConfig = FontNostrConfig | FontRssConfig | FontAtomConfig;
 
 export interface Font {
 	id: string;
-
-	/** Profile this font belongs to (mandatory) */
-	profileId: string;
-
-	/** Section within the parent Profile (visual grouping only, null = unsectioned) */
-	sectionId: string | null;
 
 	title: string;
 	bio: string;

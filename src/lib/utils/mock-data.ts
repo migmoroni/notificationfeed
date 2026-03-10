@@ -32,7 +32,21 @@ const IDS = {
 	profileSecurity: '00000000-0000-0000-0000-000000004005',
 	profileScienceNews: '00000000-0000-0000-0000-000000004006',
 	fontRss3: '00000000-0000-0000-0000-000000005007',
-	fontAtom2: '00000000-0000-0000-0000-000000005008'
+	fontAtom2: '00000000-0000-0000-0000-000000005008',
+	// Junction IDs
+	cpTechBlog_Tech: '00000000-0000-0000-0000-000000006001',
+	cpTechBlog_Security: '00000000-0000-0000-0000-000000006002',
+	cpNewsDaily_Science: '00000000-0000-0000-0000-000000006003',
+	cpPublished_Creator1: '00000000-0000-0000-0000-000000006004',
+	cpDraft_Creator2: '00000000-0000-0000-0000-000000006005',
+	pfTech_Rss1: '00000000-0000-0000-0000-000000007001',
+	pfTech_Atom1: '00000000-0000-0000-0000-000000007002',
+	pfTech_Nostr1: '00000000-0000-0000-0000-000000007003',
+	pfNews_Rss2: '00000000-0000-0000-0000-000000007004',
+	pfSecurity_Rss3: '00000000-0000-0000-0000-000000007005',
+	pfScience_Atom2: '00000000-0000-0000-0000-000000007006',
+	pfCreator1_CreatorRss1: '00000000-0000-0000-0000-000000007007',
+	pfCreator1_CreatorAtom1: '00000000-0000-0000-0000-000000007008'
 } as const;
 
 // ── Seed check ─────────────────────────────────────────────────────────
@@ -222,8 +236,6 @@ export async function seedMockData(): Promise<void> {
 		id: IDS.profileTech,
 		ownerType: 'consumer',
 		ownerId: IDS.consumer,
-		creatorPageId: IDS.pageTechBlog,
-		sectionId: null,
 		title: 'Tech Sources',
 		tags: ['tech', 'development'],
 		avatar: null,
@@ -239,8 +251,6 @@ export async function seedMockData(): Promise<void> {
 		id: IDS.profileNews,
 		ownerType: 'consumer',
 		ownerId: IDS.consumer,
-		creatorPageId: null,
-		sectionId: null,
 		title: 'News Sources',
 		tags: ['news', 'world'],
 		avatar: null,
@@ -257,8 +267,6 @@ export async function seedMockData(): Promise<void> {
 
 	await db.fonts.put({
 		id: IDS.fontRss1,
-		profileId: IDS.profileTech,
-		sectionId: null,
 		title: 'Hacker News RSS',
 		tags: ['hackernews', 'tech'],
 		avatar: null,
@@ -274,8 +282,6 @@ export async function seedMockData(): Promise<void> {
 
 	await db.fonts.put({
 		id: IDS.fontRss2,
-		profileId: IDS.profileNews,
-		sectionId: null,
 		title: 'BBC World RSS',
 		tags: ['bbc', 'world'],
 		avatar: null,
@@ -289,8 +295,6 @@ export async function seedMockData(): Promise<void> {
 
 	await db.fonts.put({
 		id: IDS.fontAtom1,
-		profileId: IDS.profileTech,
-		sectionId: null,
 		title: 'Svelte Blog (Atom)',
 		tags: ['svelte', 'framework'],
 		avatar: null,
@@ -306,8 +310,6 @@ export async function seedMockData(): Promise<void> {
 
 	await db.fonts.put({
 		id: IDS.fontNostr1,
-		profileId: IDS.profileTech,
-		sectionId: null,
 		title: 'Nostr Dev Updates',
 		tags: ['nostr', 'protocol'],
 		avatar: null,
@@ -323,8 +325,6 @@ export async function seedMockData(): Promise<void> {
 		id: IDS.profileSecurity,
 		ownerType: 'consumer',
 		ownerId: IDS.consumer,
-		creatorPageId: IDS.pageTechBlog,
-		sectionId: null,
 		title: 'Security & Privacy',
 		tags: ['security', 'privacy', 'infosec'],
 		avatar: null,
@@ -341,8 +341,6 @@ export async function seedMockData(): Promise<void> {
 		id: IDS.profileScienceNews,
 		ownerType: 'consumer',
 		ownerId: IDS.consumer,
-		creatorPageId: IDS.pageNewsDaily,
-		sectionId: null,
 		title: 'Science & Health',
 		tags: ['science', 'health', 'research'],
 		avatar: null,
@@ -357,8 +355,6 @@ export async function seedMockData(): Promise<void> {
 
 	await db.fonts.put({
 		id: IDS.fontRss3,
-		profileId: IDS.profileSecurity,
-		sectionId: null,
 		title: 'Krebs on Security',
 		tags: ['security', 'infosec'],
 		avatar: null,
@@ -374,8 +370,6 @@ export async function seedMockData(): Promise<void> {
 
 	await db.fonts.put({
 		id: IDS.fontAtom2,
-		profileId: IDS.profileScienceNews,
-		sectionId: null,
 		title: 'Nature News (Atom)',
 		tags: ['science', 'research'],
 		avatar: null,
@@ -393,8 +387,6 @@ export async function seedMockData(): Promise<void> {
 		id: IDS.profileCreator1,
 		ownerType: 'creator',
 		ownerId: IDS.creator,
-		creatorPageId: IDS.pageCreatorPublished,
-		sectionId: null,
 		title: 'Frontend Sources',
 		tags: ['frontend', 'web'],
 		avatar: null,
@@ -411,8 +403,6 @@ export async function seedMockData(): Promise<void> {
 		id: IDS.profileCreator2,
 		ownerType: 'creator',
 		ownerId: IDS.creator,
-		creatorPageId: IDS.pageCreatorDraft,
-		sectionId: null,
 		title: 'News Draft Profile',
 		tags: ['news'],
 		avatar: null,
@@ -428,8 +418,6 @@ export async function seedMockData(): Promise<void> {
 
 	await db.fonts.put({
 		id: IDS.fontCreatorRss1,
-		profileId: IDS.profileCreator1,
-		sectionId: null,
 		title: 'Hacker News (Creator)',
 		tags: ['hackernews'],
 		avatar: null,
@@ -443,8 +431,6 @@ export async function seedMockData(): Promise<void> {
 
 	await db.fonts.put({
 		id: IDS.fontCreatorAtom1,
-		profileId: IDS.profileCreator1,
-		sectionId: null,
 		title: 'Svelte Blog (Creator)',
 		tags: ['svelte'],
 		avatar: null,
@@ -455,6 +441,25 @@ export async function seedMockData(): Promise<void> {
 		createdAt: now,
 		updatedAt: now
 	});
+
+	// ── CreatorProfile Junctions ────────────────────────────────────
+
+	await db.creatorProfiles.put({ id: IDS.cpTechBlog_Tech, creatorPageId: IDS.pageTechBlog, profileId: IDS.profileTech, sectionId: null, order: 0 });
+	await db.creatorProfiles.put({ id: IDS.cpTechBlog_Security, creatorPageId: IDS.pageTechBlog, profileId: IDS.profileSecurity, sectionId: null, order: 1 });
+	await db.creatorProfiles.put({ id: IDS.cpNewsDaily_Science, creatorPageId: IDS.pageNewsDaily, profileId: IDS.profileScienceNews, sectionId: null, order: 0 });
+	await db.creatorProfiles.put({ id: IDS.cpPublished_Creator1, creatorPageId: IDS.pageCreatorPublished, profileId: IDS.profileCreator1, sectionId: null, order: 0 });
+	await db.creatorProfiles.put({ id: IDS.cpDraft_Creator2, creatorPageId: IDS.pageCreatorDraft, profileId: IDS.profileCreator2, sectionId: null, order: 0 });
+
+	// ── ProfileFont Junctions ───────────────────────────────────────
+
+	await db.profileFonts.put({ id: IDS.pfTech_Rss1, profileId: IDS.profileTech, fontId: IDS.fontRss1, sectionId: null, order: 0 });
+	await db.profileFonts.put({ id: IDS.pfTech_Atom1, profileId: IDS.profileTech, fontId: IDS.fontAtom1, sectionId: null, order: 1 });
+	await db.profileFonts.put({ id: IDS.pfTech_Nostr1, profileId: IDS.profileTech, fontId: IDS.fontNostr1, sectionId: null, order: 2 });
+	await db.profileFonts.put({ id: IDS.pfNews_Rss2, profileId: IDS.profileNews, fontId: IDS.fontRss2, sectionId: null, order: 0 });
+	await db.profileFonts.put({ id: IDS.pfSecurity_Rss3, profileId: IDS.profileSecurity, fontId: IDS.fontRss3, sectionId: null, order: 0 });
+	await db.profileFonts.put({ id: IDS.pfScience_Atom2, profileId: IDS.profileScienceNews, fontId: IDS.fontAtom2, sectionId: null, order: 0 });
+	await db.profileFonts.put({ id: IDS.pfCreator1_CreatorRss1, profileId: IDS.profileCreator1, fontId: IDS.fontCreatorRss1, sectionId: null, order: 0 });
+	await db.profileFonts.put({ id: IDS.pfCreator1_CreatorAtom1, profileId: IDS.profileCreator1, fontId: IDS.fontCreatorAtom1, sectionId: null, order: 1 });
 
 	// ── ConsumerStates ──────────────────────────────────────────────
 

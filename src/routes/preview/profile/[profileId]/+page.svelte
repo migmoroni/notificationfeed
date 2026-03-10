@@ -5,7 +5,4 @@
 	const profileId = $derived(page.params.profileId!);
 </script>
 
-<ProfilePage
-	{profileId}
-	baseHref="/browse"
-/>
+<ProfilePage {profileId} baseHref="/preview" />

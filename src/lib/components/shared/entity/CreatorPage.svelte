@@ -13,6 +13,8 @@
 	import { createFontStore } from '$lib/persistence/font.store.js';
 	import { createSectionStore } from '$lib/persistence/section.store.js';
 	import { createCategoryStore } from '$lib/persistence/category.store.js';
+	import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
+	import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
 	import { getPosts } from '$lib/persistence/post.store.js';
 	import ProfileCard from './ProfileCard.svelte';
 	import { PostCard } from '$lib/components/feed/index.js';
@@ -42,12 +44,17 @@
 
 	let { creatorId, baseHref }: Props = $props();
 
+	import type { CreatorProfile } from '$lib/domain/creator-profile/creator-profile.js';
+	import type { ProfileFont } from '$lib/domain/profile-font/profile-font.js';
+
 	let creatorPage = $state<CreatorPage | null>(null);
 	let profiles: Profile[] = $state([]);
 	let allFonts: Font[] = $state([]);
 	let sections: Section[] = $state([]);
 	let posts: CanonicalPost[] = $state([]);
 	let categoryLabels: string[] = $state([]);
+	let cpJunctions: CreatorProfile[] = $state([]);
+	let pfJunctions: ProfileFont[] = $state([]);
 	let loading = $state(true);
 	let notFound = $state(false);
 
@@ -61,11 +68,14 @@
 
 	let sortedPosts: SortedPost[] = $derived.by(() => {
 		if (posts.length === 0) return [];
-		const contexts: PriorityContext[] = allFonts.map(f => ({
-			fontId: f.id,
-			profileId: f.profileId,
-			creatorPageId: creatorId
-		}));
+		const contexts: PriorityContext[] = allFonts.map(f => {
+			const pf = pfJunctions.find((j) => j.fontId === f.id);
+			return {
+				fontId: f.id,
+				profileId: pf?.profileId ?? '',
+				creatorPageId: creatorId
+			};
+		});
 		const priorityMap = buildPriorityMap(contexts, consumer.stateMap);
 		return sortByPriority(posts, priorityMap);
 	});
@@ -77,6 +87,8 @@
 			const fontStore = createFontStore();
 			const sectionStore = createSectionStore();
 			const categoryStore = createCategoryStore();
+			const cpRepo = createCreatorProfileStore();
+			const pfRepo = createProfileFontStore();
 
 			const found = await pageStore.getById(creatorId);
 			if (!found) {
@@ -86,15 +98,28 @@
 			}
 
 			creatorPage = found;
-			profiles = await profileStore.getByCreatorPageId(creatorId);
+
+			// Load profiles via junction
+			const allCp = await cpRepo.getByCreatorPageId(creatorId);
+			cpJunctions = allCp;
+			const profileIds = new Set(allCp.map((cp) => cp.profileId));
+			const allProfiles = await profileStore.getAll();
+			profiles = allProfiles.filter((p) => profileIds.has(p.id));
+
 			const container = await sectionStore.getByContainer(creatorId);
 			sections = container?.sections ?? [];
 
+			// Load fonts via junction
 			const fonts: Font[] = [];
 			const allPosts: CanonicalPost[] = [];
+			const allPf: ProfileFont[] = [];
 
 			for (const profile of profiles) {
-				const profileFonts = await fontStore.getByProfileId(profile.id);
+				const pfs = await pfRepo.getByProfileId(profile.id);
+				allPf.push(...pfs);
+				const fontIds = new Set(pfs.map((pf) => pf.fontId));
+				const allFontsList = await fontStore.getAll();
+				const profileFonts = allFontsList.filter((f) => fontIds.has(f.id));
 				fonts.push(...profileFonts);
 
 				for (const font of profileFonts) {
@@ -103,6 +128,7 @@
 				}
 			}
 
+			pfJunctions = allPf;
 			allFonts = fonts;
 			posts = allPosts;
 
@@ -162,11 +188,11 @@
 	}
 
 	function profilePageHref(profileId: string): string {
-		return `${baseHref}/creator/${creatorId}/profile/${profileId}`;
+		return `${baseHref}/profile/${profileId}`;
 	}
 
 	function fontPageHref(profileId: string, fontId: string): string {
-		return `${baseHref}/creator/${creatorId}/profile/${profileId}/font/${fontId}`;
+		return `${baseHref}/font/${fontId}`;
 	}
 </script>
 
@@ -262,7 +288,7 @@
 				<!-- Section-grouped layout -->
 				<div class="flex flex-col gap-4">
 					{#each sections as section (section.id)}
-						{@const sectionProfiles = profiles.filter((p) => p.sectionId === section.id)}
+						{@const sectionProfiles = profiles.filter((p) => cpJunctions.find((cp) => cp.profileId === p.id)?.sectionId === section.id)}
 						<div class="rounded-lg border" style="border-left: 4px solid {section.color};">
 							<div class="flex items-center gap-2 px-3 py-2">
 								{#if !section.hideTitle}
@@ -288,7 +314,10 @@
 
 					<!-- Unsectioned profiles -->
 					{#if true}
-						{@const unsectioned = profiles.filter((p) => p.sectionId === null)}
+						{@const unsectioned = profiles.filter((p) => {
+							const cp = cpJunctions.find((cp) => cp.profileId === p.id);
+							return !cp?.sectionId;
+						})}
 						{#if unsectioned.length > 0}
 							<div class="text-xs text-muted-foreground uppercase tracking-wider px-1">Sem seção</div>
 							<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">

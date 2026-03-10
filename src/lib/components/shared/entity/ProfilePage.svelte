@@ -13,6 +13,8 @@
 	import { createSectionStore } from '$lib/persistence/section.store.js';
 	import { createCategoryStore } from '$lib/persistence/category.store.js';
 	import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
+	import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
+	import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
 	import { getPosts } from '$lib/persistence/post.store.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
@@ -48,10 +50,13 @@
 
 	let { profileId, baseHref }: Props = $props();
 
+	import type { ProfileFont } from '$lib/domain/profile-font/profile-font.js';
+
 	let profile = $state<Profile | null>(null);
 	let parentPage = $state<CreatorPage | null>(null);
 	let fonts: Font[] = $state([]);
 	let fontSections: Section[] = $state([]);
+	let pfJunctions: ProfileFont[] = $state([]);
 	let posts: CanonicalPost[] = $state([]);
 	let categoryLabels: string[] = $state([]);
 	let loading = $state(true);
@@ -66,8 +71,8 @@
 		if (posts.length === 0) return [];
 		const contexts: PriorityContext[] = fonts.map(f => ({
 			fontId: f.id,
-			profileId: f.profileId,
-			creatorPageId: profile?.creatorPageId ?? null
+			profileId: profileId,
+			creatorPageId: parentPage?.id ?? null
 		}));
 		const priorityMap = buildPriorityMap(contexts, consumer.stateMap);
 		return sortByPriority(posts, priorityMap);
@@ -82,6 +87,8 @@
 			const sectionStore = createSectionStore();
 			const categoryStore = createCategoryStore();
 			const pageStore = createCreatorPageStore();
+			const cpRepo = createCreatorProfileStore();
+			const pfRepo = createProfileFontStore();
 
 			const found = await profileStore.getById(profileId);
 			if (!found) {
@@ -91,13 +98,20 @@
 			}
 
 			profile = found;
-			
-			if (profile.creatorPageId) {
-				parentPage = await pageStore.getById(profile.creatorPageId);
+
+			// Load parent page via junction
+			const cpLinks = await cpRepo.getByProfileId(profileId);
+			if (cpLinks.length > 0) {
+				parentPage = await pageStore.getById(cpLinks[0].creatorPageId);
 			}
 
-			// Load fonts
-			fonts = await fontStore.getByProfileId(profileId);
+			// Load fonts via junction
+			const pfs = await pfRepo.getByProfileId(profileId);
+			pfJunctions = pfs;
+			const fontIds = new Set(pfs.map((pf) => pf.fontId));
+			const allFonts = await fontStore.getAll();
+			fonts = allFonts.filter((f) => fontIds.has(f.id));
+
 			const container = await sectionStore.getByContainer(profileId);
 			fontSections = container?.sections ?? [];
 
@@ -165,14 +179,11 @@
 	}
 
 	function fontPageHref(fontId: string): string {
-		if (profile?.creatorPageId) {
-			return `${baseHref}/creator/${profile.creatorPageId}/profile/${profileId}/font/${fontId}`;
-		}
-		return `${baseHref}/profile/${profileId}/font/${fontId}`;
+		return `${baseHref}/font/${fontId}`;
 	}
 
 	let creatorPageHref = $derived(
-		profile?.creatorPageId ? `${baseHref}/creator/${profile.creatorPageId}` : null
+		parentPage ? `${baseHref}/creator/${parentPage.id}` : null
 	);
 
 	let postLimit = $derived(layout.isExpanded ? 12 : 6);
@@ -267,7 +278,7 @@
 				<!-- Section-grouped layout -->
 				<div class="flex flex-col gap-4">
 					{#each fontSections as section (section.id)}
-						{@const sectionFonts = fonts.filter((f) => f.sectionId === section.id)}
+						{@const sectionFonts = fonts.filter((f) => pfJunctions.find((pf) => pf.fontId === f.id)?.sectionId === section.id)}
 						<div class="rounded-lg border" style="border-left: 3px solid {section.color};">
 							<div class="flex items-center gap-2 px-3 py-2">
 								{#if !section.hideTitle}
@@ -290,7 +301,10 @@
 
 					<!-- Unsectioned fonts -->
 					{#if true}
-						{@const unsectioned = fonts.filter((f) => f.sectionId === null)}
+						{@const unsectioned = fonts.filter((f) => {
+							const pf = pfJunctions.find((pf) => pf.fontId === f.id);
+							return !pf?.sectionId;
+						})}
 						{#if unsectioned.length > 0}
 							<div class="text-xs text-muted-foreground uppercase tracking-wider px-1">Sem seção</div>
 							<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">

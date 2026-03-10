@@ -40,12 +40,7 @@
 				return allowedProfileIds.has(e.data.id);
 			}
 			if (e.type === 'creator_page') {
-				return browse.entities.some(
-					(p) =>
-						p.type === 'profile' &&
-						p.data.creatorPageId === e.data.id &&
-						allowedProfileIds.has(p.data.id)
-				);
+				return browseEntityFilter.getProfiles(e.data.id).some((p) => allowedProfileIds.has(p.id));
 			}
 			return true;
 		});

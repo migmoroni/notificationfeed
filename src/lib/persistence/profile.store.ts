@@ -1,10 +1,5 @@
 /**
  * Profile store — implements ProfileRepository using the local database.
- *
- * Profiles have two lifecycle modes:
- * - Standalone (creatorPageId = null) — independent aggregate roots.
- * - Dependent (creatorPageId = string) — children of a CreatorPage aggregate,
- *   queried via getByCreatorPageId().
  */
 
 import type { ProfileRepository } from '$lib/domain/profile/profile.repository.js';
@@ -31,11 +26,6 @@ export function createProfileStore(): ProfileRepository {
 				return profiles.filter((p) => p.ownerType === ownerType);
 			}
 			return profiles;
-		},
-
-		async getByCreatorPageId(creatorPageId: string): Promise<Profile[]> {
-			const db = await getDatabase();
-			return db.profiles.query<Profile>('creatorPageId', creatorPageId);
 		},
 
 		async getByCategoryIds(categoryIds: string[]): Promise<Profile[]> {

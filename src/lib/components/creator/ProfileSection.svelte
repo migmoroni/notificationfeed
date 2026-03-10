@@ -71,13 +71,16 @@
 	let newFontSectionHideTitle = $state(false);
 	let showNewFontSectionEmojiPicker = $state(false);
 
+	type AugProfile = Profile & { sectionId: string | null };
+	type AugFont = Font & { sectionId: string | null };
+
 	let profiles = $derived(creator.getProfilesForPage(pageId));
 	let pageSections = $derived(creator.getSectionsForContainer('creator', pageId));
 	let unsectionedProfiles = $derived(profiles.filter((p) => p.sectionId === null));
 
 	// Group profiles by sectionId
 	let profilesBySection = $derived.by(() => {
-		const grouped = new Map<string | null, Profile[]>();
+		const grouped = new Map<string | null, AugProfile[]>();
 		for (const p of profiles) {
 			const key = p.sectionId;
 			if (!grouped.has(key)) grouped.set(key, []);
@@ -189,10 +192,11 @@
 
 	// ── Profile CRUD ─────────────────────────────────────────────────
 
-	async function handleAddProfile(data: Omit<NewProfile, 'ownerType' | 'ownerId' | 'creatorPageId' | 'sectionId'>, sectionId: string | null = null) {
+	async function handleAddProfile(data: Omit<NewProfile, 'ownerType' | 'ownerId'>, sectionId: string | null = null) {
 		saving = true;
 		try {
-			const profile = await creator.createProfile({ ...data, creatorPageId: pageId, sectionId });
+			const profile = await creator.createProfile(data);
+			await creator.addProfileToPage({ creatorPageId: pageId, profileId: profile.id, sectionId, order: profiles.length });
 			showAddProfile = false;
 			addProfileToSectionId = null;
 			expandedProfiles = new Set([...expandedProfiles, profile.id]);
@@ -217,15 +221,18 @@
 	}
 
 	async function handleMoveProfileToSection(profileId: string, sectionId: string | null) {
-		await creator.updateProfile(profileId, { sectionId });
+		const cp = creator.creatorProfiles.find((c) => c.creatorPageId === pageId && c.profileId === profileId);
+		if (cp) await creator.updateCreatorProfile(cp.id, { sectionId });
 	}
 
 	// ── Font CRUD ────────────────────────────────────────────────────
 
-	async function handleAddFont(profileId: string, data: Omit<NewFont, 'profileId' | 'sectionId'>, sectionId: string | null = null) {
+	async function handleAddFont(profileId: string, data: Omit<NewFont, never>, sectionId: string | null = null) {
 		saving = true;
 		try {
-			await creator.createFont({ ...data, profileId, sectionId });
+			const font = await creator.createFont(data);
+			const existingFonts = creator.getFontsForProfile(profileId);
+			await creator.addFontToProfile({ profileId, fontId: font.id, sectionId, order: existingFonts.length });
 			addFontToProfileId = null;
 		} finally {
 			saving = false;
@@ -248,12 +255,14 @@
 	}
 
 	async function handleMoveFontToSection(fontId: string, sectionId: string | null) {
-		await creator.updateFont(fontId, { sectionId });
+		// Find the profile this font belongs to in the current context
+		const pf = creator.profileFonts.find((p) => p.fontId === fontId);
+		if (pf) await creator.updateProfileFont(pf.id, { sectionId });
 	}
 </script>
 
 <!-- ═══ Font card snippet ═══ -->
-{#snippet fontCard(font: Font, profileId: string, profileSections: Section[])}
+{#snippet fontCard(font: Font & { sectionId: string | null }, profileId: string, profileSections: Section[])}
 	<div class="flex items-center gap-2 px-3 py-2 rounded-md border bg-background text-sm">
 		{#if font.avatar?.data}
 			<div class="shrink-0 w-7 h-7 rounded overflow-hidden bg-muted">
@@ -318,7 +327,7 @@
 {#snippet fontList(profile: Profile)}
 	{@const fonts = creator.getFontsForProfile(profile.id)}
 	{@const profileSections = creator.getSectionsForContainer('profile', profile.id)}
-	{@const fontsBySection = (() => { const m = new Map<string | null, Font[]>(); for (const f of fonts) { const k = f.sectionId; if (!m.has(k)) m.set(k, []); m.get(k)!.push(f); } return m; })()}
+	{@const fontsBySection = (() => { const m = new Map<string | null, AugFont[]>(); for (const f of fonts) { const k = f.sectionId; if (!m.has(k)) m.set(k, []); m.get(k)!.push(f); } return m; })()}
 	{@const unsectionedFonts = fontsBySection.get(null) ?? []}
 
 	<div class="space-y-2">
@@ -474,7 +483,7 @@
 {/snippet}
 
 <!-- ═══ Profile card snippet ═══ -->
-{#snippet profileCard(profile: Profile)}
+{#snippet profileCard(profile: Profile & { sectionId: string | null })}
 	{@const fonts = creator.getFontsForProfile(profile.id)}
 	{@const isExpanded = expandedProfiles.has(profile.id)}
 

@@ -1,7 +1,7 @@
 /**
  * EntityFilterStore — shared interface for hierarchical Page/Profile/Font filters.
  *
- * Both `feedEntityFilter` and `browseEntityFilter` satisfy this interface,
+ * All three filter instances (feed, browse, preview) satisfy this interface,
  * allowing EntityTreeFilter component to be reused across pages.
  */
 
@@ -18,9 +18,10 @@ export interface EntityFilterStore {
 
 	loadPages(): Promise<void>;
 	getPages(): { id: string; title: string; avatarData: string | null; profileCount: number }[];
-	getProfiles(pageId?: string): Profile[];
-	getFonts(profileId: string): Font[];
+	getProfiles(pageId?: string): (Profile & { sectionId: string | null })[];
+	getFonts(profileId: string): (Font & { sectionId: string | null })[];
 	getStandaloneProfiles(): Profile[];
+	getStandaloneFonts(): Font[];
 	getSections(containerType: SectionContainerType, containerId: string): Section[];
 
 	isPageSelected(pageId: string): boolean;

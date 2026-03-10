@@ -13,6 +13,8 @@ import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
 import { createProfileStore } from '$lib/persistence/profile.store.js';
 import { createFontStore } from '$lib/persistence/font.store.js';
 import { createSectionStore } from '$lib/persistence/section.store.js';
+import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
+import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
 import { getDatabase } from '$lib/persistence/db.js';
 
 export interface ImportResult {
@@ -54,6 +56,8 @@ export async function importNotfeedJson(pageExport: PageExport, consumerId: stri
 	const profileStore = createProfileStore();
 	const fontStore = createFontStore();
 	const sectionStore = createSectionStore();
+	const cpStore = createCreatorProfileStore();
+	const pfStore = createProfileFontStore();
 
 	// Check for existing import with same exportId
 	const existing = await pageStore.getByExportId(pageExport.exportId);
@@ -115,7 +119,8 @@ export async function importNotfeedJson(pageExport: PageExport, consumerId: stri
 		});
 	}
 
-	// Create Profiles and their Fonts
+	// Create Profiles and their Fonts (with junction records)
+	let profileOrder = 0;
 	for (const profileSnapshot of pageExport.profiles) {
 		const profileSectionId = profileSnapshot.sectionId != null
 			? pageSectionMap.get(profileSnapshot.sectionId) ?? null
@@ -124,14 +129,20 @@ export async function importNotfeedJson(pageExport: PageExport, consumerId: stri
 		const profile = await profileStore.create({
 			ownerType: 'consumer',
 			ownerId: consumerId,
-			creatorPageId: creatorPage.id,
-			sectionId: profileSectionId,
 			title: profileSnapshot.title,
 			bio: profileSnapshot.bio ?? '',
 			tags: profileSnapshot.tags ?? [],
 			avatar: profileSnapshot.avatar ?? null,
 			categoryAssignments: profileSnapshot.categoryAssignments ?? [],
 			defaultEnabled: profileSnapshot.defaultEnabled ?? true
+		});
+
+		// Create CreatorProfile junction
+		await cpStore.create({
+			creatorPageId: creatorPage.id,
+			profileId: profile.id,
+			sectionId: profileSectionId,
+			order: profileOrder++
 		});
 
 		profileIds.push(profile.id);
@@ -161,14 +172,13 @@ export async function importNotfeedJson(pageExport: PageExport, consumerId: stri
 			});
 		}
 
+		let fontOrder = 0;
 		for (const fontSnapshot of (profileSnapshot.fonts ?? [])) {
 			const fontSectionId = fontSnapshot.sectionId != null
 				? fontSectionMap.get(fontSnapshot.sectionId) ?? null
 				: null;
 
 			const font = await fontStore.create({
-				profileId: profile.id,
-				sectionId: fontSectionId,
 				title: fontSnapshot.title,
 				bio: fontSnapshot.bio ?? '',
 				tags: fontSnapshot.tags ?? [],
@@ -177,6 +187,14 @@ export async function importNotfeedJson(pageExport: PageExport, consumerId: stri
 				config: fontSnapshot.config,
 				categoryAssignments: fontSnapshot.categoryAssignments ?? [],
 				defaultEnabled: fontSnapshot.defaultEnabled ?? true
+			});
+
+			// Create ProfileFont junction
+			await pfStore.create({
+				profileId: profile.id,
+				fontId: font.id,
+				sectionId: fontSectionId,
+				order: fontOrder++
 			});
 
 			fontIds.push(font.id);
@@ -211,6 +229,7 @@ function detectProtocol(url: string): 'rss' | 'atom' | null {
 export async function importSimpleUrls(urls: string[], consumerId: string): Promise<ImportResult> {
 	const profileStore = createProfileStore();
 	const fontStore = createFontStore();
+	const pfStore = createProfileFontStore();
 
 	const validUrls = urls
 		.map(u => u.trim())
@@ -230,8 +249,6 @@ export async function importSimpleUrls(urls: string[], consumerId: string): Prom
 	const profile = await profileStore.create({
 		ownerType: 'consumer',
 		ownerId: consumerId,
-		creatorPageId: null,
-		sectionId: null,
 		title: `Import (${new Date().toLocaleDateString('pt-BR')})`,
 		bio: '',
 		tags: ['importado'],
@@ -255,8 +272,6 @@ export async function importSimpleUrls(urls: string[], consumerId: string): Prom
 		}
 
 		const font = await fontStore.create({
-			profileId: profile.id,
-			sectionId: null,
 			title,
 			bio: '',
 			tags: [],
@@ -265,6 +280,14 @@ export async function importSimpleUrls(urls: string[], consumerId: string): Prom
 			config: { url },
 			categoryAssignments: [],
 			defaultEnabled: true
+		});
+
+		// Create ProfileFont junction
+		await pfStore.create({
+			profileId: profile.id,
+			fontId: font.id,
+			sectionId: null,
+			order: fontIds.length
 		});
 
 		fontIds.push(font.id);

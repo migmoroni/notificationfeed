@@ -9,6 +9,8 @@
  */
 
 import type { ConsumerState, PriorityLevel } from './consumer-state.js';
+import type { ProfileFont } from '../profile-font/profile-font.js';
+import type { CreatorProfile } from '../creator-profile/creator-profile.js';
 
 const DEFAULT_PRIORITY: PriorityLevel = 3;
 
@@ -69,6 +71,9 @@ export function resolveEffectivePriority(
 /**
  * Build a complete map of fontId → effective priority for all known fonts.
  * Called once when the feed needs to be sorted, then passed to the sorter.
+ *
+ * When multiple contexts exist for a font (N:N), the highest priority
+ * (lowest numeric value) wins.
  */
 export function buildPriorityMap(
 	contexts: PriorityContext[],
@@ -76,7 +81,73 @@ export function buildPriorityMap(
 ): Map<string, PriorityLevel> {
 	const map = new Map<string, PriorityLevel>();
 	for (const ctx of contexts) {
-		map.set(ctx.fontId, resolveEffectivePriority(ctx, stateMap));
+		const resolved = resolveEffectivePriority(ctx, stateMap);
+		const existing = map.get(ctx.fontId);
+		if (existing == null || resolved < existing) {
+			map.set(ctx.fontId, resolved);
+		}
 	}
 	return map;
+}
+
+/**
+ * Build all PriorityContexts from junction records.
+ *
+ * Each font may appear in multiple profiles (via ProfileFont), and each
+ * profile may appear in multiple pages (via CreatorProfile). This generates
+ * all possible paths through the junction chain for priority resolution.
+ *
+ * Fonts/profiles not in any junction also get a context (with null parents).
+ */
+export function buildContextsFromJunctions(
+	fontIds: string[],
+	profileFonts: ProfileFont[],
+	creatorProfiles: CreatorProfile[]
+): PriorityContext[] {
+	// Index: profileId → creatorPageIds
+	const profileToPages = new Map<string, string[]>();
+	for (const cp of creatorProfiles) {
+		let pages = profileToPages.get(cp.profileId);
+		if (!pages) {
+			pages = [];
+			profileToPages.set(cp.profileId, pages);
+		}
+		pages.push(cp.creatorPageId);
+	}
+
+	// Index: fontId → profileIds
+	const fontToProfiles = new Map<string, string[]>();
+	for (const pf of profileFonts) {
+		let profiles = fontToProfiles.get(pf.fontId);
+		if (!profiles) {
+			profiles = [];
+			fontToProfiles.set(pf.fontId, profiles);
+		}
+		profiles.push(pf.profileId);
+	}
+
+	const contexts: PriorityContext[] = [];
+
+	for (const fontId of fontIds) {
+		const profileIds = fontToProfiles.get(fontId);
+		if (!profileIds || profileIds.length === 0) {
+			// Standalone font — no profile, no page
+			contexts.push({ fontId, profileId: '', creatorPageId: null });
+			continue;
+		}
+
+		for (const profileId of profileIds) {
+			const pageIds = profileToPages.get(profileId);
+			if (!pageIds || pageIds.length === 0) {
+				// Font linked to profile, but profile is standalone
+				contexts.push({ fontId, profileId, creatorPageId: null });
+			} else {
+				for (const creatorPageId of pageIds) {
+					contexts.push({ fontId, profileId, creatorPageId });
+				}
+			}
+		}
+	}
+
+	return contexts;
 }

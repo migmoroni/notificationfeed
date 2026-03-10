@@ -10,9 +10,13 @@ import type { Profile, NewProfile } from '$lib/domain/profile/profile.js';
 import type { Font, NewFont } from '$lib/domain/font/font.js';
 import { createProfileStore } from '$lib/persistence/profile.store.js';
 import { createFontStore } from '$lib/persistence/font.store.js';
+import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
+import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
 
 const profileRepo = createProfileStore();
 const fontRepo = createFontStore();
+const cpRepo = createCreatorProfileStore();
+const pfRepo = createProfileFontStore();
 
 export interface CopyResult {
 	profiles: Profile[];
@@ -35,12 +39,10 @@ export async function copyProfilesToCreator(
 		const original = await profileRepo.getById(profileId);
 		if (!original) continue;
 
-		// Deep copy profile
+		// Deep copy profile (no FK fields — entity is independent)
 		const newProfile = await profileRepo.create({
 			ownerType: 'creator',
 			ownerId: creatorId,
-			creatorPageId,
-			sectionId: null,
 			title: original.title,
 			bio: original.bio ?? '',
 			tags: [...original.tags],
@@ -53,12 +55,21 @@ export async function copyProfilesToCreator(
 		});
 		copiedProfiles.push(newProfile);
 
-		// Deep copy fonts under this profile
-		const fonts = await fontRepo.getByProfileId(profileId);
-		for (const font of fonts) {
+		// Create CreatorProfile junction
+		await cpRepo.create({
+			creatorPageId,
+			profileId: newProfile.id,
+			sectionId: null,
+			order: copiedProfiles.length - 1
+		});
+
+		// Deep copy fonts under this profile via junction
+		const originalPfs = await pfRepo.getByProfileId(profileId);
+		for (const pf of originalPfs) {
+			const font = await fontRepo.getById(pf.fontId);
+			if (!font) continue;
+
 			const newFont = await fontRepo.create({
-				profileId: newProfile.id,
-				sectionId: null,
 				title: font.title,
 				bio: font.bio ?? '',
 				tags: [...font.tags],
@@ -72,6 +83,14 @@ export async function copyProfilesToCreator(
 				defaultEnabled: font.defaultEnabled
 			});
 			copiedFonts.push(newFont);
+
+			// Create ProfileFont junction
+			await pfRepo.create({
+				profileId: newProfile.id,
+				fontId: newFont.id,
+				sectionId: null,
+				order: copiedFonts.length - 1
+			});
 		}
 	}
 
@@ -92,8 +111,6 @@ export async function copyFontsToProfile(
 		if (!original) continue;
 
 		const newFont = await fontRepo.create({
-			profileId: targetProfileId,
-			sectionId: null,
 			title: original.title,
 			bio: original.bio ?? '',
 			tags: [...original.tags],
@@ -106,6 +123,15 @@ export async function copyFontsToProfile(
 			})),
 			defaultEnabled: original.defaultEnabled
 		});
+
+		// Create ProfileFont junction
+		await pfRepo.create({
+			profileId: targetProfileId,
+			fontId: newFont.id,
+			sectionId: null,
+			order: copiedFonts.length
+		});
+
 		copiedFonts.push(newFont);
 	}
 

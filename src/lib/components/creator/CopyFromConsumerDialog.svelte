@@ -4,6 +4,7 @@
 	import { copyProfilesToCreator } from '$lib/services/copy-consumer.service.js';
 	import { creator } from '$lib/stores/creator.svelte.js';
 	import { createProfileStore } from '$lib/persistence/profile.store.js';
+	import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
 	import { createFontStore } from '$lib/persistence/font.store.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -29,6 +30,7 @@
 	let copying = $state(false);
 
 	const profileRepo = createProfileStore();
+	const pfRepo = createProfileFontStore();
 	const fontRepo = createFontStore();
 
 	$effect(() => {
@@ -42,10 +44,11 @@
 			const consumerProfiles = allProfiles.filter((p) => p.ownerType === 'consumer');
 
 			const withFonts = await Promise.all(
-				consumerProfiles.map(async (p) => ({
-					...p,
-					fonts: await fontRepo.getByProfileId(p.id)
-				}))
+				consumerProfiles.map(async (p) => {
+					const pfs = await pfRepo.getByProfileId(p.id);
+					const fonts = await Promise.all(pfs.map((pf) => fontRepo.getById(pf.fontId)));
+					return { ...p, fonts: fonts.filter((f): f is Font => f !== null) };
+				})
 			);
 			profiles = withFonts;
 		} finally {

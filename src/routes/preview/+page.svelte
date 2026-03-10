@@ -5,11 +5,13 @@
 	import { creator } from '$lib/stores/creator.svelte.js';
 	import { previewFeed } from '$lib/stores/preview-feed.svelte.js';
 	import { previewEntityFilter } from '$lib/stores/preview-entity-filter.svelte.js';
-	import { createProfileStore } from '$lib/persistence/profile.store.js';
-	import { createFontStore } from '$lib/persistence/font.store.js';
+	import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
+	import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
 	import type { CreatorPage } from '$lib/domain/creator-page/creator-page.js';
 	import type { Profile } from '$lib/domain/profile/profile.js';
 	import type { Font } from '$lib/domain/font/font.js';
+	import type { CreatorProfile } from '$lib/domain/creator-profile/creator-profile.js';
+	import type { ProfileFont } from '$lib/domain/profile-font/profile-font.js';
 	import type { BrowseEntity } from '$lib/stores/browse.svelte.js';
 	import type { SortedPost } from '$lib/domain/shared/feed-sorter.js';
 	import { EntityCard } from '$lib/components/shared/entity/index.js';
@@ -28,24 +30,41 @@
 
 	let allProfiles: Profile[] = $state([]);
 	let allFonts: Font[] = $state([]);
+	let allCpJunctions: CreatorProfile[] = $state([]);
+	let allPfJunctions: ProfileFont[] = $state([]);
 	let loading = $state(true);
 
 	onMount(async () => {
 		if (publishedPages.length > 0) {
-			const profileStore = createProfileStore();
-			const fontStore = createFontStore();
+			const cpRepo = createCreatorProfileStore();
+			const pfRepo = createProfileFontStore();
+
+			const cps: CreatorProfile[] = [];
+			const pfs: ProfileFont[] = [];
 			const ps: Profile[] = [];
 			const fs: Font[] = [];
+
 			for (const pg of publishedPages) {
-				const pgProfiles = await profileStore.getByCreatorPageId(pg.id);
-				ps.push(...pgProfiles);
-				for (const p of pgProfiles) {
-					const pFonts = await fontStore.getByProfileId(p.id);
-					fs.push(...pFonts);
-				}
+				const pgCps = await cpRepo.getByCreatorPageId(pg.id);
+				cps.push(...pgCps);
 			}
+
+			const profileIds = new Set(cps.map((cp) => cp.profileId));
+			ps.push(...creator.profiles.filter((p) => profileIds.has(p.id)));
+
+			for (const p of ps) {
+				const pPfs = await pfRepo.getByProfileId(p.id);
+				pfs.push(...pPfs);
+			}
+
+			const fontIds = new Set(pfs.map((pf) => pf.fontId));
+			fs.push(...creator.fonts.filter((f) => fontIds.has(f.id)));
+
 			allProfiles = ps;
 			allFonts = fs;
+			allCpJunctions = cps;
+			allPfJunctions = pfs;
+
 			await previewFeed.loadPreviewFeed(publishedPages);
 		}
 		await previewEntityFilter.loadPages();
@@ -70,10 +89,10 @@
 				return allowedProfiles.has(e.data.id);
 			}
 			if (e.type === 'creator_page') {
-				return allProfiles.some(
-					(p) =>
-						p.creatorPageId === e.data.id &&
-						allowedProfiles.has(p.id)
+				return allCpJunctions.some(
+					(cp) =>
+						cp.creatorPageId === e.data.id &&
+						allowedProfiles.has(cp.profileId)
 				);
 			}
 			return true;
@@ -89,15 +108,10 @@
 		switch (entity.type) {
 			case 'creator_page':
 				return `/preview/creator/${entity.data.id}`;
-			case 'profile': {
-				const profile = entity.data as Profile;
-				return `/preview/creator/${profile.creatorPageId}/profile/${profile.id}`;
-			}
-			case 'font': {
-				const font = entity.data as Font;
-				const profile = allProfiles.find((p) => p.id === font.profileId);
-				return `/preview/creator/${profile?.creatorPageId}/profile/${font.profileId}/font/${font.id}`;
-			}
+			case 'profile':
+				return `/preview/profile/${entity.data.id}`;
+			case 'font':
+				return `/preview/font/${entity.data.id}`;
 		}
 	}
 </script>

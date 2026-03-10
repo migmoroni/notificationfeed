@@ -16,6 +16,8 @@ export interface Database {
 	creatorPages: TableOps;
 	profiles: TableOps;
 	fonts: TableOps;
+	creatorProfiles: TableOps;
+	profileFonts: TableOps;
 	categories: TableOps;
 	consumerStates: TableOps;
 	posts: TableOps;
@@ -64,10 +66,16 @@ async function initIndexedDB(): Promise<Database> {
 
 			const profileStore = idb.createObjectStore('profiles', { keyPath: 'id' });
 			profileStore.createIndex('ownerId', 'ownerId', { unique: false });
-			profileStore.createIndex('creatorPageId', 'creatorPageId', { unique: false });
 
-			const fontStore = idb.createObjectStore('fonts', { keyPath: 'id' });
-			fontStore.createIndex('profileId', 'profileId', { unique: false });
+			idb.createObjectStore('fonts', { keyPath: 'id' });
+
+			const cpfStore = idb.createObjectStore('creatorProfiles', { keyPath: 'id' });
+			cpfStore.createIndex('creatorPageId', 'creatorPageId', { unique: false });
+			cpfStore.createIndex('profileId', 'profileId', { unique: false });
+
+			const pfStore = idb.createObjectStore('profileFonts', { keyPath: 'id' });
+			pfStore.createIndex('profileId', 'profileId', { unique: false });
+			pfStore.createIndex('fontId', 'fontId', { unique: false });
 
 			const catStore = idb.createObjectStore('categories', { keyPath: 'id' });
 			catStore.createIndex('parentId', 'parentId', { unique: false });
@@ -93,6 +101,8 @@ async function initIndexedDB(): Promise<Database> {
 				creatorPages: createIndexedDBTable(idb, 'creatorPages'),
 				profiles: createIndexedDBTable(idb, 'profiles'),
 				fonts: createIndexedDBTable(idb, 'fonts'),
+				creatorProfiles: createIndexedDBTable(idb, 'creatorProfiles'),
+				profileFonts: createIndexedDBTable(idb, 'profileFonts'),
 				categories: createIndexedDBTable(idb, 'categories'),
 				consumerStates: createIndexedDBTable(idb, 'consumerStates'),
 				posts: createIndexedDBTable(idb, 'posts'),

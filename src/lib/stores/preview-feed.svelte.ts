@@ -13,7 +13,8 @@ import type { CreatorPage } from '$lib/domain/creator-page/creator-page.js';
 import type { Font } from '$lib/domain/font/font.js';
 import { getPosts } from '$lib/persistence/post.store.js';
 import { createFontStore } from '$lib/persistence/font.store.js';
-import { createProfileStore } from '$lib/persistence/profile.store.js';
+import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
+import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
 
@@ -28,7 +29,8 @@ let state = $state<PreviewFeedState>({
 });
 
 const fontRepo = createFontStore();
-const profileRepo = createProfileStore();
+const cpRepo = createCreatorProfileStore();
+const pfRepo = createProfileFontStore();
 
 // ── Exported accessor ──────────────────────────────────────────────────
 
@@ -46,15 +48,15 @@ export const previewFeed = {
 		state.loading = true;
 
 		try {
-			// Collect font IDs from published pages' profiles
+			// Collect font IDs from published pages via junctions
 			const fontIds = new Set<string>();
 
 			for (const page of publishedPages) {
-				const profiles = await profileRepo.getByCreatorPageId(page.id);
-				for (const profile of profiles) {
-					const fonts = await fontRepo.getByProfileId(profile.id);
-					for (const font of fonts) {
-						fontIds.add(font.id);
+				const cpJunctions = await cpRepo.getByCreatorPageId(page.id);
+				for (const cp of cpJunctions) {
+					const pfJunctions = await pfRepo.getByProfileId(cp.profileId);
+					for (const pf of pfJunctions) {
+						fontIds.add(pf.fontId);
 					}
 				}
 			}

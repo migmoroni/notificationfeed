@@ -14,10 +14,14 @@ import type { PageExport, ProfileSnapshot, FontSnapshot, SectionSnapshot } from 
 import type { Profile, NewProfile } from '$lib/domain/profile/profile.js';
 import type { Font, NewFont } from '$lib/domain/font/font.js';
 import type { Section, NewSection, SectionContainerType, SectionContainer } from '$lib/domain/section/section.js';
+import type { CreatorProfile, NewCreatorProfile } from '$lib/domain/creator-profile/creator-profile.js';
+import type { ProfileFont, NewProfileFont } from '$lib/domain/profile-font/profile-font.js';
 import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
 import { createProfileStore } from '$lib/persistence/profile.store.js';
 import { createFontStore } from '$lib/persistence/font.store.js';
 import { createSectionStore } from '$lib/persistence/section.store.js';
+import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
+import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
 import { createPagePublicationStore } from '$lib/persistence/page-publication.store.js';
 import { getDatabase } from '$lib/persistence/db.js';
 
@@ -26,10 +30,14 @@ import { getDatabase } from '$lib/persistence/db.js';
 interface CreatorStoreState {
 	user: UserCreator | null;
 	pages: CreatorPage[];
-	/** All profiles owned by this creator (across all pages) */
+	/** All profiles owned by this creator */
 	profiles: Profile[];
-	/** All fonts owned by this creator (across all pages) */
+	/** All fonts owned by this creator */
 	fonts: Font[];
+	/** N:N junctions: CreatorPage ↔ Profile */
+	creatorProfiles: CreatorProfile[];
+	/** N:N junctions: Profile ↔ Font */
+	profileFonts: ProfileFont[];
 	/** All section containers owned by this creator */
 	sectionContainers: SectionContainer[];
 	loading: boolean;
@@ -40,6 +48,8 @@ let state = $state<CreatorStoreState>({
 	pages: [],
 	profiles: [],
 	fonts: [],
+	creatorProfiles: [],
+	profileFonts: [],
 	sectionContainers: [],
 	loading: false
 });
@@ -48,29 +58,59 @@ const pageRepo = createCreatorPageStore();
 const profileRepo = createProfileStore();
 const fontRepo = createFontStore();
 const sectionRepo = createSectionStore();
+const creatorProfileRepo = createCreatorProfileStore();
+const profileFontRepo = createProfileFontStore();
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
 async function loadCreatorData(userId: string): Promise<void> {
-	const pages = await pageRepo.getByOwnerId(userId);
-	const profiles = await profileRepo.getByOwnerId(userId, 'creator');
-	const allFonts = await fontRepo.getAll();
+	const [pages, profiles, allFonts, allCreatorProfiles, allProfileFonts, sectionContainers] = await Promise.all([
+		pageRepo.getByOwnerId(userId),
+		profileRepo.getByOwnerId(userId, 'creator'),
+		fontRepo.getAll(),
+		creatorProfileRepo.getAll(),
+		profileFontRepo.getAll(),
+		sectionRepo.getAll()
+	]);
+
 	const profileIds = new Set(profiles.map((p) => p.id));
-	const fonts = allFonts.filter((f) => profileIds.has(f.profileId));
-	const sectionContainers = await sectionRepo.getAll();
+
+	// Keep only junctions referencing our profiles
+	const creatorProfiles = allCreatorProfiles.filter((cp) => profileIds.has(cp.profileId));
+	const profileFonts = allProfileFonts.filter((pf) => profileIds.has(pf.profileId));
+
+	// Fonts linked to our profiles
+	const fontIds = new Set(profileFonts.map((pf) => pf.fontId));
+	const fonts = allFonts.filter((f) => fontIds.has(f.id));
 
 	state.pages = pages;
 	state.profiles = profiles;
 	state.fonts = fonts;
+	state.creatorProfiles = creatorProfiles;
+	state.profileFonts = profileFonts;
 	state.sectionContainers = sectionContainers;
 }
 
-function getProfilesForPage(pageId: string): Profile[] {
-	return state.profiles.filter((p) => p.creatorPageId === pageId);
+function getProfilesForPage(pageId: string): (Profile & { sectionId: string | null })[] {
+	const cpJunctions = state.creatorProfiles.filter((cp) => cp.creatorPageId === pageId);
+	const profileIds = new Set(cpJunctions.map((cp) => cp.profileId));
+	return state.profiles
+		.filter((p) => profileIds.has(p.id))
+		.map((p) => {
+			const cp = cpJunctions.find((cp) => cp.profileId === p.id);
+			return { ...p, sectionId: cp?.sectionId ?? null };
+		});
 }
 
-function getFontsForProfile(profileId: string): Font[] {
-	return state.fonts.filter((f) => f.profileId === profileId);
+function getFontsForProfile(profileId: string): (Font & { sectionId: string | null })[] {
+	const pfJunctions = state.profileFonts.filter((pf) => pf.profileId === profileId);
+	const fontIds = new Set(pfJunctions.map((pf) => pf.fontId));
+	return state.fonts
+		.filter((f) => fontIds.has(f.id))
+		.map((f) => {
+			const pf = pfJunctions.find((pf) => pf.fontId === f.id);
+			return { ...f, sectionId: pf?.sectionId ?? null };
+		});
 }
 
 function getSectionsForContainer(containerType: SectionContainerType, containerId: string): Section[] {
@@ -95,6 +135,8 @@ export const creator = {
 	get pages() { return state.pages; },
 	get profiles() { return state.profiles; },
 	get fonts() { return state.fonts; },
+	get creatorProfiles() { return state.creatorProfiles; },
+	get profileFonts() { return state.profileFonts; },
 	get sectionContainers() { return state.sectionContainers; },
 	get loading() { return state.loading; },
 	get isReady() { return state.user !== null && !state.loading; },
@@ -124,16 +166,33 @@ export const creator = {
 	getFontsForProfile,
 	getSectionsForContainer,
 
-	getPageTree(pageId: string): { page: CreatorPage; sections: Section[]; profiles: (Profile & { fonts: Font[]; sections: Section[] })[] } | null {
+	getPageTree(pageId: string): { page: CreatorPage; sections: Section[]; profiles: (Profile & { fonts: (Font & { sectionId: string | null })[]; sections: Section[]; sectionId: string | null })[] } | null {
 		const page = state.pages.find((p) => p.id === pageId);
 		if (!page) return null;
 
 		const pageSections = getSectionsForContainer('creator', pageId);
-		const profiles = getProfilesForPage(pageId).map((profile) => ({
-			...profile,
-			fonts: getFontsForProfile(profile.id),
-			sections: getSectionsForContainer('profile', profile.id)
-		}));
+		const cpJunctions = state.creatorProfiles.filter((cp) => cp.creatorPageId === pageId);
+
+		const profiles = cpJunctions.map((cp) => {
+			const profile = state.profiles.find((p) => p.id === cp.profileId);
+			if (!profile) return null;
+
+			const pfJunctions = state.profileFonts.filter((pf) => pf.profileId === profile.id);
+			const fonts = pfJunctions
+				.map((pf) => {
+					const font = state.fonts.find((f) => f.id === pf.fontId);
+					if (!font) return null;
+					return { ...font, sectionId: pf.sectionId };
+				})
+				.filter((f): f is Font & { sectionId: string | null } => f !== null);
+
+			return {
+				...profile,
+				sectionId: cp.sectionId,
+				fonts,
+				sections: getSectionsForContainer('profile', profile.id)
+			};
+		}).filter((p): p is NonNullable<typeof p> => p !== null);
 
 		return { page, sections: pageSections, profiles };
 	},
@@ -158,22 +217,15 @@ export const creator = {
 	},
 
 	async deletePage(pageId: string): Promise<void> {
-		// Delete all fonts of profiles under this page
-		const profiles = getProfilesForPage(pageId);
-		for (const profile of profiles) {
-			await fontRepo.deleteByProfileId(profile.id);
-			await sectionRepo.deleteContainer(profile.id);
-			await profileRepo.delete(profile.id);
-		}
+		// Delete junction records for this page
+		await creatorProfileRepo.deleteByCreatorPageId(pageId);
+		// Note: we don't delete profiles/fonts themselves — they're independent entities.
+		// We only remove the page's section container and the page itself.
 		await sectionRepo.deleteContainer(pageId);
 		await pageRepo.delete(pageId);
 
-		const profileIds = new Set(profiles.map((p) => p.id));
-		state.fonts = state.fonts.filter((f) => !profileIds.has(f.profileId));
-		state.sectionContainers = state.sectionContainers.filter(
-			(c) => c.containerId !== pageId && !profileIds.has(c.containerId)
-		);
-		state.profiles = state.profiles.filter((p) => p.creatorPageId !== pageId);
+		state.creatorProfiles = state.creatorProfiles.filter((cp) => cp.creatorPageId !== pageId);
+		state.sectionContainers = state.sectionContainers.filter((c) => c.containerId !== pageId);
 		state.pages = state.pages.filter((p) => p.id !== pageId);
 	},
 
@@ -198,11 +250,14 @@ export const creator = {
 	},
 
 	async deleteProfile(profileId: string): Promise<void> {
-		await fontRepo.deleteByProfileId(profileId);
+		// Remove junction records linking this profile
+		await creatorProfileRepo.deleteByProfileId(profileId);
+		await profileFontRepo.deleteByProfileId(profileId);
 		await sectionRepo.deleteContainer(profileId);
 		await profileRepo.delete(profileId);
 
-		state.fonts = state.fonts.filter((f) => f.profileId !== profileId);
+		state.creatorProfiles = state.creatorProfiles.filter((cp) => cp.profileId !== profileId);
+		state.profileFonts = state.profileFonts.filter((pf) => pf.profileId !== profileId);
 		state.sectionContainers = state.sectionContainers.filter(
 			(c) => c.containerId !== profileId
 		);
@@ -224,8 +279,56 @@ export const creator = {
 	},
 
 	async deleteFont(fontId: string): Promise<void> {
+		await profileFontRepo.deleteByFontId(fontId);
 		await fontRepo.delete(fontId);
+		state.profileFonts = state.profileFonts.filter((pf) => pf.fontId !== fontId);
 		state.fonts = state.fonts.filter((f) => f.id !== fontId);
+	},
+
+	// ── Junction CRUD: CreatorProfile ─────────────────────────────────
+
+	async addProfileToPage(data: NewCreatorProfile): Promise<CreatorProfile> {
+		const cp = await creatorProfileRepo.create($state.snapshot(data));
+		state.creatorProfiles = [...state.creatorProfiles, cp];
+		return cp;
+	},
+
+	async removeProfileFromPage(creatorPageId: string, profileId: string): Promise<void> {
+		const cp = state.creatorProfiles.find(
+			(c) => c.creatorPageId === creatorPageId && c.profileId === profileId
+		);
+		if (!cp) return;
+		await creatorProfileRepo.delete(cp.id);
+		state.creatorProfiles = state.creatorProfiles.filter((c) => c.id !== cp.id);
+	},
+
+	async updateCreatorProfile(id: string, data: Partial<NewCreatorProfile>): Promise<CreatorProfile> {
+		const updated = await creatorProfileRepo.update(id, $state.snapshot(data));
+		state.creatorProfiles = state.creatorProfiles.map((cp) => (cp.id === id ? updated : cp));
+		return updated;
+	},
+
+	// ── Junction CRUD: ProfileFont ───────────────────────────────────
+
+	async addFontToProfile(data: NewProfileFont): Promise<ProfileFont> {
+		const pf = await profileFontRepo.create($state.snapshot(data));
+		state.profileFonts = [...state.profileFonts, pf];
+		return pf;
+	},
+
+	async removeFontFromProfile(profileId: string, fontId: string): Promise<void> {
+		const pf = state.profileFonts.find(
+			(p) => p.profileId === profileId && p.fontId === fontId
+		);
+		if (!pf) return;
+		await profileFontRepo.delete(pf.id);
+		state.profileFonts = state.profileFonts.filter((p) => p.id !== pf.id);
+	},
+
+	async updateProfileFont(id: string, data: Partial<NewProfileFont>): Promise<ProfileFont> {
+		const updated = await profileFontRepo.update(id, $state.snapshot(data));
+		state.profileFonts = state.profileFonts.map((pf) => (pf.id === id ? updated : pf));
+		return updated;
 	},
 
 	// ── Section CRUD ──────────────────────────────────────────────────────────
@@ -266,7 +369,7 @@ export const creator = {
 		return updated;
 	},
 
-	/** Delete a section and clear sectionId on all children that reference it. */
+	/** Delete a section and clear sectionId on junction records that reference it. */
 	async deleteSection(sectionId: string): Promise<void> {
 		const loc = findSectionLocation(sectionId);
 		if (!loc) return;
@@ -285,16 +388,16 @@ export const creator = {
 			);
 		}
 
-		// Clear sectionId on children
-		for (const p of state.profiles.filter((p) => p.sectionId === sectionId)) {
-			await profileRepo.update(p.id, { sectionId: null });
+		// Clear sectionId on junction records that reference this section
+		for (const cp of state.creatorProfiles.filter((cp) => cp.sectionId === sectionId)) {
+			await creatorProfileRepo.update(cp.id, { sectionId: null });
 		}
-		for (const f of state.fonts.filter((f) => f.sectionId === sectionId)) {
-			await fontRepo.update(f.id, { sectionId: null });
+		for (const pf of state.profileFonts.filter((pf) => pf.sectionId === sectionId)) {
+			await profileFontRepo.update(pf.id, { sectionId: null });
 		}
 
-		state.profiles = state.profiles.map((p) => p.sectionId === sectionId ? { ...p, sectionId: null } : p);
-		state.fonts = state.fonts.map((f) => f.sectionId === sectionId ? { ...f, sectionId: null } : f);
+		state.creatorProfiles = state.creatorProfiles.map((cp) => cp.sectionId === sectionId ? { ...cp, sectionId: null } : cp);
+		state.profileFonts = state.profileFonts.map((pf) => pf.sectionId === sectionId ? { ...pf, sectionId: null } : pf);
 	},
 
 	/** Batch-reorder sections by providing the container and ordered array of IDs. */
@@ -365,6 +468,7 @@ export const creator = {
 					: undefined
 			},
 			profiles: profiles.map((profile): ProfileSnapshot => {
+				// sectionId from the creatorProfile junction (set by getPageTree)
 				const pageSectionIndex = profile.sectionId
 					? pageSections.findIndex((s) => s.id === profile.sectionId)
 					: null;
@@ -385,6 +489,7 @@ export const creator = {
 						? profileSections.map((s): SectionSnapshot => ({ title: s.title, color: s.color, order: s.order, emoji: s.emoji, hideTitle: s.hideTitle }))
 						: undefined,
 					fonts: profile.fonts.map((font): FontSnapshot => {
+						// sectionId from the profileFont junction (set by getPageTree)
 						const fontSectionIndex = font.sectionId
 							? profileSections.findIndex((s) => s.id === font.sectionId)
 							: null;

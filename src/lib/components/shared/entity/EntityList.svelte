@@ -1,7 +1,5 @@
 <script lang="ts">
 	import type { BrowseEntity } from '$lib/stores/browse.svelte.js';
-	import type { Profile } from '$lib/domain/profile/profile.js';
-	import type { Font } from '$lib/domain/font/font.js';
 	import EntityCard from './EntityCard.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
@@ -18,27 +16,9 @@
 	let profiles = $derived(entities.filter((e) => e.type === 'profile'));
 	let fonts = $derived(entities.filter((e) => e.type === 'font'));
 
-	// Build a profile lookup for resolving font hrefs
-	let profileMap = $derived.by(() => {
-		const map = new Map<string, Profile>();
-		for (const e of profiles) {
-			map.set(e.data.id, e.data as Profile);
-		}
-		return map;
-	});
-
-	/**
-	 * Profile URL follows DDD lifecycle modes:
-	 * - Dependent (creatorPageId set) → scoped under creator: /browse/creator/{pageId}/profile/{id}
-	 * - Standalone (creatorPageId null) → independent root: /browse/profile/{id}
-	 */
 	function profileHref(entity: BrowseEntity): string {
 		if (entity.type !== 'profile') return '';
-		const profile = entity.data as Profile;
-		if (profile.creatorPageId) {
-			return `${baseHref}/creator/${profile.creatorPageId}/profile/${profile.id}`;
-		}
-		return `${baseHref}/profile/${profile.id}`;
+		return `${baseHref}/profile/${entity.data.id}`;
 	}
 
 	function pageHref(entity: BrowseEntity): string {
@@ -46,19 +26,9 @@
 		return `${baseHref}/creator/${entity.data.id}`;
 	}
 
-	/**
-	 * Font URL resolved through its parent profile:
-	 * - If profile is dependent → {baseHref}/creator/{pageId}/profile/{profileId}/font/{fontId}
-	 * - If profile is standalone → {baseHref}/profile/{profileId}/font/{fontId}
-	 */
 	function fontHref(entity: BrowseEntity): string {
 		if (entity.type !== 'font') return '';
-		const font = entity.data as Font;
-		const profile = profileMap.get(font.profileId);
-		if (profile?.creatorPageId) {
-			return `${baseHref}/creator/${profile.creatorPageId}/profile/${font.profileId}/font/${font.id}`;
-		}
-		return `${baseHref}/profile/${font.profileId}/font/${font.id}`;
+		return `${baseHref}/font/${entity.data.id}`;
 	}
 </script>
 

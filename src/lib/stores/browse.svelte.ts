@@ -5,9 +5,7 @@
  * with multi-select within each tree. Text search is combined with category
  * filters (intersection), not mutually exclusive.
  *
- * Profile navigation respects the DDD lifecycle modes:
- * - Standalone profiles (creatorPageId = null) → `/browse/profile/{id}`
- * - Dependent profiles (creatorPageId set) → `/browse/creator/{pageId}/profile/{id}`
+ * Entity relationships are resolved through N:N junction tables.
  * URL construction is delegated to the EntityList component.
  *
  * Pattern: module-level $state + exported read-only accessor + actions.
@@ -21,6 +19,8 @@ import { createCategoryStore } from '$lib/persistence/category.store.js';
 import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
 import { createProfileStore } from '$lib/persistence/profile.store.js';
 import { createFontStore } from '$lib/persistence/font.store.js';
+import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
+import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
 import { mergeAssignments } from '$lib/domain/shared/category-aggregation.js';
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -53,6 +53,8 @@ const categoryRepo = createCategoryStore();
 const pageRepo = createCreatorPageStore();
 const profileRepo = createProfileStore();
 const fontRepo = createFontStore();
+const creatorProfileRepo = createCreatorProfileStore();
+const profileFontRepo = createProfileFontStore();
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
@@ -190,10 +192,12 @@ export const browse = {
 
 		state.loading = true;
 		try {
-			const [allPages, allProfiles, allFonts] = await Promise.all([
+			const [allPages, allProfiles, allFonts, allCreatorProfiles, allProfileFonts] = await Promise.all([
 				pageRepo.getAll(),
 				profileRepo.getAll(),
-				fontRepo.getAll()
+				fontRepo.getAll(),
+				creatorProfileRepo.getAll(),
+				profileFontRepo.getAll()
 			]);
 
 			// Expand selected categories to include children
@@ -201,12 +205,14 @@ export const browse = {
 			const contentTypeIds = expandCategoryIds(state.selectedByTree.content_type, state.categories);
 			const regionIds = expandCategoryIds(state.selectedByTree.region, state.categories);
 
-			// Build font-by-profile map for aggregation
+			// Build font-by-profile map from junction
 			const fontsByProfile = new Map<string, typeof allFonts>();
-			for (const f of allFonts) {
-				const list = fontsByProfile.get(f.profileId) ?? [];
-				list.push(f);
-				fontsByProfile.set(f.profileId, list);
+			for (const pf of allProfileFonts) {
+				const font = allFonts.find((f) => f.id === pf.fontId);
+				if (!font) continue;
+				const list = fontsByProfile.get(pf.profileId) ?? [];
+				list.push(font);
+				fontsByProfile.set(pf.profileId, list);
 			}
 
 			// Compute effective profile categories (own + child fonts)
@@ -252,11 +258,12 @@ export const browse = {
 			if (hasCategories) {
 				// Compute effective page categories (own + child profiles' effective)
 				const profilesByPage = new Map<string, typeof allProfiles>();
-				for (const p of allProfiles) {
-					if (!p.creatorPageId) continue;
-					const list = profilesByPage.get(p.creatorPageId) ?? [];
-					list.push(p);
-					profilesByPage.set(p.creatorPageId, list);
+				for (const cp of allCreatorProfiles) {
+					const profile = allProfiles.find((p) => p.id === cp.profileId);
+					if (!profile) continue;
+					const list = profilesByPage.get(cp.creatorPageId) ?? [];
+					list.push(profile);
+					profilesByPage.set(cp.creatorPageId, list);
 				}
 
 				matchedPages = allPages.filter((page) => {

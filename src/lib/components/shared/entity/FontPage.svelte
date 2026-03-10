@@ -10,6 +10,8 @@
 	import { createFontStore } from '$lib/persistence/font.store.js';
 	import { createProfileStore } from '$lib/persistence/profile.store.js';
 	import { createCategoryStore } from '$lib/persistence/category.store.js';
+	import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
+	import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
 	import { getPosts } from '$lib/persistence/post.store.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
@@ -63,8 +65,8 @@
 		if (posts.length === 0 || !font) return [];
 		const contexts: PriorityContext[] = [{
 			fontId: font.id,
-			profileId: font.profileId,
-			creatorPageId: parentProfile?.creatorPageId ?? null
+			profileId: parentProfile?.id ?? '',
+			creatorPageId: null
 		}];
 		const priorityMap = buildPriorityMap(contexts, consumer.stateMap);
 		return sortByPriority(posts, priorityMap);
@@ -75,6 +77,7 @@
 			const fontStore = createFontStore();
 			const profileStore = createProfileStore();
 			const categoryStore = createCategoryStore();
+			const pfRepo = createProfileFontStore();
 
 			const found = await fontStore.getById(fontId);
 			if (!found) {
@@ -84,9 +87,12 @@
 			}
 			font = found;
 
-			// Load parent profile
-			const profile = await profileStore.getById(found.profileId);
-			parentProfile = profile;
+			// Load parent profile via junction
+			const pfs = await pfRepo.getByFontId(found.id);
+			if (pfs.length > 0) {
+				const profile = await profileStore.getById(pfs[0].profileId);
+				parentProfile = profile;
+			}
 
 			// Load ALL posts for this font
 			const result = await getPosts({ fontId: found.id });
@@ -146,9 +152,6 @@
 
 	let parentProfileHref = $derived.by(() => {
 		if (!parentProfile) return null;
-		if (parentProfile.creatorPageId) {
-			return `${baseHref}/creator/${parentProfile.creatorPageId}/profile/${parentProfile.id}`;
-		}
 		return `${baseHref}/profile/${parentProfile.id}`;
 	});
 

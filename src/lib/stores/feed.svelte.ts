@@ -15,16 +15,19 @@
 
 import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
-import type { PriorityContext } from '$lib/domain/shared/priority-resolver.js';
 import type { SortedPost } from '$lib/domain/shared/feed-sorter.js';
 import type { Font } from '$lib/domain/font/font.js';
 import type { Profile } from '$lib/domain/profile/profile.js';
-import { buildPriorityMap } from '$lib/domain/shared/priority-resolver.js';
+import type { ProfileFont } from '$lib/domain/profile-font/profile-font.js';
+import type { CreatorProfile } from '$lib/domain/creator-profile/creator-profile.js';
+import { buildPriorityMap, buildContextsFromJunctions } from '$lib/domain/shared/priority-resolver.js';
 import { sortByPriority } from '$lib/domain/shared/feed-sorter.js';
 import { mergeAssignments } from '$lib/domain/shared/category-aggregation.js';
 import { getPosts, markAsRead as persistMarkRead } from '$lib/persistence/post.store.js';
 import { createFontStore } from '$lib/persistence/font.store.js';
 import { createProfileStore } from '$lib/persistence/profile.store.js';
+import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
+import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
 import { consumer } from './consumer.svelte.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
@@ -33,6 +36,8 @@ interface FeedStoreState {
 	posts: CanonicalPost[];
 	fonts: Font[];
 	profiles: Profile[];
+	profileFonts: ProfileFont[];
+	creatorProfiles: CreatorProfile[];
 	loading: boolean;
 	lastRefresh: Date | null;
 }
@@ -41,27 +46,27 @@ let state = $state<FeedStoreState>({
 	posts: [],
 	fonts: [],
 	profiles: [],
+	profileFonts: [],
+	creatorProfiles: [],
 	loading: false,
 	lastRefresh: null
 });
 
 const fontRepo = createFontStore();
 const profileRepo = createProfileStore();
+const profileFontRepo = createProfileFontStore();
+const creatorProfileRepo = createCreatorProfileStore();
 
 // ── Priority pipeline ──────────────────────────────────────────────────
-
-function buildContexts(fonts: Font[]): PriorityContext[] {
-	return fonts.map((f) => ({
-		fontId: f.id,
-		profileId: f.profileId,
-		creatorPageId: null // resolved at profile level; simplified for now
-	}));
-}
 
 function computePrioritized(): SortedPost[] {
 	if (state.posts.length === 0) return [];
 
-	const contexts = buildContexts(state.fonts);
+	const contexts = buildContextsFromJunctions(
+		state.fonts.map((f) => f.id),
+		state.profileFonts,
+		state.creatorProfiles
+	);
 	const priorityMap: Map<string, PriorityLevel> = buildPriorityMap(contexts, consumer.stateMap);
 
 	return sortByPriority(state.posts, priorityMap);
@@ -82,15 +87,25 @@ function fontIdsMatchingCategories(
 	const catSet = new Set(categoryIds);
 	const profileMap = new Map(state.profiles.map((p) => [p.id, p]));
 
+	// Build fontId → profileIds from junction
+	const fontToProfileIds = new Map<string, string[]>();
+	for (const pf of state.profileFonts) {
+		let arr = fontToProfileIds.get(pf.fontId);
+		if (!arr) { arr = []; fontToProfileIds.set(pf.fontId, arr); }
+		arr.push(pf.profileId);
+	}
+
 	const matchingFontIds = new Set<string>();
 	for (const font of state.fonts) {
-		const profile = profileMap.get(font.profileId);
-
-		// Effective = font's own + parent profile's assignments
-		const effective = mergeAssignments(
-			font.categoryAssignments ?? [],
-			profile?.categoryAssignments ?? []
-		);
+		const profileIds = fontToProfileIds.get(font.id) ?? [];
+		// Merge font cats with all linked profiles' cats
+		let effective = font.categoryAssignments ?? [];
+		for (const pid of profileIds) {
+			const profile = profileMap.get(pid);
+			if (profile) {
+				effective = mergeAssignments(effective, profile.categoryAssignments ?? []);
+			}
+		}
 
 		const assignment = effective.find((a) => a.treeId === treeId);
 		if (assignment && assignment.categoryIds.some((cid) => catSet.has(cid))) {
@@ -106,6 +121,8 @@ export const feed = {
 	get posts() { return state.posts; },
 	get fonts() { return state.fonts; },
 	get profiles() { return state.profiles; },
+	get profileFonts() { return state.profileFonts; },
+	get creatorProfiles() { return state.creatorProfiles; },
 	get loading() { return state.loading; },
 	get lastRefresh() { return state.lastRefresh; },
 	get prioritized(): SortedPost[] { return computePrioritized(); },
@@ -143,15 +160,19 @@ export const feed = {
 		state.loading = true;
 
 		try {
-			const [posts, fonts, profiles] = await Promise.all([
+			const [posts, fonts, profiles, profileFonts, creatorProfiles] = await Promise.all([
 				getPosts(),
 				fontRepo.getAll(),
-				profileRepo.getAll()
+				profileRepo.getAll(),
+				profileFontRepo.getAll(),
+				creatorProfileRepo.getAll()
 			]);
 
 			state.posts = posts;
 			state.fonts = fonts;
 			state.profiles = profiles;
+			state.profileFonts = profileFonts;
+			state.creatorProfiles = creatorProfiles;
 			state.lastRefresh = new Date();
 		} finally {
 			state.loading = false;

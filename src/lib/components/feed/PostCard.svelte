@@ -14,15 +14,13 @@
 
 	// Resolve font & profile for the "font strip"
 	let font = $derived(feed.fonts.find((f) => f.id === sortedPost.post.fontId));
-	let profile = $derived(font ? feed.profiles.find((p) => p.id === font.profileId) : undefined);
-
-	let fontHref = $derived.by(() => {
-		if (!font || !profile) return null;
-		if (profile.creatorPageId) {
-			return `/browse/creator/${profile.creatorPageId}/profile/${profile.id}/font/${font.id}`;
-		}
-		return `/browse/profile/${profile.id}/font/${font.id}`;
+	let profile = $derived.by(() => {
+		if (!font) return undefined;
+		const pf = feed.profileFonts.find((pf) => pf.fontId === font!.id);
+		return pf ? feed.profiles.find((p) => p.id === pf.profileId) : undefined;
 	});
+
+	let fontHref = $derived(font ? `/browse/font/${font.id}` : null);
 
 	function handleClick() {
 		if (!sortedPost.post.read) {
