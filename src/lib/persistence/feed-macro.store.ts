@@ -1,5 +1,5 @@
 /**
- * FeedMacro store — implements FeedMacroRepository using IndexedDB.
+ * FeedMacro store — persistence for feed macros with nodeIds.
  */
 
 import type { FeedMacro, FeedMacroRepository } from '$lib/domain/feed-macro/feed-macro.js';

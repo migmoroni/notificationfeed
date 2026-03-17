@@ -1,8 +1,7 @@
 <!--
-  FilterSidebar — Unified sidebar for Fontes + Categorias filters.
+  FilterSidebar — Unified sidebar for entity tree filter + category selector.
 
-  Used by both Feed and Browse pages with their respective stores.
-  Receives entityStore (EntityFilterStore) and categoryStore (CategoryTreeStore).
+  Uses EntityFilterStore with ContentTree navigation.
 -->
 <script lang="ts">
 	import type { EntityFilterStore } from '$lib/stores/entity-filter.types.js';

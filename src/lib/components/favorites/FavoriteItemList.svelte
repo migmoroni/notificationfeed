@@ -1,9 +1,14 @@
+<!--
+  FavoriteItemList — displays favorited ContentNodes with tab grouping.
+
+  Uses FavoriteItem type (activation + ContentNode instead of ConsumerState + entity union).
+-->
 <script lang="ts">
 	import type { FavoriteItem } from '$lib/stores/favorites.svelte.js';
-	import type { BrowseEntity } from '$lib/stores/browse.svelte.js';
+	import type { ContentNode } from '$lib/domain/content-node/content-node.js';
 	import { favorites } from '$lib/stores/favorites.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
-	import { EntityCard } from '$lib/components/shared/entity/index.js';
+	import EntityCard from '$lib/components/shared/entity/EntityCard.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import Check from '@lucide/svelte/icons/check';
 
@@ -17,42 +22,25 @@
 	let longPressTimer: ReturnType<typeof setTimeout> | null = null;
 	let longPressFired = false;
 
-	// Group items by entity type
+	// Group items by node role
 	let grouped = $derived.by(() => {
-		const pages = items.filter((i) => i.entityType === 'creator_page' && i.entity);
-		const profiles = items.filter((i) => i.entityType === 'profile' && i.entity);
-		const fonts = items.filter((i) => i.entityType === 'font' && i.entity);
-		return { pages, profiles, fonts };
+		const creators = items.filter((i) => i.node?.role === 'creator' && i.node);
+		const profiles = items.filter((i) => i.node?.role === 'profile' && i.node);
+		const fonts = items.filter((i) => i.node?.role === 'font' && i.node);
+		return { creators, profiles, fonts };
 	});
 
-	function toBrowseEntity(item: FavoriteItem): BrowseEntity {
-		return { type: item.entityType, data: item.entity! } as BrowseEntity;
-	}
-
-	/**
-	 * Compute the /favorites/... href for a given favorite item.
-	 */
 	function itemHref(item: FavoriteItem): string {
-		const entity = item.entity!;
-		switch (item.entityType) {
-			case 'creator_page':
-				return `/favorites/creator/${entity.id}`;
-			case 'profile':
-				return `/favorites/profile/${entity.id}`;
-			case 'font':
-				return `/favorites/font/${entity.id}`;
-			default:
-				return '#';
-		}
+		if (!item.node) return '#';
+		return `/favorites/node/${item.node.metadata.id}`;
 	}
 
-	function handlePointerDown(entityId: string) {
+	function handlePointerDown(nodeId: string) {
 		longPressFired = false;
 		longPressTimer = setTimeout(() => {
 			longPressFired = true;
-			// Activate selection mode and select this item
 			if (!favorites.isSelecting) {
-				favorites.toggleSelectItem(entityId);
+				favorites.toggleItemSelection(nodeId);
 			}
 			longPressTimer = null;
 		}, 500);
@@ -65,8 +53,7 @@
 		}
 	}
 
-	function handleCardClick(entityId: string, e: MouseEvent) {
-		// Suppress click after a long-press that just activated selection
+	function handleCardClick(nodeId: string, e: MouseEvent) {
 		if (longPressFired) {
 			e.preventDefault();
 			e.stopPropagation();
@@ -76,7 +63,7 @@
 		if (favorites.isSelecting) {
 			e.preventDefault();
 			e.stopPropagation();
-			favorites.toggleSelectItem(entityId);
+			favorites.toggleItemSelection(nodeId);
 		}
 	}
 </script>
@@ -84,19 +71,20 @@
 {#snippet groupSection(label: string, groupItems: FavoriteItem[])}
 	{#if groupItems.length > 0}
 		<div>
-		<h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
-			{label} ({groupItems.length})
-		</h3>
-		<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
-				{#each groupItems as item (item.state.entityId)}
-					{@const isSelected = favorites.selectedItemIds.has(item.state.entityId)}
+			<h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
+				{label} ({groupItems.length})
+			</h3>
+			<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
+				{#each groupItems as item (item.activation.nodeId)}
+					{@const nodeId = item.activation.nodeId}
+					{@const isSelected = favorites.selectedItemIds.has(nodeId)}
 					<!-- svelte-ignore a11y_no_static_element_interactions, a11y_click_events_have_key_events -->
 					<div
 						class="relative {favorites.isSelecting ? 'cursor-pointer' : ''}"
-						onpointerdown={() => handlePointerDown(item.state.entityId)}
+						onpointerdown={() => handlePointerDown(nodeId)}
 						onpointerup={handlePointerUp}
 						onpointerleave={handlePointerUp}
-						onclick={(e) => handleCardClick(item.state.entityId, e)}
+						onclick={(e) => handleCardClick(nodeId, e)}
 					>
 						{#if favorites.isSelecting}
 							<div
@@ -111,7 +99,12 @@
 							</div>
 						{/if}
 						<div class={favorites.isSelecting ? 'pl-8' : ''}>
-						<EntityCard entity={toBrowseEntity(item)} href={favorites.isSelecting ? null : itemHref(item)} />
+							{#if item.node}
+								<EntityCard
+									node={item.node}
+									href={favorites.isSelecting ? null : itemHref(item)}
+								/>
+							{/if}
 						</div>
 					</div>
 				{/each}
@@ -134,8 +127,8 @@
 	</div>
 {:else}
 	<div class="flex flex-col gap-4">
-		{@render groupSection('Pages', grouped.pages)}
-		{#if grouped.pages.length > 0 && (grouped.profiles.length > 0 || grouped.fonts.length > 0)}
+		{@render groupSection('Creators', grouped.creators)}
+		{#if grouped.creators.length > 0 && (grouped.profiles.length > 0 || grouped.fonts.length > 0)}
 			<Separator />
 		{/if}
 		{@render groupSection('Profiles', grouped.profiles)}

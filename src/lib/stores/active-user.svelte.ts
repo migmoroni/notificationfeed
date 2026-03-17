@@ -134,7 +134,9 @@ export const activeUser = {
 			id: crypto.randomUUID(),
 			role: 'consumer',
 			displayName,
-			follows: [],
+			activateTrees: [],
+			activateNodes: [],
+			favoriteTabs: [],
 			createdAt: now,
 			updatedAt: now
 		};

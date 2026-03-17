@@ -5,7 +5,8 @@
 	import { feedEntityFilter } from '$lib/stores/feed-entity-filter.svelte.js';
 	import { feedMacros } from '$lib/stores/feed-macros.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
-	import { FeedList, PriorityFilter } from '$lib/components/feed/index.js';
+	import FeedList from '$lib/components/feed/FeedList.svelte';
+	import { PriorityFilter } from '$lib/components/feed/index.js';
 	import FeedMacros from '$lib/components/feed/FeedMacros.svelte';
 	import FilterSidebar from '$lib/components/shared/FilterSidebar.svelte';
 	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
@@ -106,11 +107,11 @@
 	let selectedSubjects = $derived(feedCategories.getSelectedIds('subject'));
 	let selectedContentTypes = $derived(feedCategories.getSelectedIds('content_type'));
 	let selectedRegions = $derived(feedCategories.getSelectedIds('region'));
-	let allowedFontIds = $derived(feedEntityFilter.hasFilters ? [...feedEntityFilter.getAllowedFontIds()] : []);
+	let allowedNodeIds = $derived(feedEntityFilter.hasFilters ? [...feedEntityFilter.getAllowedFontNodeIds()] : []);
 
 	onMount(async () => {
 		feedCategories.loadCategories();
-		feedEntityFilter.loadPages();
+		feedEntityFilter.loadNodes();
 		await feedMacros.init();
 	});
 
@@ -119,7 +120,7 @@
 		selectedSubjects;
 		selectedContentTypes;
 		selectedRegions;
-		feedEntityFilter.selectedPageIds;
+		feedEntityFilter.selectedCreatorIds;
 		feedEntityFilter.selectedProfileIds;
 		feedEntityFilter.selectedFontIds;
 		if (!isEditing) {
@@ -346,7 +347,7 @@
 
 		<!-- Feed list -->
 		<div class="overflow-y-auto pr-24 pb-24 pt-4">
-			<FeedList {filter} subjectIds={selectedSubjects} contentTypeIds={selectedContentTypes} regionIds={selectedRegions} fontIds={allowedFontIds} />
+			<FeedList {filter} subjectIds={selectedSubjects} contentTypeIds={selectedContentTypes} regionIds={selectedRegions} nodeIds={allowedNodeIds} />
 		</div>
 	</div>
 </div>

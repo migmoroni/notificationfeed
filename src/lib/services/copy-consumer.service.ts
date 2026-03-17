@@ -1,139 +1,117 @@
 /**
- * Copy-from-Consumer Service — deep copies consumer entities into creator space.
+ * Copy-from-Consumer Service — deep copies nodes from external trees into creator's tree.
  *
- * Creates new Profiles/Fonts with ownerType='creator', new IDs.
- * The copies are fully independent from the consumer originals.
- * ImageAssets are copied by value (base64 string, no external reference).
+ * Creates new ContentNodes with the creator's author ID. The copies are fully
+ * independent from the originals. Media referenced by nodes is also duplicated.
  */
 
-import type { Profile, NewProfile } from '$lib/domain/profile/profile.js';
-import type { Font, NewFont } from '$lib/domain/font/font.js';
-import { createProfileStore } from '$lib/persistence/profile.store.js';
-import { createFontStore } from '$lib/persistence/font.store.js';
-import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
-import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
+import type { ContentNode, ContentNodeHeader, ContentNodeBody } from '$lib/domain/content-node/content-node.js';
+import type { ContentMedia } from '$lib/domain/content-media/content-media.js';
+import { createContentNodeStore } from '$lib/persistence/content-node.store.js';
+import { createContentMediaStore } from '$lib/persistence/content-media.store.js';
+import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
 
-const profileRepo = createProfileStore();
-const fontRepo = createFontStore();
-const cpRepo = createCreatorProfileStore();
-const pfRepo = createProfileFontStore();
+const nodeRepo = createContentNodeStore();
+const mediaRepo = createContentMediaStore();
 
 export interface CopyResult {
-	profiles: Profile[];
-	fonts: Font[];
+	nodes: ContentNode[];
+	medias: ContentMedia[];
 }
 
 /**
- * Deep copy profiles (and their fonts) from consumer space to creator space.
- * All entities get new IDs, ownerType='creator', and are linked to the target page.
+ * Deep-copy a single node, reassigning authorship and generating new IDs.
+ * Also duplicates any referenced media (cover, banner).
  */
-export async function copyProfilesToCreator(
-	profileIds: string[],
-	creatorId: string,
-	creatorPageId: string
-): Promise<CopyResult> {
-	const copiedProfiles: Profile[] = [];
-	const copiedFonts: Font[] = [];
+async function deepCopyNode(
+	original: ContentNode,
+	authorId: string
+): Promise<{ node: ContentNode; copiedMediaIds: Map<string, string> }> {
+	const now = new Date();
+	const copiedMediaIds = new Map<string, string>();
 
-	for (const profileId of profileIds) {
-		const original = await profileRepo.getById(profileId);
-		if (!original) continue;
+	// Duplicate referenced media
+	const headerPatch: Partial<ContentNodeHeader> = {};
 
-		// Deep copy profile (no FK fields — entity is independent)
-		const newProfile = await profileRepo.create({
-			ownerType: 'creator',
-			ownerId: creatorId,
-			title: original.title,
-			bio: original.bio ?? '',
-			tags: [...original.tags],
-			avatar: original.avatar ? { ...original.avatar } : null,
-			categoryAssignments: original.categoryAssignments.map((a) => ({
-				treeId: a.treeId,
-				categoryIds: [...a.categoryIds]
-			})),
-			defaultEnabled: original.defaultEnabled
-		});
-		copiedProfiles.push(newProfile);
-
-		// Create CreatorProfile junction
-		await cpRepo.create({
-			creatorPageId,
-			profileId: newProfile.id,
-			sectionId: null,
-			order: copiedProfiles.length - 1
-		});
-
-		// Deep copy fonts under this profile via junction
-		const originalPfs = await pfRepo.getByProfileId(profileId);
-		for (const pf of originalPfs) {
-			const font = await fontRepo.getById(pf.fontId);
-			if (!font) continue;
-
-			const newFont = await fontRepo.create({
-				title: font.title,
-				bio: font.bio ?? '',
-				tags: [...font.tags],
-				avatar: font.avatar ? { ...font.avatar } : null,
-				protocol: font.protocol,
-				config: { ...font.config },
-				categoryAssignments: (font.categoryAssignments ?? []).map((a) => ({
-					treeId: a.treeId,
-					categoryIds: [...a.categoryIds]
-				})),
-				defaultEnabled: font.defaultEnabled
-			});
-			copiedFonts.push(newFont);
-
-			// Create ProfileFont junction
-			await pfRepo.create({
-				profileId: newProfile.id,
-				fontId: newFont.id,
-				sectionId: null,
-				order: copiedFonts.length - 1
-			});
+	if (original.data.header.coverMediaId) {
+		const media = await mediaRepo.getById(original.data.header.coverMediaId);
+		if (media) {
+			const newId = uuidv7();
+			const copy: ContentMedia = {
+				...media,
+				metadata: { ...media.metadata, id: newId, author: authorId, createdAt: now, updatedAt: now }
+			};
+			await mediaRepo.put(copy);
+			copiedMediaIds.set(original.data.header.coverMediaId, newId);
+			headerPatch.coverMediaId = newId;
 		}
 	}
 
-	return { profiles: copiedProfiles, fonts: copiedFonts };
+	if (original.data.header.bannerMediaId) {
+		const media = await mediaRepo.getById(original.data.header.bannerMediaId);
+		if (media) {
+			const newId = uuidv7();
+			const copy: ContentMedia = {
+				...media,
+				metadata: { ...media.metadata, id: newId, author: authorId, createdAt: now, updatedAt: now }
+			};
+			await mediaRepo.put(copy);
+			copiedMediaIds.set(original.data.header.bannerMediaId, newId);
+			headerPatch.bannerMediaId = newId;
+		}
+	}
+
+	const node: ContentNode = {
+		role: original.role,
+		data: {
+			header: {
+				...original.data.header,
+				...headerPatch,
+				tags: [...original.data.header.tags],
+				categoryAssignments: original.data.header.categoryAssignments.map((a) => ({
+					treeId: a.treeId,
+					categoryIds: [...a.categoryIds]
+				}))
+			},
+			body: { ...original.data.body } as ContentNodeBody
+		},
+		metadata: {
+			id: uuidv7(),
+			versionSchema: original.metadata.versionSchema,
+			createdAt: now,
+			updatedAt: now,
+			author: authorId
+		}
+	};
+
+	await nodeRepo.put(node);
+	return { node, copiedMediaIds };
 }
 
 /**
- * Deep copy individual fonts into a target creator profile.
+ * Deep copy a list of nodes (typically profiles + their child fonts) for use by the creator.
+ * Returns the newly created nodes and media. The caller is responsible for linking them into a tree.
  */
-export async function copyFontsToProfile(
-	fontIds: string[],
-	targetProfileId: string
-): Promise<Font[]> {
-	const copiedFonts: Font[] = [];
+export async function copyNodesToCreator(
+	nodeIds: string[],
+	authorId: string
+): Promise<CopyResult> {
+	const copiedNodes: ContentNode[] = [];
+	const copiedMedias: ContentMedia[] = [];
 
-	for (const fontId of fontIds) {
-		const original = await fontRepo.getById(fontId);
+	for (const nodeId of nodeIds) {
+		const original = await nodeRepo.getById(nodeId);
 		if (!original) continue;
 
-		const newFont = await fontRepo.create({
-			title: original.title,
-			bio: original.bio ?? '',
-			tags: [...original.tags],
-			avatar: original.avatar ? { ...original.avatar } : null,
-			protocol: original.protocol,
-			config: { ...original.config },
-			categoryAssignments: (original.categoryAssignments ?? []).map((a) => ({
-				treeId: a.treeId,
-				categoryIds: [...a.categoryIds]
-			})),
-			defaultEnabled: original.defaultEnabled
-		});
+		const { node, copiedMediaIds } = await deepCopyNode(original, authorId);
+		copiedNodes.push(node);
 
-		// Create ProfileFont junction
-		await pfRepo.create({
-			profileId: targetProfileId,
-			fontId: newFont.id,
-			sectionId: null,
-			order: copiedFonts.length
-		});
-
-		copiedFonts.push(newFont);
+		// Collect any media we copied
+		for (const newMediaId of copiedMediaIds.values()) {
+			const m = await mediaRepo.getById(newMediaId);
+			if (m) copiedMedias.push(m);
+		}
 	}
 
-	return copiedFonts;
+	return { nodes: copiedNodes, medias: copiedMedias };
 }

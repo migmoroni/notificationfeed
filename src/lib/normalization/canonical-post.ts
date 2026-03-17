@@ -1,18 +1,18 @@
 /**
- * Canonical Post — the normalized, protocol-agnostic representation of a post.
+ * Canonical Post — normalized, protocol-agnostic post representation.
  *
- * Every ingested item (Nostr event, RSS item, Atom entry) is transformed
- * into this shape before persistence and display.
+ * Change from v1: `fontId` renamed to `nodeId` to align with ContentNode model.
+ * The nodeId references a ContentNode with role='font'.
  */
 
-import type { FontProtocol } from '$lib/domain/font/font.js';
+import type { FontProtocol } from '$lib/domain/content-node/content-node.js';
 
 export interface CanonicalPost {
 	/** Deterministic ID derived from source (e.g., Nostr event ID, RSS guid, Atom entry ID) */
 	id: string;
 
-	/** The Font that produced this post */
-	fontId: string;
+	/** The content node (role='font') that produced this post */
+	nodeId: string;
 
 	/** Origin protocol */
 	protocol: FontProtocol;
@@ -40,11 +40,11 @@ export interface CanonicalPost {
 }
 
 /**
- * PostContainer — groups all posts for a single Font.
+ * PostContainer — groups all posts for a single font node.
  *
- * Stored as one IndexedDB record per fontId for efficient bulk lookup.
+ * Stored as one IndexedDB record per nodeId for efficient bulk lookup.
  */
 export interface PostContainer {
-	fontId: string;
+	nodeId: string;
 	posts: CanonicalPost[];
 }

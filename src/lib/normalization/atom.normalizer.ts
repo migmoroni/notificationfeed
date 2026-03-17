@@ -1,7 +1,7 @@
 /**
- * Atom normalizer.
+ * Atom normalizer v2.
  *
- * Transforms a parsed Atom entry into a CanonicalPost.
+ * Transforms a parsed Atom entry into a CanonicalPost (v2: nodeId instead of fontId).
  */
 
 import type { CanonicalPost } from './canonical-post.js';
@@ -16,10 +16,10 @@ export interface AtomEntry {
 	authorName?: string;
 }
 
-export function normalizeAtomEntry(entry: AtomEntry, fontId: string): CanonicalPost {
+export function normalizeAtomEntry(entry: AtomEntry, nodeId: string): CanonicalPost {
 	return {
 		id: entry.id,
-		fontId,
+		nodeId,
 		protocol: 'atom',
 		title: entry.title,
 		content: entry.content || entry.summary,

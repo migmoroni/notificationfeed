@@ -1,8 +1,14 @@
+<!--
+  FeedList — post list with priority grouping and infinite scroll.
+
+  Uses feed store and SortedPost from feed-sorter.
+-->
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { PriorityFilterValue } from './PriorityFilter.svelte';
-	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
+	import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 	import type { SortedPost } from '$lib/domain/shared/feed-sorter.js';
+	import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 	import { feed } from '$lib/stores/feed.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { PRIORITY_LEVELS } from '$lib/components/shared/priority/priority.js';
@@ -15,10 +21,11 @@
 		subjectIds?: string[];
 		contentTypeIds?: string[];
 		regionIds?: string[];
-		fontIds?: string[];
+		/** Allowed font node IDs (from entity filter). Empty = no filter. */
+		nodeIds?: string[];
 	}
 
-	let { filter = 'all', subjectIds = [], contentTypeIds = [], regionIds = [], fontIds = [] }: Props = $props();
+	let { filter = 'all', subjectIds = [], contentTypeIds = [], regionIds = [], nodeIds = [] }: Props = $props();
 
 	const PAGE_SIZE = 20;
 	let visibleCount = $state(PAGE_SIZE);
@@ -31,10 +38,10 @@
 			: feed.prioritized
 	);
 
-	// Apply entity (font) filter
+	// Apply entity (node) filter
 	let entityFiltered = $derived(
-		fontIds.length > 0
-			? (() => { const allowed = new Set(fontIds); return basePosts.filter((sp) => allowed.has(sp.post.fontId)); })()
+		nodeIds.length > 0
+			? (() => { const allowed = new Set(nodeIds); return basePosts.filter((sp) => allowed.has(sp.post.nodeId)); })()
 			: basePosts
 	);
 
@@ -48,7 +55,7 @@
 	// Group posts by priority level (only used when filter === 'all')
 	let groupedByPriority = $derived.by(() => {
 		if (filter !== 'all') return null;
-		const map = new Map<PriorityLevel, SortedPost[]>();
+		const map = new Map<PriorityLevel, SortedPost<CanonicalPost>[]>();
 		for (const sp of filtered) {
 			const list = map.get(sp.priority);
 			if (list) list.push(sp);
@@ -59,17 +66,14 @@
 			.map((p) => ({ config: p, posts: map.get(p.level)! }));
 	});
 
-	// Flat visible list (for single-priority or infinite scroll total)
 	let visible = $derived(filtered.slice(0, visibleCount));
 	let hasMore = $derived(visibleCount < filtered.length);
 
-	// Reset pagination when filter changes
 	$effect(() => {
-		filter; // track
+		filter;
 		visibleCount = PAGE_SIZE;
 	});
 
-	// IntersectionObserver for infinite scroll
 	onMount(() => {
 		if (!sentinel) return;
 
@@ -88,7 +92,7 @@
 	});
 </script>
 
-{#snippet postGrid(posts: SortedPost[])}
+{#snippet postGrid(posts: SortedPost<CanonicalPost>[])}
 	<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}">
 		{#each posts as sortedPost (sortedPost.post.id)}
 			<PostCard {sortedPost} />
@@ -97,7 +101,6 @@
 {/snippet}
 
 {#if feed.loading}
-	<!-- Loading skeleton -->
 	<div class="flex flex-col gap-3">
 		{#each { length: 3 } as _}
 			<div class="rounded-lg border border-border bg-card p-4 space-y-3">
@@ -115,7 +118,6 @@
 		{/each}
 	</div>
 {:else if filtered.length === 0}
-	<!-- Empty state -->
 	<div class="flex flex-col items-center justify-center py-16 text-muted-foreground">
 		<Newspaper class="size-12 mb-4 opacity-30" />
 		<p class="text-lg font-medium mb-1">Nenhum post ainda</p>
@@ -128,7 +130,6 @@
 		</p>
 	</div>
 {:else if groupedByPriority}
-	<!-- Grouped by priority sections -->
 	<div class="flex flex-col gap-6">
 		{#each groupedByPriority as group, i (group.config.level)}
 			{#if i > 0}
@@ -143,20 +144,17 @@
 		{/each}
 	</div>
 
-	<!-- Infinite scroll sentinel -->
 	{#if hasMore}
 		<div bind:this={sentinel} class="h-10 flex items-center justify-center mt-3">
 			<div class="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent"></div>
 		</div>
 	{/if}
 {:else}
-	<!-- Single priority filter: flat list -->
 	<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}">
 		{#each visible as sortedPost (sortedPost.post.id)}
 			<PostCard {sortedPost} />
 		{/each}
 
-		<!-- Infinite scroll sentinel -->
 		{#if hasMore}
 			<div bind:this={sentinel} class="h-10 flex items-center justify-center {layout.isExpanded ? 'lg:col-span-2' : ''}">
 				<div class="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent"></div>

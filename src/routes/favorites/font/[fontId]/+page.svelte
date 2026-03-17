@@ -1,5 +1,8 @@
 <script lang="ts">
-	import FontPage from '$lib/components/shared/entity/FontPage.svelte';
+	import { page } from '$app/state';
+	import NodeDetailPage from '$lib/components/shared/entity/NodeDetailPage.svelte';
+
+	const nodeId = $derived(page.params.fontId!);
 </script>
 
-<FontPage baseHref="/favorites" />
+<NodeDetailPage {nodeId} baseHref="/favorites" />

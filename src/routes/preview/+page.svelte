@@ -5,114 +5,60 @@
 	import { creator } from '$lib/stores/creator.svelte.js';
 	import { previewFeed } from '$lib/stores/preview-feed.svelte.js';
 	import { previewEntityFilter } from '$lib/stores/preview-entity-filter.svelte.js';
-	import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
-	import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
-	import type { CreatorPage } from '$lib/domain/creator-page/creator-page.js';
-	import type { Profile } from '$lib/domain/profile/profile.js';
-	import type { Font } from '$lib/domain/font/font.js';
-	import type { CreatorProfile } from '$lib/domain/creator-profile/creator-profile.js';
-	import type { ProfileFont } from '$lib/domain/profile-font/profile-font.js';
-	import type { BrowseEntity } from '$lib/stores/browse.svelte.js';
+	import type { ContentNode } from '$lib/domain/content-node/content-node.js';
 	import type { SortedPost } from '$lib/domain/shared/feed-sorter.js';
-	import { EntityCard } from '$lib/components/shared/entity/index.js';
+	import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
+	import EntityCard from '$lib/components/shared/entity/EntityCard.svelte';
 	import EntityTreeFilter from '$lib/components/shared/EntityTreeFilter.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { PostCard } from '$lib/components/feed/index.js';
+	import PostCard from '$lib/components/feed/PostCard.svelte';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import Eye from '@lucide/svelte/icons/eye';
 	import Rss from '@lucide/svelte/icons/rss';
 
-	function toSortedPost(post: import('$lib/normalization/canonical-post.js').CanonicalPost): SortedPost {
+	function toSortedPost(post: CanonicalPost): SortedPost<CanonicalPost> {
 		return { post, priority: 3 };
 	}
 
-	let publishedPages = $derived(creator.pages.filter((p) => p.publishedVersion > 0));
-
-	let allProfiles: Profile[] = $state([]);
-	let allFonts: Font[] = $state([]);
-	let allCpJunctions: CreatorProfile[] = $state([]);
-	let allPfJunctions: ProfileFont[] = $state([]);
 	let loading = $state(true);
+	let allNodes: ContentNode[] = $state([]);
 
 	onMount(async () => {
-		if (publishedPages.length > 0) {
-			const cpRepo = createCreatorProfileStore();
-			const pfRepo = createProfileFontStore();
+		await previewEntityFilter.loadNodes();
+		const trees = previewEntityFilter.getTrees?.() ?? [];
+		const nodes = previewEntityFilter.getNodes?.() ?? [];
+		allNodes = nodes;
 
-			const cps: CreatorProfile[] = [];
-			const pfs: ProfileFont[] = [];
-			const ps: Profile[] = [];
-			const fs: Font[] = [];
-
-			for (const pg of publishedPages) {
-				const pgCps = await cpRepo.getByCreatorPageId(pg.id);
-				cps.push(...pgCps);
-			}
-
-			const profileIds = new Set(cps.map((cp) => cp.profileId));
-			ps.push(...creator.profiles.filter((p) => profileIds.has(p.id)));
-
-			for (const p of ps) {
-				const pPfs = await pfRepo.getByProfileId(p.id);
-				pfs.push(...pPfs);
-			}
-
-			const fontIds = new Set(pfs.map((pf) => pf.fontId));
-			fs.push(...creator.fonts.filter((f) => fontIds.has(f.id)));
-
-			allProfiles = ps;
-			allFonts = fs;
-			allCpJunctions = cps;
-			allPfJunctions = pfs;
-
-			await previewFeed.loadPreviewFeed(publishedPages);
+		if (trees.length > 0) {
+			await previewFeed.loadPreviewFeed(trees, nodes);
 		}
-		await previewEntityFilter.loadPages();
 		loading = false;
 	});
 
-	// Build full entity list from published pages
-	let allEntities = $derived<BrowseEntity[]>([
-		...publishedPages.map((p): BrowseEntity => ({ type: 'creator_page', data: p })),
-		...allProfiles.map((p): BrowseEntity => ({ type: 'profile', data: p })),
-		...allFonts.map((f): BrowseEntity => ({ type: 'font', data: f }))
-	]);
+	// Group nodes by role
+	let creatorNodes = $derived(allNodes.filter((n) => n.role === 'creator'));
+	let profileNodes = $derived(allNodes.filter((n) => n.role === 'profile'));
+	let fontNodes = $derived(allNodes.filter((n) => n.role === 'font'));
 
 	// Apply entity filter
-	let filteredEntities = $derived.by(() => {
-		if (!previewEntityFilter.hasFilters) return allEntities;
-		const allowedFonts = previewEntityFilter.getAllowedFontIds();
-		const allowedProfiles = previewEntityFilter.getAllowedProfileIds();
-		return allEntities.filter((e) => {
-			if (e.type === 'font') return allowedFonts.has(e.data.id);
-			if (e.type === 'profile') {
-				return allowedProfiles.has(e.data.id);
-			}
-			if (e.type === 'creator_page') {
-				return allCpJunctions.some(
-					(cp) =>
-						cp.creatorPageId === e.data.id &&
-						allowedProfiles.has(cp.profileId)
-				);
-			}
+	let filteredNodes = $derived.by(() => {
+		if (!previewEntityFilter.hasFilters) return allNodes;
+		const allowedFonts = previewEntityFilter.getAllowedFontNodeIds();
+		// When filtering, show only font nodes that match, plus their ancestors
+		if (allowedFonts.size === 0) return allNodes;
+		return allNodes.filter((n) => {
+			if (n.role === 'font') return allowedFonts.has(n.metadata.id);
+			// Show all creators and profiles (filter narrows fonts)
 			return true;
 		});
 	});
 
-	// Group filtered entities by type
-	let groupedPages = $derived(filteredEntities.filter((e) => e.type === 'creator_page'));
-	let groupedProfiles = $derived(filteredEntities.filter((e) => e.type === 'profile'));
-	let groupedFonts = $derived(filteredEntities.filter((e) => e.type === 'font'));
+	let filteredCreators = $derived(filteredNodes.filter((n) => n.role === 'creator'));
+	let filteredProfiles = $derived(filteredNodes.filter((n) => n.role === 'profile'));
+	let filteredFonts = $derived(filteredNodes.filter((n) => n.role === 'font'));
 
-	function entityHref(entity: BrowseEntity): string {
-		switch (entity.type) {
-			case 'creator_page':
-				return `/preview/creator/${entity.data.id}`;
-			case 'profile':
-				return `/preview/profile/${entity.data.id}`;
-			case 'font':
-				return `/preview/font/${entity.data.id}`;
-		}
+	function nodeHref(node: ContentNode): string {
+		return `/preview/node/${node.metadata.id}`;
 	}
 </script>
 
@@ -135,11 +81,11 @@
 				Trocar de usuário →
 			</a>
 		</div>
-	{:else if publishedPages.length === 0}
+	{:else if creator.trees.length === 0}
 		<div class="py-12 text-center">
 			<Eye class="size-12 mx-auto text-muted-foreground mb-3" />
 			<p class="text-sm text-muted-foreground mb-2">
-				Nenhuma página publicada ainda.
+				Nenhuma página criada ainda.
 			</p>
 			<a href="/pages" class="text-sm text-primary hover:underline">
 				Ir para Pages →
@@ -167,54 +113,54 @@
 									<div class="h-24 rounded-lg bg-muted animate-pulse"></div>
 								{/each}
 							</div>
-						{:else if filteredEntities.length === 0}
+						{:else if filteredNodes.length === 0}
 							<div class="py-12 text-center">
 								<p class="text-sm text-muted-foreground">Nenhum resultado para o filtro selecionado.</p>
 							</div>
 						{:else}
 							<div class="flex flex-col gap-4">
-								{#if groupedPages.length > 0}
+								{#if filteredCreators.length > 0}
 									<div>
 										<h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
-											Pages ({groupedPages.length})
+											Creators ({filteredCreators.length})
 										</h3>
 										<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
-											{#each groupedPages as pe (pe.data.id)}
-												<EntityCard entity={pe} href={entityHref(pe)} />
+											{#each filteredCreators as node (node.metadata.id)}
+												<EntityCard {node} href={nodeHref(node)} />
 											{/each}
 										</div>
 									</div>
 								{/if}
 
-								{#if groupedPages.length > 0 && (groupedProfiles.length > 0 || groupedFonts.length > 0)}
+								{#if filteredCreators.length > 0 && (filteredProfiles.length > 0 || filteredFonts.length > 0)}
 									<Separator />
 								{/if}
 
-								{#if groupedProfiles.length > 0}
+								{#if filteredProfiles.length > 0}
 									<div>
 										<h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
-											Profiles ({groupedProfiles.length})
+											Profiles ({filteredProfiles.length})
 										</h3>
 										<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
-											{#each groupedProfiles as pe (pe.data.id)}
-												<EntityCard entity={pe} href={entityHref(pe)} />
+											{#each filteredProfiles as node (node.metadata.id)}
+												<EntityCard {node} href={nodeHref(node)} />
 											{/each}
 										</div>
 									</div>
 								{/if}
 
-								{#if groupedProfiles.length > 0 && groupedFonts.length > 0}
+								{#if filteredProfiles.length > 0 && filteredFonts.length > 0}
 									<Separator />
 								{/if}
 
-								{#if groupedFonts.length > 0}
+								{#if filteredFonts.length > 0}
 									<div>
 										<h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
-											Fonts ({groupedFonts.length})
+											Fonts ({filteredFonts.length})
 										</h3>
 										<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
-											{#each groupedFonts as fe (fe.data.id)}
-												<EntityCard entity={fe} href={entityHref(fe)} />
+											{#each filteredFonts as node (node.metadata.id)}
+												<EntityCard {node} href={nodeHref(node)} />
 											{/each}
 										</div>
 									</div>

@@ -1,3 +1,10 @@
+/**
+ * Feed Macros Store — saved filter presets for the feed.
+ *
+ * Uses nodeIds instead of separate pageIds/profileIds/fontIds.
+ * Integrates with feedEntityFilter (toggleCreator/toggleProfile/toggleFont).
+ */
+
 import { feedCategories } from './feed-categories.svelte.js';
 import { feedEntityFilter } from './feed-entity-filter.svelte.js';
 import { createFeedMacroStore } from '$lib/persistence/feed-macro.store.js';
@@ -25,13 +32,18 @@ async function deleteFromDB(id: string): Promise<void> {
 	await repo.delete(id);
 }
 
+/** Collect all currently selected node IDs from the entity filter (all roles). */
+function currentNodeIds(): string[] {
+	return [
+		...feedEntityFilter.selectedCreatorIds,
+		...feedEntityFilter.selectedProfileIds,
+		...feedEntityFilter.selectedFontIds
+	];
+}
+
 export const feedMacros = {
-	get macros() {
-		return macros;
-	},
-	get activeMacroId() {
-		return activeMacroId;
-	},
+	get macros() { return macros; },
+	get activeMacroId() { return activeMacroId; },
 
 	async init(): Promise<void> {
 		await loadFromDB();
@@ -42,9 +54,7 @@ export const feedMacros = {
 			id: crypto.randomUUID(),
 			name,
 			filters: {
-				pageIds: Array.from(feedEntityFilter.selectedPageIds),
-				profileIds: Array.from(feedEntityFilter.selectedProfileIds),
-				fontIds: Array.from(feedEntityFilter.selectedFontIds),
+				nodeIds: currentNodeIds(),
 				subjectIds: feedCategories.getSelectedIds('subject'),
 				contentTypeIds: feedCategories.getSelectedIds('content_type'),
 				regionIds: feedCategories.getSelectedIds('region')
@@ -65,27 +75,20 @@ export const feedMacros = {
 		}
 
 		if (id === ALL_MACROS_ID) {
-			// Union of all saved macros' filters
-			const allPageIds = new Set<string>();
-			const allProfileIds = new Set<string>();
-			const allFontIds = new Set<string>();
+			const allNodeIds = new Set<string>();
 			const allSubjectIds = new Set<string>();
 			const allContentTypeIds = new Set<string>();
 			const allRegionIds = new Set<string>();
 
 			for (const m of macros) {
-				for (const v of m.filters.pageIds) allPageIds.add(v);
-				for (const v of m.filters.profileIds) allProfileIds.add(v);
-				for (const v of m.filters.fontIds) allFontIds.add(v);
+				for (const v of m.filters.nodeIds) allNodeIds.add(v);
 				for (const v of m.filters.subjectIds) allSubjectIds.add(v);
 				for (const v of m.filters.contentTypeIds) allContentTypeIds.add(v);
 				for (const v of m.filters.regionIds) allRegionIds.add(v);
 			}
 
 			feedEntityFilter.clearAll();
-			for (const v of allPageIds) feedEntityFilter.togglePage(v);
-			for (const v of allProfileIds) feedEntityFilter.toggleProfile(v);
-			for (const v of allFontIds) feedEntityFilter.toggleFont(v);
+			applyNodeIds(allNodeIds);
 
 			feedCategories.clearAll();
 			for (const v of allSubjectIds) feedCategories.toggleCategory(v, 'subject');
@@ -98,9 +101,7 @@ export const feedMacros = {
 		if (!macro) return;
 
 		feedEntityFilter.clearAll();
-		for (const pageId of macro.filters.pageIds) feedEntityFilter.togglePage(pageId);
-		for (const profileId of macro.filters.profileIds) feedEntityFilter.toggleProfile(profileId);
-		for (const fontId of macro.filters.fontIds) feedEntityFilter.toggleFont(fontId);
+		applyNodeIds(new Set(macro.filters.nodeIds));
 
 		feedCategories.clearAll();
 		for (const catId of macro.filters.subjectIds) feedCategories.toggleCategory(catId, 'subject');
@@ -119,12 +120,11 @@ export const feedMacros = {
 	async updateMacro(id: string): Promise<void> {
 		const macro = macros.find((m) => m.id === id);
 		if (!macro) return;
+
 		const updated: FeedMacro = {
 			...macro,
 			filters: {
-				pageIds: Array.from(feedEntityFilter.selectedPageIds),
-				profileIds: Array.from(feedEntityFilter.selectedProfileIds),
-				fontIds: Array.from(feedEntityFilter.selectedFontIds),
+				nodeIds: currentNodeIds(),
 				subjectIds: feedCategories.getSelectedIds('subject'),
 				contentTypeIds: feedCategories.getSelectedIds('content_type'),
 				regionIds: feedCategories.getSelectedIds('region')
@@ -137,38 +137,26 @@ export const feedMacros = {
 
 	get isCurrentStateSaved(): boolean {
 		const currentFilters = {
-			pageIds: Array.from(feedEntityFilter.selectedPageIds).sort(),
-			profileIds: Array.from(feedEntityFilter.selectedProfileIds).sort(),
-			fontIds: Array.from(feedEntityFilter.selectedFontIds).sort(),
+			nodeIds: currentNodeIds().sort(),
 			subjectIds: feedCategories.getSelectedIds('subject').sort(),
 			contentTypeIds: feedCategories.getSelectedIds('content_type').sort(),
 			regionIds: feedCategories.getSelectedIds('region').sort()
 		};
 
 		const hasAnyFilter =
-			currentFilters.pageIds.length > 0 ||
-			currentFilters.profileIds.length > 0 ||
-			currentFilters.fontIds.length > 0 ||
+			currentFilters.nodeIds.length > 0 ||
 			currentFilters.subjectIds.length > 0 ||
 			currentFilters.contentTypeIds.length > 0 ||
 			currentFilters.regionIds.length > 0;
 
-		if (!activeMacroId) {
-			return !hasAnyFilter;
-		}
-
-		// "All macros combined" is always considered "saved"
-		if (activeMacroId === ALL_MACROS_ID) {
-			return true;
-		}
+		if (!activeMacroId) return !hasAnyFilter;
+		if (activeMacroId === ALL_MACROS_ID) return true;
 
 		const macro = macros.find((m) => m.id === activeMacroId);
 		if (!macro) return false;
 
 		const mFilters = {
-			pageIds: [...macro.filters.pageIds].sort(),
-			profileIds: [...macro.filters.profileIds].sort(),
-			fontIds: [...macro.filters.fontIds].sort(),
+			nodeIds: [...macro.filters.nodeIds].sort(),
 			subjectIds: [...macro.filters.subjectIds].sort(),
 			contentTypeIds: [...macro.filters.contentTypeIds].sort(),
 			regionIds: [...macro.filters.regionIds].sort()
@@ -183,3 +171,36 @@ export const feedMacros = {
 		}
 	}
 };
+
+// ── Helpers ────────────────────────────────────────────────────────────
+
+/**
+ * Apply a set of saved nodeIds to the entity filter by detecting each node's
+ * role via the filter's view methods and toggling accordingly.
+ */
+function applyNodeIds(nodeIds: Set<string>): void {
+	const creators = feedEntityFilter.getCreators();
+	const creatorIdSet = new Set(creators.map((c) => c.id));
+
+	for (const nid of nodeIds) {
+		if (creatorIdSet.has(nid)) {
+			feedEntityFilter.toggleCreator(nid);
+		} else {
+			// Try profiles next — check all creators' profiles
+			let isProfile = false;
+			for (const c of creators) {
+				const profiles = feedEntityFilter.getProfiles(c.id);
+				if (profiles.some((p) => p.node.metadata.id === nid)) {
+					feedEntityFilter.toggleProfile(nid);
+					isProfile = true;
+					break;
+				}
+			}
+
+			if (!isProfile) {
+				// Must be a font (or standalone)
+				feedEntityFilter.toggleFont(nid);
+			}
+		}
+	}
+}

@@ -14,7 +14,7 @@
 	// For each custom tab, compute whether all/some/none of the selected items belong to it
 	let tabStates = $derived.by(() => {
 		const selectedIds = [...favorites.selectedItemIds];
-		const selectedItems = favorites.items.filter((i) => selectedIds.includes(i.state.entityId));
+		const selectedItems = favorites.items.filter((i) => selectedIds.includes(i.activation.nodeId));
 
 		return favorites.customTabs.map((tab) => {
 			const inTab = selectedItems.filter((i) => i.tabIds.includes(tab.id));

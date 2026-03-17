@@ -5,7 +5,7 @@
  * active button styles used across browse and feed components.
  */
 
-import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
+import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 
 // ── Data ───────────────────────────────────────────────────────────────
 

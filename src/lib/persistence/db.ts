@@ -1,30 +1,28 @@
 /**
- * Database initialization.
+ * Database — persistence layer for the refactored content model.
  *
- * Abstracts over IndexedDB (web/PWA/TWA) and SQLite (Tauri desktop).
- * Provides a unified interface for the persistence layer.
+ * New stores: contentNodes, contentTrees, contentMedias
+ * Replaced: creatorPages, profiles, fonts, creatorProfiles, profileFonts,
+ *           consumerStates, favoriteTabs, sections, pagePublications
+ * Kept: users, feedMacros, categories
+ * Changed: posts (fontId → nodeId)
  *
- * NOTE: No migration logic — the app hasn't launched yet.
- * If the schema changes during development, delete the local DB
- * (DevTools → Application → Delete database "notfeed") and reload.
+ * Since this is pre-release, migration is destructive: old data is cleared.
+ * Delete the "notfeed" database in DevTools and reload to migrate.
  */
 
 import { detectPlatform } from '$lib/platform/capabilities.js';
 
 export interface Database {
+	contentNodes: TableOps;
+	contentTrees: TableOps;
+	contentMedias: TableOps;
+	treePublications: TableOps;
 	users: TableOps;
-	creatorPages: TableOps;
-	profiles: TableOps;
-	fonts: TableOps;
-	creatorProfiles: TableOps;
-	profileFonts: TableOps;
-	categories: TableOps;
-	consumerStates: TableOps;
-	posts: TableOps;
-	favoriteTabs: TableOps;
 	feedMacros: TableOps;
-	sections: TableOps;
-	pagePublications: TableOps;
+	posts: TableOps;
+	categories: TableOps;
+	favoriteTabs: TableOps;
 }
 
 export interface TableOps {
@@ -43,7 +41,6 @@ export async function getDatabase(): Promise<Database> {
 	const platform = detectPlatform();
 
 	if (platform === 'desktop') {
-		// TODO: Initialize SQLite via Tauri plugin
 		throw new Error('SQLite backend not yet implemented');
 	}
 
@@ -53,63 +50,78 @@ export async function getDatabase(): Promise<Database> {
 
 async function initIndexedDB(): Promise<Database> {
 	return new Promise((resolve, reject) => {
-		const request = indexedDB.open('notfeed', 1);
+		const request = indexedDB.open('notfeed-v2', 3);
 
-		request.onupgradeneeded = () => {
+		request.onupgradeneeded = (event) => {
 			const idb = request.result;
+			const oldVersion = (event as IDBVersionChangeEvent).oldVersion;
 
-			const userStore = idb.createObjectStore('users', { keyPath: 'id' });
-			userStore.createIndex('role', 'role', { unique: false });
+			if (oldVersion < 1) {
+				// Content stores
+				const nodeStore = idb.createObjectStore('contentNodes', { keyPath: 'metadata.id' });
+				nodeStore.createIndex('role', 'role', { unique: false });
+				nodeStore.createIndex('author', 'metadata.author', { unique: false });
 
-			const cpStore = idb.createObjectStore('creatorPages', { keyPath: 'id' });
-			cpStore.createIndex('ownerId', 'ownerId', { unique: false });
+				const treeStore = idb.createObjectStore('contentTrees', { keyPath: 'metadata.id' });
+				treeStore.createIndex('author', 'metadata.author', { unique: false });
 
-			const profileStore = idb.createObjectStore('profiles', { keyPath: 'id' });
-			profileStore.createIndex('ownerId', 'ownerId', { unique: false });
+				const mediaStore = idb.createObjectStore('contentMedias', { keyPath: 'metadata.id' });
+				mediaStore.createIndex('author', 'metadata.author', { unique: false });
 
-			idb.createObjectStore('fonts', { keyPath: 'id' });
+				// Tree publications
+				idb.createObjectStore('treePublications', { keyPath: 'treeId' });
 
-			const cpfStore = idb.createObjectStore('creatorProfiles', { keyPath: 'id' });
-			cpfStore.createIndex('creatorPageId', 'creatorPageId', { unique: false });
-			cpfStore.createIndex('profileId', 'profileId', { unique: false });
+				// User store (supports consumer + creator in same table)
+				const userStore = idb.createObjectStore('users', { keyPath: 'id' });
+				userStore.createIndex('role', 'role', { unique: false });
 
-			const pfStore = idb.createObjectStore('profileFonts', { keyPath: 'id' });
-			pfStore.createIndex('profileId', 'profileId', { unique: false });
-			pfStore.createIndex('fontId', 'fontId', { unique: false });
+				// Feed macros
+				idb.createObjectStore('feedMacros', { keyPath: 'id' });
 
-			const catStore = idb.createObjectStore('categories', { keyPath: 'id' });
-			catStore.createIndex('parentId', 'parentId', { unique: false });
-			catStore.createIndex('treeId', 'treeId', { unique: false });
+				// Posts (grouped by nodeId)
+				idb.createObjectStore('posts', { keyPath: 'nodeId' });
 
-			const csStore = idb.createObjectStore('consumerStates', { keyPath: 'entityId' });
-			csStore.createIndex('entityType', 'entityType', { unique: false });
+				// Categories (unchanged)
+				const catStore = idb.createObjectStore('categories', { keyPath: 'id' });
+				catStore.createIndex('parentId', 'parentId', { unique: false });
+				catStore.createIndex('treeId', 'treeId', { unique: false });
+			}
 
-			idb.createObjectStore('posts', { keyPath: 'fontId' });
+			if (oldVersion >= 1 && oldVersion < 2) {
+				// Incremental upgrade: add author indexes + treePublications store
+				const tx = (event.target as IDBOpenDBRequest).transaction!;
 
-			idb.createObjectStore('favoriteTabs', { keyPath: 'id' });
-			idb.createObjectStore('feedMacros', { keyPath: 'id' });
+				const nodeStore = tx.objectStore('contentNodes');
+				nodeStore.createIndex('author', 'metadata.author', { unique: false });
 
-			idb.createObjectStore('sections', { keyPath: 'containerId' });
+				const treeStore = tx.objectStore('contentTrees');
+				treeStore.createIndex('author', 'metadata.author', { unique: false });
 
-			idb.createObjectStore('pagePublications', { keyPath: 'pageId' });
+				const mediaStore = tx.objectStore('contentMedias');
+				mediaStore.createIndex('author', 'metadata.author', { unique: false });
+
+				idb.createObjectStore('treePublications', { keyPath: 'treeId' });
+			}
+
+			if (oldVersion < 3) {
+				if (!idb.objectStoreNames.contains('favoriteTabs')) {
+					idb.createObjectStore('favoriteTabs', { keyPath: 'id' });
+				}
+			}
 		};
 
 		request.onsuccess = () => {
 			const idb = request.result;
 			resolve({
+				contentNodes: createIndexedDBTable(idb, 'contentNodes'),
+				contentTrees: createIndexedDBTable(idb, 'contentTrees'),
+				contentMedias: createIndexedDBTable(idb, 'contentMedias'),
+				treePublications: createIndexedDBTable(idb, 'treePublications'),
 				users: createIndexedDBTable(idb, 'users'),
-				creatorPages: createIndexedDBTable(idb, 'creatorPages'),
-				profiles: createIndexedDBTable(idb, 'profiles'),
-				fonts: createIndexedDBTable(idb, 'fonts'),
-				creatorProfiles: createIndexedDBTable(idb, 'creatorProfiles'),
-				profileFonts: createIndexedDBTable(idb, 'profileFonts'),
-				categories: createIndexedDBTable(idb, 'categories'),
-				consumerStates: createIndexedDBTable(idb, 'consumerStates'),
-				posts: createIndexedDBTable(idb, 'posts'),
-				favoriteTabs: createIndexedDBTable(idb, 'favoriteTabs'),
 				feedMacros: createIndexedDBTable(idb, 'feedMacros'),
-				sections: createIndexedDBTable(idb, 'sections'),
-				pagePublications: createIndexedDBTable(idb, 'pagePublications')
+				posts: createIndexedDBTable(idb, 'posts'),
+				categories: createIndexedDBTable(idb, 'categories'),
+				favoriteTabs: createIndexedDBTable(idb, 'favoriteTabs')
 			});
 		};
 

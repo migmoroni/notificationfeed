@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import CreatorPage from '$lib/components/shared/entity/CreatorPage.svelte';
+	import NodeDetailPage from '$lib/components/shared/entity/NodeDetailPage.svelte';
 
-	const creatorId = $derived(page.params.creatorId!);
+	const nodeId = $derived(page.params.creatorId!);
 </script>
 
-<CreatorPage {creatorId} baseHref="/favorites" />
+<NodeDetailPage {nodeId} baseHref="/favorites" />

@@ -1,15 +1,13 @@
 /**
  * FeedMacro — saved filter preset for the feed.
  *
- * Represents a named snapshot of combined filters (entity selection +
- * category selection) that the user can apply in one click.
- * Stored in IndexedDB under the `feedMacros` store.
+ * Simplified: uses nodeIds instead of separate pageIds/profileIds/fontIds.
+ * Category filters remain unchanged.
  */
 
 export interface FeedMacroFilters {
-	pageIds: string[];
-	profileIds: string[];
-	fontIds: string[];
+	/** Selected content node IDs (any role) */
+	nodeIds: string[];
 	subjectIds: string[];
 	contentTypeIds: string[];
 	regionIds: string[];

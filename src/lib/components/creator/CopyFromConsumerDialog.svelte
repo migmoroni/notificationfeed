@@ -1,11 +1,10 @@
 <script lang="ts">
-	import type { Profile } from '$lib/domain/profile/profile.js';
-	import type { Font } from '$lib/domain/font/font.js';
-	import { copyProfilesToCreator } from '$lib/services/copy-consumer.service.js';
+	import type { ContentNode } from '$lib/domain/content-node/content-node.js';
+	import type { ContentTree } from '$lib/domain/content-tree/content-tree.js';
+	import { getNodeIds, resolveNodeId } from '$lib/domain/content-tree/content-tree.js';
 	import { creator } from '$lib/stores/creator.svelte.js';
-	import { createProfileStore } from '$lib/persistence/profile.store.js';
-	import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
-	import { createFontStore } from '$lib/persistence/font.store.js';
+	import { createContentNodeStore } from '$lib/persistence/content-node.store.js';
+	import { createContentTreeStore } from '$lib/persistence/content-tree.store.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
@@ -13,25 +12,29 @@
 	import User from '@lucide/svelte/icons/user';
 	import Rss from '@lucide/svelte/icons/rss';
 	import Check from '@lucide/svelte/icons/check';
-	import { onMount } from 'svelte';
 
 	interface Props {
 		open: boolean;
-		pageId: string;
-		creatorId: string;
+		treeId: string;
 		onclose: () => void;
 	}
 
-	let { open = $bindable(), pageId, creatorId, onclose }: Props = $props();
+	let { open = $bindable(), treeId, onclose }: Props = $props();
 
-	let profiles = $state<(Profile & { fonts: Font[] })[]>([]);
+	interface ConsumerProfile {
+		node: ContentNode;
+		fontNodes: ContentNode[];
+		sourcePath: string;
+		sourceTreeId: string;
+	}
+
+	let profiles = $state<ConsumerProfile[]>([]);
 	let selectedIds = $state<Set<string>>(new Set());
 	let loading = $state(true);
 	let copying = $state(false);
 
-	const profileRepo = createProfileStore();
-	const pfRepo = createProfileFontStore();
-	const fontRepo = createFontStore();
+	const nodeRepo = createContentNodeStore();
+	const treeRepo = createContentTreeStore();
 
 	$effect(() => {
 		if (open) loadConsumerProfiles();
@@ -40,26 +43,49 @@
 	async function loadConsumerProfiles() {
 		loading = true;
 		try {
-			const allProfiles = await profileRepo.getAll();
-			const consumerProfiles = allProfiles.filter((p) => p.ownerType === 'consumer');
+			// Find all trees NOT authored by the current creator
+			const allTrees = await treeRepo.getAll();
+			const creatorUserId = creator.user?.id;
+			const otherTrees = allTrees.filter((t) => t.metadata.author !== creatorUserId);
 
-			const withFonts = await Promise.all(
-				consumerProfiles.map(async (p) => {
-					const pfs = await pfRepo.getByProfileId(p.id);
-					const fonts = await Promise.all(pfs.map((pf) => fontRepo.getById(pf.fontId)));
-					return { ...p, fonts: fonts.filter((f): f is Font => f !== null) };
-				})
-			);
-			profiles = withFonts;
+			const result: ConsumerProfile[] = [];
+			for (const tree of otherTrees) {
+				// Find depth-1 profile paths
+				for (const [path, tp] of Object.entries(tree.root.paths)) {
+					if (path === '/') continue;
+					const segments = path.split('/').filter(Boolean);
+					if (segments.length !== 1) continue;
+
+					const nodeId = resolveNodeId(tree, path);
+					if (!nodeId) continue;
+					const node = await nodeRepo.getById(nodeId);
+					if (!node || node.role !== 'profile') continue;
+
+					// Gather font children
+					const fontNodes: ContentNode[] = [];
+					for (const [fp] of Object.entries(tree.root.paths)) {
+						if (fp.startsWith(path + '/')) {
+							const fId = resolveNodeId(tree, fp);
+							if (fId) {
+								const fNode = await nodeRepo.getById(fId);
+								if (fNode?.role === 'font') fontNodes.push(fNode);
+							}
+						}
+					}
+
+					result.push({ node, fontNodes, sourcePath: path, sourceTreeId: tree.metadata.id });
+				}
+			}
+			profiles = result;
 		} finally {
 			loading = false;
 		}
 	}
 
-	function toggleSelect(profileId: string) {
+	function toggleSelect(nodeId: string) {
 		const next = new Set(selectedIds);
-		if (next.has(profileId)) next.delete(profileId);
-		else next.add(profileId);
+		if (next.has(nodeId)) next.delete(nodeId);
+		else next.add(nodeId);
 		selectedIds = next;
 	}
 
@@ -67,7 +93,39 @@
 		if (selectedIds.size === 0) return;
 		copying = true;
 		try {
-			await copyProfilesToCreator(Array.from(selectedIds), creatorId, pageId);
+			const selected = profiles.filter((p) => selectedIds.has(p.node.metadata.id));
+
+			for (const profile of selected) {
+				// Create a copy of the profile node under creator authorship
+				const { tree: updatedTree, node: newProfile } = await creator.createNodeInTree(
+					treeId,
+					`/${profile.sourcePath.split('/').filter(Boolean)[0]}`,
+					'profile',
+					{ ...profile.node.data.header },
+					{ ...profile.node.data.body }
+				);
+
+				// Copy font children
+				const profilePath = Object.entries(updatedTree.root.paths)
+					.find(([, tp]) => {
+						const res = updatedTree.root.nodes[tp.node];
+						return res?.['/'] === newProfile.metadata.id;
+					})?.[0];
+
+				if (profilePath) {
+					for (const fontNode of profile.fontNodes) {
+						const fontSlug = fontNode.data.header.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'font';
+						await creator.createNodeInTree(
+							treeId,
+							`${profilePath}/${fontSlug}`,
+							'font',
+							{ ...fontNode.data.header },
+							{ ...fontNode.data.body }
+						);
+					}
+				}
+			}
+
 			await creator.reload();
 			selectedIds = new Set();
 			onclose();
@@ -95,18 +153,18 @@
 			</div>
 		{:else if profiles.length === 0}
 			<div class="py-8 text-center">
-				<p class="text-sm text-muted-foreground">Nenhum profile encontrado no ambiente consumer.</p>
+				<p class="text-sm text-muted-foreground">Nenhum profile encontrado em árvores externas.</p>
 			</div>
 		{:else}
 			<div class="space-y-2 py-2">
-				{#each profiles as profile (profile.id)}
-					{@const isSelected = selectedIds.has(profile.id)}
+				{#each profiles as profile (profile.node.metadata.id)}
+					{@const isSelected = selectedIds.has(profile.node.metadata.id)}
 					<button
 						type="button"
 						class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-colors {isSelected
 							? 'border-primary bg-primary/5'
 							: 'hover:bg-muted/50'}"
-						onclick={() => toggleSelect(profile.id)}
+						onclick={() => toggleSelect(profile.node.metadata.id)}
 					>
 						{#if isSelected}
 							<div class="size-5 rounded-full bg-primary flex items-center justify-center shrink-0">
@@ -119,14 +177,14 @@
 						<div class="flex-1 min-w-0">
 							<div class="flex items-center gap-2">
 								<User class="size-3.5 text-muted-foreground" />
-								<span class="font-medium text-sm truncate">{profile.title}</span>
+								<span class="font-medium text-sm truncate">{profile.node.data.header.title}</span>
 							</div>
 							<div class="flex items-center gap-1 mt-0.5">
 								<Rss class="size-3 text-muted-foreground" />
 								<span class="text-xs text-muted-foreground">
-									{profile.fonts.length} font{profile.fonts.length !== 1 ? 's' : ''}
+									{profile.fontNodes.length} font{profile.fontNodes.length !== 1 ? 's' : ''}
 								</span>
-								{#each profile.tags.slice(0, 3) as tag}
+								{#each profile.node.data.header.tags.slice(0, 3) as tag}
 									<Badge variant="outline" class="text-[10px] h-4">{tag}</Badge>
 								{/each}
 							</div>

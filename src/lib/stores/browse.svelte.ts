@@ -1,42 +1,29 @@
 /**
- * Browse Store — reactive state for category-based navigation.
+ * Browse Store — reactive state for category-based navigation using ContentNode model.
  *
- * Supports simultaneous filtering by both category trees (subject + content_type)
- * with multi-select within each tree. Text search is combined with category
- * filters (intersection), not mutually exclusive.
+ * Supports simultaneous filtering by category trees (subject + content_type + region)
+ * with multi-select within each tree. Text search combined with category filters.
  *
- * Entity relationships are resolved through N:N junction tables.
- * URL construction is delegated to the EntityList component.
+ * Entities are now ContentNode[] instead of separate CreatorPage/Profile/Font.
  *
  * Pattern: module-level $state + exported read-only accessor + actions.
  */
 
 import type { Category, CategoryTreeId } from '$lib/domain/category/category.js';
-import type { CreatorPage } from '$lib/domain/creator-page/creator-page.js';
-import type { Profile } from '$lib/domain/profile/profile.js';
-import type { Font } from '$lib/domain/font/font.js';
+import type { ContentNode } from '$lib/domain/content-node/content-node.js';
+import type { ContentTree } from '$lib/domain/content-tree/content-tree.js';
 import { createCategoryStore } from '$lib/persistence/category.store.js';
-import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
-import { createProfileStore } from '$lib/persistence/profile.store.js';
-import { createFontStore } from '$lib/persistence/font.store.js';
-import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
-import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
-import { mergeAssignments } from '$lib/domain/shared/category-aggregation.js';
-
-// ── Types ──────────────────────────────────────────────────────────────
-
-export type BrowseEntity =
-	| { type: 'creator_page'; data: CreatorPage }
-	| { type: 'profile'; data: Profile }
-	| { type: 'font'; data: Font };
+import { createContentNodeStore } from '$lib/persistence/content-node.store.js';
+import { createContentTreeStore } from '$lib/persistence/content-tree.store.js';
+import { getEffectiveNodeCategories } from '$lib/domain/shared/category-aggregation.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
 
 interface BrowseStoreState {
 	categories: Category[];
-	/** Selected category IDs per tree (multi-select within each tree) */
 	selectedByTree: Record<CategoryTreeId, Set<string>>;
-	entities: BrowseEntity[];
+	nodes: ContentNode[];
+	trees: ContentTree[];
 	searchQuery: string;
 	loading: boolean;
 }
@@ -44,17 +31,15 @@ interface BrowseStoreState {
 let state = $state<BrowseStoreState>({
 	categories: [],
 	selectedByTree: { subject: new Set(), content_type: new Set(), region: new Set() },
-	entities: [],
+	nodes: [],
+	trees: [],
 	searchQuery: '',
 	loading: false
 });
 
 const categoryRepo = createCategoryStore();
-const pageRepo = createCreatorPageStore();
-const profileRepo = createProfileStore();
-const fontRepo = createFontStore();
-const creatorProfileRepo = createCreatorProfileStore();
-const profileFontRepo = createProfileFontStore();
+const nodeRepo = createContentNodeStore();
+const treeRepo = createContentTreeStore();
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
@@ -62,11 +47,6 @@ function matchesQuery(text: string, query: string): boolean {
 	return text.toLowerCase().includes(query.toLowerCase());
 }
 
-function matchesTags(tags: string[], query: string): boolean {
-	return tags.some((t) => matchesQuery(t, query));
-}
-
-/** Expand selected IDs to include their children (for deeper matching) */
 function expandCategoryIds(selectedIds: Set<string>, allCategories: Category[]): Set<string> {
 	const expanded = new Set(selectedIds);
 	for (const catId of selectedIds) {
@@ -79,33 +59,60 @@ function expandCategoryIds(selectedIds: Set<string>, allCategories: Category[]):
 	return expanded;
 }
 
-/** Check if a set of assignments matches a tree's selected categories */
-function assignmentsMatchTree(assignments: { treeId: string; categoryIds: string[] }[], treeId: CategoryTreeId, expandedIds: Set<string>): boolean {
-	if (expandedIds.size === 0) return true; // no filter = pass
+function assignmentsMatchTree(
+	assignments: { treeId: string; categoryIds: string[] }[],
+	treeId: CategoryTreeId,
+	expandedIds: Set<string>
+): boolean {
+	if (expandedIds.size === 0) return true;
 	const assignment = assignments.find((a) => a.treeId === treeId);
 	if (!assignment) return false;
 	return assignment.categoryIds.some((cid) => expandedIds.has(cid));
 }
 
-/** Check if entity matches text query */
-function entityMatchesQuery(entity: BrowseEntity, query: string): boolean {
+function nodeMatchesQuery(node: ContentNode, query: string): boolean {
 	if (!query.trim()) return true;
-	return matchesQuery(entity.data.title, query) || matchesTags(entity.data.tags, query);
+	const h = node.data.header;
+	return (
+		matchesQuery(h.title, query) ||
+		h.tags.some((t) => matchesQuery(t, query)) ||
+		(h.subtitle ? matchesQuery(h.subtitle, query) : false) ||
+		(h.summary ? matchesQuery(h.summary, query) : false)
+	);
 }
-
-let hasAnySelection = $derived(
-	state.selectedByTree.subject.size > 0 || state.selectedByTree.content_type.size > 0 || state.selectedByTree.region.size > 0
-);
 
 // ── Exported accessor ──────────────────────────────────────────────────
 
 export const browse = {
 	get categories() { return state.categories; },
 	get selectedByTree() { return state.selectedByTree; },
-	get entities() { return state.entities; },
+	get nodes() { return state.nodes; },
+	get trees() { return state.trees; },
 	get searchQuery() { return state.searchQuery; },
 	get loading() { return state.loading; },
-	get hasFilters() { return hasAnySelection || state.searchQuery.trim().length > 0; },
+	get hasFilters() {
+		return (
+			state.selectedByTree.subject.size > 0 ||
+			state.selectedByTree.content_type.size > 0 ||
+			state.selectedByTree.region.size > 0 ||
+			state.searchQuery.trim().length > 0
+		);
+	},
+
+	/** Nodes grouped by role for display */
+	get nodesByRole(): { creators: ContentNode[]; profiles: ContentNode[]; fonts: ContentNode[] } {
+		const creators: ContentNode[] = [];
+		const profiles: ContentNode[] = [];
+		const fonts: ContentNode[] = [];
+		for (const n of state.nodes) {
+			switch (n.role) {
+				case 'creator': creators.push(n); break;
+				case 'profile': profiles.push(n); break;
+				case 'font': fonts.push(n); break;
+			}
+		}
+		return { creators, profiles, fonts };
+	},
 
 	getRootCategories(treeId: CategoryTreeId): Category[] {
 		return state.categories
@@ -138,7 +145,6 @@ export const browse = {
 		}
 	},
 
-	/** Toggle a category selection within a tree. Triggers re-filter. */
 	async toggleCategory(categoryId: string, treeId: CategoryTreeId): Promise<void> {
 		const current = state.selectedByTree[treeId];
 		const next = new Set(current);
@@ -151,13 +157,11 @@ export const browse = {
 		await this.applyFilters();
 	},
 
-	/** Clear all selections for a tree. Triggers re-filter. */
 	async clearTree(treeId: CategoryTreeId): Promise<void> {
 		state.selectedByTree = { ...state.selectedByTree, [treeId]: new Set() };
 		await this.applyFilters();
 	},
 
-	/** Clear all selections across all trees. */
 	async clearAllCategories(): Promise<void> {
 		state.selectedByTree = { subject: new Set(), content_type: new Set(), region: new Set() };
 		await this.applyFilters();
@@ -173,175 +177,89 @@ export const browse = {
 		this.applyFilters();
 	},
 
-	/**
-	 * Apply all active filters (categories + search) as intersection.
-	 * - No filters = show nothing (user must select or search)
-	 * - Categories filter entities by effective assignments (AND between trees, OR within a tree)
-	 *   Effective = entity own + aggregated child assignments.
-	 * - Search filters by title/tags across all entity types
-	 * - Both active = intersection
-	 */
 	async applyFilters(): Promise<void> {
-		const hasCategories = state.selectedByTree.subject.size > 0 || state.selectedByTree.content_type.size > 0 || state.selectedByTree.region.size > 0;
+		const hasCategories =
+			state.selectedByTree.subject.size > 0 ||
+			state.selectedByTree.content_type.size > 0 ||
+			state.selectedByTree.region.size > 0;
 		const hasSearch = state.searchQuery.trim().length > 0;
 
 		if (!hasCategories && !hasSearch) {
-			state.entities = [];
+			state.nodes = [];
 			return;
 		}
 
 		state.loading = true;
 		try {
-			const [allPages, allProfiles, allFonts, allCreatorProfiles, allProfileFonts] = await Promise.all([
-				pageRepo.getAll(),
-				profileRepo.getAll(),
-				fontRepo.getAll(),
-				creatorProfileRepo.getAll(),
-				profileFontRepo.getAll()
+			const [allNodes, allTrees] = await Promise.all([
+				nodeRepo.getAll(),
+				treeRepo.getAll()
 			]);
 
-			// Expand selected categories to include children
+			state.trees = allTrees;
+
 			const subjectIds = expandCategoryIds(state.selectedByTree.subject, state.categories);
 			const contentTypeIds = expandCategoryIds(state.selectedByTree.content_type, state.categories);
 			const regionIds = expandCategoryIds(state.selectedByTree.region, state.categories);
 
-			// Build font-by-profile map from junction
-			const fontsByProfile = new Map<string, typeof allFonts>();
-			for (const pf of allProfileFonts) {
-				const font = allFonts.find((f) => f.id === pf.fontId);
-				if (!font) continue;
-				const list = fontsByProfile.get(pf.profileId) ?? [];
-				list.push(font);
-				fontsByProfile.set(pf.profileId, list);
-			}
+			const nodeMap = new Map(allNodes.map((n) => [n.metadata.id, n]));
 
-			// Compute effective profile categories (own + child fonts)
-			const profileEffective = new Map<string, import('$lib/domain/shared/category-assignment.js').CategoryAssignment[]>();
-			for (const p of allProfiles) {
-				const childFontAssignments = (fontsByProfile.get(p.id) ?? []).map(
-					(f) => f.categoryAssignments ?? []
-				);
-				profileEffective.set(
-					p.id,
-					mergeAssignments(p.categoryAssignments ?? [], ...childFontAssignments)
-				);
-			}
+			let matched = allNodes;
 
-			// Filter fonts by their own categories only (no downward propagation)
-			let matchedFonts = allFonts;
 			if (hasCategories) {
-				matchedFonts = allFonts.filter((f) => {
-					const own = f.categoryAssignments ?? [];
+				matched = matched.filter((node) => {
+					// For each tree the node appears in, compute effective categories
+					let effective = node.data.header.categoryAssignments;
+					for (const tree of allTrees) {
+						const treeEffective = getEffectiveNodeCategories(node.metadata.id, tree, nodeMap);
+						if (treeEffective.length > 0) {
+							effective = treeEffective;
+							break; // use the first tree's effective categories
+						}
+					}
+
 					return (
-						assignmentsMatchTree(own, 'subject', subjectIds) &&
-						assignmentsMatchTree(own, 'content_type', contentTypeIds) &&
-						assignmentsMatchTree(own, 'region', regionIds)
+						assignmentsMatchTree(effective, 'subject', subjectIds) &&
+						assignmentsMatchTree(effective, 'content_type', contentTypeIds) &&
+						assignmentsMatchTree(effective, 'region', regionIds)
 					);
 				});
 			}
 
-			// Filter profiles by effective categories (own + child fonts): AND between trees
-			let matchedProfiles = allProfiles;
-			if (hasCategories) {
-				matchedProfiles = allProfiles.filter((p) => {
-					const eff = profileEffective.get(p.id) ?? [];
-					return (
-						assignmentsMatchTree(eff, 'subject', subjectIds) &&
-						assignmentsMatchTree(eff, 'content_type', contentTypeIds) &&
-						assignmentsMatchTree(eff, 'region', regionIds)
-					);
-				});
-			}
-
-			// Filter pages by effective categories (own + child profiles' effective): AND between trees
-			let matchedPages: typeof allPages = [];
-			if (hasCategories) {
-				// Compute effective page categories (own + child profiles' effective)
-				const profilesByPage = new Map<string, typeof allProfiles>();
-				for (const cp of allCreatorProfiles) {
-					const profile = allProfiles.find((p) => p.id === cp.profileId);
-					if (!profile) continue;
-					const list = profilesByPage.get(cp.creatorPageId) ?? [];
-					list.push(profile);
-					profilesByPage.set(cp.creatorPageId, list);
-				}
-
-				matchedPages = allPages.filter((page) => {
-					const childProfileEffectives = (profilesByPage.get(page.id) ?? []).map(
-						(p) => profileEffective.get(p.id) ?? []
-					);
-					const pageEff = mergeAssignments(page.categoryAssignments ?? [], ...childProfileEffectives);
-					return (
-						assignmentsMatchTree(pageEff, 'subject', subjectIds) &&
-						assignmentsMatchTree(pageEff, 'content_type', contentTypeIds) &&
-						assignmentsMatchTree(pageEff, 'region', regionIds)
-					);
-				});
-			} else {
-				matchedPages = allPages;
-			}
-
-			// Assemble entities
-			let entities: BrowseEntity[] = [
-				...matchedPages.map((p) => ({ type: 'creator_page' as const, data: p })),
-				...matchedProfiles.map((p) => ({ type: 'profile' as const, data: p })),
-				...matchedFonts.map((f) => ({ type: 'font' as const, data: f }))
-			];
-
-			// If search is also active, intersect with text match
 			if (hasSearch) {
 				const query = state.searchQuery;
 				if (hasCategories) {
-					// Intersection: must match both categories AND text
-					entities = entities.filter((e) => entityMatchesQuery(e, query));
+					matched = matched.filter((n) => nodeMatchesQuery(n, query));
 				} else {
-					// Search only — search across everything
-					entities = [
-						...allPages.filter((p) => matchesQuery(p.title, query) || matchesTags(p.tags, query))
-							.map((p) => ({ type: 'creator_page' as const, data: p })),
-						...allProfiles.filter((p) => matchesQuery(p.title, query) || matchesTags(p.tags, query))
-							.map((p) => ({ type: 'profile' as const, data: p })),
-						...allFonts.filter((f) => matchesQuery(f.title, query) || matchesTags(f.tags, query))
-							.map((f) => ({ type: 'font' as const, data: f }))
-					];
+					matched = allNodes.filter((n) => nodeMatchesQuery(n, query));
 				}
 			}
 
-			state.entities = entities;
+			state.nodes = matched;
 		} finally {
 			state.loading = false;
 		}
 	},
 
-	// Legacy compatibility
 	async searchEntities(query: string): Promise<void> {
 		return this.setSearchQuery(query);
 	},
 
-	/**
-	 * Load all entities unconditionally (used when an external filter like
-	 * the entity filter is active but browse has no category/search filters).
-	 */
-	async loadAllEntities(): Promise<void> {
+	async loadAllNodes(): Promise<void> {
 		state.loading = true;
 		try {
-			const [allPages, allProfiles, allFonts] = await Promise.all([
-				pageRepo.getAll(),
-				profileRepo.getAll(),
-				fontRepo.getAll()
+			const [allNodes, allTrees] = await Promise.all([
+				nodeRepo.getAll(),
+				treeRepo.getAll()
 			]);
-			state.entities = [
-				...allPages.map((p) => ({ type: 'creator_page' as const, data: p })),
-				...allProfiles.map((p) => ({ type: 'profile' as const, data: p })),
-				...allFonts.map((f) => ({ type: 'font' as const, data: f }))
-			];
+			state.nodes = allNodes;
+			state.trees = allTrees;
 		} finally {
 			state.loading = false;
 		}
 	},
 
-	/** Clear entities (used when all external filters are also cleared). */
-	clearEntities(): void {
-		state.entities = [];
+	clearNodes(): void {
+		state.nodes = [];
 	}
 };

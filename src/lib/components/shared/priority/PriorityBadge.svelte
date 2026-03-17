@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
+	import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { PRIORITY_MAP } from '$lib/components/shared/priority/priority.js';
 

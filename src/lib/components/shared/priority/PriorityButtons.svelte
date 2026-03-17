@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
+	import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 	import { PRIORITY_LEVELS, PRIORITY_INACTIVE_CLASS } from '$lib/components/shared/priority/priority.js';
 
 	interface Props {

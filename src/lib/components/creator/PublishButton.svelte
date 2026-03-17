@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { CreatorPage } from '$lib/domain/creator-page/creator-page.js';
 	import { creator } from '$lib/stores/creator.svelte.js';
+	import type { TreePublication } from '$lib/domain/tree-export/tree-publication.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
@@ -8,23 +8,29 @@
 	import Check from '@lucide/svelte/icons/check';
 
 	interface Props {
-		page: CreatorPage;
+		treeId: string;
 	}
 
-	let { page }: Props = $props();
+	let { treeId }: Props = $props();
 
 	let showConfirm = $state(false);
 	let publishing = $state(false);
+	let publication = $state<TreePublication | null>(null);
 
-	let isPublished = $derived(page.publishedVersion > 0);
+	$effect(() => {
+		creator.getPublication(treeId).then((p) => (publication = p));
+	});
+
+	let isPublished = $derived(publication !== null && publication.version > 0);
 	let versionLabel = $derived(
-		isPublished ? `v${page.publishedVersion}` : null
+		isPublished ? `v${publication!.version}` : null
 	);
 
 	async function handlePublish() {
 		publishing = true;
 		try {
-			await creator.publishPage(page.id);
+			await creator.publishTree(treeId);
+			publication = await creator.getPublication(treeId);
 		} finally {
 			publishing = false;
 			showConfirm = false;
@@ -61,7 +67,7 @@
 	open={showConfirm}
 	title={isPublished ? 'Republicar página?' : 'Publicar página?'}
 	description={isPublished
-		? `A versão publicada será atualizada de v${page.publishedVersion} para v${page.publishedVersion + 1}.`
+		? `A versão publicada será atualizada de v${publication!.version} para v${publication!.version + 1}.`
 		: 'Um snapshot imutável será criado. Edições futuras não afetarão a versão publicada.'}
 	confirmLabel={isPublished ? 'Republicar' : 'Publicar'}
 	confirmVariant="default"

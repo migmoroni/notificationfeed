@@ -1,39 +1,32 @@
+<!--
+  EntityList — displays ContentNode[] grouped by role.
+  
+  Replaces the old EntityList that worked with BrowseEntity[] union type.
+-->
 <script lang="ts">
-	import type { BrowseEntity } from '$lib/stores/browse.svelte.js';
+	import type { ContentNode } from '$lib/domain/content-node/content-node.js';
 	import EntityCard from './EntityCard.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 
 	interface Props {
-		entities: BrowseEntity[];
+		nodes: ContentNode[];
 		loading: boolean;
 		baseHref?: string;
 	}
 
-	let { entities, loading, baseHref = '/browse' }: Props = $props();
+	let { nodes, loading, baseHref = '/browse' }: Props = $props();
 
-	let pages = $derived(entities.filter((e) => e.type === 'creator_page'));
-	let profiles = $derived(entities.filter((e) => e.type === 'profile'));
-	let fonts = $derived(entities.filter((e) => e.type === 'font'));
+	let creators = $derived(nodes.filter((n) => n.role === 'creator'));
+	let profiles = $derived(nodes.filter((n) => n.role === 'profile'));
+	let fonts = $derived(nodes.filter((n) => n.role === 'font'));
 
-	function profileHref(entity: BrowseEntity): string {
-		if (entity.type !== 'profile') return '';
-		return `${baseHref}/profile/${entity.data.id}`;
-	}
-
-	function pageHref(entity: BrowseEntity): string {
-		if (entity.type !== 'creator_page') return '';
-		return `${baseHref}/creator/${entity.data.id}`;
-	}
-
-	function fontHref(entity: BrowseEntity): string {
-		if (entity.type !== 'font') return '';
-		return `${baseHref}/font/${entity.data.id}`;
+	function nodeHref(node: ContentNode): string {
+		return `${baseHref}/node/${node.metadata.id}`;
 	}
 </script>
 
 {#if loading}
-	<!-- Skeleton loader -->
 	<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
 		{#each { length: 6 } as _}
 			<div class="rounded-lg border border-border bg-card p-3.5 animate-pulse">
@@ -47,57 +40,54 @@
 			</div>
 		{/each}
 	</div>
-{:else if entities.length === 0}
+{:else if nodes.length === 0}
 	<div class="flex flex-col items-center justify-center py-12 text-center">
 		<p class="text-sm text-muted-foreground">Selecione uma categoria para ver conteúdo.</p>
 	</div>
 {:else}
 	<div class="flex flex-col gap-4">
-		<!-- CreatorPages -->
-		{#if pages.length > 0}
+		{#if creators.length > 0}
 			<div>
 				<h3 class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
-					Creator Pages ({pages.length})
+					Creators ({creators.length})
 				</h3>
 				<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
-					{#each pages as entity (entity.data.id)}
-						<EntityCard {entity} href={pageHref(entity)} />
+					{#each creators as node (node.metadata.id)}
+						<EntityCard {node} href={nodeHref(node)} />
 					{/each}
 				</div>
 			</div>
 		{/if}
 
-		{#if pages.length > 0 && profiles.length > 0}
+		{#if creators.length > 0 && profiles.length > 0}
 			<Separator />
 		{/if}
 
-		<!-- Profiles -->
 		{#if profiles.length > 0}
 			<div>
 				<h3 class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
 					Profiles ({profiles.length})
 				</h3>
 				<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
-					{#each profiles as entity (entity.data.id)}
-						<EntityCard {entity} href={profileHref(entity)} />
+					{#each profiles as node (node.metadata.id)}
+						<EntityCard {node} href={nodeHref(node)} />
 					{/each}
 				</div>
 			</div>
 		{/if}
 
-		{#if (pages.length > 0 || profiles.length > 0) && fonts.length > 0}
+		{#if (creators.length > 0 || profiles.length > 0) && fonts.length > 0}
 			<Separator />
 		{/if}
 
-		<!-- Fonts -->
 		{#if fonts.length > 0}
 			<div>
 				<h3 class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
 					Fonts ({fonts.length})
 				</h3>
 				<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
-					{#each fonts as entity (entity.data.id)}
-						<EntityCard {entity} href={fontHref(entity)} />
+					{#each fonts as node (node.metadata.id)}
+						<EntityCard {node} href={nodeHref(node)} />
 					{/each}
 				</div>
 			</div>

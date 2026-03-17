@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import ProfilePage from '$lib/components/shared/entity/ProfilePage.svelte';
+	import NodeDetailPage from '$lib/components/shared/entity/NodeDetailPage.svelte';
 
-	const profileId = $derived(page.params.profileId!);
+	const nodeId = $derived(page.params.profileId!);
 </script>
 
-<ProfilePage {profileId} baseHref="/browse" />
+<NodeDetailPage {nodeId} baseHref="/browse" />

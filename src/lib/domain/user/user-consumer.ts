@@ -1,43 +1,119 @@
 /**
- * UserConsumer — local consumption account.
+ * UserConsumer — local consumption account (refactored).
  *
- * Consumes feeds, organizes content, manages follows and custom categories.
- * Never publishes content. Custom categories are exclusively owned by consumers.
+ * Consumes feeds, organizes content, manages tree subscriptions and node activations.
+ * Never publishes content.
+ *
+ * Key changes from previous model:
+ *   - `follows` replaced by `activateTrees` (tree subscriptions)
+ *   - `ConsumerState` replaced by `activateNodes` (per-node overrides)
+ *   - `FavoriteTab` moved from separate store into user record
+ *   - When a tree is activated, its root node is auto-activated
  */
 
-import type { UserBase } from './user.js';
-import type { FollowRef } from '../shared/follow-ref.js';
-import type { ConsumerState } from '../shared/consumer-state.js';
+import type { PriorityLevel } from './priority-level.js';
 
-export interface UserConsumer extends UserBase {
-	role: 'consumer';
+// ---------------------------------------------------------------------------
+// Tree activation
+// ---------------------------------------------------------------------------
 
-	/** References to followed CreatorPages and/or UserCreators */
-	follows: FollowRef[];
+export interface TreeActivation {
+	treeId: string;
+	activatedAt: Date;
 }
 
-export type NewUserConsumer = Omit<UserConsumer, 'id' | 'role' | 'createdAt' | 'updatedAt' | 'follows'> & {
-	follows?: FollowRef[];
-};
+// ---------------------------------------------------------------------------
+// Node activation
+// ---------------------------------------------------------------------------
 
-/**
- * Contract for UserConsumer persistence.
- */
+export interface NodeActivation {
+	nodeId: string;
+
+	/**
+	 * Priority override. null = inherit from parent node in tree.
+	 * Inheritance chain: fontNode → profileNode → creatorNode → 3 (default)
+	 */
+	priority: PriorityLevel | null;
+
+	/** Whether this node is marked as favorite */
+	favorite: boolean;
+
+	/** Local enabled/disabled override */
+	enabled: boolean;
+
+	/**
+	 * Tab assignments (many-to-many). Empty array means the item
+	 * only appears in the system "all_favorites" tab (when favorite === true).
+	 */
+	favoriteTabIds: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Favorite tabs (embedded in user)
+// ---------------------------------------------------------------------------
+
+export interface FavoriteTab {
+	id: string;
+	title: string;
+	emoji: string;
+	position: number;
+	isSystem: boolean;
+	createdAt: Date;
+}
+
+export const SYSTEM_FAVORITES_TAB_ID = '00000000-0000-0000-0000-allfav000001';
+
+// ---------------------------------------------------------------------------
+// UserConsumer
+// ---------------------------------------------------------------------------
+
+export interface UserConsumer {
+	id: string;
+	role: 'consumer';
+	displayName: string;
+
+	/** Trees the user has subscribed to */
+	activateTrees: TreeActivation[];
+
+	/** Per-node activation state (priority, favorite, enabled) */
+	activateNodes: NodeActivation[];
+
+	/** Favorite tabs (system "all_favorites" + custom tabs) */
+	favoriteTabs: FavoriteTab[];
+
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+export type NewUserConsumer = Pick<UserConsumer, 'displayName'>;
+
+// ---------------------------------------------------------------------------
+// Repository contract
+// ---------------------------------------------------------------------------
+
 export interface UserConsumerRepository {
 	getAll(): Promise<UserConsumer[]>;
 	getById(id: string): Promise<UserConsumer | null>;
-	create(user: NewUserConsumer): Promise<UserConsumer>;
+	create(data: NewUserConsumer): Promise<UserConsumer>;
 	update(id: string, data: Partial<NewUserConsumer>): Promise<UserConsumer>;
 	delete(id: string): Promise<void>;
 
-	/** Follow management */
-	addFollow(userId: string, follow: FollowRef): Promise<void>;
-	removeFollow(userId: string, targetId: string): Promise<void>;
-	getFollows(userId: string): Promise<FollowRef[]>;
+	/** Tree subscription management */
+	activateTree(userId: string, treeId: string): Promise<void>;
+	deactivateTree(userId: string, treeId: string): Promise<void>;
 
-	/** Consumer state overrides */
-	getState(userId: string, entityId: string): Promise<ConsumerState | null>;
-	getAllStates(userId: string): Promise<ConsumerState[]>;
-	setState(userId: string, state: ConsumerState): Promise<void>;
-	removeState(userId: string, entityId: string): Promise<void>;
+	/** Node activation management */
+	activateNode(userId: string, nodeId: string): Promise<void>;
+	deactivateNode(userId: string, nodeId: string): Promise<void>;
+
+	/** Per-node state */
+	setPriority(userId: string, nodeId: string, priority: PriorityLevel | null): Promise<void>;
+	setFavorite(userId: string, nodeId: string, favorite: boolean): Promise<void>;
+	setEnabled(userId: string, nodeId: string, enabled: boolean): Promise<void>;
+	updateFavoriteTabIds(userId: string, nodeId: string, tabIds: string[]): Promise<void>;
+
+	/** Favorite tab management (embedded in user) */
+	createTab(userId: string, tab: Omit<FavoriteTab, 'id' | 'isSystem' | 'createdAt'>): Promise<FavoriteTab>;
+	updateTab(userId: string, tabId: string, data: Partial<Pick<FavoriteTab, 'title' | 'emoji' | 'position'>>): Promise<FavoriteTab>;
+	deleteTab(userId: string, tabId: string): Promise<void>;
 }

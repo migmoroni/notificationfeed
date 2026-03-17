@@ -2,8 +2,8 @@
 	import { activeUser } from '$lib/stores/active-user.svelte.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { browse } from '$lib/stores/browse.svelte.js';
-	import { parseNotfeedJson, importNotfeedJson, importSimpleUrls } from '$lib/services/import.service.js';
-	import type { PageExport } from '$lib/domain/creator-page/page-export.js';
+	import { parseNotfeedJson, importTreeExport, importSimpleUrls } from '$lib/services/import.service.js';
+	import type { TreeExport } from '$lib/domain/tree-export/index.js';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
@@ -17,7 +17,7 @@
 
 	// ── File import state ──────────────────────────────────────────────
 	let selectedFile = $state<File | null>(null);
-	let parsedExport = $state<PageExport | null>(null);
+	let parsedExport = $state<TreeExport | null>(null);
 	let fileError = $state('');
 
 	// ── URL import state ───────────────────────────────────────────────
@@ -66,7 +66,7 @@
 		resultMessage = '';
 
 		try {
-			const result = await importNotfeedJson(parsedExport, activeUser.current.id);
+			const result = await importTreeExport(parsedExport, activeUser.current.id);
 			resultMessage = result.message;
 			resultSuccess = result.success;
 
@@ -178,13 +178,14 @@
 
 			{#if parsedExport}
 				<!-- Preview -->
+				{@const rootNodeEntry = parsedExport.nodes.find((n) => n.role === 'creator')}
 				<div class="rounded-lg border bg-card p-4 space-y-2">
-					<h3 class="font-semibold">{parsedExport.page.title}</h3>
-					{#if parsedExport.page.tagline}
-						<p class="text-sm font-medium">{parsedExport.page.tagline}</p>
+					<h3 class="font-semibold">{rootNodeEntry?.data.header.title ?? 'Sem título'}</h3>
+					{#if rootNodeEntry?.data.header.subtitle}
+						<p class="text-sm font-medium">{rootNodeEntry.data.header.subtitle}</p>
 					{/if}
-					{#if parsedExport.page.bio}
-						<p class="text-sm text-muted-foreground">{parsedExport.page.bio}</p>
+					{#if rootNodeEntry?.data.header.summary}
+						<p class="text-sm text-muted-foreground">{rootNodeEntry.data.header.summary}</p>
 					{/if}
 					{#if parsedExport.creatorDisplayName}
 						<p class="text-xs text-muted-foreground">
@@ -192,14 +193,12 @@
 						</p>
 					{/if}
 					<div class="flex gap-3 text-xs text-muted-foreground">
-						<span>{parsedExport.profiles.length} profile(s)</span>
-						<span>
-							{parsedExport.profiles.reduce((sum, p) => sum + (p.fonts?.length ?? 0), 0)} font(s)
-						</span>
+						<span>{parsedExport.nodes.filter((n) => n.role === 'profile').length} profile(s)</span>
+						<span>{parsedExport.nodes.filter((n) => n.role === 'font').length} font(s)</span>
 					</div>
-					{#if parsedExport.page.tags?.length}
+					{#if rootNodeEntry?.data.header.tags?.length}
 						<div class="flex flex-wrap gap-1">
-							{#each parsedExport.page.tags as tag (tag)}
+							{#each rootNodeEntry.data.header.tags as tag (tag)}
 								<span class="rounded-full bg-accent px-2 py-0.5 text-xs text-accent-foreground">
 									{tag}
 								</span>

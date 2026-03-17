@@ -32,7 +32,7 @@ export function createFavoriteTabStore(): FavoriteTabRepository {
 			await ensureSystemTab();
 			const db = await getDatabase();
 			const all = await db.favoriteTabs.getAll<FavoriteTab>();
-			return all.sort((a, b) => a.position - b.position);
+			return all.sort((a: FavoriteTab, b: FavoriteTab) => a.position - b.position);
 		},
 
 		async getById(id: string): Promise<FavoriteTab | null> {

@@ -4,8 +4,8 @@
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { activeUser } from '$lib/stores/active-user.svelte.js';
 	import { creator } from '$lib/stores/creator.svelte.js';
-	import { PageForm, ProfileSection, PublishButton, ExportButton, CopyFromConsumerDialog } from '$lib/components/creator/index.js';
-	import { createImagePreviewUrl } from '$lib/services/image.service.js';
+	import { NodeForm, TreeEditor, PublishButton, ExportButton, CopyFromConsumerDialog } from '$lib/components/creator/index.js';
+	import { getMediaPreviewUrl } from '$lib/services/media.service.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
@@ -14,19 +14,24 @@
 	import Copy from '@lucide/svelte/icons/copy';
 	import Globe from '@lucide/svelte/icons/globe';
 
-	let pageId = $derived(page.params.id!);
-	let creatorPage = $derived(creator.pages.find((p) => p.id === pageId));
+	let treeId = $derived(page.params.id!);
+	let tree = $derived(creator.trees.find((t) => t.metadata.id === treeId));
+	let rootNode = $derived(treeId ? creator.getRootNode(treeId) : null);
+
+	let bannerMedia = $derived(rootNode?.data.header.bannerMediaId ? creator.getMediaById(rootNode.data.header.bannerMediaId) : null);
+	let avatarMedia = $derived(rootNode?.data.header.coverMediaId ? creator.getMediaById(rootNode.data.header.coverMediaId) : null);
 
 	let editing = $state(false);
 	let saving = $state(false);
 	let showDeleteConfirm = $state(false);
 	let showCopyDialog = $state(false);
 
-	async function handleSave(data: { title: string; tagline: string; bio: string; tags: string[]; avatar: any; banner: any; categoryAssignments: any[] }) {
-		if (!pageId) return;
+	async function handleSave(data: { header: import('$lib/domain/content-node/content-node.js').ContentNodeHeader; body: import('$lib/domain/content-node/content-node.js').ContentNodeBody }) {
+		if (!rootNode) return;
 		saving = true;
 		try {
-			await creator.updatePage(pageId, data);
+			await creator.updateNodeHeader(rootNode.metadata.id, data.header);
+			await creator.updateNodeBody(rootNode.metadata.id, data.body);
 			editing = false;
 		} finally {
 			saving = false;
@@ -34,14 +39,14 @@
 	}
 
 	async function handleDelete() {
-		if (!pageId) return;
-		await creator.deletePage(pageId);
+		if (!treeId) return;
+		await creator.deleteTree(treeId);
 		goto('/pages');
 	}
 </script>
 
 <svelte:head>
-	<title>Notfeed — {creatorPage?.title ?? 'Page'}</title>
+	<title>Notfeed — {rootNode?.data.header.title ?? 'Page'}</title>
 </svelte:head>
 
 <div class="container mx-auto px-4 py-6 {layout.isExpanded ? 'max-w-3xl' : 'max-w-2xl'}">
@@ -50,22 +55,22 @@
 		Voltar
 	</button>
 
-	{#if !creatorPage}
+	{#if !tree}
 		<div class="py-12 text-center">
 			<p class="text-sm text-muted-foreground">Página não encontrada.</p>
 		</div>
 	{:else}
 		<!-- Header -->
-		{#if creatorPage.banner?.data}
+		{#if bannerMedia}
 			<div class="rounded-lg overflow-hidden mb-4" style="aspect-ratio: 3.6 / 1;">
-				<img src={createImagePreviewUrl(creatorPage.banner)} alt="" class="w-full h-full object-cover" />
+				<img src={getMediaPreviewUrl(bannerMedia)} alt="" class="w-full h-full object-cover" />
 			</div>
 		{/if}
 		<div class="flex items-start justify-between gap-4 mb-6">
 			<div class="flex items-start gap-3 flex-1 min-w-0">
-				{#if creatorPage.avatar?.data}
+				{#if avatarMedia}
 					<div class="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-muted">
-						<img src={createImagePreviewUrl(creatorPage.avatar)} alt="" class="w-full h-full object-cover" />
+						<img src={getMediaPreviewUrl(avatarMedia)} alt="" class="w-full h-full object-cover" />
 					</div>
 				{:else}
 					<div class="shrink-0 w-14 h-14 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
@@ -73,18 +78,18 @@
 					</div>
 				{/if}
 				<div class="flex-1 min-w-0">
-					<h1 class="text-xl font-bold truncate">{creatorPage.title}</h1>
-					{#if creatorPage.tagline}
-						<p class="text-sm font-medium mt-0.5">{creatorPage.tagline}</p>
+					<h1 class="text-xl font-bold truncate">{rootNode?.data.header.title ?? ''}</h1>
+					{#if rootNode?.data.header.subtitle}
+						<p class="text-sm font-medium mt-0.5">{rootNode.data.header.subtitle}</p>
 					{/if}
-					{#if creatorPage.bio}
-						<p class="text-sm text-muted-foreground mt-1 line-clamp-2">{creatorPage.bio}</p>
+					{#if rootNode?.data.header.summary}
+						<p class="text-sm text-muted-foreground mt-1 line-clamp-2">{rootNode.data.header.summary}</p>
 					{/if}
 				</div>
 			</div>
 			<div class="flex items-center gap-2 shrink-0">
-				<PublishButton page={creatorPage} />
-				<ExportButton page={creatorPage} />
+				<PublishButton treeId={treeId} />
+				<ExportButton treeId={treeId} />
 			</div>
 		</div>
 
@@ -99,15 +104,11 @@
 
 			{#if editing}
 				<div class="border rounded-lg p-4 bg-muted/30">
-					<PageForm
+					<NodeForm
 						mode="edit"
-						initial={{
-							title: creatorPage.title,						tagline: creatorPage.tagline,							bio: creatorPage.bio,
-							tags: creatorPage.tags,
-							avatar: creatorPage.avatar,
-							banner: creatorPage.banner,
-							categoryAssignments: creatorPage.categoryAssignments ?? []
-						}}
+						role="creator"
+						initialHeader={rootNode?.data.header}
+						initialBody={rootNode?.data.body}
 						onsave={handleSave}
 						oncancel={() => (editing = false)}
 						{saving}
@@ -115,14 +116,14 @@
 				</div>
 			{:else}
 				<div class="border rounded-lg p-4 space-y-2">
-					{#if creatorPage.tags.length > 0}
+					{#if rootNode?.data.header.tags && rootNode.data.header.tags.length > 0}
 						<div class="flex flex-wrap gap-1">
-							{#each creatorPage.tags as tag}
+							{#each rootNode.data.header.tags as tag}
 								<span class="text-xs px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground">{tag}</span>
 							{/each}
 						</div>
 					{/if}
-					{#if !creatorPage.bio && !creatorPage.tagline && creatorPage.tags.length === 0}
+					{#if !rootNode?.data.header.summary && !rootNode?.data.header.subtitle && (!rootNode?.data.header.tags || rootNode.data.header.tags.length === 0)}
 						<p class="text-xs text-muted-foreground italic">Nenhuma informação adicional.</p>
 					{/if}
 				</div>
@@ -131,9 +132,9 @@
 
 		<Separator class="my-6" />
 
-		<!-- Profiles + Fonts -->
+		<!-- Tree Editor (Profiles + Fonts) -->
 		<div class="mb-6">
-			<ProfileSection pageId={pageId} />
+			<TreeEditor treeId={treeId} />
 		</div>
 
 		<Separator class="my-6" />
@@ -165,7 +166,7 @@
 			<ConfirmDialog
 				open={showDeleteConfirm}
 				title="Excluir página?"
-				description="Tem certeza que deseja excluir &quot;{creatorPage.title}&quot;? Todos os profiles e fonts desta página também serão excluídos."
+				description="Tem certeza que deseja excluir &quot;{rootNode?.data.header.title ?? ''}&quot;? Todos os profiles e fonts desta página também serão excluídos."
 				confirmLabel="Excluir"
 				onconfirm={handleDelete}
 				oncancel={() => (showDeleteConfirm = false)}
@@ -174,9 +175,8 @@
 
 		{#if showCopyDialog && activeUser.current}
 			<CopyFromConsumerDialog
-				bind:open={showCopyDialog}
-				{pageId}
-				creatorId={activeUser.current.id}
+				open={showCopyDialog}
+				treeId={treeId}
 				onclose={() => (showCopyDialog = false)}
 			/>
 		{/if}

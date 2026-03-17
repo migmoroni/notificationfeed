@@ -4,10 +4,10 @@
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import {
 		TabSidebar,
-		FavoriteItemList,
 		SelectionBar,
 		TabAssignmentDialog
 	} from '$lib/components/favorites/index.js';
+	import FavoriteItemList from '$lib/components/favorites/FavoriteItemList.svelte';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
 
 	let showAssignment = $state(false);

@@ -1,28 +1,29 @@
 /**
- * Export Service — builds and downloads .notfeed.json files.
+ * Export Service — builds and downloads .notfeed.json files using TreeExport format.
  *
- * Only exports from published snapshots. The page must be published first.
- * The exported file is loaded from the pagePublications store.
+ * Only exports from published snapshots. The tree must be published first.
  */
 
-import type { PageExport } from '$lib/domain/creator-page/page-export.js';
-import { PAGE_EXPORT_EXTENSION, PAGE_EXPORT_MIME } from '$lib/domain/creator-page/page-export.js';
-import { createPagePublicationStore } from '$lib/persistence/page-publication.store.js';
+import type { TreeExport } from '$lib/domain/tree-export/tree-export.js';
+import { TREE_EXPORT_EXTENSION, TREE_EXPORT_MIME } from '$lib/domain/tree-export/tree-export.js';
+import { createTreePublicationStore } from '$lib/persistence/tree-publication.store.js';
 
 /**
- * Download a PageExport as a .notfeed.json file.
+ * Download a TreeExport as a .notfeed.json file.
  */
-export function downloadPageExport(pageExport: PageExport): void {
-	const json = JSON.stringify(pageExport, null, 2);
-	const blob = new Blob([json], { type: PAGE_EXPORT_MIME });
+export function downloadTreeExport(treeExport: TreeExport): void {
+	const json = JSON.stringify(treeExport, null, 2);
+	const blob = new Blob([json], { type: TREE_EXPORT_MIME });
 	const url = URL.createObjectURL(blob);
 
-	const slug = pageExport.page.title
+	const rootNode = treeExport.nodes.find((n) => n.role === 'creator');
+	const title = rootNode?.data.header.title ?? 'export';
+	const slug = title
 		.toLowerCase()
 		.replace(/[^a-z0-9]+/g, '-')
 		.replace(/(^-|-$)/g, '');
 
-	const filename = `${slug || 'page'}-v${pageExport.version}${PAGE_EXPORT_EXTENSION}`;
+	const filename = `${slug || 'tree'}-v${treeExport.version}${TREE_EXPORT_EXTENSION}`;
 
 	const a = document.createElement('a');
 	a.href = url;
@@ -34,16 +35,16 @@ export function downloadPageExport(pageExport: PageExport): void {
 }
 
 /**
- * Export a page: uses its published snapshot to trigger a download.
- * Throws if the page is not published.
+ * Export a tree: uses its published snapshot to trigger a download.
+ * Throws if the tree is not published.
  */
-export async function exportPage(pageId: string): Promise<void> {
-	const pubRepo = createPagePublicationStore();
-	const publication = await pubRepo.getByPageId(pageId);
+export async function exportTree(treeId: string): Promise<void> {
+	const pubRepo = createTreePublicationStore();
+	const publication = await pubRepo.getByTreeId(treeId);
 
 	if (!publication) {
-		throw new Error('A página precisa ser publicada antes de exportar.');
+		throw new Error('A árvore precisa ser publicada antes de exportar.');
 	}
 
-	downloadPageExport(publication.snapshot);
+	downloadTreeExport(publication.snapshot);
 }

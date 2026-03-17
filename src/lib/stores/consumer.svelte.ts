@@ -1,32 +1,29 @@
 /**
  * Consumer Store — reactive state for the active UserConsumer.
  *
- * Wraps the persistence layer (user-consumer.store.ts) with Svelte 5 runes.
- * Single source of truth for follows, consumer states, and the state map
- * used by priority-resolver and feed-sorter downstream.
+ * Replaces follows/ConsumerState with activateTrees/activateNodes.
+ * FavoriteTabs are now embedded in the user record.
  *
  * Pattern: module-level $state + exported read-only accessor + init() lifecycle.
  */
 
-import type { UserConsumer } from '$lib/domain/user/user-consumer.js';
-import type { ConsumerState, ConsumerEntityType, PriorityLevel } from '$lib/domain/shared/consumer-state.js';
-import type { FollowRef } from '$lib/domain/shared/follow-ref.js';
-import { buildStateMap } from '$lib/domain/shared/priority-resolver.js';
+import type { UserConsumer, NodeActivation, FavoriteTab } from '$lib/domain/user/user-consumer.js';
+import { SYSTEM_FAVORITES_TAB_ID } from '$lib/domain/user/user-consumer.js';
+import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
+import { buildNodeActivationMap } from '$lib/domain/shared/priority-resolver.js';
 import { createUserConsumerStore } from '$lib/persistence/user-consumer.store.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
 
 interface ConsumerStoreState {
 	user: UserConsumer | null;
-	states: ConsumerState[];
-	stateMap: Map<string, ConsumerState>;
+	activationMap: Map<string, NodeActivation>;
 	loading: boolean;
 }
 
 let state = $state<ConsumerStoreState>({
 	user: null,
-	states: [],
-	stateMap: new Map(),
+	activationMap: new Map(),
 	loading: false
 });
 
@@ -34,32 +31,43 @@ const repo = createUserConsumerStore();
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
-function refreshStateMap(): void {
-	state.stateMap = buildStateMap(state.states);
-}
-
-function findOrCreateState(entityId: string, entityType: ConsumerEntityType): ConsumerState {
-	const existing = state.states.find((s) => s.entityId === entityId);
-	if (existing) return { ...existing };
-	return {
-		entityType,
-		entityId,
-		enabled: true,
-		favoriteTabIds: [],
-		priority: null,
-		favorite: false,
-		overriddenAt: new Date()
-	};
+function refreshActivationMap(): void {
+	state.activationMap = buildNodeActivationMap(state.user?.activateNodes ?? []);
 }
 
 // ── Exported accessor ──────────────────────────────────────────────────
 
 export const consumer = {
 	get user() { return state.user; },
-	get states() { return state.states; },
-	get stateMap() { return state.stateMap; },
+	get activateTrees() { return state.user?.activateTrees ?? []; },
+	get activateNodes() { return state.user?.activateNodes ?? []; },
+	get activationMap() { return state.activationMap; },
+	get favoriteTabs() { return state.user?.favoriteTabs ?? []; },
 	get loading() { return state.loading; },
 	get isReady() { return state.user !== null && !state.loading; },
+
+	/** Node activation lookup by nodeId */
+	getActivation(nodeId: string): NodeActivation | undefined {
+		return state.activationMap.get(nodeId);
+	},
+
+	/** Whether a tree is activated */
+	isTreeActivated(treeId: string): boolean {
+		return state.user?.activateTrees.some((t) => t.treeId === treeId) ?? false;
+	},
+
+	/** Whether a node is activated */
+	isNodeActivated(nodeId: string): boolean {
+		return state.activationMap.has(nodeId);
+	},
+
+	/** Get enabled font node IDs (for feed loading) */
+	getEnabledFontNodeIds(allFontNodeIds: string[]): string[] {
+		return allFontNodeIds.filter((nodeId) => {
+			const activation = state.activationMap.get(nodeId);
+			return activation?.enabled !== false;
+		});
+	},
 
 	// ── Actions ──────────────────────────────────────────────────────
 
@@ -77,104 +85,151 @@ export const consumer = {
 				user = await repo.create({ displayName: 'Default' });
 			}
 
-			const states = await repo.getAllStates(user.id);
-
 			state.user = user;
-			state.states = states;
-			refreshStateMap();
+			refreshActivationMap();
 		} finally {
 			state.loading = false;
 		}
 	},
 
-	async setPriority(entityId: string, entityType: ConsumerEntityType, level: PriorityLevel | null): Promise<void> {
+	/** Subscribe to a content tree (and auto-activate its root node) */
+	async subscribeToTree(treeId: string, rootNodeId?: string): Promise<void> {
 		if (!state.user) return;
 
-		const cs = findOrCreateState(entityId, entityType);
-		cs.priority = level;
-		cs.overriddenAt = new Date();
-
-		await repo.setState(state.user.id, $state.snapshot(cs));
-
-		// Update local state
-		const idx = state.states.findIndex((s) => s.entityId === entityId);
-		if (idx >= 0) {
-			state.states[idx] = cs;
-		} else {
-			state.states = [...state.states, cs];
+		await repo.activateTree(state.user.id, treeId);
+		if (rootNodeId) {
+			await repo.activateNode(state.user.id, rootNodeId);
 		}
-		refreshStateMap();
-	},
 
-	async setFavorite(entityId: string, entityType: ConsumerEntityType, value: boolean): Promise<void> {
-		if (!state.user) return;
-
-		const cs = findOrCreateState(entityId, entityType);
-		cs.favorite = value;
-		if (!value) cs.favoriteTabIds = []; // clear tab assignments when unfavoriting
-		cs.overriddenAt = new Date();
-
-		await repo.setState(state.user.id, $state.snapshot(cs));
-
-		const idx = state.states.findIndex((s) => s.entityId === entityId);
-		if (idx >= 0) {
-			state.states[idx] = cs;
-		} else {
-			state.states = [...state.states, cs];
+		// Refresh local state
+		const refreshed = await repo.getById(state.user.id);
+		if (refreshed) {
+			state.user = refreshed;
+			refreshActivationMap();
 		}
-		refreshStateMap();
 	},
 
-	async toggleEnabled(entityId: string, entityType: ConsumerEntityType): Promise<void> {
+	async unsubscribeFromTree(treeId: string): Promise<void> {
 		if (!state.user) return;
 
-		const cs = findOrCreateState(entityId, entityType);
-		cs.enabled = !cs.enabled;
-		cs.overriddenAt = new Date();
+		await repo.deactivateTree(state.user.id, treeId);
 
-		await repo.setState(state.user.id, $state.snapshot(cs));
-
-		const idx = state.states.findIndex((s) => s.entityId === entityId);
-		if (idx >= 0) {
-			state.states[idx] = cs;
-		} else {
-			state.states = [...state.states, cs];
+		const refreshed = await repo.getById(state.user.id);
+		if (refreshed) {
+			state.user = refreshed;
+			refreshActivationMap();
 		}
-		refreshStateMap();
 	},
 
-	async addFollow(follow: FollowRef): Promise<void> {
+	async activateNode(nodeId: string): Promise<void> {
 		if (!state.user) return;
 
-		await repo.addFollow(state.user.id, follow);
-		state.user = { ...state.user, follows: [...state.user.follows, follow] };
+		await repo.activateNode(state.user.id, nodeId);
+
+		const refreshed = await repo.getById(state.user.id);
+		if (refreshed) {
+			state.user = refreshed;
+			refreshActivationMap();
+		}
 	},
 
-	async removeFollow(targetId: string): Promise<void> {
+	async deactivateNode(nodeId: string): Promise<void> {
 		if (!state.user) return;
 
-		await repo.removeFollow(state.user.id, targetId);
+		await repo.deactivateNode(state.user.id, nodeId);
+
+		const refreshed = await repo.getById(state.user.id);
+		if (refreshed) {
+			state.user = refreshed;
+			refreshActivationMap();
+		}
+	},
+
+	async toggleNodeEnabled(nodeId: string): Promise<void> {
+		if (!state.user) return;
+
+		const current = state.activationMap.get(nodeId);
+		const newEnabled = !(current?.enabled ?? true);
+
+		await repo.setEnabled(state.user.id, nodeId, newEnabled);
+
+		const refreshed = await repo.getById(state.user.id);
+		if (refreshed) {
+			state.user = refreshed;
+			refreshActivationMap();
+		}
+	},
+
+	async setPriority(nodeId: string, level: PriorityLevel | null): Promise<void> {
+		if (!state.user) return;
+
+		await repo.setPriority(state.user.id, nodeId, level);
+
+		// Optimistic update
+		const activation = state.user.activateNodes.find((n) => n.nodeId === nodeId);
+		if (activation) {
+			activation.priority = level;
+			refreshActivationMap();
+		}
+	},
+
+	async setFavorite(nodeId: string, favorite: boolean): Promise<void> {
+		if (!state.user) return;
+
+		await repo.setFavorite(state.user.id, nodeId, favorite);
+
+		// Optimistic update
+		const activation = state.user.activateNodes.find((n) => n.nodeId === nodeId);
+		if (activation) {
+			activation.favorite = favorite;
+			if (!favorite) activation.favoriteTabIds = [];
+			refreshActivationMap();
+		}
+	},
+
+	async updateFavoriteTabIds(nodeId: string, tabIds: string[]): Promise<void> {
+		if (!state.user) return;
+
+		await repo.updateFavoriteTabIds(state.user.id, nodeId, tabIds);
+
+		const activation = state.user.activateNodes.find((n) => n.nodeId === nodeId);
+		if (activation) {
+			activation.favoriteTabIds = tabIds;
+			refreshActivationMap();
+		}
+	},
+
+	// ── Tab management ───────────────────────────────────────────────
+
+	async createTab(title: string, emoji: string): Promise<FavoriteTab> {
+		if (!state.user) throw new Error('No active user');
+
+		const maxPos = state.user.favoriteTabs.reduce((max, t) => Math.max(max, t.position), 0);
+		const tab = await repo.createTab(state.user.id, { title, emoji, position: maxPos + 1 });
+
+		state.user = { ...state.user, favoriteTabs: [...state.user.favoriteTabs, tab] };
+		return tab;
+	},
+
+	async updateTab(tabId: string, data: { title?: string; emoji?: string }): Promise<void> {
+		if (!state.user) return;
+
+		const updated = await repo.updateTab(state.user.id, tabId, data);
 		state.user = {
 			...state.user,
-			follows: state.user.follows.filter((f) => f.targetId !== targetId)
+			favoriteTabs: state.user.favoriteTabs.map((t) => (t.id === tabId ? updated : t))
 		};
 	},
 
-	async updateFavoriteTabIds(entityId: string, entityType: ConsumerEntityType, tabIds: string[]): Promise<void> {
+	async deleteTab(tabId: string): Promise<void> {
 		if (!state.user) return;
 
-		const cs = findOrCreateState(entityId, entityType);
-		cs.favoriteTabIds = tabIds;
-		cs.overriddenAt = new Date();
+		await repo.deleteTab(state.user.id, tabId);
 
-		await repo.setState(state.user.id, cs);
-
-		const idx = state.states.findIndex((s) => s.entityId === entityId);
-		if (idx >= 0) {
-			state.states[idx] = cs;
-		} else {
-			state.states = [...state.states, cs];
+		const refreshed = await repo.getById(state.user.id);
+		if (refreshed) {
+			state.user = refreshed;
+			refreshActivationMap();
 		}
-		refreshStateMap();
 	}
 };

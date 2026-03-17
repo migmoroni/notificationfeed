@@ -1,153 +1,143 @@
 /**
- * Feed Store — reactive state for the post feed.
+ * Feed Store — reactive state for the post feed using ContentNode model.
  *
- * Holds the raw posts from persistence and exposes a derived `prioritized`
- * view that applies the priority-resolver + feed-sorter pipeline.
- *
- * Supports filtering by priority, subject categories, and content type categories.
- * Category filtering resolves font → profile → categoryAssignments.
- *
- * Depends on `consumer.stateMap` for priority resolution.
- * Depends on fonts/profiles being loaded to build PriorityContext entries.
+ * Loads posts from font-nodes that the consumer has activated.
+ * Priority resolution uses tree-based inheritance instead of junction tables.
  *
  * Pattern: module-level $state + exported read-only accessor + actions.
  */
 
 import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
-import type { PriorityLevel } from '$lib/domain/shared/consumer-state.js';
-import type { SortedPost } from '$lib/domain/shared/feed-sorter.js';
-import type { Font } from '$lib/domain/font/font.js';
-import type { Profile } from '$lib/domain/profile/profile.js';
-import type { ProfileFont } from '$lib/domain/profile-font/profile-font.js';
-import type { CreatorProfile } from '$lib/domain/creator-profile/creator-profile.js';
-import { buildPriorityMap, buildContextsFromJunctions } from '$lib/domain/shared/priority-resolver.js';
-import { sortByPriority } from '$lib/domain/shared/feed-sorter.js';
+import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
+import type { ContentNode } from '$lib/domain/content-node/content-node.js';
+import type { ContentTree } from '$lib/domain/content-tree/content-tree.js';
+import { isFontNode } from '$lib/domain/content-node/content-node.js';
+import { getNodeIds } from '$lib/domain/content-tree/content-tree.js';
+import { buildPriorityMapMultiTree } from '$lib/domain/shared/priority-resolver.js';
+import { sortByPriority, type SortedPost } from '$lib/domain/shared/feed-sorter.js';
 import { mergeAssignments } from '$lib/domain/shared/category-aggregation.js';
 import { getPosts, markAsRead as persistMarkRead } from '$lib/persistence/post.store.js';
-import { createFontStore } from '$lib/persistence/font.store.js';
-import { createProfileStore } from '$lib/persistence/profile.store.js';
-import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
-import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
+import { createContentNodeStore } from '$lib/persistence/content-node.store.js';
+import { createContentTreeStore } from '$lib/persistence/content-tree.store.js';
 import { consumer } from './consumer.svelte.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
 
 interface FeedStoreState {
 	posts: CanonicalPost[];
-	fonts: Font[];
-	profiles: Profile[];
-	profileFonts: ProfileFont[];
-	creatorProfiles: CreatorProfile[];
+	nodes: ContentNode[];
+	trees: ContentTree[];
 	loading: boolean;
 	lastRefresh: Date | null;
 }
 
 let state = $state<FeedStoreState>({
 	posts: [],
-	fonts: [],
-	profiles: [],
-	profileFonts: [],
-	creatorProfiles: [],
+	nodes: [],
+	trees: [],
 	loading: false,
 	lastRefresh: null
 });
 
-const fontRepo = createFontStore();
-const profileRepo = createProfileStore();
-const profileFontRepo = createProfileFontStore();
-const creatorProfileRepo = createCreatorProfileStore();
+const nodeRepo = createContentNodeStore();
+const treeRepo = createContentTreeStore();
+
+// ── Helpers ────────────────────────────────────────────────────────────
+
+function getFontNodeIds(): string[] {
+	return state.nodes.filter(isFontNode).map((n) => n.metadata.id);
+}
+
+function getNodeMap(): Map<string, ContentNode> {
+	return new Map(state.nodes.map((n) => [n.metadata.id, n]));
+}
 
 // ── Priority pipeline ──────────────────────────────────────────────────
 
-function computePrioritized(): SortedPost[] {
+function computePrioritized(): SortedPost<CanonicalPost>[] {
 	if (state.posts.length === 0) return [];
 
-	const contexts = buildContextsFromJunctions(
-		state.fonts.map((f) => f.id),
-		state.profileFonts,
-		state.creatorProfiles
+	const fontNodeIds = getFontNodeIds();
+	const priorityMap = buildPriorityMapMultiTree(
+		fontNodeIds,
+		state.trees,
+		consumer.activationMap
 	);
-	const priorityMap: Map<string, PriorityLevel> = buildPriorityMap(contexts, consumer.stateMap);
 
 	return sortByPriority(state.posts, priorityMap);
 }
 
 // ── Category filtering helpers ─────────────────────────────────────────
 
-/**
- * Build a set of fontIds whose effective categories (font own + parent profile)
- * match the given category IDs in the specified tree.
- */
-function fontIdsMatchingCategories(
+function nodeIdsMatchingCategories(
 	treeId: 'subject' | 'content_type' | 'region',
 	categoryIds: string[]
 ): Set<string> {
-	if (categoryIds.length === 0) return new Set(); // means "no filter" — handled by caller
+	if (categoryIds.length === 0) return new Set();
 
 	const catSet = new Set(categoryIds);
-	const profileMap = new Map(state.profiles.map((p) => [p.id, p]));
+	const nodeMap = getNodeMap();
+	const matching = new Set<string>();
 
-	// Build fontId → profileIds from junction
-	const fontToProfileIds = new Map<string, string[]>();
-	for (const pf of state.profileFonts) {
-		let arr = fontToProfileIds.get(pf.fontId);
-		if (!arr) { arr = []; fontToProfileIds.set(pf.fontId, arr); }
-		arr.push(pf.profileId);
-	}
+	for (const node of state.nodes) {
+		if (!isFontNode(node)) continue;
 
-	const matchingFontIds = new Set<string>();
-	for (const font of state.fonts) {
-		const profileIds = fontToProfileIds.get(font.id) ?? [];
-		// Merge font cats with all linked profiles' cats
-		let effective = font.categoryAssignments ?? [];
-		for (const pid of profileIds) {
-			const profile = profileMap.get(pid);
-			if (profile) {
-				effective = mergeAssignments(effective, profile.categoryAssignments ?? []);
+		// Get font node's own categories + aggregate from parent nodes in trees
+		let effective = node.data.header.categoryAssignments;
+		for (const tree of state.trees) {
+			// Check this font's parent nodes for categories
+			for (const [, treePath] of Object.entries(tree.root.paths)) {
+				const resolution = tree.root.nodes[treePath.node];
+				if (resolution?.['/'] === node.metadata.id) continue; // skip self
+				if (resolution?.['/']) {
+					const parentNode = nodeMap.get(resolution['/']);
+					if (parentNode) {
+						effective = mergeAssignments(effective, parentNode.data.header.categoryAssignments);
+					}
+				}
 			}
 		}
 
 		const assignment = effective.find((a) => a.treeId === treeId);
 		if (assignment && assignment.categoryIds.some((cid) => catSet.has(cid))) {
-			matchingFontIds.add(font.id);
+			matching.add(node.metadata.id);
 		}
 	}
-	return matchingFontIds;
+	return matching;
 }
 
 // ── Exported accessor ──────────────────────────────────────────────────
 
 export const feed = {
 	get posts() { return state.posts; },
-	get fonts() { return state.fonts; },
-	get profiles() { return state.profiles; },
-	get profileFonts() { return state.profileFonts; },
-	get creatorProfiles() { return state.creatorProfiles; },
+	get nodes() { return state.nodes; },
+	get trees() { return state.trees; },
 	get loading() { return state.loading; },
 	get lastRefresh() { return state.lastRefresh; },
-	get prioritized(): SortedPost[] { return computePrioritized(); },
+	get prioritized(): SortedPost<CanonicalPost>[] { return computePrioritized(); },
 	get count() { return state.posts.length; },
 
-	/**
-	 * Get prioritized posts filtered by category assignments.
-	 * Pass empty arrays to skip that dimension of filtering.
-	 */
-	filteredByCategories(subjectIds: string[], contentTypeIds: string[], regionIds: string[] = []): SortedPost[] {
+	/** Get the ContentNode for a given nodeId */
+	getNode(nodeId: string): ContentNode | undefined {
+		return state.nodes.find((n) => n.metadata.id === nodeId);
+	},
+
+	filteredByCategories(subjectIds: string[], contentTypeIds: string[], regionIds: string[] = []): SortedPost<CanonicalPost>[] {
 		let sorted = computePrioritized();
 
 		if (subjectIds.length > 0) {
-			const allowedFonts = fontIdsMatchingCategories('subject', subjectIds);
-			sorted = sorted.filter((sp) => allowedFonts.has(sp.post.fontId));
+			const allowed = nodeIdsMatchingCategories('subject', subjectIds);
+			sorted = sorted.filter((sp) => allowed.has(sp.post.nodeId));
 		}
 
 		if (contentTypeIds.length > 0) {
-			const allowedFonts = fontIdsMatchingCategories('content_type', contentTypeIds);
-			sorted = sorted.filter((sp) => allowedFonts.has(sp.post.fontId));
+			const allowed = nodeIdsMatchingCategories('content_type', contentTypeIds);
+			sorted = sorted.filter((sp) => allowed.has(sp.post.nodeId));
 		}
 
 		if (regionIds.length > 0) {
-			const allowedFonts = fontIdsMatchingCategories('region', regionIds);
-			sorted = sorted.filter((sp) => allowedFonts.has(sp.post.fontId));
+			const allowed = nodeIdsMatchingCategories('region', regionIds);
+			sorted = sorted.filter((sp) => allowed.has(sp.post.nodeId));
 		}
 
 		return sorted;
@@ -160,29 +150,46 @@ export const feed = {
 		state.loading = true;
 
 		try {
-			const [posts, fonts, profiles, profileFonts, creatorProfiles] = await Promise.all([
-				getPosts(),
-				fontRepo.getAll(),
-				profileRepo.getAll(),
-				profileFontRepo.getAll(),
-				creatorProfileRepo.getAll()
-			]);
+			// Load all trees the consumer has activated
+			const activatedTreeIds = consumer.activateTrees.map((t) => t.treeId);
+			const trees = activatedTreeIds.length > 0
+				? await treeRepo.getByIds(activatedTreeIds)
+				: [];
+
+			// Collect all referenced node IDs from activated trees
+			const allNodeIds = new Set<string>();
+			for (const tree of trees) {
+				for (const id of getNodeIds(tree)) {
+					allNodeIds.add(id);
+				}
+			}
+
+			// Load the referenced nodes
+			const nodes = allNodeIds.size > 0
+				? await nodeRepo.getByIds([...allNodeIds])
+				: [];
+
+			// Load posts for enabled font nodes
+			const fontNodeIds = nodes.filter(isFontNode).map((n) => n.metadata.id);
+			const enabledFontIds = consumer.getEnabledFontNodeIds(fontNodeIds);
+
+			const postArrays = await Promise.all(
+				enabledFontIds.map((nodeId) => getPosts({ nodeId }))
+			);
+			const posts = postArrays.flat();
 
 			state.posts = posts;
-			state.fonts = fonts;
-			state.profiles = profiles;
-			state.profileFonts = profileFonts;
-			state.creatorProfiles = creatorProfiles;
+			state.nodes = nodes;
+			state.trees = trees;
 			state.lastRefresh = new Date();
 		} finally {
 			state.loading = false;
 		}
 	},
 
-	async markRead(fontId: string, postId: string): Promise<void> {
-		await persistMarkRead(fontId, postId);
+	async markRead(nodeId: string, postId: string): Promise<void> {
+		await persistMarkRead(nodeId, postId);
 
-		// Optimistic update
 		const idx = state.posts.findIndex((p) => p.id === postId);
 		if (idx >= 0) {
 			state.posts[idx] = { ...state.posts[idx], read: true };
@@ -193,7 +200,6 @@ export const feed = {
 		await feed.loadFeed();
 	},
 
-	/** Replace posts in-memory (used by ingestion pipeline) */
 	addPosts(newPosts: CanonicalPost[]): void {
 		const existingIds = new Set(state.posts.map((p) => p.id));
 		const unique = newPosts.filter((p) => !existingIds.has(p.id));

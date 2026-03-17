@@ -2,18 +2,17 @@
 
 // Domain — User
 export type { UserBase, UserRole } from './domain/user/user.js';
-export type { UserConsumer, NewUserConsumer } from './domain/user/user-consumer.js';
+export type { UserConsumer, NewUserConsumer, TreeActivation, NodeActivation, FavoriteTab } from './domain/user/user-consumer.js';
+export { SYSTEM_FAVORITES_TAB_ID } from './domain/user/user-consumer.js';
 export type { UserCreator, NewUserCreator, NostrKeypair, SyncStatus } from './domain/user/user-creator.js';
+export type { PriorityLevel } from './domain/user/priority-level.js';
 
-// Domain — CreatorPage
-export type { CreatorPage, NewCreatorPage, PageSyncStatus } from './domain/creator-page/creator-page.js';
-export type { PageExport, ProfileSnapshot, FontSnapshot, SectionSnapshot } from './domain/creator-page/page-export.js';
-
-// Domain — Profile
-export type { Profile, NewProfile } from './domain/profile/profile.js';
-
-// Domain — Font
-export type { Font, NewFont, FontProtocol, FontConfig } from './domain/font/font.js';
+// Domain — Content Model
+export type { ContentNode, ContentNodeHeader, NodeRole, CreatorBody, ProfileBody, FontBody } from './domain/content-node/content-node.js';
+export type { ContentTree, TreeSection } from './domain/content-tree/content-tree.js';
+export type { ContentMedia } from './domain/content-media/content-media.js';
+export type { TreeExport } from './domain/tree-export/tree-export.js';
+export type { TreePublication } from './domain/tree-export/tree-publication.js';
 
 // Domain — Category
 export type { Category, NewCategory, CategoryTreeId } from './domain/category/category.js';
@@ -24,20 +23,14 @@ export type { CategoryAssignment } from './domain/shared/category-assignment.js'
 export { SUGGESTED_CATEGORIES_PER_TREE, validateAssignments } from './domain/shared/category-assignment.js';
 
 // Domain — Favorite Tab
-export type { FavoriteTab } from './domain/favorite-tab/favorite-tab.js';
+export type { FavoriteTab as FavoriteTabDomain } from './domain/favorite-tab/favorite-tab.js';
 export type { FavoriteTabRepository } from './domain/favorite-tab/favorite-tab.js';
-
-// Domain — Section
-export type { Section, NewSection, SectionContainerType, SectionContainer, SectionRepository } from './domain/section/section.js';
 
 // Domain — Shared Value Objects
 export type { ImageAsset, ImageSlot, AcceptedImageFormat } from './domain/shared/image-asset.js';
-export type { FollowRef, FollowTargetType, FollowSource } from './domain/shared/follow-ref.js';
-export type { ConsumerState, ConsumerEntityType, PriorityLevel } from './domain/shared/consumer-state.js';
 
 // Domain — Services
-export { resolveEffectivePriority, buildStateMap, buildPriorityMap } from './domain/shared/priority-resolver.js';
-export type { PriorityContext } from './domain/shared/priority-resolver.js';
+export { buildNodeActivationMap, resolveEffectivePriority, buildPriorityMap, buildPriorityMapMultiTree } from './domain/shared/priority-resolver.js';
 export { sortByPriority } from './domain/shared/feed-sorter.js';
 export type { SortedPost } from './domain/shared/feed-sorter.js';
 
@@ -57,7 +50,6 @@ export { feed } from './stores/feed.svelte.js';
 
 // Stores — Browse
 export { browse } from './stores/browse.svelte.js';
-export type { BrowseEntity } from './stores/browse.svelte.js';
 
 // Stores — Favorites
 export { favorites } from './stores/favorites.svelte.js';
@@ -81,17 +73,17 @@ export type { PriorityFilterValue } from './components/feed/index.js';
 export { SearchBar } from './components/browse/index.js';
 export { default as CategoryTree } from './components/shared/CategoryTree.svelte';
 export { default as TreeSelector } from './components/shared/TreeSelector.svelte';
-export { EntityCard, EntityList, FontCard, FontDetail, ProfileCard } from './components/shared/entity/index.js';
+export { EntityCard, EntityList, NodeDetailPage } from './components/shared/entity/index.js';
 
 // Components — Creator
 export {
-	ImageUpload, TagInput, CategoryPicker,
-	PageForm, ProfileForm, FontForm,
-	ProfileSection, PublishButton, ExportButton,
+	TagInput, CategoryPicker,
+	MediaUpload, NodeForm, NodeHeaderForm,
+	TreeEditor, PublishButton, ExportButton,
 	CopyFromConsumerDialog
 } from './components/creator/index.js';
 
-// Services — Creator
+// Services
 export { processImage, createImagePreviewUrl } from './services/image.service.js';
-export { downloadPageExport, exportPage } from './services/export.service.js';
-export { copyProfilesToCreator, copyFontsToProfile } from './services/copy-consumer.service.js';
+export { downloadTreeExport, exportTree } from './services/export.service.js';
+export { copyNodesToCreator } from './services/copy-consumer.service.js';

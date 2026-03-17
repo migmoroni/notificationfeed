@@ -4,45 +4,44 @@
 	import { browse } from '$lib/stores/browse.svelte.js';
 	import { browseEntityFilter } from '$lib/stores/browse-entity-filter.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
-	import { EntityList } from '$lib/components/shared/entity/index.js';
+	import EntityList from '$lib/components/shared/entity/EntityList.svelte';
 	import { SearchBar } from '$lib/components/browse/index.js';
 	import FilterSidebar from '$lib/components/shared/FilterSidebar.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import X from '@lucide/svelte/icons/x';
 	import Upload from '@lucide/svelte/icons/upload';
 
-	let allowedFontIds = $derived(
-		browseEntityFilter.hasFilters ? [...browseEntityFilter.getAllowedFontIds()] : []
-	);
-	let allowedProfileIds = $derived(
-		browseEntityFilter.hasFilters ? browseEntityFilter.getAllowedProfileIds() : new Set<string>()
+	let allowedFontNodeIds = $derived(
+		browseEntityFilter.hasFilters ? [...browseEntityFilter.getAllowedFontNodeIds()] : []
 	);
 
 	let hasAnyFilter = $derived(browse.hasFilters || browseEntityFilter.hasFilters);
 
-	// When entity filter becomes active but browse has no own filters, load all entities.
-	// When entity filter is cleared and browse has no own filters, clear entities.
+	// When entity filter becomes active but browse has no own filters, load all nodes.
+	// When entity filter is cleared and browse has no own filters, clear nodes.
 	$effect(() => {
 		if (browseEntityFilter.hasFilters && !browse.hasFilters) {
-			browse.loadAllEntities();
+			browse.loadAllNodes();
 		} else if (!browseEntityFilter.hasFilters && !browse.hasFilters) {
-			browse.clearEntities();
+			browse.clearNodes();
 		}
 	});
 
-	// Filter browse entities by the entity filter when active
-	let filteredEntities = $derived.by(() => {
-		if (!browseEntityFilter.hasFilters) return browse.entities;
-		const fontSet = new Set(allowedFontIds);
-		return browse.entities.filter((e) => {
-			if (e.type === 'font') return fontSet.has(e.data.id);
-			if (e.type === 'profile') {
-				return allowedProfileIds.has(e.data.id);
+	// Filter browse nodes by the entity filter when active
+	let filteredNodes = $derived.by(() => {
+		if (!browseEntityFilter.hasFilters) return browse.nodes;
+		const fontSet = new Set(allowedFontNodeIds);
+		// When entity filter is active, show only font-role nodes that match
+		// (the EntityList groups by role internally, so we pass all matching nodes)
+		const selectedCreators = new Set(browseEntityFilter.selectedCreatorIds);
+		const selectedProfiles = new Set(browseEntityFilter.selectedProfileIds);
+		return browse.nodes.filter((n) => {
+			switch (n.role) {
+				case 'font': return fontSet.has(n.metadata.id);
+				case 'profile': return selectedProfiles.has(n.metadata.id);
+				case 'creator': return selectedCreators.has(n.metadata.id);
+				default: return true;
 			}
-			if (e.type === 'creator_page') {
-				return browseEntityFilter.getProfiles(e.data.id).some((p) => allowedProfileIds.has(p.id));
-			}
-			return true;
 		});
 	});
 
@@ -50,7 +49,7 @@
 		if (browse.categories.length === 0) {
 			browse.loadCategories();
 		}
-		browseEntityFilter.loadPages();
+		browseEntityFilter.loadNodes();
 	});
 </script>
 
@@ -130,7 +129,7 @@
 		<!-- Main: filtered results -->
 		<div class="overflow-y-auto pr-24">
 			{#if hasAnyFilter}
-				<EntityList entities={filteredEntities} loading={browse.loading} />
+				<EntityList nodes={filteredNodes} loading={browse.loading} />
 			{:else}
 				<div class="flex flex-col items-center justify-center py-12 text-center">
 					<p class="text-sm text-muted-foreground">

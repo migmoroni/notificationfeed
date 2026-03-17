@@ -1,16 +1,16 @@
 /**
- * Nostr normalizer.
+ * Nostr normalizer v2.
  *
- * Transforms a raw Nostr event into a CanonicalPost.
+ * Transforms a raw Nostr event into a CanonicalPost (v2: nodeId instead of fontId).
  */
 
 import type { NostrEvent } from '$lib/ingestion/nostr/nostr.client.js';
 import type { CanonicalPost } from './canonical-post.js';
 
-export function normalizeNostrEvent(event: NostrEvent, fontId: string): CanonicalPost {
+export function normalizeNostrEvent(event: NostrEvent, nodeId: string): CanonicalPost {
 	return {
 		id: event.id,
-		fontId,
+		nodeId,
 		protocol: 'nostr',
 		title: '',
 		content: event.content,

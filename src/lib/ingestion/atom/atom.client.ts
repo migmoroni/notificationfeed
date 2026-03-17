@@ -1,19 +1,19 @@
 /**
  * Atom ingestion client.
  *
- * Fetches and parses Atom feeds from a given URL.
+ * Fetches and parses Atom feeds. Uses nodeId instead of fontId.
  */
 
-import type { FontAtomConfig } from '$lib/domain/font/font.js';
+import type { FontAtomConfig } from '$lib/domain/content-node/content-node.js';
 import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 import { normalizeAtomEntry, type AtomEntry } from '$lib/normalization/atom.normalizer.js';
 
-export async function fetchAtomFeed(config: FontAtomConfig, fontId: string): Promise<CanonicalPost[]> {
+export async function fetchAtomFeed(config: FontAtomConfig, nodeId: string): Promise<CanonicalPost[]> {
 	const response = await fetch(config.url);
 	const text = await response.text();
 	const entries = parseAtomXml(text);
 
-	return entries.map((entry) => normalizeAtomEntry(entry, fontId));
+	return entries.map((entry) => normalizeAtomEntry(entry, nodeId));
 }
 
 function parseAtomXml(xml: string): AtomEntry[] {

@@ -1,20 +1,19 @@
 /**
- * Preview Feed Store — loads posts for the creator's published pages.
+ * Preview Feed Store — loads posts for the creator's published trees.
  *
- * Filters posts from IndexedDB by fontIds found in published snapshots.
- * If fonts have never been ingested, no posts will appear (empty state
- * suggests waiting for ingestion or triggering a manual refresh).
+ * Resolves font node IDs from the creator's trees, then loads posts for those fonts.
+ * If fonts have never been ingested, no posts will appear.
  *
  * Pattern: module-level $state + exported read-only accessor.
  */
 
 import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
-import type { CreatorPage } from '$lib/domain/creator-page/creator-page.js';
-import type { Font } from '$lib/domain/font/font.js';
+import type { ContentTree } from '$lib/domain/content-tree/content-tree.js';
+import type { ContentNode } from '$lib/domain/content-node/content-node.js';
+import { isFontNode } from '$lib/domain/content-node/content-node.js';
+import { getNodeIds } from '$lib/domain/content-tree/content-tree.js';
 import { getPosts } from '$lib/persistence/post.store.js';
-import { createFontStore } from '$lib/persistence/font.store.js';
-import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
-import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
+import { createContentNodeStore } from '$lib/persistence/content-node.store.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
 
@@ -28,9 +27,7 @@ let state = $state<PreviewFeedState>({
 	loading: false
 });
 
-const fontRepo = createFontStore();
-const cpRepo = createCreatorProfileStore();
-const pfRepo = createProfileFontStore();
+const nodeRepo = createContentNodeStore();
 
 // ── Exported accessor ──────────────────────────────────────────────────
 
@@ -39,40 +36,26 @@ export const previewFeed = {
 	get loading() { return state.loading; },
 
 	/**
-	 * Load posts for all published pages.
-	 * Resolves fontIds from the live data (not snapshots) of published pages,
-	 * then loads posts for those fonts.
+	 * Load posts for all font nodes in the given trees.
 	 */
-	async loadPreviewFeed(publishedPages: CreatorPage[]): Promise<void> {
+	async loadPreviewFeed(trees: ContentTree[], nodes: ContentNode[]): Promise<void> {
 		if (state.loading) return;
 		state.loading = true;
 
 		try {
-			// Collect font IDs from published pages via junctions
-			const fontIds = new Set<string>();
+			const fontNodeIds = nodes.filter(isFontNode).map((n) => n.metadata.id);
 
-			for (const page of publishedPages) {
-				const cpJunctions = await cpRepo.getByCreatorPageId(page.id);
-				for (const cp of cpJunctions) {
-					const pfJunctions = await pfRepo.getByProfileId(cp.profileId);
-					for (const pf of pfJunctions) {
-						fontIds.add(pf.fontId);
-					}
-				}
-			}
-
-			if (fontIds.size === 0) {
+			if (fontNodeIds.length === 0) {
 				state.posts = [];
 				return;
 			}
 
-			// Load posts for these fonts
 			const postArrays = await Promise.all(
-				Array.from(fontIds).map((fontId) => getPosts({ fontId }))
+				fontNodeIds.map((nodeId) => getPosts({ nodeId }))
 			);
-			state.posts = postArrays
-				.flat()
-				.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+			state.posts = postArrays.flat().sort(
+				(a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+			);
 		} finally {
 			state.loading = false;
 		}

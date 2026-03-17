@@ -1,212 +1,100 @@
 /**
- * Import Service — handles importing .notfeed.json files and simple URL lists.
+ * Import Service — handles importing .notfeed.json files (TreeExport) and simple URL lists.
  *
  * Consumers use this to:
- * 1. Import a PageExport (.notfeed.json) → creates CreatorPage + Profiles + Fonts locally
- * 2. Import simple URLs (RSS/Atom) → creates standalone Profiles + Fonts
+ * 1. Import a TreeExport (.notfeed.json) → persists ContentTree + ContentNodes + ContentMedias
+ * 2. Import simple URLs (RSS/Atom) → creates standalone profile node + font nodes in a new tree
  */
 
-import type { PageExport } from '$lib/domain/creator-page/page-export.js';
-import type { NewCreatorPage } from '$lib/domain/creator-page/creator-page.js';
-import type { Section } from '$lib/domain/section/section.js';
-import { createCreatorPageStore } from '$lib/persistence/creator-page.store.js';
-import { createProfileStore } from '$lib/persistence/profile.store.js';
-import { createFontStore } from '$lib/persistence/font.store.js';
-import { createSectionStore } from '$lib/persistence/section.store.js';
-import { createCreatorProfileStore } from '$lib/persistence/creator-profile.store.js';
-import { createProfileFontStore } from '$lib/persistence/profile-font.store.js';
-import { getDatabase } from '$lib/persistence/db.js';
+import type { TreeExport } from '$lib/domain/tree-export/tree-export.js';
+import type { ContentNode, ContentNodeHeader, FontBody, ContentNodeBody } from '$lib/domain/content-node/content-node.js';
+import type { ContentTree } from '$lib/domain/content-tree/content-tree.js';
+import type { ContentMedia } from '$lib/domain/content-media/content-media.js';
+import { createContentNodeStore } from '$lib/persistence/content-node.store.js';
+import { createContentTreeStore } from '$lib/persistence/content-tree.store.js';
+import { createContentMediaStore } from '$lib/persistence/content-media.store.js';
+import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
 
 export interface ImportResult {
 	success: boolean;
 	message: string;
-	creatorPageId?: string;
-	profileIds?: string[];
-	fontIds?: string[];
+	treeId?: string;
+	nodeIds?: string[];
+	mediaIds?: string[];
 }
 
 /**
- * Parse and validate a .notfeed.json file.
+ * Parse and validate a .notfeed.json file (TreeExport format).
  */
-export function parseNotfeedJson(text: string): PageExport | null {
+export function parseNotfeedJson(text: string): TreeExport | null {
 	try {
 		const data = JSON.parse(text);
 
 		// Basic structural validation
-		if (!data.exportId || !data.page || !Array.isArray(data.profiles)) {
+		if (!data.exportId || !data.tree || !Array.isArray(data.nodes)) {
 			return null;
 		}
 
-		if (!data.page.title || typeof data.page.title !== 'string') {
+		if (!data.tree.root || !data.tree.metadata) {
 			return null;
 		}
 
-		return data as PageExport;
+		return data as TreeExport;
 	} catch {
 		return null;
 	}
 }
 
 /**
- * Import a PageExport into local IndexedDB.
- * Creates new IDs for all entities. Checks for duplicate exportId.
+ * Import a TreeExport into local IndexedDB.
+ * IDs are preserved. Checks for duplicate tree by metadata.id.
  */
-export async function importNotfeedJson(pageExport: PageExport, consumerId: string): Promise<ImportResult> {
-	const pageStore = createCreatorPageStore();
-	const profileStore = createProfileStore();
-	const fontStore = createFontStore();
-	const sectionStore = createSectionStore();
-	const cpStore = createCreatorProfileStore();
-	const pfStore = createProfileFontStore();
+export async function importTreeExport(treeExport: TreeExport, consumerId: string): Promise<ImportResult> {
+	const nodeRepo = createContentNodeStore();
+	const treeRepo = createContentTreeStore();
+	const mediaRepo = createContentMediaStore();
 
-	// Check for existing import with same exportId
-	const existing = await pageStore.getByExportId(pageExport.exportId);
-	if (existing) {
+	// Check for existing tree with same ID
+	const existingTree = await treeRepo.getById(treeExport.tree.metadata.id);
+	if (existingTree) {
 		return {
 			success: false,
-			message: `Esta página já foi importada anteriormente: "${existing.title}".`
+			message: `Esta árvore já foi importada anteriormente.`
 		};
 	}
 
-	// Create CreatorPage
-	const newPage: NewCreatorPage = {
-		ownerId: consumerId,
-		title: pageExport.page.title,
-		tagline: pageExport.page.tagline ?? '',
-		bio: pageExport.page.bio ?? '',
-		tags: pageExport.page.tags ?? [],
-		avatar: pageExport.page.avatar ?? null,
-		banner: pageExport.page.banner ?? null,
-		categoryAssignments: pageExport.page.categoryAssignments ?? []
-	};
-
-	const creatorPage = await pageStore.create(newPage);
-
-	// Set exportId and syncStatus directly (not part of NewCreatorPage)
-	await pageStore.setSyncStatus(creatorPage.id, 'imported');
-	const db = await getDatabase();
-	const stored = await db.creatorPages.getById<typeof creatorPage>(creatorPage.id);
-	if (stored) {
-		stored.exportId = pageExport.exportId;
-		await db.creatorPages.put(stored);
-	}
-
-	const profileIds: string[] = [];
-	const fontIds: string[] = [];
-
-	// Create page-level sections (index → new section id)
-	const pageSectionMap = new Map<number, string>();
-	if (pageExport.page.sections) {
-		const pageSections: Section[] = [];
-		for (let i = 0; i < pageExport.page.sections.length; i++) {
-			const ss = pageExport.page.sections[i];
-			const section: Section = {
-				id: crypto.randomUUID(),
-				title: ss.title,
-				color: ss.color,
-				order: ss.order,
-				emoji: ss.emoji ?? '🗂️',
-				hideTitle: ss.hideTitle ?? false,
-				createdAt: new Date()
-			};
-			pageSections.push(section);
-			pageSectionMap.set(i, section.id);
-		}
-		await sectionStore.saveContainer({
-			containerId: creatorPage.id,
-			containerType: 'creator',
-			sections: pageSections
-		});
-	}
-
-	// Create Profiles and their Fonts (with junction records)
-	let profileOrder = 0;
-	for (const profileSnapshot of pageExport.profiles) {
-		const profileSectionId = profileSnapshot.sectionId != null
-			? pageSectionMap.get(profileSnapshot.sectionId) ?? null
-			: null;
-
-		const profile = await profileStore.create({
-			ownerType: 'consumer',
-			ownerId: consumerId,
-			title: profileSnapshot.title,
-			bio: profileSnapshot.bio ?? '',
-			tags: profileSnapshot.tags ?? [],
-			avatar: profileSnapshot.avatar ?? null,
-			categoryAssignments: profileSnapshot.categoryAssignments ?? [],
-			defaultEnabled: profileSnapshot.defaultEnabled ?? true
-		});
-
-		// Create CreatorProfile junction
-		await cpStore.create({
-			creatorPageId: creatorPage.id,
-			profileId: profile.id,
-			sectionId: profileSectionId,
-			order: profileOrder++
-		});
-
-		profileIds.push(profile.id);
-
-		// Create profile-level sections (index → new section id)
-		const fontSectionMap = new Map<number, string>();
-		if (profileSnapshot.sections) {
-			const profileSections: Section[] = [];
-			for (let i = 0; i < profileSnapshot.sections.length; i++) {
-				const ss = profileSnapshot.sections[i];
-				const section: Section = {
-					id: crypto.randomUUID(),
-					title: ss.title,
-					color: ss.color,
-					order: ss.order,
-					emoji: ss.emoji ?? '🗂️',
-					hideTitle: ss.hideTitle ?? false,
-					createdAt: new Date()
-				};
-				profileSections.push(section);
-				fontSectionMap.set(i, section.id);
-			}
-			await sectionStore.saveContainer({
-				containerId: profile.id,
-				containerType: 'profile',
-				sections: profileSections
-			});
-		}
-
-		let fontOrder = 0;
-		for (const fontSnapshot of (profileSnapshot.fonts ?? [])) {
-			const fontSectionId = fontSnapshot.sectionId != null
-				? fontSectionMap.get(fontSnapshot.sectionId) ?? null
-				: null;
-
-			const font = await fontStore.create({
-				title: fontSnapshot.title,
-				bio: fontSnapshot.bio ?? '',
-				tags: fontSnapshot.tags ?? [],
-				avatar: fontSnapshot.avatar ?? null,
-				protocol: fontSnapshot.protocol,
-				config: fontSnapshot.config,
-				categoryAssignments: fontSnapshot.categoryAssignments ?? [],
-				defaultEnabled: fontSnapshot.defaultEnabled ?? true
-			});
-
-			// Create ProfileFont junction
-			await pfStore.create({
-				profileId: profile.id,
-				fontId: font.id,
-				sectionId: fontSectionId,
-				order: fontOrder++
-			});
-
-			fontIds.push(font.id);
+	// Persist medias
+	const mediaIds: string[] = [];
+	for (const media of treeExport.medias ?? []) {
+		const existing = await mediaRepo.getById(media.metadata.id);
+		if (!existing) {
+			await mediaRepo.put(media);
+			mediaIds.push(media.metadata.id);
 		}
 	}
+
+	// Persist nodes
+	const nodeIds: string[] = [];
+	for (const node of treeExport.nodes) {
+		const existing = await nodeRepo.getById(node.metadata.id);
+		if (!existing) {
+			await nodeRepo.put(node);
+			nodeIds.push(node.metadata.id);
+		}
+	}
+
+	// Persist tree
+	await treeRepo.put(treeExport.tree);
+
+	const rootNode = treeExport.nodes.find((n) => n.role === 'creator');
+	const title = rootNode?.data.header.title ?? 'Importado';
 
 	return {
 		success: true,
-		message: `Importado: "${pageExport.page.title}" com ${profileIds.length} profile(s) e ${fontIds.length} font(s).`,
-		creatorPageId: creatorPage.id,
-		profileIds,
-		fontIds
+		message: `Importado: "${title}" com ${nodeIds.length} nó(s) e ${mediaIds.length} mídia(s).`,
+		treeId: treeExport.tree.metadata.id,
+		nodeIds,
+		mediaIds
 	};
 }
 
@@ -217,23 +105,21 @@ function detectProtocol(url: string): 'rss' | 'atom' | null {
 	const lower = url.toLowerCase().trim();
 	if (lower.includes('atom')) return 'atom';
 	if (lower.endsWith('.xml') || lower.endsWith('/feed') || lower.includes('rss') || lower.includes('feed')) return 'rss';
-	// Default to RSS for generic URLs
 	if (lower.startsWith('http://') || lower.startsWith('https://')) return 'rss';
 	return null;
 }
 
 /**
- * Import a list of URLs as standalone Profiles + Fonts.
- * Each URL becomes a Font under a new standalone Profile.
+ * Import a list of URLs as a new tree with a profile + font nodes.
+ * Each URL becomes a font node under a single profile node.
  */
 export async function importSimpleUrls(urls: string[], consumerId: string): Promise<ImportResult> {
-	const profileStore = createProfileStore();
-	const fontStore = createFontStore();
-	const pfStore = createProfileFontStore();
+	const nodeRepo = createContentNodeStore();
+	const treeRepo = createContentTreeStore();
 
 	const validUrls = urls
-		.map(u => u.trim())
-		.filter(u => u && (u.startsWith('http://') || u.startsWith('https://')));
+		.map((u) => u.trim())
+		.filter((u) => u && (u.startsWith('http://') || u.startsWith('https://')));
 
 	if (validUrls.length === 0) {
 		return {
@@ -242,27 +128,52 @@ export async function importSimpleUrls(urls: string[], consumerId: string): Prom
 		};
 	}
 
-	const profileIds: string[] = [];
-	const fontIds: string[] = [];
+	const now = new Date();
 
-	// Create one profile per URL for simplicity
-	const profile = await profileStore.create({
-		ownerType: 'consumer',
-		ownerId: consumerId,
-		title: `Import (${new Date().toLocaleDateString('pt-BR')})`,
-		bio: '',
-		tags: ['importado'],
-		avatar: null,
-		categoryAssignments: [],
-		defaultEnabled: true
-	});
+	// Create creator (root) node
+	const rootNode: ContentNode = {
+		role: 'creator',
+		data: {
+			header: {
+				title: `Import (${now.toLocaleDateString('pt-BR')})`,
+				tags: ['importado'],
+				categoryAssignments: []
+			},
+			body: { role: 'creator' }
+		},
+		metadata: { id: uuidv7(), versionSchema: 1, createdAt: now, updatedAt: now, author: consumerId }
+	};
+	await nodeRepo.put(rootNode);
 
-	profileIds.push(profile.id);
+	// Create a profile node
+	const profileNode: ContentNode = {
+		role: 'profile',
+		data: {
+			header: {
+				title: `Feeds importados`,
+				tags: ['importado'],
+				categoryAssignments: []
+			},
+			body: { role: 'profile', defaultEnabled: true }
+		},
+		metadata: { id: uuidv7(), versionSchema: 1, createdAt: now, updatedAt: now, author: consumerId }
+	};
+	await nodeRepo.put(profileNode);
+
+	// Create font nodes for each URL
+	const fontNodeIds: string[] = [];
+	const paths: Record<string, { node: string; section?: string }> = {
+		'/': { node: 'root' },
+		'/feeds': { node: 'feeds' }
+	};
+	const nodes: Record<string, { '/': string }> = {
+		root: { '/': rootNode.metadata.id },
+		feeds: { '/': profileNode.metadata.id }
+	};
 
 	for (const url of validUrls) {
 		const protocol = detectProtocol(url) ?? 'rss';
 
-		// Extract a title from the URL
 		let title: string;
 		try {
 			const parsed = new URL(url);
@@ -271,32 +182,35 @@ export async function importSimpleUrls(urls: string[], consumerId: string): Prom
 			title = url.slice(0, 50);
 		}
 
-		const font = await fontStore.create({
-			title,
-			bio: '',
-			tags: [],
-			avatar: null,
-			protocol,
-			config: { url },
-			categoryAssignments: [],
-			defaultEnabled: true
-		});
+		const fontBody: FontBody = { role: 'font', protocol, config: { url }, defaultEnabled: true };
+		const fontNode: ContentNode = {
+			role: 'font',
+			data: {
+				header: { title, tags: [], categoryAssignments: [] },
+				body: fontBody
+			},
+			metadata: { id: uuidv7(), versionSchema: 1, createdAt: now, updatedAt: now, author: consumerId }
+		};
+		await nodeRepo.put(fontNode);
+		fontNodeIds.push(fontNode.metadata.id);
 
-		// Create ProfileFont junction
-		await pfStore.create({
-			profileId: profile.id,
-			fontId: font.id,
-			sectionId: null,
-			order: fontIds.length
-		});
-
-		fontIds.push(font.id);
+		const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || `font-${fontNodeIds.length}`;
+		paths[`/feeds/${slug}`] = { node: slug };
+		nodes[slug] = { '/': fontNode.metadata.id };
 	}
+
+	// Create tree
+	const tree: ContentTree = {
+		sections: [],
+		root: { paths, nodes },
+		metadata: { id: uuidv7(), versionSchema: 1, createdAt: now, updatedAt: now, author: consumerId }
+	};
+	await treeRepo.put(tree);
 
 	return {
 		success: true,
-		message: `Importadas ${fontIds.length} font(s) em um novo profile.`,
-		profileIds,
-		fontIds
+		message: `Importadas ${fontNodeIds.length} font(s) em uma nova árvore.`,
+		treeId: tree.metadata.id,
+		nodeIds: [rootNode.metadata.id, profileNode.metadata.id, ...fontNodeIds]
 	};
 }

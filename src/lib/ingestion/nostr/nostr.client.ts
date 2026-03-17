@@ -1,11 +1,10 @@
 /**
  * Nostr ingestion client.
  *
- * Connects to Nostr relays via WebSocket, subscribes to events
- * based on Font configuration (pubkey, kinds, filters).
+ * Connects to Nostr relays via WebSocket. Uses nodeId instead of fontId.
  */
 
-import type { FontNostrConfig } from '$lib/domain/font/font.js';
+import type { FontNostrConfig } from '$lib/domain/content-node/content-node.js';
 import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 import { normalizeNostrEvent } from '$lib/normalization/nostr.normalizer.js';
 
@@ -21,7 +20,7 @@ export interface NostrEvent {
 
 export type NostrEventHandler = (post: CanonicalPost) => void;
 
-export function createNostrClient(config: FontNostrConfig, fontId: string) {
+export function createNostrClient(config: FontNostrConfig, nodeId: string) {
 	let connections: WebSocket[] = [];
 
 	function connect(onEvent: NostrEventHandler): void {
@@ -31,7 +30,7 @@ export function createNostrClient(config: FontNostrConfig, fontId: string) {
 			ws.onopen = () => {
 				const filter: Record<string, unknown> = { authors: [config.pubkey] };
 				if (config.kinds?.length) filter.kinds = config.kinds;
-				ws.send(JSON.stringify(['REQ', `notfeed:${fontId}`, filter]));
+				ws.send(JSON.stringify(['REQ', `notfeed:${nodeId}`, filter]));
 			};
 
 			ws.onmessage = (msg) => {
@@ -39,7 +38,7 @@ export function createNostrClient(config: FontNostrConfig, fontId: string) {
 					const data = JSON.parse(msg.data);
 					if (data[0] === 'EVENT' && data[2]) {
 						const event = data[2] as NostrEvent;
-						onEvent(normalizeNostrEvent(event, fontId));
+						onEvent(normalizeNostrEvent(event, nodeId));
 					}
 				} catch {
 					// skip malformed messages

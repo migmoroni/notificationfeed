@@ -1,19 +1,39 @@
 /**
- * UserConsumer store — implements UserConsumerRepository using the local database.
+ * UserConsumer store — persistence for user consumers with tree/node activations.
+ *
+ * Replaces the old follows/consumerStates model with activateTrees/activateNodes.
+ * FavoriteTabs are now embedded in the user record.
  */
 
-import type { UserConsumerRepository } from '$lib/domain/user/user-consumer.js';
-import type { UserConsumer, NewUserConsumer } from '$lib/domain/user/user-consumer.js';
-import type { FollowRef } from '$lib/domain/shared/follow-ref.js';
-import type { ConsumerState } from '$lib/domain/shared/consumer-state.js';
+import type {
+	UserConsumer,
+	UserConsumerRepository,
+	NewUserConsumer,
+	TreeActivation,
+	NodeActivation,
+	FavoriteTab
+} from '$lib/domain/user/user-consumer.js';
+import { SYSTEM_FAVORITES_TAB_ID } from '$lib/domain/user/user-consumer.js';
+import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
+import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
 import { getDatabase } from './db.js';
+
+function createSystemTab(): FavoriteTab {
+	return {
+		id: SYSTEM_FAVORITES_TAB_ID,
+		title: 'Todos',
+		emoji: '⭐',
+		position: 0,
+		isSystem: true,
+		createdAt: new Date()
+	};
+}
 
 export function createUserConsumerStore(): UserConsumerRepository {
 	return {
 		async getAll(): Promise<UserConsumer[]> {
 			const db = await getDatabase();
-			const all = await db.users.query<UserConsumer>('role', 'consumer');
-			return all;
+			return db.users.query<UserConsumer>('role', 'consumer');
 		},
 
 		async getById(id: string): Promise<UserConsumer | null> {
@@ -25,10 +45,12 @@ export function createUserConsumerStore(): UserConsumerRepository {
 			const db = await getDatabase();
 			const now = new Date();
 			const consumer: UserConsumer = {
-				id: crypto.randomUUID(),
+				id: uuidv7(),
 				role: 'consumer',
 				displayName: data.displayName,
-				follows: data.follows ?? [],
+				activateTrees: [],
+				activateNodes: [],
+				favoriteTabs: [createSystemTab()],
 				createdAt: now,
 				updatedAt: now
 			};
@@ -55,63 +77,178 @@ export function createUserConsumerStore(): UserConsumerRepository {
 			await db.users.delete(id);
 		},
 
-		async addFollow(userId: string, follow: FollowRef): Promise<void> {
+		// -- Tree management --
+
+		async activateTree(userId: string, treeId: string): Promise<void> {
 			const db = await getDatabase();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
-			const exists = user.follows.some(
-				(f) => f.targetType === follow.targetType && f.targetId === follow.targetId
-			);
+			const exists = user.activateTrees.some((t) => t.treeId === treeId);
 			if (exists) return;
 
-			user.follows.push(follow);
+			const activation: TreeActivation = { treeId, activatedAt: new Date() };
+			user.activateTrees.push(activation);
 			user.updatedAt = new Date();
 			await db.users.put(user);
 		},
 
-		async removeFollow(userId: string, targetId: string): Promise<void> {
+		async deactivateTree(userId: string, treeId: string): Promise<void> {
 			const db = await getDatabase();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
-			user.follows = user.follows.filter((f) => f.targetId !== targetId);
+			user.activateTrees = user.activateTrees.filter((t) => t.treeId !== treeId);
 			user.updatedAt = new Date();
 			await db.users.put(user);
 		},
 
-		async getFollows(userId: string): Promise<FollowRef[]> {
+		// -- Node management --
+
+		async activateNode(userId: string, nodeId: string): Promise<void> {
 			const db = await getDatabase();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
-			return user.follows;
+
+			const exists = user.activateNodes.some((n) => n.nodeId === nodeId);
+			if (exists) return;
+
+			const activation: NodeActivation = {
+				nodeId,
+				priority: null,
+				favorite: false,
+				enabled: true,
+				favoriteTabIds: []
+			};
+			user.activateNodes.push(activation);
+			user.updatedAt = new Date();
+			await db.users.put(user);
 		},
 
-		async getState(userId: string, entityId: string): Promise<ConsumerState | null> {
+		async deactivateNode(userId: string, nodeId: string): Promise<void> {
 			const db = await getDatabase();
-			const states = await db.consumerStates.query<ConsumerState & { userId: string }>(
-				'entityType',
-				'creator_page'
-			);
-			// Query all states, filter by userId and entityId
-			const allStates = await db.consumerStates.getAll<ConsumerState & { userId: string }>();
-			return allStates.find((s) => s.userId === userId && s.entityId === entityId) ?? null;
+			const user = await db.users.getById<UserConsumer>(userId);
+			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
+
+			user.activateNodes = user.activateNodes.filter((n) => n.nodeId !== nodeId);
+			user.updatedAt = new Date();
+			await db.users.put(user);
 		},
 
-		async getAllStates(userId: string): Promise<ConsumerState[]> {
+		async setPriority(userId: string, nodeId: string, priority: PriorityLevel | null): Promise<void> {
 			const db = await getDatabase();
-			const allStates = await db.consumerStates.getAll<ConsumerState & { userId: string }>();
-			return allStates.filter((s) => s.userId === userId);
+			const user = await db.users.getById<UserConsumer>(userId);
+			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
+
+			const activation = user.activateNodes.find((n) => n.nodeId === nodeId);
+			if (!activation) throw new Error(`Node not activated: ${nodeId}`);
+
+			activation.priority = priority;
+			user.updatedAt = new Date();
+			await db.users.put(user);
 		},
 
-		async setState(userId: string, state: ConsumerState): Promise<void> {
+		async setFavorite(userId: string, nodeId: string, favorite: boolean): Promise<void> {
 			const db = await getDatabase();
-			await db.consumerStates.put({ ...state, userId });
+			const user = await db.users.getById<UserConsumer>(userId);
+			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
+
+			const activation = user.activateNodes.find((n) => n.nodeId === nodeId);
+			if (!activation) throw new Error(`Node not activated: ${nodeId}`);
+
+			activation.favorite = favorite;
+			if (!favorite) {
+				activation.favoriteTabIds = [];
+			}
+			user.updatedAt = new Date();
+			await db.users.put(user);
 		},
 
-		async removeState(userId: string, entityId: string): Promise<void> {
+		async setEnabled(userId: string, nodeId: string, enabled: boolean): Promise<void> {
 			const db = await getDatabase();
-			await db.consumerStates.delete(entityId);
+			const user = await db.users.getById<UserConsumer>(userId);
+			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
+
+			const activation = user.activateNodes.find((n) => n.nodeId === nodeId);
+			if (!activation) throw new Error(`Node not activated: ${nodeId}`);
+
+			activation.enabled = enabled;
+			user.updatedAt = new Date();
+			await db.users.put(user);
+		},
+
+		async updateFavoriteTabIds(userId: string, nodeId: string, tabIds: string[]): Promise<void> {
+			const db = await getDatabase();
+			const user = await db.users.getById<UserConsumer>(userId);
+			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
+
+			const activation = user.activateNodes.find((n) => n.nodeId === nodeId);
+			if (!activation) throw new Error(`Node not activated: ${nodeId}`);
+
+			activation.favoriteTabIds = tabIds;
+			user.updatedAt = new Date();
+			await db.users.put(user);
+		},
+
+		// -- Tab management (embedded in user) --
+
+		async createTab(
+			userId: string,
+			tab: Omit<FavoriteTab, 'id' | 'isSystem' | 'createdAt'>
+		): Promise<FavoriteTab> {
+			const db = await getDatabase();
+			const user = await db.users.getById<UserConsumer>(userId);
+			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
+
+			const newTab: FavoriteTab = {
+				id: uuidv7(),
+				isSystem: false,
+				createdAt: new Date(),
+				...tab
+			};
+			user.favoriteTabs.push(newTab);
+			user.updatedAt = new Date();
+			await db.users.put(user);
+			return newTab;
+		},
+
+		async updateTab(
+			userId: string,
+			tabId: string,
+			data: Partial<Pick<FavoriteTab, 'title' | 'emoji' | 'position'>>
+		): Promise<FavoriteTab> {
+			const db = await getDatabase();
+			const user = await db.users.getById<UserConsumer>(userId);
+			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
+
+			const tab = user.favoriteTabs.find((t) => t.id === tabId);
+			if (!tab) throw new Error(`FavoriteTab not found: ${tabId}`);
+			if (tab.isSystem) throw new Error('Cannot edit system tab');
+
+			Object.assign(tab, data);
+			user.updatedAt = new Date();
+			await db.users.put(user);
+			return tab;
+		},
+
+		async deleteTab(userId: string, tabId: string): Promise<void> {
+			const db = await getDatabase();
+			const user = await db.users.getById<UserConsumer>(userId);
+			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
+
+			const tab = user.favoriteTabs.find((t) => t.id === tabId);
+			if (!tab) return;
+			if (tab.isSystem) throw new Error('Cannot delete system tab');
+
+			user.favoriteTabs = user.favoriteTabs.filter((t) => t.id !== tabId);
+
+			// Clear tab references from node activations
+			for (const activation of user.activateNodes) {
+				activation.favoriteTabIds = activation.favoriteTabIds.filter((id) => id !== tabId);
+			}
+
+			user.updatedAt = new Date();
+			await db.users.put(user);
 		}
 	};
 }

@@ -2,7 +2,7 @@
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { activeUser } from '$lib/stores/active-user.svelte.js';
 	import { creator } from '$lib/stores/creator.svelte.js';
-	import { createImagePreviewUrl } from '$lib/services/image.service.js';
+	import { getMediaPreviewUrl } from '$lib/services/media.service.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
@@ -38,7 +38,7 @@
 				Trocar de usuário →
 			</a>
 		</div>
-	{:else if creator.pages.length === 0}
+	{:else if creator.trees.length === 0}
 		<div class="py-12 text-center">
 			<FileStack class="size-12 mx-auto text-muted-foreground mb-3" />
 			<p class="text-sm text-muted-foreground mb-2">
@@ -51,13 +51,19 @@
 		</div>
 	{:else}
 		<div class="grid gap-4 {layout.isExpanded ? 'grid-cols-2' : 'grid-cols-1'}">
-			{#each creator.pages as page (page.id)}
-				<a href="/pages/{page.id}" class="block group">
+			{#each creator.trees as tree (tree.metadata.id)}
+				{@const rootNode = creator.getRootNode(tree.metadata.id)}
+				{@const profileCount = creator.getProfileCount(tree.metadata.id)}
+				{@const bannerMediaId = rootNode?.data.header.bannerMediaId}
+				{@const avatarMediaId = rootNode?.data.header.coverMediaId}
+				{@const bannerMedia = bannerMediaId ? creator.getMediaById(bannerMediaId) : null}
+				{@const avatarMedia = avatarMediaId ? creator.getMediaById(avatarMediaId) : null}
+				<a href="/pages/{tree.metadata.id}" class="block group">
 					<Card.Root class="overflow-hidden hover:border-primary/50 transition-colors">
-						{#if page.banner}
+						{#if bannerMedia}
 							<div class="w-full overflow-hidden" style="aspect-ratio: 3.6 / 1;">
 								<img
-									src={createImagePreviewUrl(page.banner)}
+									src={getMediaPreviewUrl(bannerMedia)}
 									alt=""
 									class="w-full h-full object-cover"
 								/>
@@ -65,10 +71,10 @@
 						{/if}
 						<Card.Header class="pb-2">
 							<div class="flex items-start gap-3">
-								{#if page.avatar}
+								{#if avatarMedia}
 									<div class="size-10 rounded-lg overflow-hidden bg-muted border shrink-0">
 										<img
-											src={createImagePreviewUrl(page.avatar)}
+											src={getMediaPreviewUrl(avatarMedia)}
 											alt=""
 											class="w-full h-full object-cover"
 										/>
@@ -79,31 +85,23 @@
 									</div>
 								{/if}
 								<div class="flex-1 min-w-0">
-									<Card.Title class="text-base truncate">{page.title}</Card.Title>
-									{#if page.tagline}
-										<p class="text-xs font-medium mt-0.5 truncate">{page.tagline}</p>
+									<Card.Title class="text-base truncate">{rootNode?.data.header.title ?? 'Sem título'}</Card.Title>
+									{#if rootNode?.data.header.subtitle}
+										<p class="text-xs font-medium mt-0.5 truncate">{rootNode.data.header.subtitle}</p>
 									{/if}
-									{#if page.bio}
+									{#if rootNode?.data.header.summary}
 										<Card.Description class="line-clamp-2 text-xs mt-0.5">
-											{page.bio}
+											{rootNode.data.header.summary}
 										</Card.Description>
 									{/if}
 								</div>
 							</div>
 						</Card.Header>
 						<Card.Footer class="pt-0 gap-2">
-							{#if page.publishedVersion > 0}
-								<Badge variant="secondary" class="gap-1 text-xs">
-									<Check class="size-3" />
-									v{page.publishedVersion}
-								</Badge>
-							{:else}
-								<Badge variant="outline" class="gap-1 text-xs">
-									<PenLine class="size-3" />
-									Rascunho
-								</Badge>
-							{/if}
-							{@const profileCount = creator.getProfilesForPage(page.id).length}
+							<Badge variant="outline" class="gap-1 text-xs">
+								<PenLine class="size-3" />
+								Rascunho
+							</Badge>
 							<span class="text-xs text-muted-foreground">
 								{profileCount} profile{profileCount !== 1 ? 's' : ''}
 							</span>

@@ -1,47 +1,58 @@
+<!--
+  EntityCard — displays a ContentNode (creator, profile, or font).
+
+  Replaces the old EntityCard that worked with BrowseEntity union type.
+  Actions (priority, favorite, enabled) use the consumer activation map.
+-->
 <script lang="ts">
-	import type { BrowseEntity } from '$lib/stores/browse.svelte.js';
-	import type { ConsumerEntityType, PriorityLevel } from '$lib/domain/shared/consumer-state.js';
+	import type { ContentNode } from '$lib/domain/content-node/content-node.js';
+	import { isFontNode } from '$lib/domain/content-node/content-node.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import PriorityBadge from '$lib/components/shared/priority/PriorityBadge.svelte';
+	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
 	import Globe from '@lucide/svelte/icons/globe';
 	import User from '@lucide/svelte/icons/user';
 	import Rss from '@lucide/svelte/icons/rss';
 	import Atom from '@lucide/svelte/icons/atom';
 	import Zap from '@lucide/svelte/icons/zap';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
-	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
-	import ConfirmUnsubscribeDialog from '$lib/components/shared/dialog/ConfirmUnsubscribeDialog.svelte';
-	import ConfirmUnfollowDialog from '$lib/components/shared/dialog/ConfirmUnfollowDialog.svelte';
-	import ConfirmDeactivateDialog from '$lib/components/shared/dialog/ConfirmDeactivateDialog.svelte';
-	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
-	import SubscribeButton from '$lib/components/shared/activeContent/SubscribeButton.svelte';
-	import FollowButton from '$lib/components/shared/activeContent/FollowButton.svelte';
-	import ActiveButton from '$lib/components/shared/activeContent/ActiveButton.svelte';
+	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
 
 	interface Props {
-		entity: BrowseEntity;
+		node: ContentNode;
 		href?: string | null;
+		/** Pre-resolved avatar URL (data-url or blob URL from ContentMedia) */
+		avatarUrl?: string | null;
 	}
 
-	let { entity, href = null }: Props = $props();
+	let { node, href = null, avatarUrl = null }: Props = $props();
 
+	let showDisableConfirm = $state(false);
 	let showUnfavConfirm = $state(false);
-	let showUnsubscribeConfirm = $state(false);
-	let showUnfollowConfirm = $state(false);
-	let showDeactivateConfirm = $state(false);
 
-	const typeConfig: Record<BrowseEntity['type'], { label: string; icon: typeof Globe; consumerType: ConsumerEntityType }> = {
-		creator_page: { label: 'Page', icon: Globe, consumerType: 'creator_page' },
-		profile: { label: 'Profile', icon: User, consumerType: 'profile' },
-		font: { label: 'Font', icon: Rss, consumerType: 'font' }
+	const roleMeta: Record<string, { label: string; icon: typeof Globe }> = {
+		creator: { label: 'Creator', icon: Globe },
+		profile: { label: 'Profile', icon: User },
+		font: { label: 'Font', icon: Rss }
 	};
 
-	let config = $derived(typeConfig[entity.type]);
-	let entityState = $derived(consumer.stateMap.get(entity.data.id));
-	let currentPriority = $derived(entityState?.priority ?? null);
-	let isFavorite = $derived(entityState?.favorite ?? false);
-	let isEnabled = $derived(entityState?.enabled ?? true);
+	let meta = $derived(roleMeta[node.role] ?? { label: node.role, icon: Globe });
+	let activation = $derived(consumer.getActivation(node.metadata.id));
+	let currentPriority = $derived(activation?.priority ?? null);
+	let isFavorite = $derived(activation?.favorite ?? false);
+	let isEnabled = $derived(activation?.enabled ?? true);
+
+	/**
+	 * Determine protocol icon for font nodes.
+	 */
+	let protocolIcon = $derived.by(() => {
+		if (!isFontNode(node)) return null;
+		const proto = node.data.body.protocol;
+		if (proto === 'atom') return Atom;
+		if (proto === 'nostr') return Zap;
+		return Rss;
+	});
 
 	async function handleFavorite(e: MouseEvent) {
 		e.preventDefault();
@@ -50,44 +61,27 @@
 			showUnfavConfirm = true;
 			return;
 		}
-		await consumer.setFavorite(entity.data.id, config.consumerType, true);
+		await consumer.setFavorite(node.metadata.id, true);
 	}
 
 	async function confirmUnfavorite() {
-		await consumer.setFavorite(entity.data.id, config.consumerType, false);
+		await consumer.setFavorite(node.metadata.id, false);
 		showUnfavConfirm = false;
 	}
 
 	async function handleToggleEnabled(e: MouseEvent) {
 		e.preventDefault();
 		e.stopPropagation();
-		// If currently enabled (subscribed/following/active), show confirmation
 		if (isEnabled) {
-			if (entity.type === 'creator_page') {
-				showUnsubscribeConfirm = true;
-			} else if (entity.type === 'font') {
-				showDeactivateConfirm = true;
-			} else {
-				showUnfollowConfirm = true;
-			}
+			showDisableConfirm = true;
 			return;
 		}
-		await consumer.toggleEnabled(entity.data.id, config.consumerType);
+		await consumer.toggleNodeEnabled(node.metadata.id);
 	}
 
-	async function confirmUnsubscribe() {
-		await consumer.toggleEnabled(entity.data.id, config.consumerType);
-		showUnsubscribeConfirm = false;
-	}
-
-	async function confirmUnfollow() {
-		await consumer.toggleEnabled(entity.data.id, config.consumerType);
-		showUnfollowConfirm = false;
-	}
-
-	async function confirmDeactivate() {
-		await consumer.toggleEnabled(entity.data.id, config.consumerType);
-		showDeactivateConfirm = false;
+	async function confirmDisable() {
+		await consumer.toggleNodeEnabled(node.metadata.id);
+		showDisableConfirm = false;
 	}
 
 	function stopPropagation(e: MouseEvent) {
@@ -99,27 +93,20 @@
 {#snippet cardContent()}
 	<div class="flex items-stretch h-24 overflow-hidden {!isEnabled ? 'opacity-50' : ''}">
 		<!-- Avatar / Icon -->
-		{#if entity.data.avatar?.data}
+		{#if avatarUrl}
 			<div class="shrink-0 w-32 overflow-hidden">
 				<img
-					src="data:image/webp;base64,{entity.data.avatar.data}"
+					src={avatarUrl}
 					alt=""
 					class="w-full h-full object-cover rounded-l-lg"
 				/>
 			</div>
 		{:else}
 			<div class="flex items-center justify-center w-32 shrink-0 rounded-l-lg bg-muted text-muted-foreground">
-				{#if entity.type === 'font'}
-					{@const font = entity.data as import('$lib/domain/font/font.js').Font}
-					{#if font.protocol === 'atom'}
-						<Atom class="size-5" />
-					{:else if font.protocol === 'nostr'}
-						<Zap class="size-5" />
-					{:else}
-						<Rss class="size-5" />
-					{/if}
+				{#if protocolIcon}
+					<svelte:component this={protocolIcon} class="size-5" />
 				{:else}
-					<config.icon class="size-5" />
+					<svelte:component this={meta.icon} class="size-5" />
 				{/if}
 			</div>
 		{/if}
@@ -127,33 +114,35 @@
 		<!-- Body -->
 		<div class="flex-1 min-w-0 p-3.5">
 			<div class="flex items-center gap-2">
-				<h3 class="text-sm font-semibold truncate">{entity.data.title}</h3>
-				<Badge variant="outline" class="text-[11px] px-1.5 py-0 shrink-0">{config.label}</Badge>
+				<h3 class="text-sm font-semibold truncate">{node.data.header.title}</h3>
+				<Badge variant="outline" class="text-[11px] px-1.5 py-0 shrink-0">{meta.label}</Badge>
 				{#if href}
 					<ArrowUpRight class="size-3.5 shrink-0 text-muted-foreground ml-auto" />
 				{/if}
 			</div>
 
+			{#if node.data.header.subtitle}
+				<p class="text-xs text-muted-foreground truncate mt-0.5">{node.data.header.subtitle}</p>
+			{/if}
+
 			<!-- Actions row -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div class="flex items-center gap-2 mt-auto pt-2" onclick={stopPropagation} onkeydown={() => {}}>
-				<!-- Priority label (read-only) -->
 				{#if currentPriority}
 					<PriorityBadge level={currentPriority} />
 				{/if}
 
-				<!-- Favorite toggle -->
 				<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
 
-				<!-- Subscribe/Follow/Active toggle -->
 				<div class="ml-auto">
-					{#if entity.type === 'creator_page'}
-						<SubscribeButton subscribed={isEnabled} onclick={handleToggleEnabled} />
-					{:else if entity.type === 'font'}
-						<ActiveButton active={isEnabled} onclick={handleToggleEnabled} />
-					{:else}
-						<FollowButton following={isEnabled} onclick={handleToggleEnabled} />
-					{/if}
+					<button
+						onclick={handleToggleEnabled}
+						class="text-xs px-2 py-1 rounded-md border transition-colors {isEnabled
+							? 'bg-accent text-accent-foreground'
+							: 'bg-muted text-muted-foreground hover:bg-accent/50'}"
+					>
+						{isEnabled ? 'Active' : 'Inactive'}
+					</button>
 				</div>
 			</div>
 		</div>
@@ -161,19 +150,31 @@
 {/snippet}
 
 {#if href}
-	<a
-		{href}
-		class="block rounded-lg border border-border bg-card text-card-foreground transition-colors hover:bg-accent/50 overflow-hidden"
-	>
+	<a {href} class="block rounded-lg border border-border bg-card text-card-foreground transition-colors hover:bg-accent/50">
 		{@render cardContent()}
 	</a>
 {:else}
-	<div class="rounded-lg border border-border bg-card text-card-foreground overflow-hidden">
+	<div class="rounded-lg border border-border bg-card text-card-foreground transition-colors hover:bg-accent/50">
 		{@render cardContent()}
 	</div>
 {/if}
 
-<ConfirmUnfavoriteDialog bind:open={showUnfavConfirm} onconfirm={confirmUnfavorite} oncancel={() => (showUnfavConfirm = false)} />
-<ConfirmUnsubscribeDialog bind:open={showUnsubscribeConfirm} title={entity.data.title} onconfirm={confirmUnsubscribe} oncancel={() => (showUnsubscribeConfirm = false)} />
-<ConfirmUnfollowDialog bind:open={showUnfollowConfirm} title={entity.data.title} onconfirm={confirmUnfollow} oncancel={() => (showUnfollowConfirm = false)} />
-<ConfirmDeactivateDialog bind:open={showDeactivateConfirm} title={entity.data.title} onconfirm={confirmDeactivate} oncancel={() => (showDeactivateConfirm = false)} />
+<!-- Disable confirm -->
+<ConfirmDialog
+	bind:open={showDisableConfirm}
+	title="Desativar {meta.label}?"
+	description="Este {meta.label.toLowerCase()} será desativado e não aparecerá mais no feed."
+	confirmLabel="Desativar"
+	onconfirm={confirmDisable}
+	oncancel={() => (showDisableConfirm = false)}
+/>
+
+<!-- Unfavorite confirm -->
+<ConfirmDialog
+	bind:open={showUnfavConfirm}
+	title="Remover dos favoritos?"
+	description="Este item será removido da lista de favoritos."
+	confirmLabel="Remover"
+	onconfirm={confirmUnfavorite}
+	oncancel={() => (showUnfavConfirm = false)}
+/>

@@ -1,19 +1,19 @@
 /**
  * RSS ingestion client.
  *
- * Fetches and parses RSS 2.0 feeds from a given URL.
+ * Fetches and parses RSS 2.0 feeds. Uses nodeId instead of fontId.
  */
 
-import type { FontRssConfig } from '$lib/domain/font/font.js';
+import type { FontRssConfig } from '$lib/domain/content-node/content-node.js';
 import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 import { normalizeRssItem, type RssItem } from '$lib/normalization/rss.normalizer.js';
 
-export async function fetchRssFeed(config: FontRssConfig, fontId: string): Promise<CanonicalPost[]> {
+export async function fetchRssFeed(config: FontRssConfig, nodeId: string): Promise<CanonicalPost[]> {
 	const response = await fetch(config.url);
 	const text = await response.text();
 	const items = parseRssXml(text);
 
-	return items.map((item) => normalizeRssItem(item, fontId));
+	return items.map((item) => normalizeRssItem(item, nodeId));
 }
 
 function parseRssXml(xml: string): RssItem[] {

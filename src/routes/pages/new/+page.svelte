@@ -3,17 +3,24 @@
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { activeUser } from '$lib/stores/active-user.svelte.js';
 	import { creator } from '$lib/stores/creator.svelte.js';
-	import { PageForm } from '$lib/components/creator/index.js';
+	import { NodeForm } from '$lib/components/creator/index.js';
+	import type { ContentNodeHeader, ContentNodeBody } from '$lib/domain/content-node/content-node.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 
 	let saving = $state(false);
 
-	async function handleSave(data: { title: string; tagline: string; bio: string; tags: string[]; avatar: any; banner: any; categoryAssignments: any[] }) {
+	async function handleSave(data: { header: ContentNodeHeader; body: ContentNodeBody }) {
 		if (!activeUser.isCreator) return;
 		saving = true;
 		try {
-			const page = await creator.createPage(data);
-			goto(`/pages/${page.id}`);
+			const { tree } = await creator.createTree(data.header.title);
+			// Update the root node with full header data
+			const rootNode = creator.getRootNode(tree.metadata.id);
+			if (rootNode) {
+				await creator.updateNodeHeader(rootNode.metadata.id, data.header);
+				await creator.updateNodeBody(rootNode.metadata.id, data.body);
+			}
+			goto(`/pages/${tree.metadata.id}`);
 		} finally {
 			saving = false;
 		}
@@ -32,8 +39,9 @@
 
 	<h1 class="text-xl font-bold mb-6">Nova Page</h1>
 
-	<PageForm
+	<NodeForm
 		mode="create"
+		role="creator"
 		onsave={handleSave}
 		oncancel={() => history.back()}
 		{saving}
