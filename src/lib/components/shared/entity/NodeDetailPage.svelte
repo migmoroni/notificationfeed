@@ -29,7 +29,10 @@
 	import Globe from '@lucide/svelte/icons/globe';
 	import User from '@lucide/svelte/icons/user';
 	import Rss from '@lucide/svelte/icons/rss';
-	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
+	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
+	import ConfirmDeactivateDialog from '$lib/components/shared/dialog/ConfirmDeactivateDialog.svelte';
+	import ConfirmUnfollowDialog from '$lib/components/shared/dialog/ConfirmUnfollowDialog.svelte';
+	import ConfirmUnsubscribeDialog from '$lib/components/shared/dialog/ConfirmUnsubscribeDialog.svelte';
 
 	interface Props {
 		nodeId: string;
@@ -45,6 +48,9 @@
 	let bannerUrl = $state<string | null>(null);
 	let loading = $state(true);
 	let showUnfavConfirm = $state(false);
+	let showUnsubscribeConfirm = $state(false);
+	let showUnfollowConfirm = $state(false);
+	let showDeactivateConfirm = $state(false);
 
 	const nodeRepo = createContentNodeStore();
 	const treeRepo = createContentTreeStore();
@@ -58,9 +64,34 @@
 
 	let meta = $derived(node ? roleMeta[node.role] ?? { label: node.role, icon: Globe } : null);
 	let activation = $derived(node ? consumer.getActivation(node.metadata.id) : null);
+	let isActivated = $derived(!!activation);
 	let currentPriority = $derived(activation?.priority ?? null);
 	let isFavorite = $derived(activation?.favorite ?? false);
 	let isEnabled = $derived(activation?.enabled ?? true);
+
+	// Role-specific terminology & styles
+	const roleActions = {
+		creator: {
+			activeLabel: 'Inscrito',
+			inactiveLabel: 'Inscrever',
+			activeClass: 'bg-blue-600 text-white hover:bg-blue-700',
+			inactiveClass: 'border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950'
+		},
+		profile: {
+			activeLabel: 'Seguindo',
+			inactiveLabel: 'Seguir',
+			activeClass: 'bg-violet-600 text-white hover:bg-violet-700',
+			inactiveClass: 'border-violet-600 text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-950'
+		},
+		font: {
+			activeLabel: 'Ativo',
+			inactiveLabel: 'Ativar',
+			activeClass: 'bg-emerald-600 text-white hover:bg-emerald-700',
+			inactiveClass: 'border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950'
+		}
+	} as const;
+
+	let actionMeta = $derived(node ? roleActions[node.role] ?? roleActions.font : null);
 
 	onMount(async () => {
 		loading = true;
@@ -132,9 +163,50 @@
 		showUnfavConfirm = false;
 	}
 
-	async function handleToggleEnabled() {
+	async function handleMainAction() {
+		if (!node) return;
+
+		if (node.role === 'font') {
+			if (isActivated && isEnabled) {
+				showDeactivateConfirm = true;
+				return;
+			}
+			if (isActivated) {
+				await consumer.toggleNodeEnabled(node.metadata.id);
+			} else {
+				await consumer.activateNode(node.metadata.id);
+			}
+		} else if (node.role === 'creator') {
+			if (isActivated) {
+				showUnsubscribeConfirm = true;
+				return;
+			}
+			await consumer.activateNode(node.metadata.id);
+		} else if (node.role === 'profile') {
+			if (isActivated) {
+				showUnfollowConfirm = true;
+				return;
+			}
+			await consumer.activateNode(node.metadata.id);
+		}
+	}
+
+	async function confirmDeactivate() {
 		if (!node) return;
 		await consumer.toggleNodeEnabled(node.metadata.id);
+		showDeactivateConfirm = false;
+	}
+
+	async function confirmUnsubscribe() {
+		if (!node) return;
+		await consumer.deactivateNode(node.metadata.id);
+		showUnsubscribeConfirm = false;
+	}
+
+	async function confirmUnfollow() {
+		if (!node) return;
+		await consumer.deactivateNode(node.metadata.id);
+		showUnfollowConfirm = false;
 	}
 </script>
 
@@ -198,14 +270,16 @@
 		<div class="flex items-center gap-3 mb-4 p-2 rounded-lg border">
 			<PriorityButtons current={currentPriority} size="md" onchange={handlePriorityChange} />
 			<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
-			<button
-				onclick={handleToggleEnabled}
-				class="ml-auto text-xs px-3 py-1.5 rounded-md border transition-colors {isEnabled
-					? 'bg-accent text-accent-foreground'
-					: 'bg-muted text-muted-foreground hover:bg-accent/50'}"
-			>
-				{isEnabled ? 'Ativo' : 'Inativo'}
-			</button>
+			{#if actionMeta}
+				{@const isActive = node.role === 'font' ? (isActivated && isEnabled) : isActivated}
+				<button
+					onclick={handleMainAction}
+					class="ml-auto text-xs font-medium px-3 py-1.5 rounded-md border transition-colors
+						{isActive ? actionMeta.activeClass : actionMeta.inactiveClass}"
+				>
+					{isActive ? actionMeta.activeLabel : actionMeta.inactiveLabel}
+				</button>
+			{/if}
 		</div>
 
 		<!-- Tags -->
@@ -264,11 +338,29 @@
 	{/if}
 </div>
 
-<ConfirmDialog
+<ConfirmUnfavoriteDialog
 	bind:open={showUnfavConfirm}
-	title="Remover dos favoritos?"
-	description="Este item será removido da lista de favoritos."
-	confirmLabel="Remover"
 	onconfirm={confirmUnfavorite}
 	oncancel={() => (showUnfavConfirm = false)}
+/>
+
+<ConfirmDeactivateDialog
+	bind:open={showDeactivateConfirm}
+	title={node?.data.header.title}
+	onconfirm={confirmDeactivate}
+	oncancel={() => (showDeactivateConfirm = false)}
+/>
+
+<ConfirmUnsubscribeDialog
+	bind:open={showUnsubscribeConfirm}
+	title={node?.data.header.title}
+	onconfirm={confirmUnsubscribe}
+	oncancel={() => (showUnsubscribeConfirm = false)}
+/>
+
+<ConfirmUnfollowDialog
+	bind:open={showUnfollowConfirm}
+	title={node?.data.header.title}
+	onconfirm={confirmUnfollow}
+	oncancel={() => (showUnfollowConfirm = false)}
 />

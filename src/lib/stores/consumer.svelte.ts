@@ -160,9 +160,17 @@ export const consumer = {
 		}
 	},
 
+	/** Ensure a node is in activateNodes, auto-activating if needed. */
+	async ensureNodeActivated(nodeId: string): Promise<void> {
+		if (!state.user) return;
+		if (state.activationMap.has(nodeId)) return;
+		await this.activateNode(nodeId);
+	},
+
 	async setPriority(nodeId: string, level: PriorityLevel | null): Promise<void> {
 		if (!state.user) return;
 
+		await this.ensureNodeActivated(nodeId);
 		await repo.setPriority(state.user.id, nodeId, level);
 
 		// Optimistic update
@@ -176,6 +184,7 @@ export const consumer = {
 	async setFavorite(nodeId: string, favorite: boolean): Promise<void> {
 		if (!state.user) return;
 
+		await this.ensureNodeActivated(nodeId);
 		await repo.setFavorite(state.user.id, nodeId, favorite);
 
 		// Optimistic update
