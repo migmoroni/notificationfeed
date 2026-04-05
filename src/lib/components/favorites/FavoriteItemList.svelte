@@ -1,11 +1,11 @@
 <!--
-  FavoriteItemList — displays favorited ContentNodes with tab grouping.
+  FavoriteItemList — displays favorited TreeNodes with tab grouping.
 
-  Uses FavoriteItem type (activation + ContentNode instead of ConsumerState + entity union).
+  Uses FavoriteItem type (activation + TreeNode instead of ConsumerState + entity union).
 -->
 <script lang="ts">
 	import type { FavoriteItem } from '$lib/stores/favorites.svelte.js';
-	import type { ContentNode } from '$lib/domain/content-node/content-node.js';
+	import type { TreeNode } from '$lib/domain/content-tree/content-tree.js';
 	import { favorites } from '$lib/stores/favorites.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import EntityCard from '$lib/components/shared/entity/EntityCard.svelte';

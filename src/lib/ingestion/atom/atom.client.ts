@@ -4,7 +4,7 @@
  * Fetches and parses Atom feeds. Uses nodeId instead of fontId.
  */
 
-import type { FontAtomConfig } from '$lib/domain/content-node/content-node.js';
+import type { FontAtomConfig } from '$lib/domain/content-tree/content-tree.js';
 import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 import { normalizeAtomEntry, type AtomEntry } from '$lib/normalization/atom.normalizer.js';
 

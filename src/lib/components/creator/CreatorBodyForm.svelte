@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CreatorBody } from '$lib/domain/content-node/content-node.js';
+	import type { CreatorBody } from '$lib/domain/content-tree/content-tree.js';
 
 	interface Props {
 		body: CreatorBody;

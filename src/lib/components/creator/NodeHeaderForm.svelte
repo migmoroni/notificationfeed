@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ContentNodeHeader } from '$lib/domain/content-node/content-node.js';
+	import type { NodeHeader } from '$lib/domain/content-tree/content-tree.js';
 	import type { CategoryAssignment } from '$lib/domain/shared/category-assignment.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
@@ -9,8 +9,8 @@
 	import CategoryTreePicker from './CategoryTreePicker.svelte';
 
 	interface Props {
-		header: ContentNodeHeader;
-		onchange: (header: ContentNodeHeader) => void;
+		header: NodeHeader;
+		onchange: (header: NodeHeader) => void;
 		/** Show banner upload (only for creator role) */
 		showBanner?: boolean;
 		/** Inherited category assignments shown dimmed in picker */
@@ -24,7 +24,7 @@
 		inheritedCategories = []
 	}: Props = $props();
 
-	function update(patch: Partial<ContentNodeHeader>) {
+	function update(patch: Partial<NodeHeader>) {
 		onchange({ ...header, ...patch });
 	}
 </script>

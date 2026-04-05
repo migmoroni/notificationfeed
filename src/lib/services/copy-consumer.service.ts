@@ -1,117 +1,129 @@
 /**
- * Copy-from-Consumer Service — deep copies nodes from external trees into creator's tree.
+ * Copy-from-Consumer Service — deep copies a tree with embedded nodes into creator's ownership.
  *
- * Creates new ContentNodes with the creator's author ID. The copies are fully
- * independent from the originals. Media referenced by nodes is also duplicated.
+ * Creates a new ContentTree with new IDs and the creator's author.
+ * Media referenced by nodes is also duplicated.
  */
 
-import type { ContentNode, ContentNodeHeader, ContentNodeBody } from '$lib/domain/content-node/content-node.js';
+import type { ContentTree, TreeNode, NodeHeader, NodeBody } from '$lib/domain/content-tree/content-tree.js';
+import { generateNodeId } from '$lib/domain/content-tree/content-tree.js';
 import type { ContentMedia } from '$lib/domain/content-media/content-media.js';
-import { createContentNodeStore } from '$lib/persistence/content-node.store.js';
+import { createContentTreeStore } from '$lib/persistence/content-tree.store.js';
 import { createContentMediaStore } from '$lib/persistence/content-media.store.js';
 import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
 
-const nodeRepo = createContentNodeStore();
+const treeRepo = createContentTreeStore();
 const mediaRepo = createContentMediaStore();
 
 export interface CopyResult {
-	nodes: ContentNode[];
-	medias: ContentMedia[];
+tree: ContentTree;
+medias: ContentMedia[];
 }
 
 /**
- * Deep-copy a single node, reassigning authorship and generating new IDs.
+ * Deep-copy a tree, reassigning authorship and generating new IDs.
  * Also duplicates any referenced media (cover, banner).
  */
-async function deepCopyNode(
-	original: ContentNode,
-	authorId: string
-): Promise<{ node: ContentNode; copiedMediaIds: Map<string, string> }> {
-	const now = new Date();
-	const copiedMediaIds = new Map<string, string>();
+export async function copyTreeToCreator(
+originalTree: ContentTree,
+authorId: string
+): Promise<CopyResult> {
+const now = new Date();
+const newTreeId = uuidv7();
+const copiedMedias: ContentMedia[] = [];
 
-	// Duplicate referenced media
-	const headerPatch: Partial<ContentNodeHeader> = {};
-
-	if (original.data.header.coverMediaId) {
-		const media = await mediaRepo.getById(original.data.header.coverMediaId);
-		if (media) {
-			const newId = uuidv7();
-			const copy: ContentMedia = {
-				...media,
-				metadata: { ...media.metadata, id: newId, author: authorId, createdAt: now, updatedAt: now }
-			};
-			await mediaRepo.put(copy);
-			copiedMediaIds.set(original.data.header.coverMediaId, newId);
-			headerPatch.coverMediaId = newId;
-		}
-	}
-
-	if (original.data.header.bannerMediaId) {
-		const media = await mediaRepo.getById(original.data.header.bannerMediaId);
-		if (media) {
-			const newId = uuidv7();
-			const copy: ContentMedia = {
-				...media,
-				metadata: { ...media.metadata, id: newId, author: authorId, createdAt: now, updatedAt: now }
-			};
-			await mediaRepo.put(copy);
-			copiedMediaIds.set(original.data.header.bannerMediaId, newId);
-			headerPatch.bannerMediaId = newId;
-		}
-	}
-
-	const node: ContentNode = {
-		role: original.role,
-		data: {
-			header: {
-				...original.data.header,
-				...headerPatch,
-				tags: [...original.data.header.tags],
-				categoryAssignments: original.data.header.categoryAssignments.map((a) => ({
-					treeId: a.treeId,
-					categoryIds: [...a.categoryIds]
-				}))
-			},
-			body: { ...original.data.body } as ContentNodeBody
-		},
-		metadata: {
-			id: uuidv7(),
-			versionSchema: original.metadata.versionSchema,
-			createdAt: now,
-			updatedAt: now,
-			author: authorId
-		}
-	};
-
-	await nodeRepo.put(node);
-	return { node, copiedMediaIds };
+// Build a mapping from old nodeId → new nodeId
+const idMap = new Map<string, string>();
+for (const oldNodeId of Object.keys(originalTree.nodes)) {
+idMap.set(oldNodeId, generateNodeId(newTreeId, uuidv7()));
 }
 
-/**
- * Deep copy a list of nodes (typically profiles + their child fonts) for use by the creator.
- * Returns the newly created nodes and media. The caller is responsible for linking them into a tree.
- */
-export async function copyNodesToCreator(
-	nodeIds: string[],
-	authorId: string
-): Promise<CopyResult> {
-	const copiedNodes: ContentNode[] = [];
-	const copiedMedias: ContentMedia[] = [];
+// Deep-copy nodes with new IDs
+const newNodes: Record<string, TreeNode> = {};
+for (const [oldNodeId, original] of Object.entries(originalTree.nodes)) {
+const newNodeId = idMap.get(oldNodeId)!;
 
-	for (const nodeId of nodeIds) {
-		const original = await nodeRepo.getById(nodeId);
-		if (!original) continue;
+// Duplicate referenced media
+const headerPatch: Partial<NodeHeader> = {};
 
-		const { node, copiedMediaIds } = await deepCopyNode(original, authorId);
-		copiedNodes.push(node);
+if (original.data.header.coverMediaId) {
+const media = await mediaRepo.getById(original.data.header.coverMediaId);
+if (media) {
+const newMediaId = uuidv7();
+const copy: ContentMedia = {
+...media,
+metadata: { ...media.metadata, id: newMediaId, author: authorId, createdAt: now, updatedAt: now }
+};
+await mediaRepo.put(copy);
+copiedMedias.push(copy);
+headerPatch.coverMediaId = newMediaId;
+}
+}
 
-		// Collect any media we copied
-		for (const newMediaId of copiedMediaIds.values()) {
-			const m = await mediaRepo.getById(newMediaId);
-			if (m) copiedMedias.push(m);
-		}
-	}
+if (original.data.header.bannerMediaId) {
+const media = await mediaRepo.getById(original.data.header.bannerMediaId);
+if (media) {
+const newMediaId = uuidv7();
+const copy: ContentMedia = {
+...media,
+metadata: { ...media.metadata, id: newMediaId, author: authorId, createdAt: now, updatedAt: now }
+};
+await mediaRepo.put(copy);
+copiedMedias.push(copy);
+headerPatch.bannerMediaId = newMediaId;
+}
+}
 
-	return { nodes: copiedNodes, medias: copiedMedias };
+const newNode: TreeNode = {
+role: original.role,
+data: {
+header: {
+...original.data.header,
+...headerPatch,
+tags: [...original.data.header.tags],
+categoryAssignments: original.data.header.categoryAssignments.map((a) => ({
+treeId: a.treeId,
+categoryIds: [...a.categoryIds]
+}))
+},
+body: { ...original.data.body } as NodeBody
+},
+metadata: {
+id: newNodeId,
+versionSchema: original.metadata.versionSchema,
+createdAt: now,
+updatedAt: now
+}
+};
+
+newNodes[newNodeId] = newNode;
+}
+
+// Remap paths
+const remapId = (id: string): string => idMap.get(id) ?? id;
+
+const newPaths: Record<string, string | string[]> = {};
+for (const [key, value] of Object.entries(originalTree.paths)) {
+if (key === '/') {
+newPaths['/'] = remapId(value as string);
+} else if (Array.isArray(value)) {
+newPaths[key] = value.map(remapId);
+}
+}
+
+const newTree: ContentTree = {
+nodes: newNodes,
+paths: newPaths as ContentTree['paths'],
+sections: originalTree.sections.map((s) => ({ ...s })),
+metadata: {
+id: newTreeId,
+versionSchema: originalTree.metadata.versionSchema,
+createdAt: now,
+updatedAt: now,
+author: authorId
+}
+};
+
+await treeRepo.put(newTree);
+return { tree: newTree, medias: copiedMedias };
 }

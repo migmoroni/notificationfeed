@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { FontBody, FontProtocol, FontConfig, FontNostrConfig, FontRssConfig, FontAtomConfig } from '$lib/domain/content-node/content-node.js';
+	import type { FontBody, FontProtocol, FontConfig, FontNostrConfig, FontRssConfig, FontAtomConfig } from '$lib/domain/content-tree/content-tree.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';

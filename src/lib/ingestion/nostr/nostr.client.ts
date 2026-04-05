@@ -4,7 +4,7 @@
  * Connects to Nostr relays via WebSocket. Uses nodeId instead of fontId.
  */
 
-import type { FontNostrConfig } from '$lib/domain/content-node/content-node.js';
+import type { FontNostrConfig } from '$lib/domain/content-tree/content-tree.js';
 import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 import { normalizeNostrEvent } from '$lib/normalization/nostr.normalizer.js';
 

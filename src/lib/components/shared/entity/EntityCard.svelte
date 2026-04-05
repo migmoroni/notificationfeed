@@ -1,12 +1,12 @@
 <!--
-  EntityCard — displays a ContentNode (creator, profile, or font).
+  EntityCard — displays a TreeNode (creator, profile, or font).
 
   Replaces the old EntityCard that worked with BrowseEntity union type.
   Actions (priority, favorite, enabled) use the consumer activation map.
 -->
 <script lang="ts">
-	import type { ContentNode } from '$lib/domain/content-node/content-node.js';
-	import { isFontNode } from '$lib/domain/content-node/content-node.js';
+	import type { TreeNode } from '$lib/domain/content-tree/content-tree.js';
+	import { isFontNode } from '$lib/domain/content-tree/content-tree.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import PriorityBadge from '$lib/components/shared/priority/PriorityBadge.svelte';
@@ -20,7 +20,7 @@
 	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
 
 	interface Props {
-		node: ContentNode;
+		node: TreeNode;
 		href?: string | null;
 		/** Pre-resolved avatar URL (data-url or blob URL from ContentMedia) */
 		avatarUrl?: string | null;
@@ -31,13 +31,14 @@
 	let showDisableConfirm = $state(false);
 	let showUnfavConfirm = $state(false);
 
-	const roleMeta: Record<string, { label: string; icon: typeof Globe }> = {
-		creator: { label: 'Creator', icon: Globe },
-		profile: { label: 'Profile', icon: User },
-		font: { label: 'Font', icon: Rss }
+	const roleMeta: Record<string, { label: string; activeLabel: string; inactiveLabel: string; icon: typeof Globe }> = {
+		creator: { label: 'Creator', activeLabel: 'Fixado', inactiveLabel: 'Fixar', icon: Globe },
+		profile: { label: 'Profile', activeLabel: 'Inscrito', inactiveLabel: 'Inscrever', icon: User },
+		font: { label: 'Font', activeLabel: 'Seguindo', inactiveLabel: 'Seguir', icon: Rss },
+		collection: { label: 'Collection', activeLabel: 'Fixado', inactiveLabel: 'Fixar', icon: Globe }
 	};
 
-	let meta = $derived(roleMeta[node.role] ?? { label: node.role, icon: Globe });
+	let meta = $derived(roleMeta[node.role] ?? { label: node.role, activeLabel: 'Seguindo', inactiveLabel: 'Seguir', icon: Globe });
 	let activation = $derived(consumer.getActivation(node.metadata.id));
 	let currentPriority = $derived(activation?.priority ?? null);
 	let isFavorite = $derived(activation?.favorite ?? false);
@@ -141,7 +142,7 @@
 							? 'bg-accent text-accent-foreground'
 							: 'bg-muted text-muted-foreground hover:bg-accent/50'}"
 					>
-						{isEnabled ? 'Active' : 'Inactive'}
+						{isEnabled ? meta.activeLabel : meta.inactiveLabel}
 					</button>
 				</div>
 			</div>

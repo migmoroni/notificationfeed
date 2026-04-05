@@ -27,11 +27,15 @@ export interface TreeActivation {
 // ---------------------------------------------------------------------------
 
 export interface NodeActivation {
+	/**
+	 * Composite node ID: `treeId:localUuid`.
+	 * References a TreeNode embedded in a ContentTree.
+	 */
 	nodeId: string;
 
 	/**
-	 * Priority override. null = inherit from parent node in tree.
-	 * Inheritance chain: fontNode → profileNode → creatorNode → 3 (default)
+	 * Priority override. null = inherit from parent in tree.
+	 * Inheritance chain: fontNode → root → 3 (default)
 	 */
 	priority: PriorityLevel | null;
 

@@ -4,7 +4,7 @@
  * Fetches and parses RSS 2.0 feeds. Uses nodeId instead of fontId.
  */
 
-import type { FontRssConfig } from '$lib/domain/content-node/content-node.js';
+import type { FontRssConfig } from '$lib/domain/content-tree/content-tree.js';
 import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 import { normalizeRssItem, type RssItem } from '$lib/normalization/rss.normalizer.js';
 

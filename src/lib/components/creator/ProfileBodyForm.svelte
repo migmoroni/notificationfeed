@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ProfileBody } from '$lib/domain/content-node/content-node.js';
+	import type { ProfileBody } from '$lib/domain/content-tree/content-tree.js';
 	import { Switch } from '$lib/components/ui/switch/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 

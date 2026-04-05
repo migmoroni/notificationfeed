@@ -26,12 +26,12 @@
 	let showDeleteConfirm = $state(false);
 	let showCopyDialog = $state(false);
 
-	async function handleSave(data: { header: import('$lib/domain/content-node/content-node.js').ContentNodeHeader; body: import('$lib/domain/content-node/content-node.js').ContentNodeBody }) {
+	async function handleSave(data: { header: import('$lib/domain/content-tree/content-tree.js').NodeHeader; body: import('$lib/domain/content-tree/content-tree.js').NodeBody }) {
 		if (!rootNode) return;
 		saving = true;
 		try {
-			await creator.updateNodeHeader(rootNode.metadata.id, data.header);
-			await creator.updateNodeBody(rootNode.metadata.id, data.body);
+			await creator.updateNodeHeader(treeId, rootNode.metadata.id, data.header);
+			await creator.updateNodeBody(treeId, rootNode.metadata.id, data.body);
 			editing = false;
 		} finally {
 			saving = false;

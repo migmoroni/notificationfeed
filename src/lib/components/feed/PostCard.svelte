@@ -1,5 +1,5 @@
 <!--
-  PostCard — displays a single post using ContentNode model.
+  PostCard — displays a single post using TreeNode model.
 
   Resolves font node from feed store (instead of Font entity).
 -->

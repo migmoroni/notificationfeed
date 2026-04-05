@@ -4,21 +4,21 @@
 	import { activeUser } from '$lib/stores/active-user.svelte.js';
 	import { creator } from '$lib/stores/creator.svelte.js';
 	import { NodeForm } from '$lib/components/creator/index.js';
-	import type { ContentNodeHeader, ContentNodeBody } from '$lib/domain/content-node/content-node.js';
+	import type { NodeHeader, NodeBody } from '$lib/domain/content-tree/content-tree.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 
 	let saving = $state(false);
 
-	async function handleSave(data: { header: ContentNodeHeader; body: ContentNodeBody }) {
+	async function handleSave(data: { header: NodeHeader; body: NodeBody }) {
 		if (!activeUser.isCreator) return;
 		saving = true;
 		try {
-			const { tree } = await creator.createTree(data.header.title);
+			const tree = await creator.createTree('creator', data.header.title);
 			// Update the root node with full header data
 			const rootNode = creator.getRootNode(tree.metadata.id);
 			if (rootNode) {
-				await creator.updateNodeHeader(rootNode.metadata.id, data.header);
-				await creator.updateNodeBody(rootNode.metadata.id, data.body);
+				await creator.updateNodeHeader(tree.metadata.id, rootNode.metadata.id, data.header);
+				await creator.updateNodeBody(tree.metadata.id, rootNode.metadata.id, data.body);
 			}
 			goto(`/pages/${tree.metadata.id}`);
 		} finally {

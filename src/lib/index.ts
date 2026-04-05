@@ -8,8 +8,7 @@ export type { UserCreator, NewUserCreator, NostrKeypair, SyncStatus } from './do
 export type { PriorityLevel } from './domain/user/priority-level.js';
 
 // Domain — Content Model
-export type { ContentNode, ContentNodeHeader, NodeRole, CreatorBody, ProfileBody, FontBody } from './domain/content-node/content-node.js';
-export type { ContentTree, TreeSection } from './domain/content-tree/content-tree.js';
+export type { TreeNode, NodeHeader, NodeBody, NodeRole, CreatorBody, ProfileBody, FontBody, ContentTree, TreeSection, TreePaths } from './domain/content-tree/content-tree.js';
 export type { ContentMedia } from './domain/content-media/content-media.js';
 export type { TreeExport } from './domain/tree-export/tree-export.js';
 export type { TreePublication } from './domain/tree-export/tree-publication.js';
@@ -86,4 +85,4 @@ export {
 // Services
 export { processImage, createImagePreviewUrl } from './services/image.service.js';
 export { downloadTreeExport, exportTree } from './services/export.service.js';
-export { copyNodesToCreator } from './services/copy-consumer.service.js';
+export { copyTreeToCreator } from './services/copy-consumer.service.js';

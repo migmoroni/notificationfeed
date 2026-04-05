@@ -1,11 +1,10 @@
 /**
  * Canonical Post — normalized, protocol-agnostic post representation.
  *
- * Change from v1: `fontId` renamed to `nodeId` to align with ContentNode model.
- * The nodeId references a ContentNode with role='font'.
+ * The nodeId references a TreeNode with role='font', using composite format `treeId:localUuid`.
  */
 
-import type { FontProtocol } from '$lib/domain/content-node/content-node.js';
+import type { FontProtocol } from '$lib/domain/content-tree/content-tree.js';
 
 export interface CanonicalPost {
 	/** Deterministic ID derived from source (e.g., Nostr event ID, RSS guid, Atom entry ID) */

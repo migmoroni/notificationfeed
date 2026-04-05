@@ -178,7 +178,8 @@
 
 			{#if parsedExport}
 				<!-- Preview -->
-				{@const rootNodeEntry = parsedExport.nodes.find((n) => n.role === 'creator')}
+				{@const treeNodes = Object.values(parsedExport.tree.nodes)}
+				{@const rootNodeEntry = treeNodes.find((n) => n.role === 'creator')}
 				<div class="rounded-lg border bg-card p-4 space-y-2">
 					<h3 class="font-semibold">{rootNodeEntry?.data.header.title ?? 'Sem título'}</h3>
 					{#if rootNodeEntry?.data.header.subtitle}
@@ -193,8 +194,8 @@
 						</p>
 					{/if}
 					<div class="flex gap-3 text-xs text-muted-foreground">
-						<span>{parsedExport.nodes.filter((n) => n.role === 'profile').length} profile(s)</span>
-						<span>{parsedExport.nodes.filter((n) => n.role === 'font').length} font(s)</span>
+						<span>{treeNodes.filter((n) => n.role === 'profile').length} profile(s)</span>
+						<span>{treeNodes.filter((n) => n.role === 'font').length} font(s)</span>
 					</div>
 					{#if rootNodeEntry?.data.header.tags?.length}
 						<div class="flex flex-wrap gap-1">

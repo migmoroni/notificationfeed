@@ -2,406 +2,318 @@
  * Entity Filter Factory — creates independent EntityFilterStore instances.
  *
  * Each call returns a store with its own selection state ($state).
- * The data source (how trees/nodes are loaded) is injected,
+ * The data source (how trees are loaded) is injected,
  * so the same code powers Feed, Browse and Preview filters.
  *
- * Relationships are resolved through ContentTree path navigation:
- *   "/" → creator (root)
- *   "/profile-x" → profile (child of root)
- *   "/profile-x/font-y" → font (child of profile)
+ * New model: flat page-based filtering.
+ *   Page = any tree whose root is creator, profile, or collection.
+ *   Users choose which page types to display, then select pages and
+ *   optionally narrow to specific fonts within them.
  */
 
-import type { ContentTree, TreeSection } from '$lib/domain/content-tree/content-tree.js';
-import type { ContentNode } from '$lib/domain/content-node/content-node.js';
-import { isCreatorNode, isProfileNode, isFontNode } from '$lib/domain/content-node/content-node.js';
+import type { ContentTree, TreeSection, TreeNode } from '$lib/domain/content-tree/content-tree.js';
 import {
-	resolveNodeId,
-	getRootNodeId,
-	getChildPaths,
-	getPathSection
+getRootNode,
+getRootNodeId,
+isCreatorNode,
+isProfileNode,
+isCollectionNode,
+isTreeLinkNode,
+getFontNodes,
+getNodeSection,
+parseTreeId
 } from '$lib/domain/content-tree/content-tree.js';
-import type { EntityFilterStore, CreatorEntry, NodeEntry } from './entity-filter.types.js';
+import type { EntityFilterStore, PageEntry, NodeEntry, PageType } from './entity-filter.types.js';
+import { ALL_PAGE_TYPES } from './entity-filter.types.js';
 
 // ── Data source interface ──────────────────────────────────────────────
 
 export interface EntityFilterDataSource {
-	/** Load all trees and nodes needed for this filter. */
-	load(): Promise<{ trees: ContentTree[]; nodes: ContentNode[] }>;
-	/** Return currently loaded trees. */
-	getTrees(): ContentTree[];
-	/** Return currently loaded nodes. */
-	getNodes(): ContentNode[];
+/** Load all trees needed for this filter. */
+load(): Promise<{ trees: ContentTree[] }>;
+/** Return currently loaded trees. */
+getTrees(): ContentTree[];
 }
 
 // ── Factory ────────────────────────────────────────────────────────────
 
 export function createEntityFilter(source: EntityFilterDataSource): EntityFilterStore {
-	let selectedCreatorIds = $state<Set<string>>(new Set());
-	let selectedProfileIds = $state<Set<string>>(new Set());
-	let selectedFontIds = $state<Set<string>>(new Set());
+let pageTypeFilter = $state<Set<PageType>>(new Set(ALL_PAGE_TYPES));
+let selectedPageIds = $state<Set<string>>(new Set());
+let selectedFontIds = $state<Set<string>>(new Set());
 
-	// ── Tree navigation helpers ──────────────────────────────────────
+// ── Internal helpers ───────────────────────────────────────────────
 
-	function nodeMap(): Map<string, ContentNode> {
-		return new Map(source.getNodes().map((n) => [n.metadata.id, n]));
-	}
+/** Build a map of treeId → ContentTree */
+function buildTreeMap(): Map<string, ContentTree> {
+return new Map(source.getTrees().map((t) => [t.metadata.id, t]));
+}
 
-	/**
-	 * Find all trees whose root node matches creatorNodeId.
-	 */
-	function treesForCreator(creatorNodeId: string): ContentTree[] {
-		return source.getTrees().filter((t) => getRootNodeId(t) === creatorNodeId);
-	}
+/** Root role → PageType mapping (only the 3 page roles) */
+function rootPageType(tree: ContentTree): PageType | null {
+const root = getRootNode(tree);
+if (!root) return null;
+if (root.role === 'creator') return 'creator';
+if (root.role === 'profile') return 'profile';
+if (root.role === 'collection') return 'collection';
+return null;
+}
 
-	/**
-	 * Get profile node IDs under a given creator.
-	 * Walks child paths of "/" across all trees rooted at that creator.
-	 */
-	function profileIdsForCreator(creatorNodeId: string): Set<string> {
-		const ids = new Set<string>();
-		for (const tree of treesForCreator(creatorNodeId)) {
-			for (const childPath of getChildPaths(tree, '/')) {
-				const nodeId = resolveNodeId(tree, childPath);
-				if (nodeId) {
-					const node = nodeMap().get(nodeId);
-					if (node && isProfileNode(node)) ids.add(nodeId);
-				}
-			}
-		}
-		return ids;
-	}
+/** All trees that qualify as pages (root = creator | profile | collection) */
+function pageTrees(): ContentTree[] {
+return source.getTrees().filter((t) => rootPageType(t) !== null);
+}
 
-	/**
-	 * Get font node IDs under a given profile.
-	 * Finds all tree paths referencing profileNodeId, then gets their children.
-	 */
-	function fontIdsForProfile(profileNodeId: string): Set<string> {
-		const ids = new Set<string>();
-		for (const tree of source.getTrees()) {
-			for (const [path, treePath] of Object.entries(tree.root.paths)) {
-				const resolution = tree.root.nodes[treePath.node];
-				if (resolution?.['/'] === profileNodeId) {
-					for (const childPath of getChildPaths(tree, path)) {
-						const nodeId = resolveNodeId(tree, childPath);
-						if (nodeId) {
-							const node = nodeMap().get(nodeId);
-							if (node && isFontNode(node)) ids.add(nodeId);
-						}
-					}
-				}
-			}
-		}
-		return ids;
-	}
+/** Page trees filtered by the current pageTypeFilter */
+function visiblePageTrees(): ContentTree[] {
+return pageTrees().filter((t) => {
+const pt = rootPageType(t);
+return pt !== null && pageTypeFilter.has(pt);
+});
+}
 
-	/**
-	 * Get creator node IDs that own a given profile via tree paths.
-	 */
-	function creatorIdsForProfile(profileNodeId: string): Set<string> {
-		const ids = new Set<string>();
-		for (const tree of source.getTrees()) {
-			for (const [, treePath] of Object.entries(tree.root.paths)) {
-				const resolution = tree.root.nodes[treePath.node];
-				if (resolution?.['/'] === profileNodeId) {
-					const rootId = getRootNodeId(tree);
-					if (rootId) ids.add(rootId);
-				}
-			}
-		}
-		return ids;
-	}
+/** Get font node IDs within a tree */
+function fontIdsForTree(treeId: string): Set<string> {
+const treeMap = buildTreeMap();
+const tree = treeMap.get(treeId);
+if (!tree) return new Set();
+const ids = new Set<string>();
+for (const node of getFontNodes(tree)) {
+ids.add(node.metadata.id);
+}
+return ids;
+}
 
-	/**
-	 * Get profile node IDs that own a given font via tree paths.
-	 */
-	function profileIdsForFont(fontNodeId: string): Set<string> {
-		const ids = new Set<string>();
-		for (const tree of source.getTrees()) {
-			for (const [path, treePath] of Object.entries(tree.root.paths)) {
-				const resolution = tree.root.nodes[treePath.node];
-				if (resolution?.['/'] === fontNodeId) {
-					// Find the parent path
-					const parentPath = path.includes('/') && path !== '/'
-						? path.substring(0, path.lastIndexOf('/')) || '/'
-						: null;
-					if (parentPath) {
-						const parentNodeId = resolveNodeId(tree, parentPath);
-						if (parentNodeId) {
-							const parentNode = nodeMap().get(parentNodeId);
-							if (parentNode && isProfileNode(parentNode)) ids.add(parentNodeId);
-						}
-					}
-				}
-			}
-		}
-		return ids;
-	}
+/** Get the tree that owns a font (by parsing composite ID) */
+function treeForFont(fontNodeId: string): ContentTree | null {
+const treeId = parseTreeId(fontNodeId);
+return buildTreeMap().get(treeId) ?? null;
+}
 
-	/** Set of all profile nodeIds that appear in any tree as a child of root */
-	function linkedProfileIds(): Set<string> {
-		const ids = new Set<string>();
-		for (const tree of source.getTrees()) {
-			for (const childPath of getChildPaths(tree, '/')) {
-				const nodeId = resolveNodeId(tree, childPath);
-				if (nodeId) {
-					const node = nodeMap().get(nodeId);
-					if (node && isProfileNode(node)) ids.add(nodeId);
-				}
-			}
-		}
-		return ids;
-	}
+/** Get root node ID for a tree that a page belongs to */
+function pageRootRole(pageId: string): PageType | null {
+const treeId = parseTreeId(pageId);
+const tree = buildTreeMap().get(treeId);
+if (!tree) return null;
+return rootPageType(tree);
+}
 
-	/** Set of all font nodeIds that appear in any tree under a profile */
-	function linkedFontIds(): Set<string> {
-		const ids = new Set<string>();
-		const nMap = nodeMap();
-		for (const tree of source.getTrees()) {
-			for (const childPath of getChildPaths(tree, '/')) {
-				for (const fontPath of getChildPaths(tree, childPath)) {
-					const nodeId = resolveNodeId(tree, fontPath);
-					if (nodeId) {
-						const node = nMap.get(nodeId);
-						if (node && isFontNode(node)) ids.add(nodeId);
-					}
-				}
-			}
-		}
-		return ids;
-	}
+// ── Store implementation ─────────────────────────────────────────
 
-	/**
-	 * Get the TreeSection for a node in any tree that contains it.
-	 * Returns the first section found.
-	 */
-	function sectionForNode(nodeId: string): TreeSection | null {
-		for (const tree of source.getTrees()) {
-			for (const [path, treePath] of Object.entries(tree.root.paths)) {
-				const resolution = tree.root.nodes[treePath.node];
-				if (resolution?.['/'] === nodeId) {
-					return getPathSection(tree, path);
-				}
-			}
-		}
-		return null;
-	}
+return {
+get pageTypeFilter() { return pageTypeFilter; },
+get selectedPageIds() { return selectedPageIds; },
+get selectedFontIds() { return selectedFontIds; },
 
-	// ── Store implementation ─────────────────────────────────────────
+get selectedCreatorIds(): Set<string> {
+const ids = new Set<string>();
+for (const pid of selectedPageIds) {
+if (pageRootRole(pid) === 'creator') ids.add(pid);
+}
+return ids;
+},
 
-	return {
-		get selectedCreatorIds() { return selectedCreatorIds; },
-		get selectedProfileIds() { return selectedProfileIds; },
-		get selectedFontIds() { return selectedFontIds; },
+get selectedProfileIds(): Set<string> {
+const ids = new Set<string>();
+for (const pid of selectedPageIds) {
+if (pageRootRole(pid) === 'profile') ids.add(pid);
+}
+return ids;
+},
 
-		get hasFilters(): boolean {
-			return selectedCreatorIds.size > 0 || selectedProfileIds.size > 0 || selectedFontIds.size > 0;
-		},
+get hasFilters(): boolean {
+return selectedPageIds.size > 0 || selectedFontIds.size > 0;
+},
 
-		get totalSelected(): number {
-			return selectedCreatorIds.size + selectedProfileIds.size + selectedFontIds.size;
-		},
+get totalSelected(): number {
+return selectedPageIds.size + selectedFontIds.size;
+},
 
-		async loadNodes(): Promise<void> {
-			await source.load();
-		},
+async loadNodes(): Promise<void> {
+await source.load();
+},
 
-		getCreators(): CreatorEntry[] {
-			const nMap = nodeMap();
-			const creatorIds = new Set<string>();
+setPageTypeFilter(types: Set<PageType>): void {
+pageTypeFilter = new Set(types);
+// Deselect pages that no longer match the type filter
+const next = new Set(selectedPageIds);
+const nextFonts = new Set(selectedFontIds);
+for (const pid of next) {
+const role = pageRootRole(pid);
+if (role !== null && !types.has(role)) {
+next.delete(pid);
+// Also remove fonts from this page
+const treeId = parseTreeId(pid);
+for (const fid of fontIdsForTree(treeId)) {
+nextFonts.delete(fid);
+}
+}
+}
+selectedPageIds = next;
+selectedFontIds = nextFonts;
+},
 
-			for (const tree of source.getTrees()) {
-				const rootId = getRootNodeId(tree);
-				if (rootId) creatorIds.add(rootId);
-			}
+togglePageType(type: PageType): void {
+const next = new Set(pageTypeFilter);
+if (next.has(type)) {
+if (next.size > 1) next.delete(type); // Keep at least one type active
+} else {
+next.add(type);
+}
+this.setPageTypeFilter(next);
+},
 
-			const entries: CreatorEntry[] = [];
-			for (const id of creatorIds) {
-				const node = nMap.get(id);
-				if (!node || !isCreatorNode(node)) continue;
-				entries.push({
-					id,
-					title: node.data.header.title,
-					coverMediaId: node.data.header.coverMediaId ?? null,
-					profileCount: profileIdsForCreator(id).size
-				});
-			}
+getPages(): PageEntry[] {
+const entries: PageEntry[] = [];
+for (const tree of visiblePageTrees()) {
+const root = getRootNode(tree);
+if (!root) continue;
+const pt = rootPageType(tree);
+if (!pt) continue;
+entries.push({
+id: getRootNodeId(tree),
+treeId: tree.metadata.id,
+title: root.data.header.title,
+coverMediaId: root.data.header.coverMediaId ?? null,
+pageType: pt,
+fontCount: getFontNodes(tree).length
+});
+}
+return entries.sort((a, b) => a.title.localeCompare(b.title));
+},
 
-			return entries.sort((a, b) => a.title.localeCompare(b.title));
-		},
+getFonts(pageId: string): NodeEntry[] {
+const treeId = parseTreeId(pageId);
+const treeMap = buildTreeMap();
+const tree = treeMap.get(treeId);
+if (!tree) return [];
 
-		getProfiles(creatorNodeId?: string): NodeEntry[] {
-			const nMap = nodeMap();
+return getFontNodes(tree)
+.map((node) => ({
+node,
+section: getNodeSection(tree, node.metadata.id)
+}))
+.sort((a, b) => a.node.data.header.title.localeCompare(b.node.data.header.title));
+},
 
-			if (creatorNodeId) {
-				const profileIds = profileIdsForCreator(creatorNodeId);
-				const entries: NodeEntry[] = [];
-				for (const id of profileIds) {
-					const node = nMap.get(id);
-					if (!node) continue;
-					entries.push({ node, section: sectionForNode(id) });
-				}
-				return entries.sort((a, b) =>
-					a.node.data.header.title.localeCompare(b.node.data.header.title)
-				);
-			}
+getSections(treeId: string): TreeSection[] {
+const tree = source.getTrees().find((t) => t.metadata.id === treeId);
+if (!tree) return [];
+return [...tree.sections].sort((a, b) => a.order - b.order);
+},
 
-			// All profile nodes
-			return source.getNodes()
-				.filter(isProfileNode)
-				.map((node) => ({ node, section: sectionForNode(node.metadata.id) }))
-				.sort((a, b) => a.node.data.header.title.localeCompare(b.node.data.header.title));
-		},
+getLinkedPages(pageId: string): PageEntry[] {
+const treeId = parseTreeId(pageId);
+const treeMap = buildTreeMap();
+const tree = treeMap.get(treeId);
+if (!tree) return [];
 
-		getFonts(profileNodeId: string): NodeEntry[] {
-			const nMap = nodeMap();
-			const fontIds = fontIdsForProfile(profileNodeId);
+const linked: PageEntry[] = [];
+for (const treeNode of Object.values(tree.nodes)) {
+if (!isTreeLinkNode(treeNode)) continue;
+const linkedTree = treeMap.get(treeNode.data.body.instanceTreeId);
+if (!linkedTree) continue;
+const root = getRootNode(linkedTree);
+if (!root) continue;
+const pt = rootPageType(linkedTree);
+linked.push({
+id: getRootNodeId(linkedTree),
+treeId: linkedTree.metadata.id,
+title: root.data.header.title,
+coverMediaId: root.data.header.coverMediaId ?? null,
+pageType: pt ?? 'profile',
+fontCount: getFontNodes(linkedTree).length
+});
+}
+return linked.sort((a, b) => a.title.localeCompare(b.title));
+},
 
-			const entries: NodeEntry[] = [];
-			for (const id of fontIds) {
-				const node = nMap.get(id);
-				if (!node) continue;
-				entries.push({ node, section: sectionForNode(id) });
-			}
-			return entries.sort((a, b) =>
-				a.node.data.header.title.localeCompare(b.node.data.header.title)
-			);
-		},
+// ── Selection ────────────────────────────────────────────────
 
-		getStandaloneProfiles(): ContentNode[] {
-			const linked = linkedProfileIds();
-			return source.getNodes()
-				.filter((n) => isProfileNode(n) && !linked.has(n.metadata.id))
-				.sort((a, b) => a.data.header.title.localeCompare(b.data.header.title));
-		},
+isPageSelected(pageId: string): boolean {
+return selectedPageIds.has(pageId);
+},
 
-		getStandaloneFonts(): ContentNode[] {
-			const linked = linkedFontIds();
-			return source.getNodes()
-				.filter((n) => isFontNode(n) && !linked.has(n.metadata.id))
-				.sort((a, b) => a.data.header.title.localeCompare(b.data.header.title));
-		},
+isFontSelected(nodeId: string): boolean {
+return selectedFontIds.has(nodeId);
+},
 
-		getSections(treeId: string): TreeSection[] {
-			const tree = source.getTrees().find((t) => t.metadata.id === treeId);
-			if (!tree) return [];
-			return [...tree.sections].sort((a, b) => a.order - b.order);
-		},
+togglePage(pageId: string): void {
+const next = new Set(selectedPageIds);
+if (next.has(pageId)) {
+next.delete(pageId);
+// Cascade: deselect fonts within this page
+const treeId = parseTreeId(pageId);
+const nextFonts = new Set(selectedFontIds);
+for (const fid of fontIdsForTree(treeId)) {
+nextFonts.delete(fid);
+}
+// Cascade: deselect linked pages (and their fonts) for creator/collection trees
+const treeMap = buildTreeMap();
+const tree = treeMap.get(treeId);
+if (tree) {
+for (const treeNode of Object.values(tree.nodes)) {
+if (!isTreeLinkNode(treeNode)) continue;
+const linkedTree = treeMap.get(treeNode.data.body.instanceTreeId);
+if (!linkedTree) continue;
+const linkedRootId = getRootNodeId(linkedTree);
+next.delete(linkedRootId);
+for (const fid of fontIdsForTree(linkedTree.metadata.id)) {
+nextFonts.delete(fid);
+}
+}
+}
+selectedFontIds = nextFonts;
+} else {
+next.add(pageId);
+}
+selectedPageIds = next;
+},
 
-		// ── Selection ────────────────────────────────────────────────
+toggleFont(nodeId: string): void {
+const next = new Set(selectedFontIds);
+if (next.has(nodeId)) {
+next.delete(nodeId);
+} else {
+next.add(nodeId);
+}
+selectedFontIds = next;
+},
 
-		isCreatorSelected(nodeId: string): boolean {
-			return selectedCreatorIds.has(nodeId);
-		},
+clearAll(): void {
+selectedPageIds = new Set();
+selectedFontIds = new Set();
+},
 
-		isProfileSelected(nodeId: string): boolean {
-			return selectedProfileIds.has(nodeId);
-		},
+getAllowedFontNodeIds(): Set<string> {
+if (!this.hasFilters) return new Set();
 
-		isFontSelected(nodeId: string): boolean {
-			return selectedFontIds.has(nodeId);
-		},
+const allowed = new Set<string>();
 
-		toggleCreator(nodeId: string): void {
-			const next = new Set(selectedCreatorIds);
-			if (next.has(nodeId)) {
-				next.delete(nodeId);
-				// Cascade: deselect child profiles and their fonts
-				const childProfileIds = profileIdsForCreator(nodeId);
-				const nextProfiles = new Set(selectedProfileIds);
-				const nextFonts = new Set(selectedFontIds);
-				for (const pid of childProfileIds) {
-					nextProfiles.delete(pid);
-					for (const fid of fontIdsForProfile(pid)) {
-						nextFonts.delete(fid);
-					}
-				}
-				selectedProfileIds = nextProfiles;
-				selectedFontIds = nextFonts;
-			} else {
-				next.add(nodeId);
-			}
-			selectedCreatorIds = next;
-		},
+// Collect fonts from selected pages
+for (const pageId of selectedPageIds) {
+const treeId = parseTreeId(pageId);
+const pageFontIds = fontIdsForTree(treeId);
+// If there are font-level selections within this page, use them
+const selectedInPage = [...pageFontIds].filter((fid) => selectedFontIds.has(fid));
+if (selectedInPage.length > 0) {
+for (const fid of selectedInPage) allowed.add(fid);
+} else {
+// No font-level refinement: all fonts in page
+for (const fid of pageFontIds) allowed.add(fid);
+}
+}
 
-		toggleProfile(nodeId: string): void {
-			const next = new Set(selectedProfileIds);
-			if (next.has(nodeId)) {
-				next.delete(nodeId);
-				// Cascade: deselect child fonts
-				const nextFonts = new Set(selectedFontIds);
-				for (const fid of fontIdsForProfile(nodeId)) {
-					nextFonts.delete(fid);
-				}
-				selectedFontIds = nextFonts;
-			} else {
-				next.add(nodeId);
-			}
-			selectedProfileIds = next;
-		},
+// Directly selected fonts not covered by any selected page
+for (const fontId of selectedFontIds) {
+const tree = treeForFont(fontId);
+if (!tree) continue;
+const rootId = getRootNodeId(tree);
+if (selectedPageIds.has(rootId)) continue; // Already covered above
+allowed.add(fontId);
+}
 
-		toggleFont(nodeId: string): void {
-			const next = new Set(selectedFontIds);
-			if (next.has(nodeId)) {
-				next.delete(nodeId);
-			} else {
-				next.add(nodeId);
-			}
-			selectedFontIds = next;
-		},
-
-		clearAll(): void {
-			selectedCreatorIds = new Set();
-			selectedProfileIds = new Set();
-			selectedFontIds = new Set();
-		},
-
-		getAllowedFontNodeIds(): Set<string> {
-			if (!this.hasFilters) return new Set();
-
-			const allowed = new Set<string>();
-			const nMap = nodeMap();
-
-			/** Font IDs for a profile, narrowed by font selection if any. */
-			const fontsForProfile = (profileId: string): string[] => {
-				const pfIds = fontIdsForProfile(profileId);
-				const pFonts = [...pfIds].filter((fid) => nMap.has(fid));
-				const selected = pFonts.filter((fid) => selectedFontIds.has(fid));
-				return selected.length > 0 ? selected : pFonts;
-			};
-
-			// Fonts from selected creators
-			for (const creatorId of selectedCreatorIds) {
-				const creatorProfileIds = profileIdsForCreator(creatorId);
-				const selectedInCreator = [...creatorProfileIds].filter((pid) => selectedProfileIds.has(pid));
-				const idsToUse = selectedInCreator.length > 0 ? selectedInCreator : [...creatorProfileIds];
-				for (const pid of idsToUse) {
-					for (const fid of fontsForProfile(pid)) allowed.add(fid);
-				}
-			}
-
-			// Fonts from directly selected profiles (not covered by selected creators)
-			for (const profileId of selectedProfileIds) {
-				const ownerCreators = creatorIdsForProfile(profileId);
-				const coveredByCreator = [...ownerCreators].some((cid) => selectedCreatorIds.has(cid));
-				if (coveredByCreator) continue;
-				for (const fid of fontsForProfile(profileId)) allowed.add(fid);
-			}
-
-			// Directly selected fonts not covered by profile or creator selection
-			for (const fontId of selectedFontIds) {
-				if (!nMap.has(fontId)) continue;
-				const ownerProfiles = profileIdsForFont(fontId);
-				const coveredByProfile = [...ownerProfiles].some((pid) => selectedProfileIds.has(pid));
-				if (coveredByProfile) continue;
-				const coveredByCreator = [...ownerProfiles].some((pid) => {
-					const creators = creatorIdsForProfile(pid);
-					return [...creators].some((cid) => selectedCreatorIds.has(cid));
-				});
-				if (coveredByCreator) continue;
-				allowed.add(fontId);
-			}
-
-			return allowed;
-		}
-	};
+return allowed;
+}
+};
 }

@@ -1,12 +1,12 @@
 <script lang="ts">
 	import type {
 		NodeRole,
-		ContentNodeHeader,
-		ContentNodeBody,
+		NodeHeader,
+		NodeBody,
 		CreatorBody,
 		ProfileBody,
 		FontBody
-	} from '$lib/domain/content-node/content-node.js';
+	} from '$lib/domain/content-tree/content-tree.js';
 	import type { CategoryAssignment } from '$lib/domain/shared/category-assignment.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import NodeHeaderForm from './NodeHeaderForm.svelte';
@@ -17,11 +17,11 @@
 	interface Props {
 		mode: 'create' | 'edit';
 		role: NodeRole;
-		initialHeader?: ContentNodeHeader;
-		initialBody?: ContentNodeBody;
+		initialHeader?: NodeHeader;
+		initialBody?: NodeBody;
 		/** Inherited category assignments shown dimmed */
 		inheritedCategories?: CategoryAssignment[];
-		onsave: (data: { header: ContentNodeHeader; body: ContentNodeBody }) => void;
+		onsave: (data: { header: NodeHeader; body: NodeBody }) => void;
 		oncancel?: () => void;
 		saving?: boolean;
 	}
@@ -38,7 +38,7 @@
 	}: Props = $props();
 
 	// Initialize header with defaults or from initial prop
-	let header = $state<ContentNodeHeader>(
+	let header = $state<NodeHeader>(
 		initialHeader ?? {
 			title: '',
 			tags: [],
@@ -47,7 +47,7 @@
 	);
 
 	// Initialize body based on role
-	function defaultBody(r: NodeRole): ContentNodeBody {
+	function defaultBody(r: NodeRole): NodeBody {
 		switch (r) {
 			case 'creator':
 				return { role: 'creator' };
@@ -55,10 +55,14 @@
 				return { role: 'profile', defaultEnabled: true };
 			case 'font':
 				return { role: 'font', protocol: 'rss', config: { url: '' }, defaultEnabled: true };
+			case 'collection':
+				return { role: 'collection' };
+			case 'tree':
+				return { role: 'tree', instanceTreeId: '' };
 		}
 	}
 
-	let body = $state<ContentNodeBody>(initialBody ?? defaultBody(role));
+	let body = $state<NodeBody>(initialBody ?? defaultBody(role));
 
 	let isValid = $derived.by(() => {
 		if (!header.title.trim()) return false;
@@ -87,7 +91,9 @@
 	const roleLabels: Record<NodeRole, { create: string; save: string }> = {
 		creator: { create: 'Criar Página', save: 'Salvar' },
 		profile: { create: 'Adicionar Profile', save: 'Salvar' },
-		font: { create: 'Adicionar Font', save: 'Salvar' }
+		font: { create: 'Adicionar Font', save: 'Salvar' },
+		collection: { create: 'Criar Collection', save: 'Salvar' },
+		tree: { create: 'Criar Tree Link', save: 'Salvar' }
 	};
 </script>
 

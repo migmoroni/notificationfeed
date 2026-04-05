@@ -1,8 +1,16 @@
 /**
  * ContentTree store — persistence for content trees using IndexedDB.
+ *
+ * Also provides composite-nodeId helpers (treeId:localUuid) that resolve
+ * a node by first fetching its parent tree.
  */
 
-import type { ContentTree, ContentTreeRepository } from '$lib/domain/content-tree/content-tree.js';
+import type {
+	ContentTree,
+	ContentTreeRepository,
+	TreeNode
+} from '$lib/domain/content-tree/content-tree.js';
+import { parseTreeId } from '$lib/domain/content-tree/content-tree.js';
 import { getDatabase } from './db.js';
 
 export function createContentTreeStore(): ContentTreeRepository {
@@ -42,4 +50,26 @@ export function createContentTreeStore(): ContentTreeRepository {
 			await db.contentTrees.delete(id);
 		}
 	};
+}
+
+// ── Composite nodeId helpers ──────────────────────────────────────────
+
+/**
+ * Fetch the ContentTree that owns a given composite nodeId.
+ */
+export async function getTreeByNodeId(compositeNodeId: string): Promise<ContentTree | null> {
+	const treeId = parseTreeId(compositeNodeId);
+	const store = createContentTreeStore();
+	return store.getById(treeId);
+}
+
+/**
+ * Resolve a composite nodeId to its TreeNode (or null).
+ */
+export async function getNodeByCompositeId(
+	compositeNodeId: string
+): Promise<TreeNode | null> {
+	const tree = await getTreeByNodeId(compositeNodeId);
+	if (!tree) return null;
+	return tree.nodes[compositeNodeId] ?? null;
 }

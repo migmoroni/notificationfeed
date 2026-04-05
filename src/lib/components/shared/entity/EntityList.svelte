@@ -1,16 +1,16 @@
 <!--
-  EntityList — displays ContentNode[] grouped by role.
+  EntityList — displays TreeNode[] grouped by role.
   
   Replaces the old EntityList that worked with BrowseEntity[] union type.
 -->
 <script lang="ts">
-	import type { ContentNode } from '$lib/domain/content-node/content-node.js';
+	import type { TreeNode } from '$lib/domain/content-tree/content-tree.js';
 	import EntityCard from './EntityCard.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 
 	interface Props {
-		nodes: ContentNode[];
+		nodes: TreeNode[];
 		loading: boolean;
 		baseHref?: string;
 	}
@@ -21,7 +21,7 @@
 	let profiles = $derived(nodes.filter((n) => n.role === 'profile'));
 	let fonts = $derived(nodes.filter((n) => n.role === 'font'));
 
-	function nodeHref(node: ContentNode): string {
+	function nodeHref(node: TreeNode): string {
 		return `${baseHref}/node/${node.metadata.id}`;
 	}
 </script>

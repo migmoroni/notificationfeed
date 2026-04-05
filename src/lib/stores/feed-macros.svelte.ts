@@ -32,11 +32,10 @@ async function deleteFromDB(id: string): Promise<void> {
 	await repo.delete(id);
 }
 
-/** Collect all currently selected node IDs from the entity filter (all roles). */
+/** Collect all currently selected node IDs from the entity filter (pages + fonts). */
 function currentNodeIds(): string[] {
 	return [
-		...feedEntityFilter.selectedCreatorIds,
-		...feedEntityFilter.selectedProfileIds,
+		...feedEntityFilter.selectedPageIds,
 		...feedEntityFilter.selectedFontIds
 	];
 }
@@ -179,28 +178,14 @@ export const feedMacros = {
  * role via the filter's view methods and toggling accordingly.
  */
 function applyNodeIds(nodeIds: Set<string>): void {
-	const creators = feedEntityFilter.getCreators();
-	const creatorIdSet = new Set(creators.map((c) => c.id));
+	const pageIdSet = new Set(feedEntityFilter.getPages().map((p) => p.id));
 
 	for (const nid of nodeIds) {
-		if (creatorIdSet.has(nid)) {
-			feedEntityFilter.toggleCreator(nid);
+		if (pageIdSet.has(nid)) {
+			feedEntityFilter.togglePage(nid);
 		} else {
-			// Try profiles next — check all creators' profiles
-			let isProfile = false;
-			for (const c of creators) {
-				const profiles = feedEntityFilter.getProfiles(c.id);
-				if (profiles.some((p) => p.node.metadata.id === nid)) {
-					feedEntityFilter.toggleProfile(nid);
-					isProfile = true;
-					break;
-				}
-			}
-
-			if (!isProfile) {
-				// Must be a font (or standalone)
-				feedEntityFilter.toggleFont(nid);
-			}
+			// Must be a font
+			feedEntityFilter.toggleFont(nid);
 		}
 	}
 }
