@@ -149,13 +149,24 @@ async function loadNode(id: string) {
 			linkedProfiles = links;
 		}
 
-		// For profile nodes, load font child nodes from the same tree
+		// For profile nodes, load font child nodes and their posts
 		if (isProfileNode(loaded)) {
 			const children: TreeNode[] = [];
 			for (const [nid, treeNode] of Object.entries(tree.nodes)) {
 				if (nid !== id && isFontNode(treeNode)) children.push(treeNode);
 			}
 			childNodes = children;
+
+			// Load posts from all fonts in this profile
+			const allPosts: CanonicalPost[] = [];
+			const priorityMap = new Map<string, PriorityLevel>();
+			for (const child of children) {
+				const fontPosts = await getPosts({ nodeId: child.metadata.id });
+				allPosts.push(...fontPosts);
+				const act = consumer.getActivation(child.metadata.id);
+				priorityMap.set(child.metadata.id, act?.priority ?? 3);
+			}
+			posts = sortByPriority(allPosts, priorityMap);
 		}
 
 		// For font nodes, load posts
