@@ -17,7 +17,10 @@
 	import Atom from '@lucide/svelte/icons/atom';
 	import Zap from '@lucide/svelte/icons/zap';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
-	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
+	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
+	import ConfirmUnfollowDialog from '$lib/components/shared/dialog/ConfirmUnfollowDialog.svelte';
+	import ConfirmUnsubscribeDialog from '$lib/components/shared/dialog/ConfirmUnsubscribeDialog.svelte';
+	import ConfirmUnpinDialog from '$lib/components/shared/dialog/ConfirmUnpinDialog.svelte';
 
 	interface Props {
 		node: TreeNode;
@@ -30,6 +33,9 @@
 
 	let showDisableConfirm = $state(false);
 	let showUnfavConfirm = $state(false);
+	let showUnfollowConfirm = $state(false);
+	let showUnsubscribeConfirm = $state(false);
+	let showUnsaveConfirm = $state(false);
 
 	const roleMeta: Record<string, { label: string; activeLabel: string; inactiveLabel: string; icon: typeof Globe }> = {
 		creator: { label: 'Creator', activeLabel: 'Fixado', inactiveLabel: 'Fixar', icon: Globe },
@@ -40,9 +46,11 @@
 
 	let meta = $derived(roleMeta[node.role] ?? { label: node.role, activeLabel: 'Seguindo', inactiveLabel: 'Seguir', icon: Globe });
 	let activation = $derived(consumer.getActivation(node.metadata.id));
+	let isActivated = $derived(!!activation);
 	let currentPriority = $derived(activation?.priority ?? null);
 	let isFavorite = $derived(activation?.favorite ?? false);
 	let isEnabled = $derived(activation?.enabled ?? true);
+	let isActive = $derived(node.role === 'font' ? (isActivated && isEnabled) : isActivated);
 
 	/**
 	 * Determine protocol icon for font nodes.
@@ -73,16 +81,33 @@
 	async function handleToggleEnabled(e: MouseEvent) {
 		e.preventDefault();
 		e.stopPropagation();
-		if (isEnabled) {
-			showDisableConfirm = true;
+		if (isActive) {
+			if (node.role === 'font') {
+				showUnfollowConfirm = true;
+			} else if (node.role === 'profile') {
+				showUnsubscribeConfirm = true;
+			} else {
+				showUnsaveConfirm = true;
+			}
 			return;
 		}
-		await consumer.toggleNodeEnabled(node.metadata.id);
+		// Font that's activated but disabled → re-enable
+		if (node.role === 'font' && isActivated && !isEnabled) {
+			await consumer.toggleNodeEnabled(node.metadata.id);
+		} else {
+			await consumer.activateNode(node.metadata.id);
+		}
 	}
 
 	async function confirmDisable() {
-		await consumer.toggleNodeEnabled(node.metadata.id);
-		showDisableConfirm = false;
+		if (node.role === 'font') {
+			await consumer.toggleNodeEnabled(node.metadata.id);
+		} else {
+			await consumer.deactivateNode(node.metadata.id);
+		}
+		showUnfollowConfirm = false;
+		showUnsubscribeConfirm = false;
+		showUnsaveConfirm = false;
 	}
 
 	function stopPropagation(e: MouseEvent) {
@@ -138,11 +163,11 @@
 				<div class="ml-auto">
 					<button
 						onclick={handleToggleEnabled}
-						class="text-xs px-2 py-1 rounded-md border transition-colors {isEnabled
+						class="text-xs px-2 py-1 rounded-md border transition-colors {isActive
 							? 'bg-accent text-accent-foreground'
 							: 'bg-muted text-muted-foreground hover:bg-accent/50'}"
 					>
-						{isEnabled ? meta.activeLabel : meta.inactiveLabel}
+						{isActive ? meta.activeLabel : meta.inactiveLabel}
 					</button>
 				</div>
 			</div>
@@ -160,22 +185,33 @@
 	</div>
 {/if}
 
-<!-- Disable confirm -->
-<ConfirmDialog
-	bind:open={showDisableConfirm}
-	title="Desativar {meta.label}?"
-	description="Este {meta.label.toLowerCase()} será desativado e não aparecerá mais no feed."
-	confirmLabel="Desativar"
+<!-- Unfollow confirm (font) -->
+<ConfirmUnfollowDialog
+	bind:open={showUnfollowConfirm}
+	title={node.data.header.title}
 	onconfirm={confirmDisable}
-	oncancel={() => (showDisableConfirm = false)}
+	oncancel={() => (showUnfollowConfirm = false)}
+/>
+
+<!-- Unsubscribe confirm (profile) -->
+<ConfirmUnsubscribeDialog
+	bind:open={showUnsubscribeConfirm}
+	title={node.data.header.title}
+	onconfirm={confirmDisable}
+	oncancel={() => (showUnsubscribeConfirm = false)}
+/>
+
+<!-- Unpin confirm (creator/collection) -->
+<ConfirmUnpinDialog
+	bind:open={showUnsaveConfirm}
+	title={node.data.header.title}
+	onconfirm={confirmDisable}
+	oncancel={() => (showUnsaveConfirm = false)}
 />
 
 <!-- Unfavorite confirm -->
-<ConfirmDialog
+<ConfirmUnfavoriteDialog
 	bind:open={showUnfavConfirm}
-	title="Remover dos favoritos?"
-	description="Este item será removido da lista de favoritos."
-	confirmLabel="Remover"
 	onconfirm={confirmUnfavorite}
 	oncancel={() => (showUnfavConfirm = false)}
 />
