@@ -16,13 +16,17 @@ const rtf = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' });
 
 const shortDateFmt = new Intl.DateTimeFormat('pt-BR', {
 	day: 'numeric',
-	month: 'short'
+	month: 'short',
+	hour: '2-digit',
+	minute: '2-digit'
 });
 
 const fullDateFmt = new Intl.DateTimeFormat('pt-BR', {
 	day: 'numeric',
 	month: 'short',
-	year: 'numeric'
+	year: 'numeric',
+	hour: '2-digit',
+	minute: '2-digit'
 });
 
 /**
