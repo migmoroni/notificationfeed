@@ -4,6 +4,7 @@ export { default as NodeHeaderForm } from './NodeHeaderForm.svelte';
 export { default as CreatorBodyForm } from './CreatorBodyForm.svelte';
 export { default as ProfileBodyForm } from './ProfileBodyForm.svelte';
 export { default as FontBodyForm } from './FontBodyForm.svelte';
+export { default as TreeLinkBodyForm } from './TreeLinkBodyForm.svelte';
 export { default as NodeForm } from './NodeForm.svelte';
 export { default as TreeEditor } from './TreeEditor.svelte';
 export { default as PublishButton } from './PublishButton.svelte';

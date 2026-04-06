@@ -6,17 +6,29 @@
 	import { creator } from '$lib/stores/creator.svelte.js';
 	import { NodeForm, TreeEditor, PublishButton, ExportButton, CopyFromConsumerDialog } from '$lib/components/creator/index.js';
 	import { getMediaPreviewUrl } from '$lib/services/media.service.js';
+	import { getRootNode as domainGetRootNode } from '$lib/domain/content-tree/content-tree.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Globe from '@lucide/svelte/icons/globe';
+	import PenLine from '@lucide/svelte/icons/pen-line';
 
 	let treeId = $derived(page.params.id!);
 	let tree = $derived(creator.trees.find((t) => t.metadata.id === treeId));
 	let rootNode = $derived(treeId ? creator.getRootNode(treeId) : null);
+
+	// Author signing
+	let creatorTrees = $derived(creator.getCreatorTrees());
+	let currentAuthorTreeId = $derived(tree?.metadata.authorTreeId ?? '');
+
+	async function handleAuthorChange(e: Event) {
+		const value = (e.currentTarget as HTMLSelectElement).value;
+		await creator.setAuthorTreeId(treeId, value || null);
+	}
 
 	let bannerMedia = $derived(rootNode?.data.header.bannerMediaId ? creator.getMediaById(rootNode.data.header.bannerMediaId) : null);
 	let avatarMedia = $derived(rootNode?.data.header.coverMediaId ? creator.getMediaById(rootNode.data.header.coverMediaId) : null);
@@ -106,7 +118,8 @@
 				<div class="border rounded-lg p-4 bg-muted/30">
 					<NodeForm
 						mode="edit"
-						role="creator"
+						role={rootNode?.role ?? 'creator'}
+						isRoot={true}
 						initialHeader={rootNode?.data.header}
 						initialBody={rootNode?.data.body}
 						onsave={handleSave}
@@ -132,9 +145,39 @@
 
 		<Separator class="my-6" />
 
-		<!-- Tree Editor (Profiles + Fonts) -->
+		<!-- Tree Editor -->
 		<div class="mb-6">
 			<TreeEditor treeId={treeId} />
+		</div>
+
+		<Separator class="my-6" />
+
+		<!-- Author Signing -->
+		<div class="space-y-3 mb-6">
+			<div class="flex items-center gap-2">
+				<PenLine class="size-4 text-muted-foreground" />
+				<h2 class="text-sm font-semibold">Assinatura</h2>
+			</div>
+			<p class="text-xs text-muted-foreground">
+				Vincule esta página a uma creator page para assinar seu conteúdo.
+			</p>
+			<div class="space-y-2">
+				<Label for="author-tree">Creator page</Label>
+				<select
+					id="author-tree"
+					class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+					value={currentAuthorTreeId}
+					onchange={handleAuthorChange}
+				>
+					<option value="">Nenhuma (sem assinatura)</option>
+					{#each creatorTrees as ct}
+						{@const ctRoot = domainGetRootNode(ct)}
+						{#if ct.metadata.id !== treeId}
+							<option value={ct.metadata.id}>{ctRoot?.data.header.title ?? ct.metadata.id}</option>
+						{/if}
+					{/each}
+				</select>
+			</div>
 		</div>
 
 		<Separator class="my-6" />

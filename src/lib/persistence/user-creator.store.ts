@@ -7,21 +7,32 @@ import type { UserCreator, NewUserCreator } from '$lib/domain/user/user-creator.
 import { getDatabase } from './db.js';
 
 export function createUserCreatorStore(): UserCreatorRepository {
+	/** Ensure legacy records have new fields with defaults */
+	function migrate(user: UserCreator): UserCreator {
+		let needsMigration = false;
+		if (!user.ownedTreeIds) { user.ownedTreeIds = []; needsMigration = true; }
+		if (!user.ownedMediaIds) { user.ownedMediaIds = []; needsMigration = true; }
+		return user;
+	}
+
 	return {
 		async getAll(): Promise<UserCreator[]> {
 			const db = await getDatabase();
-			return db.users.query<UserCreator>('role', 'creator');
+			const users = await db.users.query<UserCreator>('role', 'creator');
+			return users.map(migrate);
 		},
 
 		async getById(id: string): Promise<UserCreator | null> {
 			const db = await getDatabase();
-			return db.users.getById<UserCreator>(id);
+			const user = await db.users.getById<UserCreator>(id);
+			return user ? migrate(user) : null;
 		},
 
 		async getByPublicKey(pubkey: string): Promise<UserCreator | null> {
 			const db = await getDatabase();
 			const all = await db.users.query<UserCreator>('role', 'creator');
-			return all.find((u) => u.nostrKeypair?.publicKey === pubkey) ?? null;
+			const found = all.find((u) => u.nostrKeypair?.publicKey === pubkey) ?? null;
+			return found ? migrate(found) : null;
 		},
 
 		async create(data: NewUserCreator): Promise<UserCreator> {
@@ -33,6 +44,8 @@ export function createUserCreatorStore(): UserCreatorRepository {
 				displayName: data.displayName,
 				nostrKeypair: null,
 				syncStatus: 'local',
+				ownedTreeIds: [],
+				ownedMediaIds: [],
 				createdAt: now,
 				updatedAt: now
 			};

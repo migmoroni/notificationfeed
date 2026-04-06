@@ -62,15 +62,22 @@ url: string;
 
 export type FontConfig = FontNostrConfig | FontRssConfig | FontAtomConfig;
 
+/** A simple external link (website, linktree, etc.) */
+export interface ExternalLink {
+	title: string;
+	url: string;
+}
+
 /** Body for role = 'creator' — user's aggregator page */
 export interface CreatorBody {
 role: 'creator';
+links: ExternalLink[];
 }
 
 /** Body for role = 'profile' — editorial page with fonts */
 export interface ProfileBody {
 role: 'profile';
-defaultEnabled: boolean;
+links: ExternalLink[];
 }
 
 /** Body for role = 'font' — feed source */
@@ -154,6 +161,8 @@ versionSchema: number;
 createdAt: Date;
 updatedAt: Date;
 author?: string;
+/** ID of a creator-type tree used to sign this tree's nodes */
+authorTreeId?: string;
 }
 
 // ---------------------------------------------------------------------------

@@ -225,6 +225,8 @@ role: 'creator',
 displayName: 'Creator Dev',
 nostrKeypair: null,
 syncStatus: 'local',
+ownedTreeIds: [IDS.treeProfileFrontend, IDS.treeProfileNewsDraft, IDS.treeCreatorPublished, IDS.treeCreatorDraft],
+ownedMediaIds: [],
 createdAt: now,
 updatedAt: now
 };
@@ -241,7 +243,7 @@ tags: ['tech', 'development'],
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['subj-tech-webdev', 'subj-tech-ai'] }
 ]
-}, { role: 'profile', defaultEnabled: true }),
+}, { role: 'profile', links: [] }),
 
 [PT.fontRss1]: makeNode(PT.fontRss1, 'font', {
 title: 'Hacker News RSS',
@@ -275,7 +277,7 @@ categoryAssignments: [
 { treeId: 'subject', categoryIds: ['subj-tech-security'] },
 { treeId: 'content_type', categoryIds: ['ct-format-news', 'ct-format-analysis'] }
 ]
-}, { role: 'profile', defaultEnabled: true }),
+}, { role: 'profile', links: [] }),
 
 [PS.fontRss3]: makeNode(PS.fontRss3, 'font', {
 title: 'Krebs on Security',
@@ -298,7 +300,7 @@ categoryAssignments: [
 { treeId: 'subject', categoryIds: ['subj-politics-intl'] },
 { treeId: 'content_type', categoryIds: ['ct-format-news'] }
 ]
-}, { role: 'profile', defaultEnabled: true }),
+}, { role: 'profile', links: [] }),
 
 [PN.fontRss2]: makeNode(PN.fontRss2, 'font', {
 title: 'BBC World RSS',
@@ -320,7 +322,7 @@ categoryAssignments: [
 { treeId: 'subject', categoryIds: ['subj-science', 'subj-health'] },
 { treeId: 'content_type', categoryIds: ['ct-format-news'] }
 ]
-}, { role: 'profile', defaultEnabled: true }),
+}, { role: 'profile', links: [] }),
 
 [PH.fontAtom2]: makeNode(PH.fontAtom2, 'font', {
 title: 'Nature News (Atom)',
@@ -342,7 +344,7 @@ categoryAssignments: [
 { treeId: 'subject', categoryIds: ['subj-tech-webdev'] },
 { treeId: 'content_type', categoryIds: ['ct-format-tutorial'] }
 ]
-}, { role: 'profile', defaultEnabled: true }),
+}, { role: 'profile', links: [] }),
 
 [PF.fontRss1]: makeNode(PF.fontRss1, 'font', {
 title: 'Hacker News (Creator)',
@@ -368,7 +370,7 @@ tags: ['news'],
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['subj-politics-intl'] }
 ]
-}, { role: 'profile', defaultEnabled: true }),
+}, { role: 'profile', links: [] }),
 },
 { '/': PD.root, '*': [] },
 [],
@@ -388,7 +390,7 @@ title: 'TechBlog',
 summary: 'A curated collection of technology feeds',
 tags: ['tech', 'programming', 'web'],
 categoryAssignments: [{ treeId: 'subject', categoryIds: ['subj-tech-webdev'] }]
-}, { role: 'creator' }),
+}, { role: 'creator', links: [] }),
 
 [TB.linkTech]: makeNode(TB.linkTech, 'tree', {
 title: 'Tech Sources',
@@ -425,7 +427,7 @@ categoryAssignments: [
 { treeId: 'subject', categoryIds: ['subj-politics-intl'] },
 { treeId: 'content_type', categoryIds: ['ct-format-news'] }
 ]
-}, { role: 'creator' }),
+}, { role: 'creator', links: [] }),
 
 [ND.linkNews]: makeNode(ND.linkNews, 'tree', {
 title: 'News Sources',
@@ -457,7 +459,7 @@ IDS.treeCreatorPublished,
 title: 'Dev Curations',
 summary: 'Hand-picked development feeds',
 tags: ['dev', 'curated']
-}, { role: 'creator' }),
+}, { role: 'creator', links: [] }),
 
 [CP.linkFrontend]: makeNode(CP.linkFrontend, 'tree', {
 title: 'Frontend Sources',
@@ -481,7 +483,7 @@ IDS.treeCreatorDraft,
 title: 'News Experiment',
 summary: 'Testing news aggregation',
 tags: ['news', 'experiment']
-}, { role: 'creator' }),
+}, { role: 'creator', links: [] }),
 
 [CD.linkNews]: makeNode(CD.linkNews, 'tree', {
 title: 'News Draft Profile',
@@ -502,6 +504,12 @@ treeTechBlog, treeNewsDaily, treeCreatorPublished, treeCreatorDraft
 ];
 for (const tree of allTrees) {
 await db.contentTrees.put(tree);
+}
+
+// Also persist creator-owned trees in the editor store
+const creatorOwnedTrees = allTrees.filter((t) => t.metadata.author === IDS.creator);
+for (const tree of creatorOwnedTrees) {
+await db.editorTrees.put(tree);
 }
 
 // ── Tree Publication (for the published creator tree) ────────────

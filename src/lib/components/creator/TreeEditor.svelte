@@ -1,6 +1,7 @@
 <script lang="ts">
 import type { TreeNode, NodeRole, NodeHeader, NodeBody } from '$lib/domain/content-tree/content-tree.js';
-import type { ContentTree, TreeSection, FontBody } from '$lib/domain/content-tree/content-tree.js';
+import type { ContentTree, TreeSection, FontBody, TreeLinkBody } from '$lib/domain/content-tree/content-tree.js';
+import { getRootNode as domainGetRootNode } from '$lib/domain/content-tree/content-tree.js';
 import { creator } from '$lib/stores/creator.svelte.js';
 import { getMediaPreviewUrl } from '$lib/services/media.service.js';
 import { Button } from '$lib/components/ui/button/index.js';
@@ -20,6 +21,7 @@ import Rss from '@lucide/svelte/icons/rss';
 import Atom from '@lucide/svelte/icons/atom';
 import Zap from '@lucide/svelte/icons/zap';
 import User from '@lucide/svelte/icons/user';
+import Link2 from '@lucide/svelte/icons/link-2';
 import FolderPlus from '@lucide/svelte/icons/folder-plus';
 import X from '@lucide/svelte/icons/x';
 import ArrowUp from '@lucide/svelte/icons/arrow-up';
@@ -39,6 +41,35 @@ let { treeId }: Props = $props();
 // ─── Derived state ───────────────────────────────────────────────
 
 let tree = $derived(creator.trees.find((t) => t.metadata.id === treeId)!);
+
+/** Root role determines what children this tree can have */
+let rootRole = $derived.by(() => {
+if (!tree) return 'creator' as NodeRole;
+const root = domainGetRootNode(tree);
+return root?.role ?? 'creator';
+});
+
+/**
+ * Available trees for tree-link nodes:
+ * - creator root → profile trees
+ * - collection root → profile + creator trees
+ * Excludes the current tree and trees already linked.
+ */
+let availableTreesForLink = $derived.by(() => {
+if (!tree) return [];
+const linkedTreeIds = new Set(
+Object.values(tree.nodes)
+.filter((n) => n.role === 'tree')
+.map((n) => (n.data.body as TreeLinkBody).instanceTreeId)
+);
+const allowedRoles: NodeRole[] = rootRole === 'collection' ? ['profile', 'creator'] : ['profile'];
+return creator.trees.filter((t) => {
+if (t.metadata.id === treeId) return false;
+if (linkedTreeIds.has(t.metadata.id)) return false;
+const root = domainGetRootNode(t);
+return root ? allowedRoles.includes(root.role) : false;
+});
+});
 
 /** Get nodeIds in a path key, resolving to TreeNode entries */
 function nodesInPath(pathKey: string): { nodeId: string; node: TreeNode }[] {
@@ -80,9 +111,68 @@ function fontsForProfile(profilePathKey: string): { nodeId: string; node: TreeNo
 return fontsInPath(profilePathKey);
 }
 
+/** Tree-link nodes in a given path key */
+function treeLinksInPath(pathKey: string): { nodeId: string; node: TreeNode }[] {
+return nodesInPath(pathKey).filter((e) => e.node.role === 'tree');
+}
+
+/** All tree-link nodes across all paths (for creator/collection root) */
+let allTreeLinks = $derived.by(() => {
+if (!tree) return [];
+const result: { nodeId: string; node: TreeNode; pathKey: string }[] = [];
+for (const [key, value] of Object.entries(tree.paths)) {
+if (key === '/') continue;
+if (!Array.isArray(value)) continue;
+for (const nid of value) {
+const node = tree.nodes[nid];
+if (node?.role === 'tree') result.push({ nodeId: nid, node, pathKey: key });
+}
+}
+return result;
+});
+
+/** All font nodes across all paths (for profile root) */
+let allFonts = $derived.by(() => {
+if (!tree) return [];
+const result: { nodeId: string; node: TreeNode; pathKey: string }[] = [];
+for (const [key, value] of Object.entries(tree.paths)) {
+if (key === '/') continue;
+if (!Array.isArray(value)) continue;
+for (const nid of value) {
+const node = tree.nodes[nid];
+if (node?.role === 'font') result.push({ nodeId: nid, node, pathKey: key });
+}
+}
+return result;
+});
+
+/** Resolve the linked tree's root node title for display */
+function getLinkedTreeTitle(node: TreeNode): string {
+const body = node.data.body as TreeLinkBody;
+const linkedTree = creator.trees.find((t) => t.metadata.id === body.instanceTreeId);
+if (!linkedTree) return node.data.header.title || '(não encontrada)';
+const root = domainGetRootNode(linkedTree);
+return root?.data.header.title ?? node.data.header.title;
+}
+
+/** The child role name for display depending on root role */
+let childLabel = $derived(
+rootRole === 'profile' ? 'Fonts' :
+rootRole === 'creator' ? 'Links' :
+rootRole === 'collection' ? 'Links' : 'Itens'
+);
+
+/** What items count to show in the header */
+let childCount = $derived(
+rootRole === 'profile' ? allFonts.length :
+(rootRole === 'creator' || rootRole === 'collection') ? allTreeLinks.length :
+allProfiles.length
+);
+
 // ─── UI state ────────────────────────────────────────────────────
 
 let showAddProfile = $state(false);
+let showAddChild = $state(false);
 let addToSectionId = $state<string | null>(null);
 let editingNodeId = $state<string | null>(null);
 let addFontToPath = $state<string | null>(null);
@@ -240,10 +330,36 @@ addFontToPath = null;
 saving = false;
 }
 }
+
+/** Add a tree-link child (for creator/collection roots) */
+async function handleAddTreeLink(data: { header: NodeHeader; body: NodeBody }) {
+saving = true;
+try {
+const path = addToSectionId ?? '*';
+await creator.createNode(treeId, 'tree', data.header, data.body, path);
+showAddChild = false;
+addToSectionId = null;
+} finally {
+saving = false;
+}
+}
+
+/** Add a font directly (for profile roots) */
+async function handleAddFontDirect(data: { header: NodeHeader; body: NodeBody }) {
+saving = true;
+try {
+const path = addToSectionId ?? '*';
+await creator.createNode(treeId, 'font', data.header, data.body, path);
+showAddChild = false;
+addToSectionId = null;
+} finally {
+saving = false;
+}
+}
 </script>
 
 <!-- ═══ Font card snippet ═══ -->
-{#snippet fontCard(entry: { nodeId: string; node: TreeNode })}
+{#snippet fontCard(entry: { nodeId: string; node: TreeNode; pathKey?: string })}
 {@const node = entry.node}
 {@const fontBody = node.data.body as FontBody}
 {@const avatarUrl = getNodeAvatar(node)}
@@ -265,6 +381,19 @@ saving = false;
 {/if}
 <span class="flex-1 truncate">{node.data.header.title}</span>
 <Badge variant="outline" class="text-[10px] uppercase">{fontBody.protocol}</Badge>
+{#if entry.pathKey && tree.sections.length > 0}
+<select
+class="h-6 text-[10px] rounded border bg-background px-1"
+value={entry.pathKey === '*' ? '' : entry.pathKey}
+onclick={(e) => e.stopPropagation()}
+onchange={(e) => { e.stopPropagation(); moveNodeToSection(entry.nodeId, entry.pathKey!, e.currentTarget.value || null); }}
+>
+<option value="">Sem seção</option>
+{#each tree.sections as s}
+<option value={s.id}>{s.title}</option>
+{/each}
+</select>
+{/if}
 <button type="button" class="p-1 hover:bg-accent rounded" onclick={() => (editingNodeId = entry.nodeId)}>
 <Pencil class="size-3 text-muted-foreground" />
 </button>
@@ -280,6 +409,68 @@ mode="edit"
 role="font"
 initialHeader={node.data.header}
 initialBody={node.data.body}
+onsave={(data) => handleUpdateNode(entry.nodeId, data)}
+oncancel={() => (editingNodeId = null)}
+{saving}
+/>
+</div>
+{/if}
+{/snippet}
+
+<!-- ═══ Tree-link card snippet ═══ -->
+{#snippet treeLinkCard(entry: { nodeId: string; node: TreeNode; pathKey?: string })}
+{@const node = entry.node}
+{@const linkBody = node.data.body as TreeLinkBody}
+{@const linkedTitle = getLinkedTreeTitle(node)}
+{@const linkedTree = creator.trees.find((t) => t.metadata.id === linkBody.instanceTreeId)}
+{@const linkedRoot = linkedTree ? domainGetRootNode(linkedTree) : null}
+{@const avatarUrl = getNodeAvatar(node)}
+
+<div class="flex items-center gap-2 px-3 py-2 rounded-md border bg-background text-sm">
+{#if avatarUrl}
+<div class="shrink-0 w-7 h-7 rounded overflow-hidden bg-muted">
+<img src={avatarUrl} alt="" class="w-full h-full object-cover" />
+</div>
+{:else}
+<div class="shrink-0 w-7 h-7 rounded bg-muted flex items-center justify-center text-muted-foreground">
+<Link2 class="size-3.5" />
+</div>
+{/if}
+<span class="flex-1 truncate">{linkedTitle}</span>
+{#if linkedRoot}
+<Badge variant="outline" class="text-[10px] uppercase">{linkedRoot.role}</Badge>
+{:else}
+<Badge variant="destructive" class="text-[10px]">não encontrada</Badge>
+{/if}
+{#if entry.pathKey && tree.sections.length > 0}
+<select
+class="h-6 text-[10px] rounded border bg-background px-1"
+value={entry.pathKey === '*' ? '' : entry.pathKey}
+onclick={(e) => e.stopPropagation()}
+onchange={(e) => { e.stopPropagation(); moveNodeToSection(entry.nodeId, entry.pathKey!, e.currentTarget.value || null); }}
+>
+<option value="">Sem seção</option>
+{#each tree.sections as s}
+<option value={s.id}>{s.title}</option>
+{/each}
+</select>
+{/if}
+<button type="button" class="p-1 hover:bg-accent rounded" onclick={() => (editingNodeId = entry.nodeId)}>
+<Pencil class="size-3 text-muted-foreground" />
+</button>
+<button type="button" class="p-1 hover:bg-destructive/10 rounded" onclick={() => (deleteConfirm = { type: 'node', nodeId: entry.nodeId, title: linkedTitle })}>
+<Trash2 class="size-3 text-destructive" />
+</button>
+</div>
+
+{#if editingNodeId === entry.nodeId}
+<div class="border rounded-lg p-3 bg-muted/20">
+<NodeForm
+mode="edit"
+role="tree"
+initialHeader={node.data.header}
+initialBody={node.data.body}
+availableTrees={availableTreesForLink}
 onsave={(data) => handleUpdateNode(entry.nodeId, data)}
 oncancel={() => (editingNodeId = null)}
 {saving}
@@ -439,16 +630,28 @@ Ocultar título
 <div class="space-y-4">
 <!-- Header -->
 <div class="flex items-center justify-between">
-<h3 class="text-sm font-semibold">Profiles ({allProfiles.length})</h3>
+<h3 class="text-sm font-semibold">{childLabel} ({childCount})</h3>
 <div class="flex gap-1">
 <Button variant="outline" size="sm" onclick={() => (addingSection = true)}>
 <FolderPlus class="size-4 mr-1" />
 Seção
 </Button>
+{#if rootRole === 'creator' || rootRole === 'collection'}
+<Button variant="outline" size="sm" onclick={() => { showAddChild = true; addToSectionId = null; }}>
+<Plus class="size-4 mr-1" />
+Link
+</Button>
+{:else if rootRole === 'profile'}
+<Button variant="outline" size="sm" onclick={() => { showAddChild = true; addToSectionId = null; }}>
+<Plus class="size-4 mr-1" />
+Font
+</Button>
+{:else}
 <Button variant="outline" size="sm" onclick={() => { showAddProfile = true; addToSectionId = null; }}>
 <Plus class="size-4 mr-1" />
 Profile
 </Button>
+{/if}
 </div>
 </div>
 
@@ -496,7 +699,31 @@ Ocultar título
 </div>
 {/if}
 
-<!-- Add profile form -->
+<!-- Add child form (role-aware) -->
+{#if showAddChild}
+<div class="border rounded-lg p-4 bg-muted/30">
+{#if rootRole === 'creator' || rootRole === 'collection'}
+<NodeForm
+mode="create"
+role="tree"
+availableTrees={availableTreesForLink}
+onsave={(data) => handleAddTreeLink(data)}
+oncancel={() => (showAddChild = false)}
+{saving}
+/>
+{:else if rootRole === 'profile'}
+<NodeForm
+mode="create"
+role="font"
+onsave={(data) => handleAddFontDirect(data)}
+oncancel={() => (showAddChild = false)}
+{saving}
+/>
+{/if}
+</div>
+{/if}
+
+<!-- Add profile form (legacy for unsupported root roles) -->
 {#if showAddProfile}
 <div class="border rounded-lg p-4 bg-muted/30">
 <NodeForm
@@ -509,15 +736,25 @@ oncancel={() => (showAddProfile = false)}
 </div>
 {/if}
 
-{#if allProfiles.length === 0 && !showAddProfile && tree.sections.length === 0}
+{#if childCount === 0 && !showAddChild && !showAddProfile && tree.sections.length === 0}
 <p class="text-sm text-muted-foreground text-center py-4">
+{#if rootRole === 'profile'}
+Nenhuma font ainda. Adicione uma feed source.
+{:else if rootRole === 'creator' || rootRole === 'collection'}
+Nenhum link ainda. Vincule uma página.
+{:else}
 Nenhum profile ainda. Adicione um para começar.
+{/if}
 </p>
 {/if}
 
-<!-- Sections with profiles -->
+<!-- Sections with children -->
 {#each tree.sections as section (section.id)}
-{@const sectionProfiles = allProfiles.filter((p) => p.pathKey === section.id)}
+{@const sectionItems = rootRole === 'profile'
+? allFonts.filter((f) => f.pathKey === section.id)
+: rootRole === 'creator' || rootRole === 'collection'
+? allTreeLinks.filter((l) => l.pathKey === section.id)
+: allProfiles.filter((p) => p.pathKey === section.id)}
 
 {#if editingSectionId === section.id}
 {@render sectionEditor(section)}
@@ -530,14 +767,22 @@ Nenhum profile ainda. Adicione um para começar.
 {:else}
 <span class="flex-1"></span>
 {/if}
-<Badge variant="outline" class="text-xs">{sectionProfiles.length} profile{sectionProfiles.length !== 1 ? 's' : ''}</Badge>
+<Badge variant="outline" class="text-xs">{sectionItems.length}</Badge>
 <button type="button" class="p-1 hover:bg-accent rounded" onclick={() => handleMoveSectionUp(section)}>
 <ArrowUp class="size-3.5 text-muted-foreground" />
 </button>
 <button type="button" class="p-1 hover:bg-accent rounded" onclick={() => handleMoveSectionDown(section)}>
 <ArrowDown class="size-3.5 text-muted-foreground" />
 </button>
-<button type="button" class="p-1 hover:bg-accent rounded" onclick={() => { showAddProfile = true; addToSectionId = section.id; }}>
+<button type="button" class="p-1 hover:bg-accent rounded" onclick={() => {
+if (rootRole === 'profile') {
+addToSectionId = section.id;
+showAddChild = false;
+} else {
+showAddChild = true;
+addToSectionId = section.id;
+}
+}}>
 <Plus class="size-3.5 text-muted-foreground" />
 </button>
 <button type="button" class="p-1 hover:bg-accent rounded" onclick={() => startEditSection(section)}>
@@ -547,28 +792,75 @@ Nenhum profile ainda. Adicione um para começar.
 <Trash2 class="size-3.5 text-destructive" />
 </button>
 </div>
-{#if sectionProfiles.length > 0}
+{#if sectionItems.length > 0}
 <div class="px-3 pb-3 space-y-2">
-{#each sectionProfiles as entry (entry.nodeId)}
+{#if rootRole === 'profile'}
+{#each sectionItems as entry (entry.nodeId)}
+{@render fontCard(entry)}
+{/each}
+{:else if rootRole === 'creator' || rootRole === 'collection'}
+{#each sectionItems as entry (entry.nodeId)}
+{@render treeLinkCard(entry)}
+{/each}
+{:else}
+{#each sectionItems as entry (entry.nodeId)}
 {@render profileCard(entry)}
 {/each}
+{/if}
 </div>
 {:else}
+{#if addToSectionId !== section.id}
 <p class="text-xs text-muted-foreground text-center pb-3">Seção vazia.</p>
+{/if}
+{/if}
+{#if rootRole === 'profile' && addToSectionId === section.id}
+<div class="px-3 pb-3">
+<div class="border rounded-lg p-3 bg-muted/20">
+<NodeForm
+mode="create"
+role="font"
+onsave={(data) => handleAddFontDirect(data)}
+oncancel={() => { addToSectionId = null; }}
+{saving}
+/>
+</div>
+</div>
 {/if}
 </div>
 {/if}
 {/each}
 
-<!-- Unsectioned profiles -->
-{#if allProfiles.filter((p) => p.pathKey === '*').length > 0}
+<!-- Unsectioned children -->
+{#if rootRole === 'profile'}
+{@const unsectioned = allFonts.filter((f) => f.pathKey === '*')}
+{#if unsectioned.length > 0 || tree.sections.length > 0}
+{#if tree.sections.length > 0}
+<div class="text-xs text-muted-foreground uppercase tracking-wider px-1 pt-1">Sem seção</div>
+{/if}
+{#each unsectioned as entry (entry.nodeId)}
+{@render fontCard(entry)}
+{/each}
+{/if}
+{:else if rootRole === 'creator' || rootRole === 'collection'}
+{@const unsectioned = allTreeLinks.filter((l) => l.pathKey === '*')}
+{#if unsectioned.length > 0}
+{#if tree.sections.length > 0}
+<div class="text-xs text-muted-foreground uppercase tracking-wider px-1 pt-1">Sem seção</div>
+{/if}
+{#each unsectioned as entry (entry.nodeId)}
+{@render treeLinkCard(entry)}
+{/each}
+{/if}
+{:else}
 {@const unsectioned = allProfiles.filter((p) => p.pathKey === '*')}
+{#if unsectioned.length > 0}
 {#if tree.sections.length > 0}
 <div class="text-xs text-muted-foreground uppercase tracking-wider px-1 pt-1">Sem seção</div>
 {/if}
 {#each unsectioned as entry (entry.nodeId)}
 {@render profileCard(entry)}
 {/each}
+{/if}
 {/if}
 </div>
 

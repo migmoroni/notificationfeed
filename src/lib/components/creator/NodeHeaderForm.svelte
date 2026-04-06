@@ -11,8 +11,10 @@
 	interface Props {
 		header: NodeHeader;
 		onchange: (header: NodeHeader) => void;
-		/** Show banner upload (only for creator role) */
+		/** Show banner upload (only for root nodes) */
 		showBanner?: boolean;
+		/** Show tags input (only for root nodes) */
+		showTags?: boolean;
 		/** Inherited category assignments shown dimmed in picker */
 		inheritedCategories?: CategoryAssignment[];
 	}
@@ -21,6 +23,7 @@
 		header,
 		onchange,
 		showBanner = false,
+		showTags = true,
 		inheritedCategories = []
 	}: Props = $props();
 
@@ -62,6 +65,7 @@
 		/>
 	</div>
 
+	{#if showTags}
 	<div class="space-y-2">
 		<Label>Tags</Label>
 		<TagInput
@@ -69,6 +73,7 @@
 			onchange={(tags) => update({ tags })}
 		/>
 	</div>
+	{/if}
 
 	<MediaUpload
 		slot="avatar"

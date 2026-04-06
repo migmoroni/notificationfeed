@@ -10,6 +10,15 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import Check from '@lucide/svelte/icons/check';
 	import PenLine from '@lucide/svelte/icons/pen-line';
+	import Users from '@lucide/svelte/icons/users';
+	import Newspaper from '@lucide/svelte/icons/newspaper';
+	import Library from '@lucide/svelte/icons/library';
+
+	const roleMeta: Record<string, { label: string; icon: typeof Users }> = {
+		creator: { label: 'Creator', icon: Users },
+		profile: { label: 'Profile', icon: Newspaper },
+		collection: { label: 'Collection', icon: Library },
+	};
 </script>
 
 <svelte:head>
@@ -98,13 +107,17 @@
 							</div>
 						</Card.Header>
 						<Card.Footer class="pt-0 gap-2">
+							{@const meta = roleMeta[rootNode?.role ?? 'creator'] ?? roleMeta.creator}
+							{@const RoleIcon = meta.icon}
 							<Badge variant="outline" class="gap-1 text-xs">
-								<PenLine class="size-3" />
-								Rascunho
+								<RoleIcon class="size-3" />
+								{meta.label}
 							</Badge>
-							<span class="text-xs text-muted-foreground">
-								{profileCount} profile{profileCount !== 1 ? 's' : ''}
-							</span>
+							{#if rootNode?.role === 'creator'}
+								<span class="text-xs text-muted-foreground">
+									{profileCount} profile{profileCount !== 1 ? 's' : ''}
+								</span>
+							{/if}
 						</Card.Footer>
 					</Card.Root>
 				</a>

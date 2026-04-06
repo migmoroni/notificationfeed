@@ -5,7 +5,9 @@
 		NodeBody,
 		CreatorBody,
 		ProfileBody,
-		FontBody
+		FontBody,
+		TreeLinkBody,
+		ContentTree
 	} from '$lib/domain/content-tree/content-tree.js';
 	import type { CategoryAssignment } from '$lib/domain/shared/category-assignment.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -13,14 +15,19 @@
 	import CreatorBodyForm from './CreatorBodyForm.svelte';
 	import ProfileBodyForm from './ProfileBodyForm.svelte';
 	import FontBodyForm from './FontBodyForm.svelte';
+	import TreeLinkBodyForm from './TreeLinkBodyForm.svelte';
 
 	interface Props {
 		mode: 'create' | 'edit';
 		role: NodeRole;
+		/** Whether this form is editing a root node (controls banner, tags visibility) */
+		isRoot?: boolean;
 		initialHeader?: NodeHeader;
 		initialBody?: NodeBody;
 		/** Inherited category assignments shown dimmed */
 		inheritedCategories?: CategoryAssignment[];
+		/** Available trees for tree-link selection (only needed when role='tree') */
+		availableTrees?: ContentTree[];
 		onsave: (data: { header: NodeHeader; body: NodeBody }) => void;
 		oncancel?: () => void;
 		saving?: boolean;
@@ -29,9 +36,11 @@
 	let {
 		mode,
 		role,
+		isRoot = false,
 		initialHeader,
 		initialBody,
 		inheritedCategories = [],
+		availableTrees = [],
 		onsave,
 		oncancel,
 		saving = false
@@ -50,9 +59,9 @@
 	function defaultBody(r: NodeRole): NodeBody {
 		switch (r) {
 			case 'creator':
-				return { role: 'creator' };
+				return { role: 'creator', links: [] };
 			case 'profile':
-				return { role: 'profile', defaultEnabled: true };
+				return { role: 'profile', links: [] };
 			case 'font':
 				return { role: 'font', protocol: 'rss', config: { url: '' }, defaultEnabled: true };
 			case 'collection':
@@ -79,6 +88,10 @@
 			}
 		}
 
+		if (body.role === 'tree') {
+			return !!(body as TreeLinkBody).instanceTreeId;
+		}
+
 		return true;
 	});
 
@@ -101,7 +114,8 @@
 	<NodeHeaderForm
 		{header}
 		onchange={(h) => (header = h)}
-		showBanner={role === 'creator'}
+		showBanner={isRoot}
+		showTags={isRoot}
 		{inheritedCategories}
 	/>
 
@@ -119,6 +133,12 @@
 		<FontBodyForm
 			body={body as FontBody}
 			onchange={(b) => (body = b)}
+		/>
+	{:else if body.role === 'tree'}
+		<TreeLinkBodyForm
+			body={body as TreeLinkBody}
+			onchange={(b) => (body = b)}
+			{availableTrees}
 		/>
 	{/if}
 

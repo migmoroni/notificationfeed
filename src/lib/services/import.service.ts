@@ -129,7 +129,7 @@ title: `Feeds importados (${now.toLocaleDateString('pt-BR')})`,
 tags: ['importado'],
 categoryAssignments: []
 },
-body: { role: 'profile', defaultEnabled: true }
+body: { role: 'profile', links: [] }
 },
 metadata: { id: rootNodeId, versionSchema: 1, createdAt: now, updatedAt: now }
 };

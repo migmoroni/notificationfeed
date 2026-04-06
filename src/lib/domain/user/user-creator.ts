@@ -23,6 +23,12 @@ export interface UserCreator extends UserBase {
 
 	/** Whether this creator account is synced via Nostr */
 	syncStatus: SyncStatus;
+
+	/** IDs of ContentTrees created/owned by this creator */
+	ownedTreeIds: string[];
+
+	/** IDs of ContentMedias created/owned by this creator */
+	ownedMediaIds: string[];
 }
 
 export type NewUserCreator = Omit<UserCreator, 'id' | 'role' | 'createdAt' | 'updatedAt' | 'nostrKeypair' | 'syncStatus'>;

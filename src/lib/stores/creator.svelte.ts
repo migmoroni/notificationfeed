@@ -28,12 +28,13 @@ getNodesByRole as domainGetNodesByRole
 import type { ContentMedia } from '$lib/domain/content-media/content-media.js';
 import type { TreeExport } from '$lib/domain/tree-export/tree-export.js';
 import type { TreePublication } from '$lib/domain/tree-export/tree-publication.js';
-import { createContentTreeStore } from '$lib/persistence/content-tree.store.js';
-import { createContentMediaStore } from '$lib/persistence/content-media.store.js';
+import { createEditorTreeStore } from '$lib/persistence/editor-tree.store.js';
+import { createEditorMediaStore } from '$lib/persistence/editor-media.store.js';
 import { createTreePublicationStore } from '$lib/persistence/tree-publication.store.js';
 import { processAndCreateMedia, replaceMediaFile, deleteMedia as deleteMediaService } from '$lib/services/media.service.js';
 import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
 import type { ImageSlot } from '$lib/domain/shared/image-asset.js';
+import { getDatabase } from '$lib/persistence/db.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
 
@@ -51,8 +52,8 @@ medias: [],
 loading: false
 });
 
-const treeRepo = createContentTreeStore();
-const mediaRepo = createContentMediaStore();
+const treeRepo = createEditorTreeStore();
+const mediaRepo = createEditorMediaStore();
 const pubRepo = createTreePublicationStore();
 
 // ── Helpers ────────────────────────────────────────────────────────────
@@ -81,10 +82,17 @@ return node;
 
 /** Persist an updated tree and replace it in state */
 async function persistTree(updated: ContentTree): Promise<void> {
-await treeRepo.put(updated);
+await treeRepo.put($state.snapshot(updated));
 state.trees = state.trees.map((t) =>
 t.metadata.id === updated.metadata.id ? updated : t
 );
+}
+
+/** Persist an updated UserCreator back to the DB and update state */
+async function persistUser(updated: UserCreator): Promise<void> {
+const db = await getDatabase();
+await db.users.put($state.snapshot(updated));
+state.user = updated;
 }
 
 // ── Exported accessor ──────────────────────────────────────────────────
@@ -101,6 +109,9 @@ get isReady() { return state.user !== null && !state.loading; },
 // ── Lifecycle ────────────────────────────────────────────────────
 
 async init(user: UserCreator): Promise<void> {
+// Migration: ensure new fields exist on legacy records
+if (!user.ownedTreeIds) user.ownedTreeIds = [];
+if (!user.ownedMediaIds) user.ownedMediaIds = [];
 state.user = user;
 state.loading = true;
 try {
@@ -123,20 +134,37 @@ state.loading = false;
 // ── Media CRUD ──────────────────────────────────────────────────
 
 async createMedia(file: File, slot: ImageSlot): Promise<ContentMedia> {
-const media = await processAndCreateMedia(file, slot, state.user?.id);
+const media = await processAndCreateMedia(file, slot, state.user?.id, mediaRepo);
 state.medias = [...state.medias, media];
+
+// Track ownership (non-fatal)
+try {
+if (state.user) {
+const updated: UserCreator = { ...state.user, ownedMediaIds: [...(state.user.ownedMediaIds ?? []), media.metadata.id], updatedAt: new Date() };
+await persistUser(updated);
+}
+} catch { /* best-effort */ }
+
 return media;
 },
 
 async updateMedia(mediaId: string, file: File, slot: ImageSlot): Promise<ContentMedia> {
-const updated = await replaceMediaFile(mediaId, file, slot);
+const updated = await replaceMediaFile(mediaId, file, slot, mediaRepo);
 state.medias = state.medias.map((m) => (m.metadata.id === mediaId ? updated : m));
 return updated;
 },
 
 async deleteMedia(mediaId: string): Promise<void> {
-await deleteMediaService(mediaId);
+await deleteMediaService(mediaId, mediaRepo);
 state.medias = state.medias.filter((m) => m.metadata.id !== mediaId);
+
+// Remove from ownership (non-fatal)
+try {
+if (state.user) {
+const updated: UserCreator = { ...state.user, ownedMediaIds: (state.user.ownedMediaIds ?? []).filter((id) => id !== mediaId), updatedAt: new Date() };
+await persistUser(updated);
+}
+} catch { /* best-effort */ }
 },
 
 getMediaById(mediaId: string): ContentMedia | null {
@@ -290,7 +318,11 @@ title: title ?? 'Nova Página',
 tags: [],
 categoryAssignments: []
 },
-body: { role: rootRole } as NodeBody
+body: rootRole === 'profile'
+? { role: 'profile', links: [] }
+: rootRole === 'creator'
+? { role: 'creator', links: [] }
+: { role: rootRole } as NodeBody
 },
 metadata: {
 id: rootNodeId,
@@ -315,6 +347,15 @@ author: state.user?.id
 
 await treeRepo.put(tree);
 state.trees = [...state.trees, tree];
+
+// Track ownership (non-fatal — tree is already saved)
+try {
+if (state.user) {
+const updated: UserCreator = { ...state.user, ownedTreeIds: [...(state.user.ownedTreeIds ?? []), treeId], updatedAt: now };
+await persistUser(updated);
+}
+} catch { /* ownership tracking is best-effort */ }
+
 return tree;
 },
 
@@ -322,6 +363,32 @@ async deleteTree(treeId: string): Promise<void> {
 await treeRepo.delete(treeId);
 await pubRepo.delete(treeId);
 state.trees = state.trees.filter((t) => t.metadata.id !== treeId);
+
+// Remove from ownership (non-fatal)
+try {
+if (state.user) {
+const updated: UserCreator = { ...state.user, ownedTreeIds: (state.user.ownedTreeIds ?? []).filter((id) => id !== treeId), updatedAt: new Date() };
+await persistUser(updated);
+}
+} catch { /* ownership tracking is best-effort */ }
+},
+
+/**
+ * Set or clear the author tree ID on a tree's metadata.
+ * The authorTreeId references a creator-type tree whose identity signs this tree.
+ */
+async setAuthorTreeId(treeId: string, authorTreeId: string | null): Promise<ContentTree> {
+const tree = findTree(treeId);
+const updated: ContentTree = {
+...tree,
+metadata: {
+...tree.metadata,
+authorTreeId: authorTreeId ?? undefined,
+updatedAt: new Date()
+}
+};
+await persistTree(updated);
+return updated;
 },
 
 // ── Node path management ────────────────────────────────────────
@@ -501,5 +568,21 @@ const tree = findTree(treeId);
 return Object.values(tree.nodes).filter(
 (n) => n.role === 'profile' && n.metadata.id !== getRootNodeId(tree)
 ).length;
+},
+
+/** Get all creator-type trees owned by this user (for author signing selection) */
+getCreatorTrees(): ContentTree[] {
+return state.trees.filter((t) => {
+const root = domainGetRootNode(t);
+return root?.role === 'creator';
+});
+},
+
+/** Get trees filtered by root role */
+getTreesByRootRole(role: NodeRole): ContentTree[] {
+return state.trees.filter((t) => {
+const root = domainGetRootNode(t);
+return root?.role === role;
+});
 }
 };

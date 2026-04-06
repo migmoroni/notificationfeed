@@ -9,21 +9,23 @@
  * Browser-only (uses Canvas API via image.service.ts).
  */
 
-import type { ContentMedia } from '$lib/domain/content-media/content-media.js';
+import type { ContentMedia, ContentMediaRepository } from '$lib/domain/content-media/content-media.js';
 import type { ImageSlot } from '$lib/domain/shared/image-asset.js';
 import { processImage } from './image.service.js';
 import { createContentMediaStore } from '$lib/persistence/content-media.store.js';
 import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
 
-const mediaRepo = createContentMediaStore();
+const defaultMediaRepo = createContentMediaStore();
 
 /**
  * Process an uploaded image file and persist it as a ContentMedia entity.
+ * @param repo — optional repository override (e.g. editor store for creator context)
  */
 export async function processAndCreateMedia(
 	file: File,
 	slot: ImageSlot,
-	authorId?: string
+	authorId?: string,
+	repo: ContentMediaRepository = defaultMediaRepo
 ): Promise<ContentMedia> {
 	const asset = await processImage(file, slot);
 	const now = new Date();
@@ -42,7 +44,7 @@ export async function processAndCreateMedia(
 		height: asset.height
 	};
 
-	await mediaRepo.put(media);
+	await repo.put(media);
 	return media;
 }
 
@@ -56,13 +58,15 @@ export function getMediaPreviewUrl(media: ContentMedia): string {
 
 /**
  * Replace the file data of an existing ContentMedia entity.
+ * @param repo — optional repository override
  */
 export async function replaceMediaFile(
 	mediaId: string,
 	file: File,
-	slot: ImageSlot
+	slot: ImageSlot,
+	repo: ContentMediaRepository = defaultMediaRepo
 ): Promise<ContentMedia> {
-	const existing = await mediaRepo.getById(mediaId);
+	const existing = await repo.getById(mediaId);
 	if (!existing) throw new Error(`ContentMedia not found: ${mediaId}`);
 
 	const asset = await processImage(file, slot);
@@ -77,13 +81,17 @@ export async function replaceMediaFile(
 		height: asset.height
 	};
 
-	await mediaRepo.put(updated);
+	await repo.put(updated);
 	return updated;
 }
 
 /**
  * Delete a ContentMedia entity from persistence.
+ * @param repo — optional repository override
  */
-export async function deleteMedia(mediaId: string): Promise<void> {
-	await mediaRepo.delete(mediaId);
+export async function deleteMedia(
+	mediaId: string,
+	repo: ContentMediaRepository = defaultMediaRepo
+): Promise<void> {
+	await repo.delete(mediaId);
 }

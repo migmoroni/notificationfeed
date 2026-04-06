@@ -15,6 +15,8 @@ import { detectPlatform } from '$lib/platform/capabilities.js';
 export interface Database {
 contentTrees: TableOps;
 contentMedias: TableOps;
+editorTrees: TableOps;
+editorMedias: TableOps;
 treePublications: TableOps;
 users: TableOps;
 feedMacros: TableOps;
@@ -48,25 +50,33 @@ return db;
 
 async function initIndexedDB(): Promise<Database> {
 return new Promise((resolve, reject) => {
-const request = indexedDB.open('notfeed-v2', 4);
+const request = indexedDB.open('notfeed-v2', 5);
 
 request.onupgradeneeded = (event) => {
 const idb = request.result;
 const oldVersion = (event as IDBVersionChangeEvent).oldVersion;
 
 // Destructive: delete all existing stores and recreate
-if (oldVersion < 4) {
+if (oldVersion < 5) {
 for (const name of idb.objectStoreNames) {
 idb.deleteObjectStore(name);
 }
 
-// Content trees (with embedded nodes)
+// Content trees (with embedded nodes) — consumer/read
 const treeStore = idb.createObjectStore('contentTrees', { keyPath: 'metadata.id' });
 treeStore.createIndex('author', 'metadata.author', { unique: false });
 
-// Content medias
+// Content medias — consumer/read
 const mediaStore = idb.createObjectStore('contentMedias', { keyPath: 'metadata.id' });
 mediaStore.createIndex('author', 'metadata.author', { unique: false });
+
+// Editor trees — creator/edit
+const editorTreeStore = idb.createObjectStore('editorTrees', { keyPath: 'metadata.id' });
+editorTreeStore.createIndex('author', 'metadata.author', { unique: false });
+
+// Editor medias — creator/edit
+const editorMediaStore = idb.createObjectStore('editorMedias', { keyPath: 'metadata.id' });
+editorMediaStore.createIndex('author', 'metadata.author', { unique: false });
 
 // Tree publications
 idb.createObjectStore('treePublications', { keyPath: 'treeId' });
@@ -96,6 +106,8 @@ const idb = request.result;
 resolve({
 contentTrees: createIndexedDBTable(idb, 'contentTrees'),
 contentMedias: createIndexedDBTable(idb, 'contentMedias'),
+editorTrees: createIndexedDBTable(idb, 'editorTrees'),
+editorMedias: createIndexedDBTable(idb, 'editorMedias'),
 treePublications: createIndexedDBTable(idb, 'treePublications'),
 users: createIndexedDBTable(idb, 'users'),
 feedMacros: createIndexedDBTable(idb, 'feedMacros'),

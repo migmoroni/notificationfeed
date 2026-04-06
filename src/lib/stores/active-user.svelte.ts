@@ -156,6 +156,8 @@ export const activeUser = {
 			displayName,
 			nostrKeypair: null,
 			syncStatus: 'local',
+			ownedTreeIds: [],
+			ownedMediaIds: [],
 			createdAt: now,
 			updatedAt: now
 		};
