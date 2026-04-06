@@ -52,7 +52,7 @@
 			await activeUser.init();
 
 			// Always init consumer (needed for feed data even when creator is active)
-			await consumer.init();
+			await consumer.init(activeUser.current?.role === 'consumer' ? activeUser.current.id : undefined);
 
 			// If restored user is a creator, init creator store
 			if (activeUser.isCreator) {

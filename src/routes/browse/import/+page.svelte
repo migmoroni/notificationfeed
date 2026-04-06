@@ -72,7 +72,7 @@
 
 			if (result.success) {
 				// Reload consumer states + browse data
-				await consumer.init();
+				await consumer.init(activeUser.current?.id);
 				browse.loadCategories();
 			}
 		} catch (err) {
@@ -99,7 +99,7 @@
 			resultSuccess = result.success;
 
 			if (result.success) {
-				await consumer.init();
+				await consumer.init(activeUser.current?.id);
 				browse.loadCategories();
 				urlText = '';
 			}

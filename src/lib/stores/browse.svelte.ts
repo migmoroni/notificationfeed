@@ -102,6 +102,7 @@ get hasFilters() {
 return (
 state.selectedByTree.subject.size > 0 ||
 state.selectedByTree.content_type.size > 0 ||
+state.selectedByTree.media_type.size > 0 ||
 state.selectedByTree.region.size > 0 ||
 state.searchQuery.trim().length > 0
 );
@@ -189,6 +190,7 @@ async applyFilters(): Promise<void> {
 const hasCategories =
 state.selectedByTree.subject.size > 0 ||
 state.selectedByTree.content_type.size > 0 ||
+state.selectedByTree.media_type.size > 0 ||
 state.selectedByTree.region.size > 0;
 const hasSearch = state.searchQuery.trim().length > 0;
 
@@ -206,6 +208,7 @@ const allNodes = extractAllNodes(allTrees);
 
 const subjectIds = expandCategoryIds(state.selectedByTree.subject, state.categories);
 const contentTypeIds = expandCategoryIds(state.selectedByTree.content_type, state.categories);
+const mediaTypeIds = expandCategoryIds(state.selectedByTree.media_type, state.categories);
 const regionIds = expandCategoryIds(state.selectedByTree.region, state.categories);
 
 let matched = allNodes;
@@ -221,6 +224,7 @@ const effective = tree
 return (
 assignmentsMatchTree(effective, 'subject', subjectIds) &&
 assignmentsMatchTree(effective, 'content_type', contentTypeIds) &&
+assignmentsMatchTree(effective, 'media_type', mediaTypeIds) &&
 assignmentsMatchTree(effective, 'region', regionIds)
 );
 });
