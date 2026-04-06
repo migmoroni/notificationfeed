@@ -14,6 +14,7 @@ import type {
 	FavoriteTab
 } from '$lib/domain/user/user-consumer.js';
 import { SYSTEM_FAVORITES_TAB_ID } from '$lib/domain/user/user-consumer.js';
+import type { FeedMacro, FeedMacroFilters } from '$lib/domain/feed-macro/feed-macro.js';
 import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
 import { getDatabase } from './db.js';
@@ -51,6 +52,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 				activateTrees: [],
 				activateNodes: [],
 				favoriteTabs: [createSystemTab()],
+				feedMacros: [],
 				createdAt: now,
 				updatedAt: now
 			};
@@ -247,6 +249,51 @@ export function createUserConsumerStore(): UserConsumerRepository {
 				activation.favoriteTabIds = activation.favoriteTabIds.filter((id) => id !== tabId);
 			}
 
+			user.updatedAt = new Date();
+			await db.users.put(user);
+		},
+
+		// -- Feed macro management (embedded in user) --
+
+		async createMacro(
+			userId: string,
+			macro: Omit<FeedMacro, 'id'>
+		): Promise<FeedMacro> {
+			const db = await getDatabase();
+			const user = await db.users.getById<UserConsumer>(userId);
+			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
+
+			const newMacro: FeedMacro = { id: uuidv7(), ...macro };
+			user.feedMacros = [...(user.feedMacros ?? []), newMacro];
+			user.updatedAt = new Date();
+			await db.users.put(user);
+			return newMacro;
+		},
+
+		async updateMacro(
+			userId: string,
+			macroId: string,
+			filters: FeedMacroFilters
+		): Promise<FeedMacro> {
+			const db = await getDatabase();
+			const user = await db.users.getById<UserConsumer>(userId);
+			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
+
+			const macro = (user.feedMacros ?? []).find((m) => m.id === macroId);
+			if (!macro) throw new Error(`FeedMacro not found: ${macroId}`);
+
+			macro.filters = filters;
+			user.updatedAt = new Date();
+			await db.users.put(user);
+			return macro;
+		},
+
+		async deleteMacro(userId: string, macroId: string): Promise<void> {
+			const db = await getDatabase();
+			const user = await db.users.getById<UserConsumer>(userId);
+			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
+
+			user.feedMacros = (user.feedMacros ?? []).filter((m) => m.id !== macroId);
 			user.updatedAt = new Date();
 			await db.users.put(user);
 		}

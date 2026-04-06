@@ -9,6 +9,7 @@
 
 import type { UserConsumer, NodeActivation, FavoriteTab } from '$lib/domain/user/user-consumer.js';
 import { SYSTEM_FAVORITES_TAB_ID } from '$lib/domain/user/user-consumer.js';
+import type { FeedMacro, FeedMacroFilters } from '$lib/domain/feed-macro/feed-macro.js';
 import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 import { buildNodeActivationMap } from '$lib/domain/shared/priority-resolver.js';
 import { createUserConsumerStore } from '$lib/persistence/user-consumer.store.js';
@@ -71,18 +72,20 @@ export const consumer = {
 
 	// ── Actions ──────────────────────────────────────────────────────
 
-	async init(): Promise<void> {
+	async init(userId?: string): Promise<void> {
 		if (state.loading) return;
 		state.loading = true;
 
 		try {
-			const consumers = await repo.getAll();
-			let user: UserConsumer;
+			let user: UserConsumer | null = null;
 
-			if (consumers.length > 0) {
-				user = consumers[0];
-			} else {
-				user = await repo.create({ displayName: 'Default' });
+			if (userId) {
+				user = await repo.getById(userId);
+			}
+
+			if (!user) {
+				const consumers = await repo.getAll();
+				user = consumers.length > 0 ? consumers[0] : await repo.create({ displayName: 'Default' });
 			}
 
 			state.user = user;
@@ -240,5 +243,40 @@ export const consumer = {
 			state.user = refreshed;
 			refreshActivationMap();
 		}
+	},
+
+	// ── Feed macro management ────────────────────────────────────────
+
+	get feedMacros(): FeedMacro[] {
+		return state.user?.feedMacros ?? [];
+	},
+
+	async createMacro(macro: Omit<FeedMacro, 'id'>): Promise<FeedMacro> {
+		if (!state.user) throw new Error('No active user');
+
+		const created = await repo.createMacro(state.user.id, macro);
+		state.user = { ...state.user, feedMacros: [...(state.user.feedMacros ?? []), created] };
+		return created;
+	},
+
+	async updateMacro(macroId: string, filters: FeedMacroFilters): Promise<FeedMacro> {
+		if (!state.user) throw new Error('No active user');
+
+		const updated = await repo.updateMacro(state.user.id, macroId, filters);
+		state.user = {
+			...state.user,
+			feedMacros: (state.user.feedMacros ?? []).map((m) => (m.id === macroId ? updated : m))
+		};
+		return updated;
+	},
+
+	async deleteMacro(macroId: string): Promise<void> {
+		if (!state.user) return;
+
+		await repo.deleteMacro(state.user.id, macroId);
+		state.user = {
+			...state.user,
+			feedMacros: (state.user.feedMacros ?? []).filter((m) => m.id !== macroId)
+		};
 	}
 };

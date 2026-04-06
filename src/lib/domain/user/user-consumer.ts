@@ -12,6 +12,7 @@
  */
 
 import type { PriorityLevel } from './priority-level.js';
+import type { FeedMacro, FeedMacroFilters } from '../feed-macro/feed-macro.js';
 
 // ---------------------------------------------------------------------------
 // Tree activation
@@ -85,6 +86,9 @@ export interface UserConsumer {
 	/** Favorite tabs (system "all_favorites" + custom tabs) */
 	favoriteTabs: FavoriteTab[];
 
+	/** Saved feed filter presets */
+	feedMacros: FeedMacro[];
+
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -120,4 +124,9 @@ export interface UserConsumerRepository {
 	createTab(userId: string, tab: Omit<FavoriteTab, 'id' | 'isSystem' | 'createdAt'>): Promise<FavoriteTab>;
 	updateTab(userId: string, tabId: string, data: Partial<Pick<FavoriteTab, 'title' | 'emoji' | 'position'>>): Promise<FavoriteTab>;
 	deleteTab(userId: string, tabId: string): Promise<void>;
+
+	/** Feed macro management (embedded in user) */
+	createMacro(userId: string, macro: Omit<FeedMacro, 'id'>): Promise<FeedMacro>;
+	updateMacro(userId: string, macroId: string, filters: FeedMacroFilters): Promise<FeedMacro>;
+	deleteMacro(userId: string, macroId: string): Promise<void>;
 }

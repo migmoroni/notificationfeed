@@ -137,6 +137,7 @@ export const activeUser = {
 			activateTrees: [],
 			activateNodes: [],
 			favoriteTabs: [],
+			feedMacros: [],
 			createdAt: now,
 			updatedAt: now
 		};

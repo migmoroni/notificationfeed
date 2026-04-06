@@ -3,6 +3,7 @@
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { creator } from '$lib/stores/creator.svelte.js';
 	import { feed } from '$lib/stores/feed.svelte.js';
+	import { feedMacros } from '$lib/stores/feed-macros.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -36,7 +37,8 @@
 		if (createRole === 'consumer') {
 			const user = await activeUser.createConsumer(name);
 			activeUser.switchTo(user.id);
-			await consumer.init();
+			feedMacros.reset();
+			await consumer.init(user.id);
 			await feed.loadFeed();
 		} else {
 			const user = await activeUser.createCreator(name);
@@ -70,10 +72,11 @@
 
 	async function switchUser(userId: string) {
 		activeUser.switchTo(userId);
+		feedMacros.reset();
 
 		const user = activeUser.allUsers.find(u => u.id === userId);
 		if (user?.role === 'consumer') {
-			await consumer.init();
+			await consumer.init(userId);
 			await feed.loadFeed();
 		} else if (user?.role === 'creator') {
 			await creator.init(user as any);

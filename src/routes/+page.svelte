@@ -30,8 +30,10 @@
 		feedCategories.getSelectedIds('region').length > 0
 	);
 
-	// Tab: 'saved' or 'advanced'. Default to 'advanced' if filters are already active on mount.
-	let activeTab: 'saved' | 'advanced' = $state(hasAdvancedFilters ? 'advanced' : 'saved');
+	// Tab: 'saved' or 'advanced'. Default to 'advanced' only if filters are active without a macro.
+	let activeTab: 'saved' | 'advanced' = $state(
+		hasAdvancedFilters && !feedMacros.activeMacroId ? 'advanced' : 'saved'
+	);
 
 	// Save new macro UI
 	let isSaving = $state(false);
@@ -110,10 +112,9 @@
 	let selectedRegions = $derived(feedCategories.getSelectedIds('region'));
 	let allowedNodeIds = $derived(feedEntityFilter.hasFilters ? [...feedEntityFilter.getAllowedFontNodeIds()] : []);
 
-	onMount(async () => {
+	onMount(() => {
 		feedCategories.loadCategories();
 		feedEntityFilter.loadNodes();
-		await feedMacros.init();
 		sidebarSlot.set(sidebarContent);
 	});
 

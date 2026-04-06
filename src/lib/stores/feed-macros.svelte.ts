@@ -3,34 +3,24 @@
  *
  * Uses nodeIds instead of separate pageIds/profileIds/fontIds.
  * Integrates with feedEntityFilter (toggleCreator/toggleProfile/toggleFont).
+ *
+ * Persistence is delegated to the consumer store (macros are embedded in UserConsumer).
  */
 
 import { feedCategories } from './feed-categories.svelte.js';
 import { feedEntityFilter } from './feed-entity-filter.svelte.js';
-import { createFeedMacroStore } from '$lib/persistence/feed-macro.store.js';
+import { consumer } from './consumer.svelte.js';
 import type { FeedMacro } from '$lib/domain/feed-macro/feed-macro.js';
+import type { CategoryTreeId } from '$lib/domain/category/category.js';
+
+const TREE_IDS: CategoryTreeId[] = ['subject', 'content_type', 'media_type', 'region'];
 
 export type { FeedMacro } from '$lib/domain/feed-macro/feed-macro.js';
 
 /** Sentinel ID used when "all macros combined" is active */
 export const ALL_MACROS_ID = '__all__';
 
-const repo = createFeedMacroStore();
-
-let macros = $state<FeedMacro[]>([]);
 let activeMacroId = $state<string | null>(null);
-
-async function loadFromDB(): Promise<void> {
-	macros = await repo.getAll();
-}
-
-async function saveToDB(macro: FeedMacro): Promise<void> {
-	await repo.save(macro);
-}
-
-async function deleteFromDB(id: string): Promise<void> {
-	await repo.delete(id);
-}
 
 /** Collect all currently selected node IDs from the entity filter (pages + fonts). */
 function currentNodeIds(): string[] {
@@ -40,28 +30,21 @@ function currentNodeIds(): string[] {
 	];
 }
 
+function currentFilters() {
+	const categoryIdsByTree = Object.fromEntries(
+		TREE_IDS.map((t) => [t, feedCategories.getSelectedIds(t)])
+	) as Record<CategoryTreeId, string[]>;
+
+	return { nodeIds: currentNodeIds(), categoryIdsByTree };
+}
+
 export const feedMacros = {
-	get macros() { return macros; },
+	get macros() { return consumer.feedMacros; },
 	get activeMacroId() { return activeMacroId; },
 
-	async init(): Promise<void> {
-		await loadFromDB();
-	},
-
 	async saveCurrentAsMacro(name: string): Promise<void> {
-		const newMacro: FeedMacro = {
-			id: crypto.randomUUID(),
-			name,
-			filters: {
-				nodeIds: currentNodeIds(),
-				subjectIds: feedCategories.getSelectedIds('subject'),
-				contentTypeIds: feedCategories.getSelectedIds('content_type'),
-				regionIds: feedCategories.getSelectedIds('region')
-			}
-		};
-		await saveToDB(newMacro);
-		macros = [...macros, newMacro];
-		activeMacroId = newMacro.id;
+		const created = await consumer.createMacro({ name, filters: currentFilters() });
+		activeMacroId = created.id;
 	},
 
 	applyMacro(id: string | null) {
@@ -75,99 +58,89 @@ export const feedMacros = {
 
 		if (id === ALL_MACROS_ID) {
 			const allNodeIds = new Set<string>();
-			const allSubjectIds = new Set<string>();
-			const allContentTypeIds = new Set<string>();
-			const allRegionIds = new Set<string>();
+			const allCatIds: Record<CategoryTreeId, Set<string>> = Object.fromEntries(
+				TREE_IDS.map((t) => [t, new Set<string>()])
+			) as Record<CategoryTreeId, Set<string>>;
 
-			for (const m of macros) {
+			for (const m of consumer.feedMacros) {
 				for (const v of m.filters.nodeIds) allNodeIds.add(v);
-				for (const v of m.filters.subjectIds) allSubjectIds.add(v);
-				for (const v of m.filters.contentTypeIds) allContentTypeIds.add(v);
-				for (const v of m.filters.regionIds) allRegionIds.add(v);
+				for (const t of TREE_IDS) {
+					for (const v of m.filters.categoryIdsByTree[t]) allCatIds[t].add(v);
+				}
 			}
 
 			feedEntityFilter.clearAll();
 			applyNodeIds(allNodeIds);
 
 			feedCategories.clearAll();
-			for (const v of allSubjectIds) feedCategories.toggleCategory(v, 'subject');
-			for (const v of allContentTypeIds) feedCategories.toggleCategory(v, 'content_type');
-			for (const v of allRegionIds) feedCategories.toggleCategory(v, 'region');
+			for (const t of TREE_IDS) {
+				for (const v of allCatIds[t]) feedCategories.toggleCategory(v, t);
+			}
 			return;
 		}
 
-		const macro = macros.find((m) => m.id === id);
+		const macro = consumer.feedMacros.find((m) => m.id === id);
 		if (!macro) return;
 
 		feedEntityFilter.clearAll();
 		applyNodeIds(new Set(macro.filters.nodeIds));
 
 		feedCategories.clearAll();
-		for (const catId of macro.filters.subjectIds) feedCategories.toggleCategory(catId, 'subject');
-		for (const catId of macro.filters.contentTypeIds) feedCategories.toggleCategory(catId, 'content_type');
-		for (const catId of macro.filters.regionIds) feedCategories.toggleCategory(catId, 'region');
+		for (const t of TREE_IDS) {
+			for (const catId of macro.filters.categoryIdsByTree[t]) feedCategories.toggleCategory(catId, t);
+		}
 	},
 
 	async deleteMacro(id: string): Promise<void> {
-		await deleteFromDB(id);
-		macros = macros.filter((m) => m.id !== id);
+		await consumer.deleteMacro(id);
 		if (activeMacroId === id) {
 			activeMacroId = null;
 		}
 	},
 
 	async updateMacro(id: string): Promise<void> {
-		const macro = macros.find((m) => m.id === id);
+		const macro = consumer.feedMacros.find((m) => m.id === id);
 		if (!macro) return;
 
-		const updated: FeedMacro = {
-			...macro,
-			filters: {
-				nodeIds: currentNodeIds(),
-				subjectIds: feedCategories.getSelectedIds('subject'),
-				contentTypeIds: feedCategories.getSelectedIds('content_type'),
-				regionIds: feedCategories.getSelectedIds('region')
-			}
-		};
-		await saveToDB(updated);
-		macros = macros.map((m) => (m.id === id ? updated : m));
+		await consumer.updateMacro(id, currentFilters());
 		activeMacroId = id;
 	},
 
 	get isCurrentStateSaved(): boolean {
-		const currentFilters = {
-			nodeIds: currentNodeIds().sort(),
-			subjectIds: feedCategories.getSelectedIds('subject').sort(),
-			contentTypeIds: feedCategories.getSelectedIds('content_type').sort(),
-			regionIds: feedCategories.getSelectedIds('region').sort()
-		};
+		const currentNodesSorted = currentNodeIds().sort();
+		const currentCats = Object.fromEntries(
+			TREE_IDS.map((t) => [t, feedCategories.getSelectedIds(t).sort()])
+		);
 
 		const hasAnyFilter =
-			currentFilters.nodeIds.length > 0 ||
-			currentFilters.subjectIds.length > 0 ||
-			currentFilters.contentTypeIds.length > 0 ||
-			currentFilters.regionIds.length > 0;
+			currentNodesSorted.length > 0 ||
+			TREE_IDS.some((t) => currentCats[t].length > 0);
 
 		if (!activeMacroId) return !hasAnyFilter;
 		if (activeMacroId === ALL_MACROS_ID) return true;
 
-		const macro = macros.find((m) => m.id === activeMacroId);
+		const macro = consumer.feedMacros.find((m) => m.id === activeMacroId);
 		if (!macro) return false;
 
-		const mFilters = {
-			nodeIds: [...macro.filters.nodeIds].sort(),
-			subjectIds: [...macro.filters.subjectIds].sort(),
-			contentTypeIds: [...macro.filters.contentTypeIds].sort(),
-			regionIds: [...macro.filters.regionIds].sort()
-		};
+		const macroCats = Object.fromEntries(
+			TREE_IDS.map((t) => [t, [...macro.filters.categoryIdsByTree[t]].sort()])
+		);
 
-		return JSON.stringify(currentFilters) === JSON.stringify(mFilters);
+		return (
+			JSON.stringify(currentNodesSorted) === JSON.stringify([...macro.filters.nodeIds].sort()) &&
+			JSON.stringify(currentCats) === JSON.stringify(macroCats)
+		);
 	},
 
 	clearActiveMacroIfChanged() {
 		if (activeMacroId && !this.isCurrentStateSaved) {
 			activeMacroId = null;
 		}
+	},
+
+	/** Reset local UI state (e.g. on user switch). */
+	reset() {
+		activeMacroId = null;
 	}
 };
 

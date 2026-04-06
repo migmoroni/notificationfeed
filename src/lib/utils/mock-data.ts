@@ -214,6 +214,7 @@ activateNodes: [
 { nodeId: PT.fontAtom1, priority: null, favorite: true, enabled: true, favoriteTabIds: [] },
 ],
 favoriteTabs: [],
+feedMacros: [],
 createdAt: now,
 updatedAt: now
 };
