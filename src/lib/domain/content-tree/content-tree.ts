@@ -34,6 +34,8 @@ subtitle?: string;
 summary?: string;
 /** Reference to a ContentMedia id */
 coverMediaId?: string;
+/** Emoji used as avatar (alternative to coverMediaId) */
+coverEmoji?: string;
 /** Reference to a ContentMedia id (primarily for root nodes) */
 bannerMediaId?: string;
 tags: string[];
@@ -163,6 +165,8 @@ updatedAt: Date;
 author?: string;
 /** ID of a creator-type tree used to sign this tree's nodes */
 authorTreeId?: string;
+/** When set, the tree is soft-deleted (hidden from UI). ISO date string YYYY-MM-DD. */
+removedAt?: string;
 }
 
 // ---------------------------------------------------------------------------

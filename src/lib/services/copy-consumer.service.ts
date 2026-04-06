@@ -60,6 +60,10 @@ headerPatch.coverMediaId = newMediaId;
 }
 }
 
+if (original.data.header.coverEmoji) {
+headerPatch.coverEmoji = original.data.header.coverEmoji;
+}
+
 if (original.data.header.bannerMediaId) {
 const media = await mediaRepo.getById(original.data.header.bannerMediaId);
 if (media) {

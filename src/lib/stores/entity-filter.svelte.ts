@@ -154,13 +154,15 @@ selectedFontIds = nextFonts;
 },
 
 togglePageType(type: PageType): void {
-const next = new Set(pageTypeFilter);
-if (next.has(type)) {
-if (next.size > 1) next.delete(type); // Keep at least one type active
+const allActive = pageTypeFilter.size === ALL_PAGE_TYPES.length;
+const onlyThis = pageTypeFilter.size === 1 && pageTypeFilter.has(type);
+if (onlyThis || (!allActive && !pageTypeFilter.has(type))) {
+// Clicking the already-focused one, or clicking the "third" unselected one → show all
+this.setPageTypeFilter(new Set(ALL_PAGE_TYPES));
 } else {
-next.add(type);
+// Focus on just this one
+this.setPageTypeFilter(new Set([type]));
 }
-this.setPageTypeFilter(next);
 },
 
 getPages(): PageEntry[] {
@@ -175,6 +177,7 @@ id: getRootNodeId(tree),
 treeId: tree.metadata.id,
 title: root.data.header.title,
 coverMediaId: root.data.header.coverMediaId ?? null,
+coverEmoji: root.data.header.coverEmoji ?? null,
 pageType: pt,
 fontCount: getFontNodes(tree).length
 });
@@ -221,6 +224,7 @@ id: getRootNodeId(linkedTree),
 treeId: linkedTree.metadata.id,
 title: root.data.header.title,
 coverMediaId: root.data.header.coverMediaId ?? null,
+coverEmoji: root.data.header.coverEmoji ?? null,
 pageType: pt ?? 'profile',
 fontCount: getFontNodes(linkedTree).length
 });

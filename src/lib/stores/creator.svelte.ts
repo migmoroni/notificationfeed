@@ -101,7 +101,8 @@ export const creator = {
 // ── Getters ──────────────────────────────────────────────────────
 
 get user() { return state.user; },
-get trees() { return state.trees; },
+get trees() { return state.trees.filter((t) => !t.metadata.removedAt); },
+get allTrees() { return state.trees; },
 get medias() { return state.medias; },
 get loading() { return state.loading; },
 get isReady() { return state.user !== null && !state.loading; },
@@ -360,18 +361,26 @@ return tree;
 },
 
 async deleteTree(treeId: string): Promise<void> {
-await treeRepo.delete(treeId);
-await pubRepo.delete(treeId);
-state.trees = state.trees.filter((t) => t.metadata.id !== treeId);
-
-// Remove from ownership (non-fatal)
-try {
-if (state.user) {
-const updated: UserCreator = { ...state.user, ownedTreeIds: (state.user.ownedTreeIds ?? []).filter((id) => id !== treeId), updatedAt: new Date() };
-await persistUser(updated);
-}
-} catch { /* ownership tracking is best-effort */ }
+const tree = findTree(treeId);
+const now = new Date();
+const removedAt = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+const updated: ContentTree = {
+...tree,
+metadata: { ...tree.metadata, removedAt, updatedAt: now }
+};
+await persistTree(updated);
 },
+
+async restoreTree(treeId: string): Promise<void> {
+const tree = findTree(treeId);
+const updated: ContentTree = {
+...tree,
+metadata: { ...tree.metadata, removedAt: undefined, updatedAt: new Date() }
+};
+await persistTree(updated);
+},
+
+get removedTrees() { return state.trees.filter((t) => !!t.metadata.removedAt); },
 
 /**
  * Set or clear the author tree ID on a tree's metadata.

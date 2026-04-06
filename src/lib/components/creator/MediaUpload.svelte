@@ -4,6 +4,8 @@
 	import { creator } from '$lib/stores/creator.svelte.js';
 	import { getMediaPreviewUrl } from '$lib/services/media.service.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import ConfirmRemoveMediaDialog from '$lib/components/shared/dialog/ConfirmRemoveMediaDialog.svelte';
+	import MediaPickerDialog from '$lib/components/shared/dialog/MediaPickerDialog.svelte';
 	import Upload from '@lucide/svelte/icons/upload';
 	import X from '@lucide/svelte/icons/x';
 
@@ -19,6 +21,8 @@
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 	let fileInput: HTMLInputElement;
+	let showRemoveDialog = $state(false);
+	let showMediaPicker = $state(false);
 
 	let media = $derived(mediaId ? creator.getMediaById(mediaId) : null);
 	let previewUrl = $derived(media ? getMediaPreviewUrl(media) : null);
@@ -49,46 +53,38 @@
 		}
 	}
 
-	async function handleRemove() {
-		if (mediaId) {
-			await creator.deleteMedia(mediaId);
-			onchange(undefined);
-		}
+	function requestRemove() {
+		showRemoveDialog = true;
+	}
+
+	function handleRemove() {
+		showRemoveDialog = false;
+		onchange(undefined);
 	}
 </script>
 
-<div class="space-y-2">
+<div class="space-y-1.5">
 	<span class="text-sm font-medium">{label}</span>
 
 	{#if previewUrl}
-		<div class="relative inline-block">
-			{#if slot === 'avatar'}
-				<div class="w-16 h-16 rounded-lg overflow-hidden bg-muted border">
-					<img src={previewUrl} alt={label} class="w-full h-full object-cover" />
-				</div>
-			{:else}
-				<div class="w-full max-w-md rounded-lg overflow-hidden bg-muted border" style="aspect-ratio: 3.6 / 1;">
-					<img src={previewUrl} alt={label} class="w-full h-full object-cover" />
-				</div>
-			{/if}
-			<Button
-				variant="destructive"
-				size="icon"
-				class="absolute -top-2 -right-2 size-6"
-				onclick={handleRemove}
-			>
-				<X class="size-3" />
-			</Button>
+		<div class="space-y-2">
+			<div class="w-full max-w-md rounded-lg overflow-hidden bg-muted border" style="aspect-ratio: 3.6 / 1;">
+				<img src={previewUrl} alt={label} class="w-full h-full object-cover" />
+			</div>
+			<div class="flex gap-2">
+				<Button variant="outline" size="sm" onclick={() => (showMediaPicker = true)}>
+					Trocar
+				</Button>
+				<Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" onclick={requestRemove}>
+					Remover
+				</Button>
+			</div>
 		</div>
 	{:else}
 		<button
 			type="button"
-			class={[
-				'flex items-center justify-center border-2 border-dashed rounded-lg cursor-pointer',
-				'text-muted-foreground hover:border-primary hover:text-primary transition-colors',
-				slot === 'avatar' ? 'w-16 h-16' : 'w-full max-w-md'
-			].join(' ')}
-			style={slot === 'banner' ? 'aspect-ratio: 3.6 / 1;' : undefined}
+			class="flex flex-col items-center justify-center gap-1 w-full max-w-md border-2 border-dashed rounded-lg cursor-pointer text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+			style="aspect-ratio: 3.6 / 1;"
 			disabled={loading}
 			onclick={() => fileInput.click()}
 		>
@@ -96,8 +92,12 @@
 				<span class="text-xs animate-pulse">Processando…</span>
 			{:else}
 				<Upload class="size-5" />
+				<span class="text-[11px]">Clique para enviar</span>
 			{/if}
 		</button>
+		<Button variant="outline" size="sm" onclick={() => (showMediaPicker = true)}>
+			Biblioteca
+		</Button>
 	{/if}
 
 	<input
@@ -112,3 +112,21 @@
 		<p class="text-xs text-destructive">{error}</p>
 	{/if}
 </div>
+
+<ConfirmRemoveMediaDialog
+	bind:open={showRemoveDialog}
+	previewUrl={previewUrl}
+	mediaLabel={slot === 'banner' ? 'banner' : 'avatar'}
+	onconfirm={handleRemove}
+	oncancel={() => (showRemoveDialog = false)}
+/>
+
+<MediaPickerDialog
+	bind:open={showMediaPicker}
+	selectedId={mediaId}
+	onselect={(media) => {
+		showMediaPicker = false;
+		onchange(media.metadata.id);
+	}}
+	oncancel={() => (showMediaPicker = false)}
+/>

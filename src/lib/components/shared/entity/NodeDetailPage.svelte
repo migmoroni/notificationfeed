@@ -46,6 +46,7 @@ let childNodes = $state<TreeNode[]>([]);
 let linkedProfiles = $state<{ linkNode: TreeNode; tree: ContentTree; fontCount: number }[]>([]);
 let posts = $state<SortedPost<CanonicalPost>[]>([]);
 let avatarUrl = $state<string | null>(null);
+let avatarEmoji = $state<string | null>(null);
 let bannerUrl = $state<string | null>(null);
 let loading = $state(true);
 let showUnfavConfirm = $state(false);
@@ -112,6 +113,7 @@ async function loadNode(id: string) {
 	linkedProfiles = [];
 	posts = [];
 	avatarUrl = null;
+	avatarEmoji = null;
 	bannerUrl = null;
 	try {
 		const treeId = parseTreeId(id);
@@ -124,7 +126,9 @@ async function loadNode(id: string) {
 
 		// Load avatar
 		const header = loaded.data.header;
-		if (header.coverMediaId) {
+		if (header.coverEmoji) {
+			avatarEmoji = header.coverEmoji;
+		} else if (header.coverMediaId) {
 			const media = await mediaRepo.getById(header.coverMediaId);
 			if (media) avatarUrl = getMediaPreviewUrl(media);
 		}
@@ -284,6 +288,10 @@ class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text
 {#if avatarUrl}
 <div class="size-20 shrink-0 rounded-lg overflow-hidden">
 <img src={avatarUrl} alt="" class="w-full h-full object-cover" />
+</div>
+{:else if avatarEmoji}
+<div class="size-20 shrink-0 rounded-lg bg-muted flex items-center justify-center text-4xl">
+{avatarEmoji}
 </div>
 {:else if meta}
 <div class="size-20 shrink-0 flex items-center justify-center rounded-lg bg-muted text-muted-foreground">

@@ -12,6 +12,8 @@ import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 import NodeForm from './NodeForm.svelte';
 import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
 import EmojiPicker from '$lib/components/shared/EmojiPicker.svelte';
+import * as Dialog from '$lib/components/ui/dialog/index.js';
+import Smile from '@lucide/svelte/icons/smile';
 import Plus from '@lucide/svelte/icons/plus';
 import ChevronDown from '@lucide/svelte/icons/chevron-down';
 import ChevronRight from '@lucide/svelte/icons/chevron-right';
@@ -28,8 +30,11 @@ import ArrowUp from '@lucide/svelte/icons/arrow-up';
 import ArrowDown from '@lucide/svelte/icons/arrow-down';
 
 const SECTION_COLORS = [
-'#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316',
-'#eab308', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6'
+'#e74c3c', '#e91e90', '#c0392b', '#ad1457',
+'#f39c12', '#e67e22', '#d4a017', '#ff7043',
+'#2ecc71', '#27ae60', '#0d9488', '#16a085',
+'#3498db', '#2980b9', '#0284c7', '#06b6d4',
+'#8e44ad', '#7c3aed', '#6366f1', '#a855f7'
 ];
 
 interface Props {
@@ -40,7 +45,7 @@ let { treeId }: Props = $props();
 
 // ─── Derived state ───────────────────────────────────────────────
 
-let tree = $derived(creator.trees.find((t) => t.metadata.id === treeId)!);
+let tree = $derived(creator.allTrees.find((t) => t.metadata.id === treeId)!);
 
 /** Root role determines what children this tree can have */
 let rootRole = $derived.by(() => {
@@ -186,7 +191,9 @@ let newSectionTitle = $state('');
 let newSectionColor = $state(SECTION_COLORS[0]);
 let newSectionEmoji = $state('🗂️');
 let newSectionHideTitle = $state(false);
-let showNewSectionEmojiPicker = $state(false);
+
+let emojiDialogTarget = $state<'new' | 'edit' | null>(null);
+let pendingSectionEmoji = $state('');
 
 // Section editing state
 let editingSectionId = $state<string | null>(null);
@@ -194,7 +201,6 @@ let editSectionTitle = $state('');
 let editSectionColor = $state('');
 let editSectionEmoji = $state('🗂️');
 let editSectionHideTitle = $state(false);
-let showEditSectionEmojiPicker = $state(false);
 
 function toggleExpand(nodeId: string) {
 const next = new Set(expandedProfiles);
@@ -203,10 +209,11 @@ else next.add(nodeId);
 expandedProfiles = next;
 }
 
-function getNodeAvatar(node: TreeNode): string | null {
+function getNodeAvatar(node: TreeNode): { type: 'image'; url: string } | { type: 'emoji'; emoji: string } | null {
+if (node.data.header.coverEmoji) return { type: 'emoji', emoji: node.data.header.coverEmoji };
 if (!node.data.header.coverMediaId) return null;
 const media = creator.getMediaById(node.data.header.coverMediaId);
-return media ? getMediaPreviewUrl(media) : null;
+return media ? { type: 'image', url: getMediaPreviewUrl(media) } : null;
 }
 
 // ─── Section CRUD ────────────────────────────────────────────────
@@ -228,7 +235,6 @@ newSectionTitle = '';
 newSectionColor = SECTION_COLORS[(tree.sections.length + 1) % SECTION_COLORS.length];
 newSectionEmoji = '🗂️';
 newSectionHideTitle = false;
-showNewSectionEmojiPicker = false;
 addingSection = false;
 } finally {
 saving = false;
@@ -241,7 +247,6 @@ editSectionTitle = section.title;
 editSectionColor = section.color;
 editSectionEmoji = section.symbol ?? '🗂️';
 editSectionHideTitle = section.hideTitle;
-showEditSectionEmojiPicker = false;
 }
 
 async function handleUpdateSection() {
@@ -258,7 +263,6 @@ symbol: editSectionEmoji,
 hideTitle: editSectionHideTitle
 });
 editingSectionId = null;
-showEditSectionEmojiPicker = false;
 } finally {
 saving = false;
 }
@@ -362,11 +366,15 @@ saving = false;
 {#snippet fontCard(entry: { nodeId: string; node: TreeNode; pathKey?: string })}
 {@const node = entry.node}
 {@const fontBody = node.data.body as FontBody}
-{@const avatarUrl = getNodeAvatar(node)}
+{@const avatar = getNodeAvatar(node)}
 <div class="flex items-center gap-2 px-3 py-2 rounded-md border bg-background text-sm">
-{#if avatarUrl}
+{#if avatar?.type === 'image'}
 <div class="shrink-0 w-7 h-7 rounded overflow-hidden bg-muted">
-<img src={avatarUrl} alt="" class="w-full h-full object-cover" />
+<img src={avatar.url} alt="" class="w-full h-full object-cover" />
+</div>
+{:else if avatar?.type === 'emoji'}
+<div class="shrink-0 w-7 h-7 rounded bg-muted flex items-center justify-center text-base">
+{avatar.emoji}
 </div>
 {:else}
 <div class="shrink-0 w-7 h-7 rounded bg-muted flex items-center justify-center text-muted-foreground">
@@ -424,12 +432,16 @@ oncancel={() => (editingNodeId = null)}
 {@const linkedTitle = getLinkedTreeTitle(node)}
 {@const linkedTree = creator.trees.find((t) => t.metadata.id === linkBody.instanceTreeId)}
 {@const linkedRoot = linkedTree ? domainGetRootNode(linkedTree) : null}
-{@const avatarUrl = getNodeAvatar(node)}
+{@const avatar = getNodeAvatar(node)}
 
 <div class="flex items-center gap-2 px-3 py-2 rounded-md border bg-background text-sm">
-{#if avatarUrl}
+{#if avatar?.type === 'image'}
 <div class="shrink-0 w-7 h-7 rounded overflow-hidden bg-muted">
-<img src={avatarUrl} alt="" class="w-full h-full object-cover" />
+<img src={avatar.url} alt="" class="w-full h-full object-cover" />
+</div>
+{:else if avatar?.type === 'emoji'}
+<div class="shrink-0 w-7 h-7 rounded bg-muted flex items-center justify-center text-base">
+{avatar.emoji}
 </div>
 {:else}
 <div class="shrink-0 w-7 h-7 rounded bg-muted flex items-center justify-center text-muted-foreground">
@@ -519,7 +531,7 @@ oncancel={() => (addFontToPath = null)}
 {@const node = entry.node}
 {@const fonts = fontsForProfile(entry.pathKey)}
 {@const isExpanded = expandedProfiles.has(entry.nodeId)}
-{@const avatarUrl = getNodeAvatar(node)}
+{@const avatar = getNodeAvatar(node)}
 
 <div class="border rounded-lg">
 <div
@@ -534,9 +546,13 @@ onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault()
 {:else}
 <ChevronRight class="size-4 shrink-0 text-muted-foreground" />
 {/if}
-{#if avatarUrl}
+{#if avatar?.type === 'image'}
 <div class="shrink-0 w-8 h-8 rounded-md overflow-hidden bg-muted">
-<img src={avatarUrl} alt="" class="w-full h-full object-cover" />
+<img src={avatar.url} alt="" class="w-full h-full object-cover" />
+</div>
+{:else if avatar?.type === 'emoji'}
+<div class="shrink-0 w-8 h-8 rounded-md bg-muted flex items-center justify-center text-lg">
+{avatar.emoji}
 </div>
 {:else}
 <div class="shrink-0 w-8 h-8 rounded-md bg-muted flex items-center justify-center text-muted-foreground">
@@ -598,9 +614,10 @@ oncancel={() => (editingNodeId = null)}
 
 <!-- ═══ Section editing snippet ═══ -->
 {#snippet sectionEditor(section: TreeSection)}
-<div class="border rounded-lg p-3 space-y-2" style="border-left: 4px solid {section.color};">
+<div class="border rounded-lg p-4 space-y-3" style="border-left: 4px solid {section.color};">
+<p class="text-xs font-medium text-muted-foreground">Editar seção</p>
 <div class="flex items-center gap-2">
-<button type="button" class="text-xl shrink-0 w-8 h-8 flex items-center justify-center rounded hover:bg-accent" onclick={() => (showEditSectionEmojiPicker = !showEditSectionEmojiPicker)}>
+<button type="button" class="text-xl shrink-0 w-8 h-8 flex items-center justify-center rounded hover:bg-accent" title="Escolher ícone" onclick={() => { pendingSectionEmoji = editSectionEmoji; emojiDialogTarget = 'edit'; }}>
 {editSectionEmoji}
 </button>
 <Input class="h-8 text-sm flex-1" maxlength={30} bind:value={editSectionTitle} onkeydown={(e) => { if (e.key === 'Enter') handleUpdateSection(); }} />
@@ -609,20 +626,18 @@ oncancel={() => (editingNodeId = null)}
 <X class="size-4" />
 </button>
 </div>
-<div class="flex items-center gap-2">
-<div class="flex gap-1 shrink-0">
+<div class="space-y-1.5">
+<span class="text-xs text-muted-foreground">Cor</span>
+<div class="flex flex-wrap gap-1.5">
 {#each SECTION_COLORS as c}
-<button type="button" aria-label="Cor {c}" class="w-5 h-5 rounded-full border-2 transition-transform" style="background:{c}; border-color:{editSectionColor === c ? 'white' : c}; {editSectionColor === c ? 'transform:scale(1.2)' : ''}" onclick={() => (editSectionColor = c)}></button>
+<button type="button" aria-label="Cor {c}" class="w-6 h-6 rounded-full transition-all" style="background:{c}; {editSectionColor === c ? 'box-shadow:0 0 0 2px var(--background), 0 0 0 4px ' + c + '; transform:scale(1.15)' : ''}" onclick={() => (editSectionColor = c)}></button>
 {/each}
 </div>
-<label class="flex items-center gap-1.5 ml-auto text-xs text-muted-foreground cursor-pointer select-none">
-<input type="checkbox" class="rounded" bind:checked={editSectionHideTitle} />
-Ocultar título
-</label>
 </div>
-{#if showEditSectionEmojiPicker}
-<EmojiPicker value={editSectionEmoji} onselect={(e) => { editSectionEmoji = e; showEditSectionEmojiPicker = false; }} />
-{/if}
+<label class="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+<input type="checkbox" class="rounded" bind:checked={editSectionHideTitle} />
+Ocultar título na visualização
+</label>
 </div>
 {/snippet}
 
@@ -657,14 +672,15 @@ Profile
 
 <!-- Inline section creation -->
 {#if addingSection}
-<div class="border rounded-lg p-3 bg-muted/20 space-y-2">
+<div class="border rounded-lg p-4 bg-muted/20 space-y-3">
+<p class="text-xs font-medium text-muted-foreground">Nova seção</p>
 <div class="flex items-center gap-2">
-<button type="button" class="text-xl shrink-0 w-8 h-8 flex items-center justify-center rounded hover:bg-accent" onclick={() => (showNewSectionEmojiPicker = !showNewSectionEmojiPicker)}>
+<button type="button" class="text-xl shrink-0 w-8 h-8 flex items-center justify-center rounded hover:bg-accent" title="Escolher ícone" onclick={() => { pendingSectionEmoji = newSectionEmoji; emojiDialogTarget = 'new'; }}>
 {newSectionEmoji}
 </button>
 <Input
 class="h-8 text-sm flex-1"
-placeholder="Nome da seção (max 30)"
+placeholder="Nome da seção"
 maxlength={30}
 bind:value={newSectionTitle}
 onkeydown={(e) => { if (e.key === 'Enter') handleCreateSection(); }}
@@ -676,26 +692,24 @@ Criar
 <X class="size-4" />
 </button>
 </div>
-<div class="flex items-center gap-2">
-<div class="flex gap-1 shrink-0">
+<div class="space-y-1.5">
+<span class="text-xs text-muted-foreground">Cor</span>
+<div class="flex flex-wrap gap-1.5">
 {#each SECTION_COLORS as c}
 <button
 type="button"
 aria-label="Cor {c}"
-class="w-5 h-5 rounded-full border-2 transition-transform"
-style="background:{c}; border-color:{newSectionColor === c ? 'white' : c}; {newSectionColor === c ? 'transform:scale(1.2)' : ''}"
+class="w-6 h-6 rounded-full transition-all"
+style="background:{c}; {newSectionColor === c ? 'box-shadow:0 0 0 2px var(--background), 0 0 0 4px ' + c + '; transform:scale(1.15)' : ''}"
 onclick={() => (newSectionColor = c)}
 ></button>
 {/each}
 </div>
-<label class="flex items-center gap-1.5 ml-auto text-xs text-muted-foreground cursor-pointer select-none">
-<input type="checkbox" class="rounded" bind:checked={newSectionHideTitle} />
-Ocultar título
-</label>
 </div>
-{#if showNewSectionEmojiPicker}
-<EmojiPicker value={newSectionEmoji} onselect={(e) => { newSectionEmoji = e; showNewSectionEmojiPicker = false; }} />
-{/if}
+<label class="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+<input type="checkbox" class="rounded" bind:checked={newSectionHideTitle} />
+Ocultar título na visualização
+</label>
 </div>
 {/if}
 
@@ -878,3 +892,34 @@ else if (deleteConfirm?.type === 'section' && deleteConfirm.sectionId) handleDel
 oncancel={() => (deleteConfirm = null)}
 />
 {/if}
+
+<!-- Section emoji picker dialog -->
+<Dialog.Root open={!!emojiDialogTarget} onOpenChange={(v) => { if (!v) emojiDialogTarget = null; }}>
+<Dialog.Content class="sm:max-w-fit">
+<div class="flex justify-center pt-2 pb-1">
+<div class="flex items-center justify-center size-12 rounded-full bg-primary/10">
+<Smile class="size-6 text-primary" />
+</div>
+</div>
+<Dialog.Header class="text-center">
+<Dialog.Title>Escolher Ícone</Dialog.Title>
+<Dialog.Description>Selecione um emoji para a seção.</Dialog.Description>
+</Dialog.Header>
+<div class="flex flex-col gap-4 py-4">
+<div class="flex items-center justify-center">
+<div class="w-16 h-16 rounded-lg border bg-muted flex items-center justify-center text-4xl">
+{pendingSectionEmoji || '?'}
+</div>
+</div>
+<EmojiPicker value={pendingSectionEmoji} onselect={(e) => (pendingSectionEmoji = e)} />
+</div>
+<Dialog.Footer>
+<Button variant="outline" onclick={() => (emojiDialogTarget = null)}>Cancelar</Button>
+<Button disabled={!pendingSectionEmoji} onclick={() => {
+if (emojiDialogTarget === 'new') newSectionEmoji = pendingSectionEmoji;
+else if (emojiDialogTarget === 'edit') editSectionEmoji = pendingSectionEmoji;
+emojiDialogTarget = null;
+}}>Confirmar</Button>
+</Dialog.Footer>
+</Dialog.Content>
+</Dialog.Root>

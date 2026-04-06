@@ -16,6 +16,10 @@
 	import ProfileBodyForm from './ProfileBodyForm.svelte';
 	import FontBodyForm from './FontBodyForm.svelte';
 	import TreeLinkBodyForm from './TreeLinkBodyForm.svelte';
+	import TagInput from './TagInput.svelte';
+	import CategoryTreePicker from './CategoryTreePicker.svelte';
+	import AvatarPicker from './AvatarPicker.svelte';
+	import MediaUpload from './MediaUpload.svelte';
 
 	interface Props {
 		mode: 'create' | 'edit';
@@ -114,9 +118,6 @@
 	<NodeHeaderForm
 		{header}
 		onchange={(h) => (header = h)}
-		showBanner={isRoot}
-		showTags={isRoot}
-		{inheritedCategories}
 	/>
 
 	{#if body.role === 'creator'}
@@ -141,6 +142,44 @@
 			{availableTrees}
 		/>
 	{/if}
+
+	{#if isRoot}
+		<TagInput
+			tags={header.tags}
+			onchange={(tags) => (header = { ...header, tags })}
+		/>
+	{/if}
+
+	<CategoryTreePicker
+		assignments={header.categoryAssignments}
+		inherited={inheritedCategories}
+		onchange={(categoryAssignments) => (header = { ...header, categoryAssignments })}
+	/>
+
+	<div class="rounded-lg border p-4 space-y-4">
+		<div>
+			<p class="text-sm font-semibold">Imagens</p>
+			<p class="text-xs text-muted-foreground mt-0.5">Escolha imagens que representem esta página.</p>
+		</div>
+
+		<div class="space-y-1.5">
+			<span class="text-sm font-medium">Avatar</span>
+			<AvatarPicker
+				mediaId={header.coverMediaId}
+				emoji={header.coverEmoji}
+				onchange={({ mediaId, emoji }) => (header = { ...header, coverMediaId: mediaId, coverEmoji: emoji })}
+			/>
+		</div>
+
+		{#if isRoot}
+			<MediaUpload
+				slot="banner"
+				label="Banner — capa exibida no topo"
+				mediaId={header.bannerMediaId}
+				onchange={(id) => (header = { ...header, bannerMediaId: id })}
+			/>
+		{/if}
+	</div>
 
 	<div class="flex gap-2 justify-end">
 		{#if oncancel}

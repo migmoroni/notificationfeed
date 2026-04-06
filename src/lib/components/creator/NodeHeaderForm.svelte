@@ -1,30 +1,17 @@
 <script lang="ts">
 	import type { NodeHeader } from '$lib/domain/content-tree/content-tree.js';
-	import type { CategoryAssignment } from '$lib/domain/shared/category-assignment.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
-	import MediaUpload from './MediaUpload.svelte';
-	import TagInput from './TagInput.svelte';
-	import CategoryTreePicker from './CategoryTreePicker.svelte';
 
 	interface Props {
 		header: NodeHeader;
 		onchange: (header: NodeHeader) => void;
-		/** Show banner upload (only for root nodes) */
-		showBanner?: boolean;
-		/** Show tags input (only for root nodes) */
-		showTags?: boolean;
-		/** Inherited category assignments shown dimmed in picker */
-		inheritedCategories?: CategoryAssignment[];
 	}
 
 	let {
 		header,
-		onchange,
-		showBanner = false,
-		showTags = true,
-		inheritedCategories = []
+		onchange
 	}: Props = $props();
 
 	function update(patch: Partial<NodeHeader>) {
@@ -64,36 +51,4 @@
 			rows={3}
 		/>
 	</div>
-
-	{#if showTags}
-	<div class="space-y-2">
-		<Label>Tags</Label>
-		<TagInput
-			tags={header.tags}
-			onchange={(tags) => update({ tags })}
-		/>
-	</div>
-	{/if}
-
-	<MediaUpload
-		slot="avatar"
-		mediaId={header.coverMediaId}
-		onchange={(id) => update({ coverMediaId: id })}
-		label="Avatar"
-	/>
-
-	{#if showBanner}
-		<MediaUpload
-			slot="banner"
-			mediaId={header.bannerMediaId}
-			onchange={(id) => update({ bannerMediaId: id })}
-			label="Banner"
-		/>
-	{/if}
-
-	<CategoryTreePicker
-		assignments={header.categoryAssignments}
-		onchange={(assignments) => update({ categoryAssignments: assignments })}
-		inherited={inheritedCategories}
-	/>
 </div>

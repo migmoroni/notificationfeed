@@ -1,25 +1,34 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { activeUser } from '$lib/stores/active-user.svelte.js';
 	import { creator } from '$lib/stores/creator.svelte.js';
 	import { NodeForm, TreeEditor, PublishButton, ExportButton, CopyFromConsumerDialog } from '$lib/components/creator/index.js';
 	import { getMediaPreviewUrl } from '$lib/services/media.service.js';
 	import { getRootNode as domainGetRootNode } from '$lib/domain/content-tree/content-tree.js';
+	import type { CreatorBody, ProfileBody, ExternalLink } from '$lib/domain/content-tree/content-tree.js';
+	import type { Category } from '$lib/domain/category/category.js';
+	import { createCategoryStore } from '$lib/persistence/category.store.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
-	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
+	import ConfirmDeletePageDialog from '$lib/components/shared/dialog/ConfirmDeletePageDialog.svelte';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Globe from '@lucide/svelte/icons/globe';
 	import PenLine from '@lucide/svelte/icons/pen-line';
+	import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
+	import Tag from '@lucide/svelte/icons/tag';
 
 	let treeId = $derived(page.params.id!);
-	let tree = $derived(creator.trees.find((t) => t.metadata.id === treeId));
+	let tree = $derived(creator.allTrees.find((t) => t.metadata.id === treeId));
 	let rootNode = $derived(treeId ? creator.getRootNode(treeId) : null);
+	let isRemoved = $derived(!!tree?.metadata.removedAt);
 
 	// Author signing
 	let creatorTrees = $derived(creator.getCreatorTrees());
@@ -38,6 +47,27 @@
 	let showDeleteConfirm = $state(false);
 	let showCopyDialog = $state(false);
 
+	// Categories
+	let allCategories = $state<Category[]>([]);
+	const categoryRepo = createCategoryStore();
+	onMount(async () => {
+		allCategories = await categoryRepo.getAll();
+	});
+
+	function getCategoryLabel(catId: string): string {
+		return allCategories.find((c) => c.id === catId)?.label ?? catId;
+	}
+
+	const TREE_LABELS: Record<string, string> = { subject: 'Assunto', content_type: 'Formato', region: 'Região' };
+
+	/** Get external links from body (only creator/profile have them) */
+	let bodyLinks = $derived.by((): ExternalLink[] => {
+		const body = rootNode?.data.body;
+		if (!body) return [];
+		if (body.role === 'creator' || body.role === 'profile') return (body as CreatorBody | ProfileBody).links ?? [];
+		return [];
+	});
+
 	async function handleSave(data: { header: import('$lib/domain/content-tree/content-tree.js').NodeHeader; body: import('$lib/domain/content-tree/content-tree.js').NodeBody }) {
 		if (!rootNode) return;
 		saving = true;
@@ -52,7 +82,14 @@
 
 	async function handleDelete() {
 		if (!treeId) return;
+		showDeleteConfirm = false;
 		await creator.deleteTree(treeId);
+		goto('/pages');
+	}
+
+	async function handleRestore() {
+		if (!treeId) return;
+		await creator.restoreTree(treeId);
 		goto('/pages');
 	}
 </script>
@@ -84,6 +121,10 @@
 					<div class="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-muted">
 						<img src={getMediaPreviewUrl(avatarMedia)} alt="" class="w-full h-full object-cover" />
 					</div>
+				{:else if rootNode?.data.header.coverEmoji}
+					<div class="shrink-0 w-14 h-14 rounded-lg bg-muted flex items-center justify-center text-3xl">
+						{rootNode.data.header.coverEmoji}
+					</div>
 				{:else}
 					<div class="shrink-0 w-14 h-14 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
 						<Globe class="size-7" />
@@ -91,12 +132,6 @@
 				{/if}
 				<div class="flex-1 min-w-0">
 					<h1 class="text-xl font-bold truncate">{rootNode?.data.header.title ?? ''}</h1>
-					{#if rootNode?.data.header.subtitle}
-						<p class="text-sm font-medium mt-0.5">{rootNode.data.header.subtitle}</p>
-					{/if}
-					{#if rootNode?.data.header.summary}
-						<p class="text-sm text-muted-foreground mt-1 line-clamp-2">{rootNode.data.header.summary}</p>
-					{/if}
 				</div>
 			</div>
 			<div class="flex items-center gap-2 shrink-0">
@@ -128,16 +163,88 @@
 					/>
 				</div>
 			{:else}
-				<div class="border rounded-lg p-4 space-y-2">
-					{#if rootNode?.data.header.tags && rootNode.data.header.tags.length > 0}
-						<div class="flex flex-wrap gap-1">
-							{#each rootNode.data.header.tags as tag}
-								<span class="text-xs px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground">{tag}</span>
-							{/each}
+				{@const h = rootNode?.data.header}
+				{@const cats = h?.categoryAssignments ?? []}
+				{@const hasContent = !!(h?.subtitle || h?.summary || (h?.tags && h.tags.length > 0) || cats.length > 0 || bodyLinks.length > 0)}
+
+				<div class="border rounded-lg divide-y">
+					{#if !hasContent}
+						<div class="px-4 py-6 text-center">
+							<p class="text-sm text-muted-foreground italic">Nenhuma informação adicional. Clique em Editar para preencher.</p>
 						</div>
 					{/if}
-					{#if !rootNode?.data.header.summary && !rootNode?.data.header.subtitle && (!rootNode?.data.header.tags || rootNode.data.header.tags.length === 0)}
-						<p class="text-xs text-muted-foreground italic">Nenhuma informação adicional.</p>
+
+					{#if h?.subtitle}
+						<div class="px-4 py-3">
+							<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Subtítulo</span>
+							<p class="text-sm mt-0.5">{h.subtitle}</p>
+						</div>
+					{/if}
+
+					{#if h?.summary}
+						<div class="px-4 py-3">
+							<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Descrição</span>
+							<p class="text-sm mt-0.5 whitespace-pre-line">{h.summary}</p>
+						</div>
+					{/if}
+
+					{#if bodyLinks.length > 0}
+						<div class="px-4 py-3">
+							<div class="flex items-center gap-1.5 mb-1.5">
+								<ExternalLinkIcon class="size-3 text-muted-foreground" />
+								<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Links</span>
+							</div>
+							<div class="space-y-1.5">
+								{#each bodyLinks as link}
+									<div class="flex items-start gap-2 text-sm">
+										<ExternalLinkIcon class="size-3 shrink-0 mt-1 text-muted-foreground" />
+										<div class="min-w-0">
+											{#if link.title}
+												<span class="font-medium">{link.title}</span>
+											{/if}
+											<a
+												href={link.url}
+												target="_blank"
+												rel="noopener noreferrer"
+												class="block text-xs text-primary hover:underline truncate"
+											>{link.url}</a>
+										</div>
+									</div>
+								{/each}
+							</div>
+						</div>
+					{/if}
+
+					{#if h?.tags && h.tags.length > 0}
+						<div class="px-4 py-3">
+							<div class="flex items-center gap-1.5 mb-1.5">
+								<Tag class="size-3 text-muted-foreground" />
+								<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tags</span>
+							</div>
+							<div class="flex flex-wrap gap-1.5">
+								{#each h.tags as tag}
+									<Badge variant="secondary" class="text-xs">{tag}</Badge>
+								{/each}
+							</div>
+						</div>
+					{/if}
+
+					{#if cats.length > 0}
+						<div class="px-4 py-3">
+							<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Categorias</span>
+							<div class="mt-1.5 space-y-1.5">
+								{#each cats as assignment}
+									<div>
+										<span class="text-[11px] text-muted-foreground">{TREE_LABELS[assignment.treeId] ?? assignment.treeId}:</span>
+										<div class="flex flex-wrap gap-1 mt-0.5">
+											{#each assignment.categoryIds as catId}
+												<Badge variant="outline" class="text-xs">{getCategoryLabel(catId)}</Badge>
+											{/each}
+										</div>
+									</div>
+								{/each}
+							</div>
+						</div>
 					{/if}
 				</div>
 			{/if}
@@ -193,24 +300,33 @@
 				Copiar do Consumer
 			</Button>
 
-			<Button
-				variant="ghost"
-				size="sm"
-				class="text-destructive hover:text-destructive"
-				onclick={() => (showDeleteConfirm = true)}
-			>
-				<Trash2 class="size-4 mr-1" />
-				Excluir Page
-			</Button>
+			{#if isRemoved}
+				<Button
+					variant="default"
+					size="sm"
+					onclick={handleRestore}
+				>
+					<ArchiveRestore class="size-4 mr-1" />
+					Restaurar Page
+				</Button>
+			{:else}
+				<Button
+					variant="ghost"
+					size="sm"
+					class="text-destructive hover:text-destructive"
+					onclick={() => (showDeleteConfirm = true)}
+				>
+					<Trash2 class="size-4 mr-1" />
+					Excluir Page
+				</Button>
+			{/if}
 		</div>
 
 		<!-- Dialogs -->
 		{#if showDeleteConfirm}
-			<ConfirmDialog
+			<ConfirmDeletePageDialog
 				open={showDeleteConfirm}
-				title="Excluir página?"
-				description="Tem certeza que deseja excluir &quot;{rootNode?.data.header.title ?? ''}&quot;? Todos os profiles e fonts desta página também serão excluídos."
-				confirmLabel="Excluir"
+				pageTitle={rootNode?.data.header.title ?? ''}
 				onconfirm={handleDelete}
 				oncancel={() => (showDeleteConfirm = false)}
 			/>

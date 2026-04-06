@@ -27,6 +27,7 @@ export interface PageEntry {
 	treeId: string;
 	title: string;
 	coverMediaId: string | null;
+	coverEmoji: string | null;
 	/** Root node role (creator, profile, or collection) */
 	pageType: PageType;
 	/** Number of font nodes in this tree */

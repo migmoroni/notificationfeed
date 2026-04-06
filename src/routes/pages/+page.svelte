@@ -13,12 +13,17 @@
 	import Users from '@lucide/svelte/icons/users';
 	import Newspaper from '@lucide/svelte/icons/newspaper';
 	import Library from '@lucide/svelte/icons/library';
+	import Archive from '@lucide/svelte/icons/archive';
+	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
 
 	const roleMeta: Record<string, { label: string; icon: typeof Users }> = {
 		creator: { label: 'Creator', icon: Users },
 		profile: { label: 'Profile', icon: Newspaper },
 		collection: { label: 'Collection', icon: Library },
 	};
+
+	let showRemoved = $state(false);
+	let displayTrees = $derived(showRemoved ? creator.removedTrees : creator.trees);
 </script>
 
 <svelte:head>
@@ -30,10 +35,20 @@
 		<h1 class="text-xl font-bold">Pages</h1>
 
 		{#if activeUser.isCreator}
-			<Button href="/pages/new">
-				<Plus class="size-4 mr-1" />
-				Nova Page
-			</Button>
+			<div class="flex items-center gap-2">
+				{#if creator.removedTrees.length > 0}
+					<Button variant={showRemoved ? 'secondary' : 'ghost'} size="sm" onclick={() => (showRemoved = !showRemoved)}>
+						<Archive class="size-4 mr-1" />
+						Removidas ({creator.removedTrees.length})
+					</Button>
+				{/if}
+				{#if !showRemoved}
+					<Button href="/pages/new">
+						<Plus class="size-4 mr-1" />
+						Nova Page
+					</Button>
+				{/if}
+			</div>
 		{/if}
 	</div>
 
@@ -47,7 +62,17 @@
 				Trocar de usuário →
 			</a>
 		</div>
-	{:else if creator.trees.length === 0}
+	{:else if displayTrees.length === 0 && showRemoved}
+		<div class="py-12 text-center">
+			<Archive class="size-12 mx-auto text-muted-foreground mb-3" />
+			<p class="text-sm text-muted-foreground mb-2">
+				Nenhuma página removida.
+			</p>
+			<Button variant="outline" onclick={() => (showRemoved = false)}>
+				Ver páginas ativas
+			</Button>
+		</div>
+	{:else if displayTrees.length === 0}
 		<div class="py-12 text-center">
 			<FileStack class="size-12 mx-auto text-muted-foreground mb-3" />
 			<p class="text-sm text-muted-foreground mb-2">
@@ -60,7 +85,7 @@
 		</div>
 	{:else}
 		<div class="grid gap-4 {layout.isExpanded ? 'grid-cols-2' : 'grid-cols-1'}">
-			{#each creator.trees as tree (tree.metadata.id)}
+			{#each displayTrees as tree (tree.metadata.id)}
 				{@const rootNode = creator.getRootNode(tree.metadata.id)}
 				{@const profileCount = creator.getProfileCount(tree.metadata.id)}
 				{@const bannerMediaId = rootNode?.data.header.bannerMediaId}
@@ -88,6 +113,10 @@
 											class="w-full h-full object-cover"
 										/>
 									</div>
+								{:else if rootNode?.data.header.coverEmoji}
+									<div class="size-10 rounded-lg bg-muted flex items-center justify-center shrink-0 text-xl">
+										{rootNode.data.header.coverEmoji}
+									</div>
 								{:else}
 									<div class="size-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
 										<FileStack class="size-5 text-muted-foreground" />
@@ -113,6 +142,12 @@
 								<RoleIcon class="size-3" />
 								{meta.label}
 							</Badge>
+							{#if tree.metadata.removedAt}
+								<Badge variant="destructive" class="gap-1 text-xs">
+									<Archive class="size-3" />
+									Removida em {tree.metadata.removedAt}
+								</Badge>
+							{/if}
 							{#if rootNode?.role === 'creator'}
 								<span class="text-xs text-muted-foreground">
 									{profileCount} profile{profileCount !== 1 ? 's' : ''}
