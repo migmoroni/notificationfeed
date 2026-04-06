@@ -154,10 +154,9 @@ selectedFontIds = nextFonts;
 },
 
 togglePageType(type: PageType): void {
-const allActive = pageTypeFilter.size === ALL_PAGE_TYPES.length;
 const onlyThis = pageTypeFilter.size === 1 && pageTypeFilter.has(type);
-if (onlyThis || (!allActive && !pageTypeFilter.has(type))) {
-// Clicking the already-focused one, or clicking the "third" unselected one → show all
+if (onlyThis) {
+// Clicking the already-focused one → show all
 this.setPageTypeFilter(new Set(ALL_PAGE_TYPES));
 } else {
 // Focus on just this one

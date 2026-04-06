@@ -10,6 +10,7 @@
 	import { feed } from '$lib/stores/feed.svelte.js';
 	import { hasMockData, seedMockData } from '$lib/utils/mock-data.js';
 	import { seedCategories } from '$lib/persistence/category-seed.service.js';
+	import { sidebarSlot } from '$lib/stores/sidebar-slot.svelte.js';
 	import Newspaper from '@lucide/svelte/icons/newspaper';
 	import Search from '@lucide/svelte/icons/search';
 	import Star from '@lucide/svelte/icons/star';
@@ -94,7 +95,7 @@
 	{#if layout.isExpanded}
 		<!-- EXPANDED: fixed sidebar + scrollable main content -->
 		<aside
-			class="flex flex-col w-64 shrink-0 border-r border-border bg-sidebar text-sidebar-foreground"
+			class="flex flex-col w-[295px] shrink-0 border-r border-border bg-sidebar text-sidebar-foreground"
 		>
 			<div class="p-4 border-b border-sidebar-border">
 				<span class="text-lg font-bold tracking-tight">Notfeed</span>
@@ -112,6 +113,12 @@
 					</a>
 				{/each}
 			</nav>
+
+			{#if sidebarSlot.snippet}
+				<div class="flex-1 min-h-0 min-w-0 overflow-hidden border-t border-sidebar-border">
+					{@render sidebarSlot.snippet()}
+				</div>
+			{/if}
 		</aside>
 
 		<main class="flex-1 overflow-y-auto">

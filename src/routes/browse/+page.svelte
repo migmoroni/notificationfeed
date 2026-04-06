@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { browse } from '$lib/stores/browse.svelte.js';
 	import { browseEntityFilter } from '$lib/stores/browse-entity-filter.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
+	import { sidebarSlot } from '$lib/stores/sidebar-slot.svelte.js';
 	import EntityList from '$lib/components/shared/entity/EntityList.svelte';
 	import { SearchBar } from '$lib/components/browse/index.js';
 	import FilterSidebar from '$lib/components/shared/FilterSidebar.svelte';
@@ -50,14 +51,25 @@
 			browse.loadCategories();
 		}
 		browseEntityFilter.loadNodes();
+		sidebarSlot.set(sidebarContent);
+	});
+
+	onDestroy(() => {
+		sidebarSlot.set(null);
 	});
 </script>
+
+{#snippet sidebarContent()}
+	<div class="h-full overflow-hidden">
+		<FilterSidebar entityStore={browseEntityFilter} categoryStore={browse} />
+	</div>
+{/snippet}
 
 <svelte:head>
 	<title>Notfeed — Browse</title>
 </svelte:head>
 
-<div class="mx-auto w-full h-full flex flex-col overflow-hidden py-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded} class:px-4={!layout.isExpanded} class:pl-4={layout.isExpanded}>
+<div class="mx-auto w-full h-full flex flex-col overflow-hidden py-4 px-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
 	<!-- Header -->
 	<div class="mb-4 flex items-center justify-between pr-24">
 		<h1 class="text-xl font-bold">Browse</h1>
@@ -120,11 +132,13 @@
 		</div>
 	{/if}
 
-	<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? 'lg:grid-cols-[295px_1fr]' : 'md:grid-cols-[265px_1fr]'}">
-		<!-- Sidebar -->
-		<aside class="overflow-y-auto">
+	<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? '' : 'md:grid-cols-[265px_1fr]'}">
+		{#if !layout.isExpanded}
+		<!-- Sidebar only in compact mode (inline) -->
+		<aside class="overflow-hidden h-full relative">
 			<FilterSidebar entityStore={browseEntityFilter} categoryStore={browse} />
 		</aside>
+		{/if}
 
 		<!-- Main: filtered results -->
 		<div class="overflow-y-auto pr-24">

@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { favorites } from '$lib/stores/favorites.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
+	import { sidebarSlot } from '$lib/stores/sidebar-slot.svelte.js';
 	import {
 		TabSidebar,
 		SelectionBar,
@@ -15,6 +16,11 @@
 
 	onMount(() => {
 		favorites.loadFavorites();
+		sidebarSlot.set(sidebarContent);
+	});
+
+	onDestroy(() => {
+		sidebarSlot.set(null);
 	});
 
 	async function handleConfirmRemove() {
@@ -24,20 +30,27 @@
 	}
 </script>
 
+{#snippet sidebarContent()}
+	<div class="overflow-y-auto h-full p-3">
+		<TabSidebar />
+	</div>
+{/snippet}
+
 <svelte:head>
 	<title>Notfeed — Favorites</title>
 </svelte:head>
 
-<div class="mx-auto w-full h-full flex flex-col overflow-hidden py-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded} class:px-4={!layout.isExpanded} class:pl-4={layout.isExpanded}>
+<div class="mx-auto w-full h-full flex flex-col overflow-hidden py-4 px-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
 	<div class="mb-4">
 		<h1 class="text-xl font-bold mb-3">Favoritos</h1>
 	</div>
 
-	<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? 'lg:grid-cols-[295px_1fr]' : ''}">
-		<!-- Sidebar / Horizontal tabs -->
+	<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? '' : 'lg:grid-cols-[295px_1fr]'}">
+		{#if !layout.isExpanded}
 		<aside class="overflow-y-auto gap-4">
 			<TabSidebar />
 		</aside>
+		{/if}
 
 		<!-- Main: filtered items -->
 		<div class="overflow-y-auto pr-24 pb-24 pt-4 {favorites.isSelecting ? 'pb-20' : ''}">

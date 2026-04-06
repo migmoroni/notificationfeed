@@ -17,9 +17,13 @@
 	let { entityStore, categoryStore }: Props = $props();
 </script>
 
-<div class="flex flex-col gap-4">
-	<EntityTreeFilter store={entityStore} />
-	<div class="border-t border-border pt-4">
+<div class="flex flex-col h-full min-w-0 overflow-hidden">
+	<!-- Pages: scrollable area -->
+	<div class="flex-1 min-h-0 overflow-y-auto py-2">
+		<EntityTreeFilter store={entityStore} />
+	</div>
+	<!-- Categories: fixed at the bottom -->
+	<div class="border-t border-border py-2 shrink-0">
 		<TreeSelector store={categoryStore} />
 	</div>
 </div>

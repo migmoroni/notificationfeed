@@ -1,6 +1,7 @@
 <script lang="ts">
-import { onMount } from 'svelte';
+import { onMount, onDestroy } from 'svelte';
 import { layout } from '$lib/stores/layout.svelte.js';
+import { sidebarSlot } from '$lib/stores/sidebar-slot.svelte.js';
 import { activeUser } from '$lib/stores/active-user.svelte.js';
 import { creator } from '$lib/stores/creator.svelte.js';
 import { previewFeed } from '$lib/stores/preview-feed.svelte.js';
@@ -40,6 +41,11 @@ if (trees.length > 0) {
 await previewFeed.loadPreviewFeed(trees);
 }
 loading = false;
+	sidebarSlot.set(sidebarContent);
+});
+
+onDestroy(() => {
+	sidebarSlot.set(null);
 });
 
 // Group nodes by role
@@ -49,15 +55,13 @@ let fontNodes = $derived(allNodes.filter((n) => n.role === 'font'));
 
 // Apply entity filter
 let filteredNodes = $derived.by(() => {
-if (!previewEntityFilter.hasFilters) return allNodes;
-const allowedFonts = previewEntityFilter.getAllowedFontNodeIds();
-// When filtering, show only font nodes that match, plus their ancestors
-if (allowedFonts.size === 0) return allNodes;
-return allNodes.filter((n) => {
-if (n.role === 'font') return allowedFonts.has(n.metadata.id);
-// Show all creators and profiles (filter narrows fonts)
-return true;
-});
+	if (!previewEntityFilter.hasFilters) return allNodes;
+	const allowedFonts = previewEntityFilter.getAllowedFontNodeIds();
+	if (allowedFonts.size === 0) return allNodes;
+	return allNodes.filter((n) => {
+		if (n.role === 'font') return allowedFonts.has(n.metadata.id);
+		return true;
+	});
 });
 
 let filteredCreators = $derived(filteredNodes.filter((n) => n.role === 'creator'));
@@ -68,12 +72,16 @@ function nodeHref(node: TreeNode): string {
 return `/preview/node/${node.metadata.id}`;
 }
 </script>
-
+{#snippet sidebarContent()}
+	<div class="overflow-y-auto h-full p-3">
+		<EntityTreeFilter store={previewEntityFilter} />
+	</div>
+{/snippet}
 <svelte:head>
 <title>Notfeed — Preview</title>
 </svelte:head>
 
-<div class="mx-auto w-full h-full flex flex-col overflow-hidden py-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded} class:px-4={!layout.isExpanded} class:pl-4={layout.isExpanded}>
+<div class="mx-auto w-full h-full flex flex-col overflow-hidden py-4 px-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
 <div class="mb-4">
 <h1 class="text-xl font-bold">Preview</h1>
 </div>
@@ -99,11 +107,13 @@ Ir para Pages →
 </a>
 </div>
 {:else}
-<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? 'lg:grid-cols-[295px_1fr]' : 'md:grid-cols-[265px_1fr]'}">
-<!-- Sidebar -->
+<div class="flex-1 min-h-0 overflow-hidden {layout.isExpanded ? '' : 'grid gap-12 md:grid-cols-[265px_1fr]'}">
+{#if !layout.isExpanded}
+<!-- Sidebar only in compact mode (inline) -->
 <aside class="overflow-y-auto">
 <EntityTreeFilter store={previewEntityFilter} />
 </aside>
+{/if}
 
 <!-- Main content -->
 <div class="overflow-y-auto pr-24 pb-24">

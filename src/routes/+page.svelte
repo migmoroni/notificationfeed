@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { feed } from '$lib/stores/feed.svelte.js';
 	import { feedCategories } from '$lib/stores/feed-categories.svelte.js';
 	import { feedEntityFilter } from '$lib/stores/feed-entity-filter.svelte.js';
 	import { feedMacros } from '$lib/stores/feed-macros.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
+	import { sidebarSlot } from '$lib/stores/sidebar-slot.svelte.js';
 	import FeedList from '$lib/components/feed/FeedList.svelte';
 	import { PriorityFilter } from '$lib/components/feed/index.js';
 	import FeedMacros from '$lib/components/feed/FeedMacros.svelte';
@@ -113,6 +114,11 @@
 		feedCategories.loadCategories();
 		feedEntityFilter.loadNodes();
 		await feedMacros.init();
+		sidebarSlot.set(sidebarContent);
+	});
+
+	onDestroy(() => {
+		sidebarSlot.set(null);
 	});
 
 	$effect(() => {
@@ -138,11 +144,136 @@
 	}
 </script>
 
+{#snippet sidebarContent()}
+	<div class="flex flex-col h-full min-h-0 overflow-hidden">
+		<!-- Tab headers -->
+		<div class="flex border-b border-border shrink-0">
+			<button
+				onclick={() => activeTab = 'saved'}
+				class="flex-1 px-3 py-2 text-sm font-medium transition-colors text-center
+					{activeTab === 'saved'
+					? 'border-b-2 border-primary text-foreground'
+					: 'text-muted-foreground hover:text-foreground'}"
+			>
+				Filtros Salvos
+			</button>
+			<button
+				onclick={() => activeTab = 'advanced'}
+				class="flex-1 px-3 py-2 text-sm font-medium transition-colors text-center
+					{activeTab === 'advanced'
+					? 'border-b-2 border-primary text-foreground'
+					: 'text-muted-foreground hover:text-foreground'}"
+			>
+				Filtros Avançados
+			</button>
+		</div>
+
+		<!-- Action bar -->
+		<div class="shrink-0 px-2 py-2">
+			{#if isEditing && hasEditChanges}
+				<div class="flex items-center gap-1.5">
+					<button
+						onclick={saveEdit}
+						class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-primary-foreground bg-primary hover:bg-primary/90 transition-colors"
+					>
+						<Check class="size-3.5" />
+						Salvar
+					</button>
+					<button
+						onclick={cancelEdit}
+						class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent transition-colors border border-border"
+					>
+						Cancelar
+					</button>
+				</div>
+			{:else if isEditing}
+				<div class="flex items-center gap-1.5">
+					<span class="flex-1 text-xs text-muted-foreground px-1">Editando filtros...</span>
+					<button
+						onclick={cancelEdit}
+						class="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent transition-colors border border-border"
+					>
+						Cancelar
+					</button>
+				</div>
+			{:else if activeMacro}
+				<div class="flex items-center gap-1.5">
+					<button
+						onclick={startEditing}
+						class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors border border-border"
+					>
+						<Pencil class="size-3.5" />
+						Editar
+					</button>
+					<button
+						onclick={requestDelete}
+						class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors border border-destructive/30"
+					>
+						<Trash2 class="size-3.5" />
+						Excluir
+					</button>
+				</div>
+			{:else if hasAdvancedFilters && !feedMacros.isCurrentStateSaved}
+				{#if isSaving}
+					<div class="flex items-center gap-1">
+						<input
+							type="text"
+							bind:value={newMacroName}
+							placeholder="Nome do feed..."
+							class="flex-1 h-7 rounded-md border border-input bg-background px-2 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+							onkeydown={(e) => e.key === 'Enter' && handleSaveMacro()}
+							autofocus
+						/>
+						<button
+							onclick={handleSaveMacro}
+							disabled={!newMacroName.trim()}
+							class="p-1.5 text-primary hover:bg-accent rounded-md disabled:opacity-50"
+						>
+							<Check class="size-3.5" />
+						</button>
+						<button
+							onclick={() => { isSaving = false; newMacroName = ''; }}
+							class="p-1.5 text-muted-foreground hover:bg-accent rounded-md"
+						>
+							<X class="size-3.5" />
+						</button>
+					</div>
+				{:else}
+					<button
+						onclick={() => isSaving = true}
+						class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors border border-dashed border-primary/30"
+					>
+						<Plus class="size-3.5" />
+						Salvar filtro atual
+					</button>
+				{/if}
+			{:else}
+				<button
+					onclick={() => activeTab = 'advanced'}
+					class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors border border-dashed border-border"
+				>
+					<Plus class="size-3.5" />
+					Criar filtro
+				</button>
+			{/if}
+		</div>
+
+		<!-- Tab content (scrollable) -->
+		<div class="flex-1 min-h-0 overflow-hidden px-1 py-2">
+			{#if activeTab === 'saved'}
+				<FeedMacros />
+			{:else}
+				<FilterSidebar entityStore={feedEntityFilter} categoryStore={feedCategories} />
+			{/if}
+		</div>
+	</div>
+{/snippet}
+
 <svelte:head>
 	<title>Notfeed — Feed</title>
 </svelte:head>
 
-<div class="mx-auto w-full h-full flex flex-col overflow-hidden pt-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded} class:px-4={!layout.isExpanded} class:pl-4={layout.isExpanded}>
+<div class="mx-auto w-full h-full flex flex-col overflow-hidden pt-4 px-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
 	<!-- Header -->
 	<div class="flex items-center justify-between mb-4 gap-3 pr-24">
 		<div class="flex items-center gap-3 min-w-0">
@@ -213,140 +344,9 @@
 		{/if}
 	</div>
 
-	<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? 'lg:grid-cols-[295px_1fr]' : ''}">
-		<!-- Sidebar: entity tree + category trees (only in expanded layout) -->
-		{#if layout.isExpanded}
-			<aside class="flex flex-col min-h-0 overflow-hidden">
-				<!-- Tab headers -->
-				<div class="flex border-b border-border shrink-0">
-					<button
-						onclick={() => activeTab = 'saved'}
-						class="flex-1 px-3 py-2 text-sm font-medium transition-colors text-center
-							{activeTab === 'saved'
-							? 'border-b-2 border-primary text-foreground'
-							: 'text-muted-foreground hover:text-foreground'}"
-					>
-						Filtros Salvos
-					</button>
-					<button
-						onclick={() => activeTab = 'advanced'}
-						class="flex-1 px-3 py-2 text-sm font-medium transition-colors text-center
-							{activeTab === 'advanced'
-							? 'border-b-2 border-primary text-foreground'
-							: 'text-muted-foreground hover:text-foreground'}"
-					>
-						Filtros Avançados
-					</button>
-				</div>
-
-				<!-- Action bar (between tabs and content) -->
-				<div class="shrink-0 px-2 py-2">
-					{#if isEditing && hasEditChanges}
-						<!-- Editing mode: filters changed → Salvar / Cancelar -->
-						<div class="flex items-center gap-1.5">
-							<button
-								onclick={saveEdit}
-								class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-primary-foreground bg-primary hover:bg-primary/90 transition-colors"
-							>
-								<Check class="size-3.5" />
-								Salvar
-							</button>
-							<button
-								onclick={cancelEdit}
-								class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent transition-colors border border-border"
-							>
-								Cancelar
-							</button>
-						</div>
-					{:else if isEditing}
-						<!-- Editing mode: no changes yet → hint -->
-						<div class="flex items-center gap-1.5">
-							<span class="flex-1 text-xs text-muted-foreground px-1">Editando filtros...</span>
-							<button
-								onclick={cancelEdit}
-								class="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent transition-colors border border-border"
-							>
-								Cancelar
-							</button>
-						</div>
-					{:else if activeMacro}
-						<!-- Active saved macro → Editar / Excluir -->
-						<div class="flex items-center gap-1.5">
-							<button
-								onclick={startEditing}
-								class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors border border-border"
-							>
-								<Pencil class="size-3.5" />
-								Editar
-							</button>
-							<button
-								onclick={requestDelete}
-								class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors border border-destructive/30"
-							>
-								<Trash2 class="size-3.5" />
-								Excluir
-							</button>
-						</div>
-					{:else if hasAdvancedFilters && !feedMacros.isCurrentStateSaved}
-						<!-- Unsaved filters → Salvar filtro atual -->
-						{#if isSaving}
-							<div class="flex items-center gap-1">
-								<input
-									type="text"
-									bind:value={newMacroName}
-									placeholder="Nome do feed..."
-									class="flex-1 h-7 rounded-md border border-input bg-background px-2 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-									onkeydown={(e) => e.key === 'Enter' && handleSaveMacro()}
-									autofocus
-								/>
-								<button
-									onclick={handleSaveMacro}
-									disabled={!newMacroName.trim()}
-									class="p-1.5 text-primary hover:bg-accent rounded-md disabled:opacity-50"
-								>
-									<Check class="size-3.5" />
-								</button>
-								<button
-									onclick={() => { isSaving = false; newMacroName = ''; }}
-									class="p-1.5 text-muted-foreground hover:bg-accent rounded-md"
-								>
-									<X class="size-3.5" />
-								</button>
-							</div>
-						{:else}
-							<button
-								onclick={() => isSaving = true}
-								class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors border border-dashed border-primary/30"
-							>
-								<Plus class="size-3.5" />
-								Salvar filtro atual
-							</button>
-						{/if}
-					{:else}
-						<!-- No active macro, no filters → hint to create one -->
-						<button
-							onclick={() => activeTab = 'advanced'}
-							class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors border border-dashed border-border"
-						>
-							<Plus class="size-3.5" />
-							Criar filtro
-						</button>
-					{/if}
-				</div>
-
-				<!-- Tab content (scrollable) -->
-				<div class="flex-1 min-h-0 overflow-y-auto px-1 py-2">
-					{#if activeTab === 'saved'}
-						<FeedMacros />
-					{:else}
-						<FilterSidebar entityStore={feedEntityFilter} categoryStore={feedCategories} />
-					{/if}
-				</div>
-			</aside>
-		{/if}
-
+	<div class="flex-1 min-h-0 overflow-hidden">
 		<!-- Feed list -->
-		<div class="overflow-y-auto pr-24 pb-24 pt-4">
+		<div class="overflow-y-auto h-full pr-24 pb-24 pt-4">
 			<FeedList {filter} subjectIds={selectedSubjects} contentTypeIds={selectedContentTypes} regionIds={selectedRegions} nodeIds={allowedNodeIds} />
 		</div>
 	</div>
