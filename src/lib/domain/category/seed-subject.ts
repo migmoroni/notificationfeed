@@ -1,0 +1,227 @@
+/**
+ * Subject Seed — IPTC NewsCodes Media Topics taxonomy.
+ *
+ * 17 top-level topics with standard subtopics.
+ * Reference: https://cv.iptc.org/newscodes/mediatopic/
+ */
+
+import type { SeedCategory } from './category-seed.js';
+
+export const subjectSeed: SeedCategory[] = [
+	// 01 — Arts, culture, entertainment and media
+	{ id: 'subj-arts',                label: 'Arts, Culture & Media',      treeId: 'subject', parentId: null,          depth: 0, order: 0,  isSystem: true },
+	{ id: 'subj-arts-visual',         label: 'Visual Arts',                treeId: 'subject', parentId: 'subj-arts',   depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-arts-music',          label: 'Music',                      treeId: 'subject', parentId: 'subj-arts',   depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-arts-cinema',         label: 'Cinema',                     treeId: 'subject', parentId: 'subj-arts',   depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-arts-theatre',        label: 'Theatre & Dance',            treeId: 'subject', parentId: 'subj-arts',   depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-arts-literature',     label: 'Literature',                 treeId: 'subject', parentId: 'subj-arts',   depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-arts-architecture',   label: 'Architecture',               treeId: 'subject', parentId: 'subj-arts',   depth: 1, order: 5,  isSystem: true },
+	{ id: 'subj-arts-fashion',        label: 'Fashion',                    treeId: 'subject', parentId: 'subj-arts',   depth: 1, order: 6,  isSystem: true },
+	{ id: 'subj-arts-photography',    label: 'Photography',                treeId: 'subject', parentId: 'subj-arts',   depth: 1, order: 7,  isSystem: true },
+	{ id: 'subj-arts-museum',         label: 'Library & Museum',           treeId: 'subject', parentId: 'subj-arts',   depth: 1, order: 8,  isSystem: true },
+	{ id: 'subj-arts-tv',             label: 'Television & Radio',         treeId: 'subject', parentId: 'subj-arts',   depth: 1, order: 9,  isSystem: true },
+	{ id: 'subj-arts-digital',        label: 'Digital Media',              treeId: 'subject', parentId: 'subj-arts',   depth: 1, order: 10, isSystem: true },
+	{ id: 'subj-arts-gaming',         label: 'Gaming',                     treeId: 'subject', parentId: 'subj-arts',   depth: 1, order: 11, isSystem: true },
+	{ id: 'subj-arts-heritage',       label: 'Cultural Heritage',          treeId: 'subject', parentId: 'subj-arts',   depth: 1, order: 12, isSystem: true },
+	{ id: 'subj-arts-festivals',      label: 'Festivals',                  treeId: 'subject', parentId: 'subj-arts',   depth: 1, order: 13, isSystem: true },
+
+	// 02 — Conflict, war and peace
+	{ id: 'subj-conflict',            label: 'Conflict, War & Peace',      treeId: 'subject', parentId: null,              depth: 0, order: 1,  isSystem: true },
+	{ id: 'subj-conflict-armed',      label: 'Armed Conflict',             treeId: 'subject', parentId: 'subj-conflict',   depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-conflict-civil',      label: 'Civil Unrest',               treeId: 'subject', parentId: 'subj-conflict',   depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-conflict-terrorism',  label: 'Terrorism',                  treeId: 'subject', parentId: 'subj-conflict',   depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-conflict-peace',      label: 'Peacekeeping',               treeId: 'subject', parentId: 'subj-conflict',   depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-conflict-warcrimes',  label: 'War Crimes',                 treeId: 'subject', parentId: 'subj-conflict',   depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-conflict-guerrilla',  label: 'Guerrilla Activity',         treeId: 'subject', parentId: 'subj-conflict',   depth: 1, order: 5,  isSystem: true },
+	{ id: 'subj-conflict-refugees',   label: 'Refugees & Displaced',       treeId: 'subject', parentId: 'subj-conflict',   depth: 1, order: 6,  isSystem: true },
+	{ id: 'subj-conflict-ceasefire',  label: 'Ceasefire & Peace Process',  treeId: 'subject', parentId: 'subj-conflict',   depth: 1, order: 7,  isSystem: true },
+	{ id: 'subj-conflict-military',   label: 'Military',                   treeId: 'subject', parentId: 'subj-conflict',   depth: 1, order: 8,  isSystem: true },
+
+	// 03 — Crime, law and justice
+	{ id: 'subj-crime',               label: 'Crime, Law & Justice',       treeId: 'subject', parentId: null,            depth: 0, order: 2,  isSystem: true },
+	{ id: 'subj-crime-crime',         label: 'Crime',                      treeId: 'subject', parentId: 'subj-crime',    depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-crime-organized',     label: 'Organized Crime',            treeId: 'subject', parentId: 'subj-crime',    depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-crime-judiciary',     label: 'Judiciary',                  treeId: 'subject', parentId: 'subj-crime',    depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-crime-police',        label: 'Police',                     treeId: 'subject', parentId: 'subj-crime',    depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-crime-legislation',   label: 'Legislation',                treeId: 'subject', parentId: 'subj-crime',    depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-crime-cyber',         label: 'Cybercrime',                 treeId: 'subject', parentId: 'subj-crime',    depth: 1, order: 5,  isSystem: true },
+	{ id: 'subj-crime-drugs',         label: 'Drug Trafficking',           treeId: 'subject', parentId: 'subj-crime',    depth: 1, order: 6,  isSystem: true },
+	{ id: 'subj-crime-fraud',         label: 'Fraud & Corruption',         treeId: 'subject', parentId: 'subj-crime',    depth: 1, order: 7,  isSystem: true },
+	{ id: 'subj-crime-prison',        label: 'Prison',                     treeId: 'subject', parentId: 'subj-crime',    depth: 1, order: 8,  isSystem: true },
+	{ id: 'subj-crime-rights',        label: 'Human Rights',               treeId: 'subject', parentId: 'subj-crime',    depth: 1, order: 9,  isSystem: true },
+
+	// 04 — Disaster, accident and emergency incident
+	{ id: 'subj-disaster',            label: 'Disaster & Emergency',       treeId: 'subject', parentId: null,               depth: 0, order: 3,  isSystem: true },
+	{ id: 'subj-disaster-natural',    label: 'Natural Disaster',           treeId: 'subject', parentId: 'subj-disaster',    depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-disaster-earthquake', label: 'Earthquake',                 treeId: 'subject', parentId: 'subj-disaster',    depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-disaster-flood',      label: 'Flood',                      treeId: 'subject', parentId: 'subj-disaster',    depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-disaster-fire',       label: 'Fire',                       treeId: 'subject', parentId: 'subj-disaster',    depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-disaster-volcano',    label: 'Volcanic Eruption',          treeId: 'subject', parentId: 'subj-disaster',    depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-disaster-drought',    label: 'Drought',                    treeId: 'subject', parentId: 'subj-disaster',    depth: 1, order: 5,  isSystem: true },
+	{ id: 'subj-disaster-industrial', label: 'Industrial Accident',        treeId: 'subject', parentId: 'subj-disaster',    depth: 1, order: 6,  isSystem: true },
+	{ id: 'subj-disaster-transport',  label: 'Transport Accident',         treeId: 'subject', parentId: 'subj-disaster',    depth: 1, order: 7,  isSystem: true },
+	{ id: 'subj-disaster-famine',     label: 'Famine',                     treeId: 'subject', parentId: 'subj-disaster',    depth: 1, order: 8,  isSystem: true },
+	{ id: 'subj-disaster-epidemic',   label: 'Epidemic & Pandemic',        treeId: 'subject', parentId: 'subj-disaster',    depth: 1, order: 9,  isSystem: true },
+	{ id: 'subj-disaster-rescue',     label: 'Rescue & Recovery',          treeId: 'subject', parentId: 'subj-disaster',    depth: 1, order: 10, isSystem: true },
+
+	// 05 — Economy, business and finance
+	{ id: 'subj-economy',             label: 'Economy & Finance',          treeId: 'subject', parentId: null,              depth: 0, order: 4,  isSystem: true },
+	{ id: 'subj-economy-macro',       label: 'Macroeconomics',             treeId: 'subject', parentId: 'subj-economy',    depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-economy-markets',     label: 'Markets & Exchanges',        treeId: 'subject', parentId: 'subj-economy',    depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-economy-business',    label: 'Business & Industry',        treeId: 'subject', parentId: 'subj-economy',    depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-economy-banking',     label: 'Banking',                    treeId: 'subject', parentId: 'subj-economy',    depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-economy-trade',       label: 'International Trade',        treeId: 'subject', parentId: 'subj-economy',    depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-economy-agriculture', label: 'Agriculture',                treeId: 'subject', parentId: 'subj-economy',    depth: 1, order: 5,  isSystem: true },
+	{ id: 'subj-economy-energy',      label: 'Energy',                     treeId: 'subject', parentId: 'subj-economy',    depth: 1, order: 6,  isSystem: true },
+	{ id: 'subj-economy-realestate',  label: 'Real Estate',                treeId: 'subject', parentId: 'subj-economy',    depth: 1, order: 7,  isSystem: true },
+	{ id: 'subj-economy-crypto',      label: 'Cryptocurrency',             treeId: 'subject', parentId: 'subj-economy',    depth: 1, order: 8,  isSystem: true },
+	{ id: 'subj-economy-startups',    label: 'Startups',                   treeId: 'subject', parentId: 'subj-economy',    depth: 1, order: 9,  isSystem: true },
+	{ id: 'subj-economy-tourism',     label: 'Tourism & Hospitality',      treeId: 'subject', parentId: 'subj-economy',    depth: 1, order: 10, isSystem: true },
+
+	// 06 — Education
+	{ id: 'subj-education',            label: 'Education',                 treeId: 'subject', parentId: null,                depth: 0, order: 5,  isSystem: true },
+	{ id: 'subj-education-primary',    label: 'Primary Education',         treeId: 'subject', parentId: 'subj-education',   depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-education-secondary',  label: 'Secondary Education',       treeId: 'subject', parentId: 'subj-education',   depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-education-higher',     label: 'Higher Education',          treeId: 'subject', parentId: 'subj-education',   depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-education-adult',      label: 'Adult Education',           treeId: 'subject', parentId: 'subj-education',   depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-education-vocational', label: 'Vocational Training',       treeId: 'subject', parentId: 'subj-education',   depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-education-policy',     label: 'Educational Policy',        treeId: 'subject', parentId: 'subj-education',   depth: 1, order: 5,  isSystem: true },
+	{ id: 'subj-education-research',   label: 'Research & Development',    treeId: 'subject', parentId: 'subj-education',   depth: 1, order: 6,  isSystem: true },
+
+	// 07 — Environment
+	{ id: 'subj-environment',           label: 'Environment',              treeId: 'subject', parentId: null,                   depth: 0, order: 6,  isSystem: true },
+	{ id: 'subj-environment-climate',   label: 'Climate Change',           treeId: 'subject', parentId: 'subj-environment',    depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-environment-conserv',   label: 'Conservation',             treeId: 'subject', parentId: 'subj-environment',    depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-environment-pollution', label: 'Pollution',                treeId: 'subject', parentId: 'subj-environment',    depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-environment-biodiv',    label: 'Biodiversity',             treeId: 'subject', parentId: 'subj-environment',    depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-environment-deforest',  label: 'Deforestation',            treeId: 'subject', parentId: 'subj-environment',    depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-environment-renewable', label: 'Renewable Energy',         treeId: 'subject', parentId: 'subj-environment',    depth: 1, order: 5,  isSystem: true },
+	{ id: 'subj-environment-waste',     label: 'Waste Management',         treeId: 'subject', parentId: 'subj-environment',    depth: 1, order: 6,  isSystem: true },
+	{ id: 'subj-environment-resources', label: 'Natural Resources',        treeId: 'subject', parentId: 'subj-environment',    depth: 1, order: 7,  isSystem: true },
+	{ id: 'subj-environment-policy',    label: 'Environmental Policy',     treeId: 'subject', parentId: 'subj-environment',    depth: 1, order: 8,  isSystem: true },
+	{ id: 'subj-environment-sustain',   label: 'Sustainability',           treeId: 'subject', parentId: 'subj-environment',    depth: 1, order: 9,  isSystem: true },
+
+	// 08 — Health
+	{ id: 'subj-health',              label: 'Health',                     treeId: 'subject', parentId: null,              depth: 0, order: 7,  isSystem: true },
+	{ id: 'subj-health-public',       label: 'Public Health',              treeId: 'subject', parentId: 'subj-health',    depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-health-diseases',     label: 'Diseases & Conditions',      treeId: 'subject', parentId: 'subj-health',    depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-health-system',       label: 'Healthcare System',          treeId: 'subject', parentId: 'subj-health',    depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-health-mental',       label: 'Mental Health',              treeId: 'subject', parentId: 'subj-health',    depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-health-nutrition',    label: 'Nutrition',                  treeId: 'subject', parentId: 'subj-health',    depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-health-pharma',       label: 'Pharmaceutical',             treeId: 'subject', parentId: 'subj-health',    depth: 1, order: 5,  isSystem: true },
+	{ id: 'subj-health-research',     label: 'Medical Research',           treeId: 'subject', parentId: 'subj-health',    depth: 1, order: 6,  isSystem: true },
+	{ id: 'subj-health-fitness',      label: 'Fitness & Wellness',         treeId: 'subject', parentId: 'subj-health',    depth: 1, order: 7,  isSystem: true },
+	{ id: 'subj-health-epidemic',     label: 'Epidemics',                  treeId: 'subject', parentId: 'subj-health',    depth: 1, order: 8,  isSystem: true },
+
+	// 09 — Human interest
+	{ id: 'subj-human',               label: 'Human Interest',             treeId: 'subject', parentId: null,             depth: 0, order: 8,  isSystem: true },
+	{ id: 'subj-human-people',        label: 'People',                     treeId: 'subject', parentId: 'subj-human',     depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-human-animals',       label: 'Animals',                    treeId: 'subject', parentId: 'subj-human',     depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-human-unusual',       label: 'Unusual Events',             treeId: 'subject', parentId: 'subj-human',     depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-human-community',     label: 'Community',                  treeId: 'subject', parentId: 'subj-human',     depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-human-awards',        label: 'Awards & Prizes',            treeId: 'subject', parentId: 'subj-human',     depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-human-obituary',      label: 'Obituary',                   treeId: 'subject', parentId: 'subj-human',     depth: 1, order: 5,  isSystem: true },
+
+	// 10 — Labour
+	{ id: 'subj-labour',              label: 'Labour',                     treeId: 'subject', parentId: null,              depth: 0, order: 9,  isSystem: true },
+	{ id: 'subj-labour-employment',   label: 'Employment',                 treeId: 'subject', parentId: 'subj-labour',    depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-labour-relations',    label: 'Labour Relations',           treeId: 'subject', parentId: 'subj-labour',    depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-labour-unions',       label: 'Unions',                     treeId: 'subject', parentId: 'subj-labour',    depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-labour-market',       label: 'Labour Market',              treeId: 'subject', parentId: 'subj-labour',    depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-labour-safety',       label: 'Workplace Safety',           treeId: 'subject', parentId: 'subj-labour',    depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-labour-retirement',   label: 'Retirement',                 treeId: 'subject', parentId: 'subj-labour',    depth: 1, order: 5,  isSystem: true },
+	{ id: 'subj-labour-conditions',   label: 'Working Conditions',         treeId: 'subject', parentId: 'subj-labour',    depth: 1, order: 6,  isSystem: true },
+	{ id: 'subj-labour-strike',       label: 'Strike Action',              treeId: 'subject', parentId: 'subj-labour',    depth: 1, order: 7,  isSystem: true },
+
+	// 11 — Lifestyle and leisure
+	{ id: 'subj-lifestyle',           label: 'Lifestyle & Leisure',        treeId: 'subject', parentId: null,                depth: 0, order: 10, isSystem: true },
+	{ id: 'subj-lifestyle-food',      label: 'Food & Drink',               treeId: 'subject', parentId: 'subj-lifestyle',    depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-lifestyle-travel',    label: 'Travel & Tourism',           treeId: 'subject', parentId: 'subj-lifestyle',    depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-lifestyle-home',      label: 'Home & Garden',              treeId: 'subject', parentId: 'subj-lifestyle',    depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-lifestyle-hobbies',   label: 'Hobbies',                    treeId: 'subject', parentId: 'subj-lifestyle',    depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-lifestyle-auto',      label: 'Automotive',                 treeId: 'subject', parentId: 'subj-lifestyle',    depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-lifestyle-pets',      label: 'Pets',                       treeId: 'subject', parentId: 'subj-lifestyle',    depth: 1, order: 5,  isSystem: true },
+	{ id: 'subj-lifestyle-shopping',  label: 'Shopping & Consumer',        treeId: 'subject', parentId: 'subj-lifestyle',    depth: 1, order: 6,  isSystem: true },
+	{ id: 'subj-lifestyle-personal',  label: 'Personal Finance',           treeId: 'subject', parentId: 'subj-lifestyle',    depth: 1, order: 7,  isSystem: true },
+
+	// 12 — Politics
+	{ id: 'subj-politics',             label: 'Politics',                  treeId: 'subject', parentId: null,                depth: 0, order: 11, isSystem: true },
+	{ id: 'subj-politics-elections',   label: 'Elections',                  treeId: 'subject', parentId: 'subj-politics',    depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-politics-government',  label: 'Government',                treeId: 'subject', parentId: 'subj-politics',    depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-politics-parties',     label: 'Political Parties',         treeId: 'subject', parentId: 'subj-politics',    depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-politics-diplomacy',   label: 'Diplomacy',                 treeId: 'subject', parentId: 'subj-politics',    depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-politics-intl',        label: 'International Relations',   treeId: 'subject', parentId: 'subj-politics',    depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-politics-heads',       label: 'Heads of State',            treeId: 'subject', parentId: 'subj-politics',    depth: 1, order: 5,  isSystem: true },
+	{ id: 'subj-politics-parliament',  label: 'Parliament',                treeId: 'subject', parentId: 'subj-politics',    depth: 1, order: 6,  isSystem: true },
+	{ id: 'subj-politics-local',       label: 'Local Government',          treeId: 'subject', parentId: 'subj-politics',    depth: 1, order: 7,  isSystem: true },
+	{ id: 'subj-politics-crisis',      label: 'Political Crisis',          treeId: 'subject', parentId: 'subj-politics',    depth: 1, order: 8,  isSystem: true },
+
+	// 13 — Religion
+	{ id: 'subj-religion',             label: 'Religion',                  treeId: 'subject', parentId: null,                depth: 0, order: 12, isSystem: true },
+	{ id: 'subj-religion-christian',   label: 'Christianity',              treeId: 'subject', parentId: 'subj-religion',    depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-religion-islam',       label: 'Islam',                     treeId: 'subject', parentId: 'subj-religion',    depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-religion-judaism',     label: 'Judaism',                   treeId: 'subject', parentId: 'subj-religion',    depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-religion-buddhism',    label: 'Buddhism',                  treeId: 'subject', parentId: 'subj-religion',    depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-religion-hinduism',    label: 'Hinduism',                  treeId: 'subject', parentId: 'subj-religion',    depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-religion-interfaith',  label: 'Interfaith',                treeId: 'subject', parentId: 'subj-religion',    depth: 1, order: 5,  isSystem: true },
+	{ id: 'subj-religion-events',      label: 'Religious Events',          treeId: 'subject', parentId: 'subj-religion',    depth: 1, order: 6,  isSystem: true },
+	{ id: 'subj-religion-leaders',     label: 'Religious Leaders',         treeId: 'subject', parentId: 'subj-religion',    depth: 1, order: 7,  isSystem: true },
+
+	// 14 — Science and technology
+	{ id: 'subj-scitech',             label: 'Science & Technology',       treeId: 'subject', parentId: null,               depth: 0, order: 13, isSystem: true },
+	{ id: 'subj-scitech-cs',          label: 'Computer Science',           treeId: 'subject', parentId: 'subj-scitech',    depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-scitech-ai',          label: 'Artificial Intelligence',    treeId: 'subject', parentId: 'subj-scitech',    depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-scitech-space',       label: 'Space Exploration',          treeId: 'subject', parentId: 'subj-scitech',    depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-scitech-physics',     label: 'Physics',                    treeId: 'subject', parentId: 'subj-scitech',    depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-scitech-biology',     label: 'Biology',                    treeId: 'subject', parentId: 'subj-scitech',    depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-scitech-chemistry',   label: 'Chemistry',                  treeId: 'subject', parentId: 'subj-scitech',    depth: 1, order: 5,  isSystem: true },
+	{ id: 'subj-scitech-math',        label: 'Mathematics',                treeId: 'subject', parentId: 'subj-scitech',    depth: 1, order: 6,  isSystem: true },
+	{ id: 'subj-scitech-engineering', label: 'Engineering',                treeId: 'subject', parentId: 'subj-scitech',    depth: 1, order: 7,  isSystem: true },
+	{ id: 'subj-scitech-biotech',     label: 'Biotechnology',              treeId: 'subject', parentId: 'subj-scitech',    depth: 1, order: 8,  isSystem: true },
+	{ id: 'subj-scitech-nanotech',    label: 'Nanotechnology',             treeId: 'subject', parentId: 'subj-scitech',    depth: 1, order: 9,  isSystem: true },
+	{ id: 'subj-scitech-cybersec',    label: 'Cybersecurity',              treeId: 'subject', parentId: 'subj-scitech',    depth: 1, order: 10, isSystem: true },
+	{ id: 'subj-scitech-telecom',     label: 'Telecommunications',         treeId: 'subject', parentId: 'subj-scitech',    depth: 1, order: 11, isSystem: true },
+
+	// 15 — Society
+	{ id: 'subj-society',              label: 'Society',                   treeId: 'subject', parentId: null,               depth: 0, order: 14, isSystem: true },
+	{ id: 'subj-society-demographics', label: 'Demographics',              treeId: 'subject', parentId: 'subj-society',    depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-society-immigration',  label: 'Immigration',               treeId: 'subject', parentId: 'subj-society',    depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-society-social',       label: 'Social Issues',             treeId: 'subject', parentId: 'subj-society',    depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-society-family',       label: 'Family',                    treeId: 'subject', parentId: 'subj-society',    depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-society-minorities',   label: 'Minorities',                treeId: 'subject', parentId: 'subj-society',    depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-society-gender',       label: 'Gender Issues',             treeId: 'subject', parentId: 'subj-society',    depth: 1, order: 5,  isSystem: true },
+	{ id: 'subj-society-housing',      label: 'Housing',                   treeId: 'subject', parentId: 'subj-society',    depth: 1, order: 6,  isSystem: true },
+	{ id: 'subj-society-poverty',      label: 'Poverty',                   treeId: 'subject', parentId: 'subj-society',    depth: 1, order: 7,  isSystem: true },
+	{ id: 'subj-society-services',     label: 'Social Services',           treeId: 'subject', parentId: 'subj-society',    depth: 1, order: 8,  isSystem: true },
+	{ id: 'subj-society-urban',        label: 'Urbanization',              treeId: 'subject', parentId: 'subj-society',    depth: 1, order: 9,  isSystem: true },
+
+	// 16 — Sport
+	{ id: 'subj-sport',               label: 'Sport',                      treeId: 'subject', parentId: null,              depth: 0, order: 15, isSystem: true },
+	{ id: 'subj-sport-football',      label: 'Football',                   treeId: 'subject', parentId: 'subj-sport',     depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-sport-basketball',    label: 'Basketball',                 treeId: 'subject', parentId: 'subj-sport',     depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-sport-tennis',        label: 'Tennis',                     treeId: 'subject', parentId: 'subj-sport',     depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-sport-athletics',     label: 'Athletics',                  treeId: 'subject', parentId: 'subj-sport',     depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-sport-motorsport',    label: 'Motorsport',                 treeId: 'subject', parentId: 'subj-sport',     depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-sport-swimming',      label: 'Swimming',                   treeId: 'subject', parentId: 'subj-sport',     depth: 1, order: 5,  isSystem: true },
+	{ id: 'subj-sport-cycling',       label: 'Cycling',                    treeId: 'subject', parentId: 'subj-sport',     depth: 1, order: 6,  isSystem: true },
+	{ id: 'subj-sport-boxing',        label: 'Boxing & MMA',               treeId: 'subject', parentId: 'subj-sport',     depth: 1, order: 7,  isSystem: true },
+	{ id: 'subj-sport-golf',          label: 'Golf',                       treeId: 'subject', parentId: 'subj-sport',     depth: 1, order: 8,  isSystem: true },
+	{ id: 'subj-sport-rugby',         label: 'Rugby',                      treeId: 'subject', parentId: 'subj-sport',     depth: 1, order: 9,  isSystem: true },
+	{ id: 'subj-sport-cricket',       label: 'Cricket',                    treeId: 'subject', parentId: 'subj-sport',     depth: 1, order: 10, isSystem: true },
+	{ id: 'subj-sport-baseball',      label: 'Baseball',                   treeId: 'subject', parentId: 'subj-sport',     depth: 1, order: 11, isSystem: true },
+	{ id: 'subj-sport-hockey',        label: 'Hockey',                     treeId: 'subject', parentId: 'subj-sport',     depth: 1, order: 12, isSystem: true },
+	{ id: 'subj-sport-volleyball',    label: 'Volleyball',                 treeId: 'subject', parentId: 'subj-sport',     depth: 1, order: 13, isSystem: true },
+	{ id: 'subj-sport-esports',       label: 'E-sports',                   treeId: 'subject', parentId: 'subj-sport',     depth: 1, order: 14, isSystem: true },
+	{ id: 'subj-sport-olympics',      label: 'Olympic Games',              treeId: 'subject', parentId: 'subj-sport',     depth: 1, order: 15, isSystem: true },
+
+	// 17 — Weather
+	{ id: 'subj-weather',             label: 'Weather',                    treeId: 'subject', parentId: null,               depth: 0, order: 16, isSystem: true },
+	{ id: 'subj-weather-forecast',    label: 'Forecast',                   treeId: 'subject', parentId: 'subj-weather',    depth: 1, order: 0,  isSystem: true },
+	{ id: 'subj-weather-severe',      label: 'Severe Weather',             treeId: 'subject', parentId: 'subj-weather',    depth: 1, order: 1,  isSystem: true },
+	{ id: 'subj-weather-storm',       label: 'Storm',                      treeId: 'subject', parentId: 'subj-weather',    depth: 1, order: 2,  isSystem: true },
+	{ id: 'subj-weather-tropical',    label: 'Tropical Storm',             treeId: 'subject', parentId: 'subj-weather',    depth: 1, order: 3,  isSystem: true },
+	{ id: 'subj-weather-tornado',     label: 'Tornado',                    treeId: 'subject', parentId: 'subj-weather',    depth: 1, order: 4,  isSystem: true },
+	{ id: 'subj-weather-heatwave',    label: 'Heat Wave',                  treeId: 'subject', parentId: 'subj-weather',    depth: 1, order: 5,  isSystem: true },
+	{ id: 'subj-weather-coldwave',    label: 'Cold Wave',                  treeId: 'subject', parentId: 'subj-weather',    depth: 1, order: 6,  isSystem: true },
+	{ id: 'subj-weather-climate',     label: 'Climate Data',               treeId: 'subject', parentId: 'subj-weather',    depth: 1, order: 7,  isSystem: true },
+];

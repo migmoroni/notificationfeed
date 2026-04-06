@@ -28,7 +28,7 @@ loading: boolean;
 
 let state = $state<BrowseStoreState>({
 categories: [],
-selectedByTree: { subject: new Set(), content_type: new Set(), region: new Set() },
+selectedByTree: { subject: new Set(), content_type: new Set(), media_type: new Set(), region: new Set() },
 nodes: [],
 trees: [],
 searchQuery: '',
@@ -171,7 +171,7 @@ await this.applyFilters();
 },
 
 async clearAllCategories(): Promise<void> {
-state.selectedByTree = { subject: new Set(), content_type: new Set(), region: new Set() };
+state.selectedByTree = { subject: new Set(), content_type: new Set(), media_type: new Set(), region: new Set() };
 await this.applyFilters();
 },
 

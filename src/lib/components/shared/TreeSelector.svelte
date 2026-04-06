@@ -13,6 +13,7 @@
 	const trees: { id: CategoryTreeId; label: string }[] = [
 		{ id: 'subject', label: 'Assunto' },
 		{ id: 'content_type', label: 'Formato' },
+		{ id: 'media_type', label: 'Mídia' },
 		{ id: 'region', label: 'Região' }
 	];
 
@@ -98,20 +99,48 @@
 				{#if children.length > 0}
 					<div class="mb-3">
 						<span class="px-1 text-xs font-medium text-muted-foreground">{root.label}</span>
-						<div class="grid grid-cols-3 gap-1 mt-1">
-							{#each children as child (child.id)}
-								{@const selected = store.isSelected(child.id, activeTreeId)}
-								<button
-									onclick={() => handleToggle(child.id, activeTreeId)}
-									class="rounded-md px-2.5 py-1.5 text-xs transition-colors text-left truncate
-										{selected
-											? 'bg-accent text-accent-foreground font-medium'
-											: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
-								>
-									{child.label}
-								</button>
-							{/each}
-						</div>
+						{#each children as child (child.id)}
+							{@const grandchildren = store.getChildren(child.id)}
+							{#if grandchildren.length > 0}
+								<!-- Mid-level with grandchildren -->
+								<div class="mt-2 mb-1">
+									<span class="px-1 text-[11px] font-medium text-muted-foreground/70">{child.label}</span>
+									<div class="grid grid-cols-3 gap-1 mt-1">
+										{#each grandchildren as gc (gc.id)}
+											{@const gcSelected = store.isSelected(gc.id, activeTreeId)}
+											<button
+												onclick={() => handleToggle(gc.id, activeTreeId)}
+												class="rounded-md px-2.5 py-1.5 text-xs transition-colors text-left truncate
+													{gcSelected
+														? 'bg-accent text-accent-foreground font-medium'
+														: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
+											>
+												{gc.label}
+											</button>
+										{/each}
+									</div>
+								</div>
+							{/if}
+						{/each}
+						<!-- Leaf children (no grandchildren) in grid -->
+						{#each [children.filter((c) => store.getChildren(c.id).length === 0)] as leafChildren}
+							{#if leafChildren.length > 0}
+								<div class="grid grid-cols-3 gap-1 mt-1">
+									{#each leafChildren as child (child.id)}
+										{@const selected = store.isSelected(child.id, activeTreeId)}
+										<button
+											onclick={() => handleToggle(child.id, activeTreeId)}
+											class="rounded-md px-2.5 py-1.5 text-xs transition-colors text-left truncate
+												{selected
+													? 'bg-accent text-accent-foreground font-medium'
+													: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
+										>
+											{child.label}
+										</button>
+									{/each}
+								</div>
+							{/if}
+						{/each}
 					</div>
 				{:else}
 					{@const selected = store.isSelected(root.id, activeTreeId)}

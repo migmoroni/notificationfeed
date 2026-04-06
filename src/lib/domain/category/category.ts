@@ -5,6 +5,7 @@
  * Multiple independent trees coexist, identified by `treeId`:
  * - "subject": topic taxonomy (e.g., Open Source, Politics, Science)
  * - "content_type": format taxonomy (e.g., News, Analysis, Research)
+ * - "media_type": primary media format (e.g., Text, Image, Video)
  *
  * Only sublevels (depth >= 1) can be associated with entities.
  * Root levels are structural groupings only.
@@ -14,7 +15,7 @@
  */
 
 /** Identifies which tree a category belongs to */
-export type CategoryTreeId = 'subject' | 'content_type' | 'region';
+export type CategoryTreeId = 'subject' | 'content_type' | 'region' | 'media_type';
 
 export interface Category {
 	id: string;

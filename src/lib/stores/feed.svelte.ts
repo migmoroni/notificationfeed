@@ -68,7 +68,7 @@ return sortByPriority(state.posts, priorityMap);
 // ── Category filtering helpers ─────────────────────────────────────────
 
 function nodeIdsMatchingCategories(
-treeId: 'subject' | 'content_type' | 'region',
+treeId: 'subject' | 'content_type' | 'media_type' | 'region',
 categoryIds: string[]
 ): Set<string> {
 if (categoryIds.length === 0) return new Set();

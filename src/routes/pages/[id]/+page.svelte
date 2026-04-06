@@ -58,7 +58,7 @@
 		return allCategories.find((c) => c.id === catId)?.label ?? catId;
 	}
 
-	const TREE_LABELS: Record<string, string> = { subject: 'Assunto', content_type: 'Formato', region: 'Região' };
+	const TREE_LABELS: Record<string, string> = { subject: 'Assunto', content_type: 'Formato', media_type: 'Mídia', region: 'Região' };
 
 	/** Get external links from body (only creator/profile have them) */
 	let bodyLinks = $derived.by((): ExternalLink[] => {

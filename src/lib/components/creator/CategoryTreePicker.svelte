@@ -14,6 +14,7 @@
 	import BookOpen from '@lucide/svelte/icons/book-open';
 	import FileText from '@lucide/svelte/icons/file-text';
 	import Globe from '@lucide/svelte/icons/globe';
+	import Film from '@lucide/svelte/icons/film';
 
 	interface Props {
 		assignments: CategoryAssignment[];
@@ -33,6 +34,7 @@
 	const TREES: { id: CategoryTreeId; label: string; description: string; icon: typeof BookOpen }[] = [
 		{ id: 'subject', label: 'Assunto', description: 'Sobre o que é este conteúdo?', icon: BookOpen },
 		{ id: 'content_type', label: 'Formato', description: 'Que tipo de conteúdo é?', icon: FileText },
+		{ id: 'media_type', label: 'Mídia', description: 'Qual o tipo de mídia principal?', icon: Film },
 		{ id: 'region', label: 'Região', description: 'De qual região geográfica?', icon: Globe }
 	];
 
@@ -104,6 +106,29 @@
 	function toggleRoot(rootId: string, hasSelectedChild: boolean) {
 		const currentlyOpen = isRootOpen(rootId, hasSelectedChild);
 		manualOverrides[rootId] = !currentlyOpen;
+	}
+
+	function hasDescendantSelected(parentId: string, treeId: CategoryTreeId): boolean {
+		const children = getChildren(parentId);
+		return children.some((c) => isSelected(c.id, treeId) || hasDescendantSelected(c.id, treeId));
+	}
+
+	function hasDescendantInherited(parentId: string, treeId: CategoryTreeId): boolean {
+		const children = getChildren(parentId);
+		return children.some((c) => isInherited(c.id, treeId) || hasDescendantInherited(c.id, treeId));
+	}
+
+	function countDescendantsSelected(parentId: string, treeId: CategoryTreeId): number {
+		const children = getChildren(parentId);
+		return children.reduce((sum, c) => {
+			const self = isSelected(c.id, treeId) ? 1 : 0;
+			return sum + self + countDescendantsSelected(c.id, treeId);
+		}, 0);
+	}
+
+	function countAllDescendants(parentId: string): number {
+		const children = getChildren(parentId);
+		return children.reduce((sum, c) => sum + 1 + countAllDescendants(c.id), 0);
 	}
 
 	function getCategoryLabel(categoryId: string): string {
@@ -195,59 +220,124 @@
 						<p class="text-[11px] text-muted-foreground/70 mb-1.5 pl-5">{tree.description}</p>
 
 						{#each roots as root (root.id)}
-							{@const children = getChildren(root.id)}
-							{@const hasSelectedChild = children.some((c) => isSelected(c.id, tree.id))}
-							{@const hasInheritedChild = children.some((c) => isInherited(c.id, tree.id))}
-							{@const isOpen = isRootOpen(root.id, hasSelectedChild || hasInheritedChild)}
+							{@const children = getChildren(root.id)}						{@const allLeaves = children.every((c) => getChildren(c.id).length === 0)}							{@const hasSelDesc = hasDescendantSelected(root.id, tree.id)}
+							{@const hasInhDesc = hasDescendantInherited(root.id, tree.id)}
+							{@const isOpen = isRootOpen(root.id, hasSelDesc || hasInhDesc)}
 
-							<Collapsible.Root open={isOpen} onOpenChange={() => toggleRoot(root.id, hasSelectedChild || hasInheritedChild)}>
+							<Collapsible.Root open={isOpen} onOpenChange={() => toggleRoot(root.id, hasSelDesc || hasInhDesc)}>
 								<Collapsible.Trigger
-									class="flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors hover:bg-accent hover:text-accent-foreground {hasSelectedChild ? 'text-foreground font-medium' : 'text-muted-foreground'}"
+									class="flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors hover:bg-accent hover:text-accent-foreground {hasSelDesc ? 'text-foreground font-medium' : 'text-muted-foreground'}"
 								>
 									<ChevronRight
 										class="size-3 shrink-0 transition-transform duration-200 {isOpen ? 'rotate-90' : ''}"
 									/>
 									<span class="truncate">{root.label}</span>
-									{#if hasSelectedChild}
-										{@const count = children.filter((c) => isSelected(c.id, tree.id)).length}
+									{#if hasSelDesc}
+										{@const count = countDescendantsSelected(root.id, tree.id)}
 										<Badge variant="secondary" class="ml-auto text-[10px] h-4 px-1.5">{count}</Badge>
-									{:else if children.length > 0}
-										<span class="ml-auto text-[10px] text-muted-foreground/50">{children.length}</span>
+									{:else}
+										{@const total = countAllDescendants(root.id)}
+										{#if total > 0}
+											<span class="ml-auto text-[10px] text-muted-foreground/50">{total}</span>
+										{/if}
 									{/if}
 								</Collapsible.Trigger>
 
 								<Collapsible.Content>
-									<div class="ml-4 flex flex-col gap-0.5 border-l border-border pl-2 py-0.5">
+								<div class="ml-4 border-l border-border pl-2 py-0.5 {allLeaves ? 'grid grid-cols-2 gap-x-2 gap-y-0.5' : ''}">
 										{#each children as child (child.id)}
-											{@const ownSelected = isSelected(child.id, tree.id)}
-											{@const fromInherited = isInherited(child.id, tree.id)}
+											{@const grandchildren = getChildren(child.id)}
 
-											<button
-												type="button"
-												onclick={() => toggleCategory(tree.id, child.id)}
-												class="flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors text-left
-													{ownSelected
-													? 'bg-primary/10 text-primary font-medium'
-													: fromInherited
-														? 'text-muted-foreground/50 italic'
-														: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
-											>
-												{#if ownSelected}
-													<div class="size-3.5 shrink-0 rounded border-2 border-primary bg-primary flex items-center justify-center">
-														<Check class="size-2.5 text-primary-foreground" />
-													</div>
-												{:else if fromInherited}
-													<div class="size-3.5 shrink-0 rounded border border-muted-foreground/30 flex items-center justify-center">
-														<Check class="size-2.5 text-muted-foreground/40" />
-													</div>
-												{:else}
-													<div class="size-3.5 shrink-0 rounded border border-muted-foreground/30"></div>
-												{/if}
-												<span class="truncate">{child.label}</span>
-												{#if fromInherited && !ownSelected}
-													<span class="ml-auto text-[10px] text-muted-foreground/40">herdada</span>
-												{/if}
-											</button>
+											{#if grandchildren.length > 0}
+												<!-- Mid-level node with children → nested collapsible -->
+												{@const hasMidSelDesc = hasDescendantSelected(child.id, tree.id)}
+												{@const hasMidInhDesc = hasDescendantInherited(child.id, tree.id)}
+												{@const isMidOpen = isRootOpen(child.id, hasMidSelDesc || hasMidInhDesc)}
+
+												<Collapsible.Root open={isMidOpen} onOpenChange={() => toggleRoot(child.id, hasMidSelDesc || hasMidInhDesc)}>
+													<Collapsible.Trigger
+														class="flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors hover:bg-accent hover:text-accent-foreground {hasMidSelDesc ? 'text-foreground font-medium' : 'text-muted-foreground'}"
+													>
+														<ChevronRight
+															class="size-3 shrink-0 transition-transform duration-200 {isMidOpen ? 'rotate-90' : ''}"
+														/>
+														<span class="truncate">{child.label}</span>
+														{#if hasMidSelDesc}
+															{@const midCount = countDescendantsSelected(child.id, tree.id)}
+															<Badge variant="secondary" class="ml-auto text-[10px] h-4 px-1.5">{midCount}</Badge>
+														{:else if grandchildren.length > 0}
+															<span class="ml-auto text-[10px] text-muted-foreground/50">{grandchildren.length}</span>
+														{/if}
+													</Collapsible.Trigger>
+
+													<Collapsible.Content>
+														<div class="ml-4 grid grid-cols-2 gap-x-2 gap-y-0.5 border-l border-border pl-2 py-0.5">
+															{#each grandchildren as gc (gc.id)}
+																{@const gcSelected = isSelected(gc.id, tree.id)}
+																{@const gcInherited = isInherited(gc.id, tree.id)}
+
+																<button
+																	type="button"
+																	onclick={() => toggleCategory(tree.id, gc.id)}
+																	class="flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors text-left
+																		{gcSelected
+																		? 'bg-primary/10 text-primary font-medium'
+																		: gcInherited
+																			? 'text-muted-foreground/50 italic'
+																			: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
+																>
+																	{#if gcSelected}
+																		<div class="size-3.5 shrink-0 rounded border-2 border-primary bg-primary flex items-center justify-center">
+																			<Check class="size-2.5 text-primary-foreground" />
+																		</div>
+																	{:else if gcInherited}
+																		<div class="size-3.5 shrink-0 rounded border border-muted-foreground/30 flex items-center justify-center">
+																			<Check class="size-2.5 text-muted-foreground/40" />
+																		</div>
+																	{:else}
+																		<div class="size-3.5 shrink-0 rounded border border-muted-foreground/30"></div>
+																	{/if}
+																	<span class="truncate">{gc.label}</span>
+																	{#if gcInherited && !gcSelected}
+																		<span class="ml-auto text-[10px] text-muted-foreground/40">herdada</span>
+																	{/if}
+																</button>
+															{/each}
+														</div>
+													</Collapsible.Content>
+												</Collapsible.Root>
+											{:else}
+												<!-- Leaf node → checkbox -->
+												{@const ownSelected = isSelected(child.id, tree.id)}
+												{@const fromInherited = isInherited(child.id, tree.id)}
+
+												<button
+													type="button"
+													onclick={() => toggleCategory(tree.id, child.id)}
+													class="flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors text-left
+														{ownSelected
+														? 'bg-primary/10 text-primary font-medium'
+														: fromInherited
+															? 'text-muted-foreground/50 italic'
+															: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
+												>
+													{#if ownSelected}
+														<div class="size-3.5 shrink-0 rounded border-2 border-primary bg-primary flex items-center justify-center">
+															<Check class="size-2.5 text-primary-foreground" />
+														</div>
+													{:else if fromInherited}
+														<div class="size-3.5 shrink-0 rounded border border-muted-foreground/30 flex items-center justify-center">
+															<Check class="size-2.5 text-muted-foreground/40" />
+														</div>
+													{:else}
+														<div class="size-3.5 shrink-0 rounded border border-muted-foreground/30"></div>
+													{/if}
+													<span class="truncate">{child.label}</span>
+													{#if fromInherited && !ownSelected}
+														<span class="ml-auto text-[10px] text-muted-foreground/40">herdada</span>
+													{/if}
+												</button>
+											{/if}
 										{/each}
 									</div>
 								</Collapsible.Content>
