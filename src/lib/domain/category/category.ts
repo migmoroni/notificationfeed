@@ -8,9 +8,10 @@
  * - "media_type" (c): content media taxonomy (DCMI + schema.org)
  * - "region" (d): geographic taxonomy (UN M49 + ISO 3166-1)
  *
- * IDs use a compact letter-based scheme (2-5 lowercase letters):
+ * IDs use a compact letter-based scheme (2-5 letters):
  *   1st: tree (a/b/c/d) · 2nd: root branch · 3rd: sub-branch or 'a' placeholder
- *   4th-5th: leaf index (aa-zz)
+ *   4th-5th: leaf index
+ *   Each position uses a-z then A-Z (52 values per slot).
  *
  * Only sublevels (depth >= 1) can be associated with entities.
  * Root levels are structural groupings only.
