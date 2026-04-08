@@ -63,11 +63,11 @@ export const consumer = {
 		return state.activationMap.has(nodeId);
 	},
 
-	/** Get enabled font node IDs (for feed loading) */
+	/** Get enabled font node IDs (for feed loading) — only activated AND enabled */
 	getEnabledFontNodeIds(allFontNodeIds: string[]): string[] {
 		return allFontNodeIds.filter((nodeId) => {
 			const activation = state.activationMap.get(nodeId);
-			return activation?.enabled !== false;
+			return activation != null && activation.enabled !== false;
 		});
 	},
 
@@ -93,35 +93,6 @@ export const consumer = {
 			refreshActivationMap();
 		} finally {
 			state.loading = false;
-		}
-	},
-
-	/** Subscribe to a content tree (and auto-activate its root node) */
-	async subscribeToTree(treeId: string, rootNodeId?: string): Promise<void> {
-		if (!state.user) return;
-
-		await repo.activateTree(state.user.id, treeId);
-		if (rootNodeId) {
-			await repo.activateNode(state.user.id, rootNodeId);
-		}
-
-		// Refresh local state
-		const refreshed = await repo.getById(state.user.id);
-		if (refreshed) {
-			state.user = refreshed;
-			refreshActivationMap();
-		}
-	},
-
-	async unsubscribeFromTree(treeId: string): Promise<void> {
-		if (!state.user) return;
-
-		await repo.deactivateTree(state.user.id, treeId);
-
-		const refreshed = await repo.getById(state.user.id);
-		if (refreshed) {
-			state.user = refreshed;
-			refreshActivationMap();
 		}
 	},
 

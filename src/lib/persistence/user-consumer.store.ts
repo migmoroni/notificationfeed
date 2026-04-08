@@ -9,7 +9,6 @@ import type {
 	UserConsumer,
 	UserConsumerRepository,
 	NewUserConsumer,
-	TreeActivation,
 	NodeActivation,
 	FavoriteTab
 } from '$lib/domain/user/user-consumer.js';
@@ -18,7 +17,9 @@ import type { FeedMacro, FeedMacroFilters } from '$lib/domain/feed-macro/feed-ma
 import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
 import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
+import { parseTreeId, getRootNodeId, getAllNodeIds } from '$lib/domain/content-tree/content-tree.js';
 import { getDatabase } from './db.js';
+import { getTreeByNodeId } from './content-tree.store.js';
 
 function createSystemTab(): FavoriteTab {
 	return {
@@ -83,33 +84,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 			await db.users.delete(id);
 		},
 
-		// -- Tree management --
-
-		async activateTree(userId: string, treeId: string): Promise<void> {
-			const db = await getDatabase();
-			const user = await db.users.getById<UserConsumer>(userId);
-			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
-
-			const exists = user.activateTrees.some((t) => t.treeId === treeId);
-			if (exists) return;
-
-			const activation: TreeActivation = { treeId, activatedAt: new Date() };
-			user.activateTrees.push(activation);
-			user.updatedAt = new Date();
-			await db.users.put(user);
-		},
-
-		async deactivateTree(userId: string, treeId: string): Promise<void> {
-			const db = await getDatabase();
-			const user = await db.users.getById<UserConsumer>(userId);
-			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
-
-			user.activateTrees = user.activateTrees.filter((t) => t.treeId !== treeId);
-			user.updatedAt = new Date();
-			await db.users.put(user);
-		},
-
-		// -- Node management --
+		// -- Node management (cascades tree + root activation) --
 
 		async activateNode(userId: string, nodeId: string): Promise<void> {
 			const db = await getDatabase();
@@ -118,6 +93,31 @@ export function createUserConsumerStore(): UserConsumerRepository {
 
 			const exists = user.activateNodes.some((n) => n.nodeId === nodeId);
 			if (exists) return;
+
+			// Cascade: ensure the tree and its root node are also activated
+			const treeId = parseTreeId(nodeId);
+			const tree = await getTreeByNodeId(nodeId);
+
+			if (tree) {
+				// Activate tree if not already subscribed
+				if (!user.activateTrees.some((t) => t.treeId === treeId)) {
+					user.activateTrees.push({ treeId, activatedAt: new Date() });
+				}
+
+				// Activate root node if not already activated and this isn't the root
+				const rootNodeId = getRootNodeId(tree);
+				if (rootNodeId && rootNodeId !== nodeId) {
+					if (!user.activateNodes.some((n) => n.nodeId === rootNodeId)) {
+						user.activateNodes.push({
+							nodeId: rootNodeId,
+							priority: null,
+							favorite: false,
+							enabled: true,
+							favoriteTabIds: []
+						});
+					}
+				}
+			}
 
 			const activation: NodeActivation = {
 				nodeId,
@@ -136,7 +136,26 @@ export function createUserConsumerStore(): UserConsumerRepository {
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
-			user.activateNodes = user.activateNodes.filter((n) => n.nodeId !== nodeId);
+			const tree = await getTreeByNodeId(nodeId);
+
+			if (tree) {
+				const rootNodeId = getRootNodeId(tree);
+
+				if (nodeId === rootNodeId) {
+					// Cascade: deactivating root removes all nodes in the tree + the tree subscription
+					const allIds = new Set(getAllNodeIds(tree));
+					user.activateNodes = user.activateNodes.filter((n) => !allIds.has(n.nodeId));
+					const treeId = parseTreeId(nodeId);
+					user.activateTrees = user.activateTrees.filter((t) => t.treeId !== treeId);
+				} else {
+					// Non-root: remove only this node
+					user.activateNodes = user.activateNodes.filter((n) => n.nodeId !== nodeId);
+				}
+			} else {
+				// Tree not found — remove just the node
+				user.activateNodes = user.activateNodes.filter((n) => n.nodeId !== nodeId);
+			}
+
 			user.updatedAt = new Date();
 			await db.users.put(user);
 		},

@@ -6,10 +6,12 @@
 
 import { createEntityFilter } from './entity-filter.svelte.js';
 import { feed } from './feed.svelte.js';
+import { consumer } from './consumer.svelte.js';
 
 export const feedEntityFilter = createEntityFilter({
 async load() {
 return { trees: feed.trees };
 },
-getTrees() { return feed.trees; }
+getTrees() { return feed.trees; },
+isNodeActivated: (nodeId) => consumer.isNodeActivated(nodeId)
 });

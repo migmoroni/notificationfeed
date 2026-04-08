@@ -116,11 +116,7 @@ export interface UserConsumerRepository {
 	update(id: string, data: Partial<NewUserConsumer>): Promise<UserConsumer>;
 	delete(id: string): Promise<void>;
 
-	/** Tree subscription management */
-	activateTree(userId: string, treeId: string): Promise<void>;
-	deactivateTree(userId: string, treeId: string): Promise<void>;
-
-	/** Node activation management */
+	/** Node activation management (cascades tree + root activation/deactivation) */
 	activateNode(userId: string, nodeId: string): Promise<void>;
 	deactivateNode(userId: string, nodeId: string): Promise<void>;
 

@@ -33,6 +33,8 @@ export interface EntityFilterDataSource {
 load(): Promise<{ trees: ContentTree[] }>;
 /** Return currently loaded trees. */
 getTrees(): ContentTree[];
+	/** Optional: check if a node is activated by the consumer. When provided, inactive nodes are hidden. */
+	isNodeActivated?: (nodeId: string) => boolean;
 }
 
 // ── Factory ────────────────────────────────────────────────────────────
@@ -169,17 +171,22 @@ const entries: PageEntry[] = [];
 for (const tree of visiblePageTrees()) {
 const root = getRootNode(tree);
 if (!root) continue;
-const pt = rootPageType(tree);
-if (!pt) continue;
-entries.push({
-id: getRootNodeId(tree),
-treeId: tree.metadata.id,
-title: root.data.header.title,
-coverMediaId: root.data.header.coverMediaId ?? null,
-coverEmoji: root.data.header.coverEmoji ?? null,
-pageType: pt,
-fontCount: getFontNodes(tree).length
-});
+				const rootId = getRootNodeId(tree);
+				if (source.isNodeActivated && !source.isNodeActivated(rootId)) continue;
+				const pt = rootPageType(tree);
+				if (!pt) continue;
+				const activeFontCount = source.isNodeActivated
+					? getFontNodes(tree).filter((n) => source.isNodeActivated!(n.metadata.id)).length
+					: getFontNodes(tree).length;
+				entries.push({
+					id: rootId,
+					treeId: tree.metadata.id,
+					title: root.data.header.title,
+					coverMediaId: root.data.header.coverMediaId ?? null,
+					coverEmoji: root.data.header.coverEmoji ?? null,
+					pageType: pt,
+					fontCount: activeFontCount
+				});
 }
 return entries.sort((a, b) => a.title.localeCompare(b.title));
 },
@@ -191,6 +198,7 @@ const tree = treeMap.get(treeId);
 if (!tree) return [];
 
 return getFontNodes(tree)
+				.filter((node) => !source.isNodeActivated || source.isNodeActivated(node.metadata.id))
 .map((node) => ({
 node,
 section: getNodeSection(tree, node.metadata.id)
@@ -217,16 +225,21 @@ const linkedTree = treeMap.get(treeNode.data.body.instanceTreeId);
 if (!linkedTree) continue;
 const root = getRootNode(linkedTree);
 if (!root) continue;
-const pt = rootPageType(linkedTree);
-linked.push({
-id: getRootNodeId(linkedTree),
-treeId: linkedTree.metadata.id,
-title: root.data.header.title,
-coverMediaId: root.data.header.coverMediaId ?? null,
-coverEmoji: root.data.header.coverEmoji ?? null,
-pageType: pt ?? 'profile',
-fontCount: getFontNodes(linkedTree).length
-});
+				const linkedRootId = getRootNodeId(linkedTree);
+				if (source.isNodeActivated && !source.isNodeActivated(linkedRootId)) continue;
+				const pt = rootPageType(linkedTree);
+				const activeFontCount = source.isNodeActivated
+					? getFontNodes(linkedTree).filter((n) => source.isNodeActivated!(n.metadata.id)).length
+					: getFontNodes(linkedTree).length;
+				linked.push({
+					id: linkedRootId,
+					treeId: linkedTree.metadata.id,
+					title: root.data.header.title,
+					coverMediaId: root.data.header.coverMediaId ?? null,
+					coverEmoji: root.data.header.coverEmoji ?? null,
+					pageType: pt ?? 'profile',
+					fontCount: activeFontCount
+				});
 }
 return linked.sort((a, b) => a.title.localeCompare(b.title));
 },

@@ -112,7 +112,8 @@
 	let selectedRegions = $derived(feedCategories.getSelectedIds('region'));
 	let allowedNodeIds = $derived(feedEntityFilter.hasFilters ? [...feedEntityFilter.getAllowedFontNodeIds()] : []);
 
-	onMount(() => {
+	onMount(async () => {
+		await feed.loadFeed();
 		feedCategories.loadCategories();
 		feedEntityFilter.loadNodes();
 		sidebarSlot.set(sidebarContent);
