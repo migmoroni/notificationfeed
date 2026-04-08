@@ -3,9 +3,14 @@
  *
  * All categories are system-defined (shipped with the app via seed).
  * Multiple independent trees coexist, identified by `treeId`:
- * - "subject": topic taxonomy (e.g., Open Source, Politics, Science)
- * - "content_type": format taxonomy (e.g., News, Analysis, Research)
- * - "media_type": primary media format (e.g., Text, Image, Video)
+ * - "subject" (a): IPTC NewsCodes topic taxonomy
+ * - "content_type" (b): accessibility taxonomy (schema.org + W3C WAI)
+ * - "media_type" (c): content media taxonomy (DCMI + schema.org)
+ * - "region" (d): geographic taxonomy (UN M49 + ISO 3166-1)
+ *
+ * IDs use a compact letter-based scheme (2-5 lowercase letters):
+ *   1st: tree (a/b/c/d) · 2nd: root branch · 3rd: sub-branch or 'a' placeholder
+ *   4th-5th: leaf index (aa-zz)
  *
  * Only sublevels (depth >= 1) can be associated with entities.
  * Root levels are structural groupings only.

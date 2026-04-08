@@ -248,20 +248,20 @@ IDS.treeProfileTech,
 title: 'Tech Sources',
 tags: ['tech', 'development'],
 categoryAssignments: [
-{ treeId: 'subject', categoryIds: ['subj-tech-webdev', 'subj-tech-ai'] }
+{ treeId: 'subject', categoryIds: ['anaaa', 'anaab'] }
 ]
 }, { role: 'profile', links: [] }),
 
 [PT.fontRss1]: makeNode(PT.fontRss1, 'font', {
 title: 'Hacker News RSS',
 tags: ['hackernews', 'tech'],
-categoryAssignments: [{ treeId: 'content_type', categoryIds: ['ct-access-mode-textual'] }]
+categoryAssignments: [{ treeId: 'content_type', categoryIds: ['baaac'] }]
 }, { role: 'font', protocol: 'rss', config: { url: 'https://hnrss.org/frontpage' }, defaultEnabled: true }),
 
 [PT.fontAtom1]: makeNode(PT.fontAtom1, 'font', {
 title: 'Svelte Blog (Atom)',
 tags: ['svelte', 'framework'],
-categoryAssignments: [{ treeId: 'content_type', categoryIds: ['ct-access-mode-textual'] }]
+categoryAssignments: [{ treeId: 'content_type', categoryIds: ['baaac'] }]
 }, { role: 'font', protocol: 'atom', config: { url: 'https://svelte.dev/blog/rss.xml' }, defaultEnabled: true }),
 
 [PT.fontNostr1]: makeNode(PT.fontNostr1, 'font', {
@@ -281,15 +281,15 @@ IDS.treeProfileSecurity,
 title: 'Security & Privacy',
 tags: ['security', 'privacy', 'infosec'],
 categoryAssignments: [
-{ treeId: 'subject', categoryIds: ['subj-tech-security'] },
-{ treeId: 'content_type', categoryIds: ['ct-access-mode-textual', 'ct-access-mode-visual'] }
+{ treeId: 'subject', categoryIds: ['anaak'] },
+{ treeId: 'content_type', categoryIds: ['baaac', 'baaad'] }
 ]
 }, { role: 'profile', links: [] }),
 
 [PS.fontRss3]: makeNode(PS.fontRss3, 'font', {
 title: 'Krebs on Security',
 tags: ['security', 'infosec'],
-categoryAssignments: [{ treeId: 'content_type', categoryIds: ['ct-access-mode-textual'] }]
+categoryAssignments: [{ treeId: 'content_type', categoryIds: ['baaac'] }]
 }, { role: 'font', protocol: 'rss', config: { url: 'https://krebsonsecurity.com/feed/' }, defaultEnabled: true }),
 },
 { '/': PS.root, '*': [PS.fontRss3] },
@@ -304,8 +304,8 @@ IDS.treeProfileNews,
 title: 'News Sources',
 tags: ['news', 'world'],
 categoryAssignments: [
-{ treeId: 'subject', categoryIds: ['subj-politics-intl'] },
-{ treeId: 'content_type', categoryIds: ['ct-access-mode-textual'] }
+{ treeId: 'subject', categoryIds: ['alaae'] },
+{ treeId: 'content_type', categoryIds: ['baaac'] }
 ]
 }, { role: 'profile', links: [] }),
 
@@ -326,8 +326,8 @@ IDS.treeProfileScience,
 title: 'Science & Health',
 tags: ['science', 'health', 'research'],
 categoryAssignments: [
-{ treeId: 'subject', categoryIds: ['subj-science', 'subj-health'] },
-{ treeId: 'content_type', categoryIds: ['ct-access-mode-textual'] }
+{ treeId: 'subject', categoryIds: ['an', 'ah'] },
+{ treeId: 'content_type', categoryIds: ['baaac'] }
 ]
 }, { role: 'profile', links: [] }),
 
@@ -348,8 +348,8 @@ IDS.treeProfileFrontend,
 title: 'Frontend Sources',
 tags: ['frontend', 'web'],
 categoryAssignments: [
-{ treeId: 'subject', categoryIds: ['subj-tech-webdev'] },
-{ treeId: 'content_type', categoryIds: ['ct-access-mode-textual'] }
+{ treeId: 'subject', categoryIds: ['anaaa'] },
+{ treeId: 'content_type', categoryIds: ['baaac'] }
 ]
 }, { role: 'profile', links: [] }),
 
@@ -375,7 +375,7 @@ IDS.treeProfileNewsDraft,
 title: 'News Draft Profile',
 tags: ['news'],
 categoryAssignments: [
-{ treeId: 'subject', categoryIds: ['subj-politics-intl'] }
+{ treeId: 'subject', categoryIds: ['alaae'] }
 ]
 }, { role: 'profile', links: [] }),
 },
@@ -396,7 +396,7 @@ IDS.treeTechBlog,
 title: 'TechBlog',
 summary: 'A curated collection of technology feeds',
 tags: ['tech', 'programming', 'web'],
-categoryAssignments: [{ treeId: 'subject', categoryIds: ['subj-tech-webdev'] }]
+categoryAssignments: [{ treeId: 'subject', categoryIds: ['anaaa'] }]
 }, { role: 'creator', links: [] }),
 
 [TB.linkTech]: makeNode(TB.linkTech, 'tree', {
@@ -431,8 +431,8 @@ title: 'NewsDaily',
 summary: 'Daily news from around the world',
 tags: ['news', 'world', 'brazil'],
 categoryAssignments: [
-{ treeId: 'subject', categoryIds: ['subj-politics-intl'] },
-{ treeId: 'content_type', categoryIds: ['ct-access-mode-textual'] }
+{ treeId: 'subject', categoryIds: ['alaae'] },
+{ treeId: 'content_type', categoryIds: ['baaac'] }
 ]
 }, { role: 'creator', links: [] }),
 
