@@ -46,11 +46,14 @@
 		});
 	});
 
-	onMount(() => {
+	onMount(async () => {
 		if (browse.categories.length === 0) {
 			browse.loadCategories();
 		}
-		browseEntityFilter.loadNodes();
+		await browseEntityFilter.loadNodes();
+		if (browse.hasFilters) {
+			await browse.applyFilters();
+		}
 		sidebarSlot.set(sidebarContent);
 	});
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+import { onMount } from 'svelte';
 import { activeUser } from '$lib/stores/active-user.svelte.js';
 import { consumer } from '$lib/stores/consumer.svelte.js';
 import { creator } from '$lib/stores/creator.svelte.js';
@@ -30,6 +31,10 @@ import X from '@lucide/svelte/icons/x';
 import Newspaper from '@lucide/svelte/icons/newspaper';
 import FileStack from '@lucide/svelte/icons/file-stack';
 import ChevronDown from '@lucide/svelte/icons/chevron-down';
+
+onMount(() => {
+	activeUser.reload();
+});
 
 // ── Create user dialog ─────────────────────────────────────────────
 

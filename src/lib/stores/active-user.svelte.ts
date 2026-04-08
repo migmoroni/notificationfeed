@@ -99,9 +99,14 @@ export const activeUser = {
 
 	/**
 	 * Reload the user list (e.g. after creating a new user).
+	 * Also refreshes state.current so the active user banner picks up changes.
 	 */
 	async reload(): Promise<void> {
 		state.allUsers = await loadAllUsers();
+		if (state.current) {
+			const fresh = state.allUsers.find(u => u.id === state.current!.id);
+			if (fresh) state.current = fresh;
+		}
 	},
 
 	/**

@@ -14,8 +14,8 @@
 	let showAssignment = $state(false);
 	let showRemoveConfirm = $state(false);
 
-	onMount(() => {
-		favorites.loadFavorites();
+	onMount(async () => {
+		await favorites.loadFavorites();
 		sidebarSlot.set(sidebarContent);
 	});
 
