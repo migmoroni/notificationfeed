@@ -11,6 +11,7 @@ import type { UserConsumer, NodeActivation, FavoriteTab } from '$lib/domain/user
 import { SYSTEM_FAVORITES_TAB_ID } from '$lib/domain/user/user-consumer.js';
 import type { FeedMacro, FeedMacroFilters } from '$lib/domain/feed-macro/feed-macro.js';
 import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
+import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
 import { buildNodeActivationMap } from '$lib/domain/shared/priority-resolver.js';
 import { createUserConsumerStore } from '$lib/persistence/user-consumer.store.js';
 
@@ -278,5 +279,21 @@ export const consumer = {
 			...state.user,
 			feedMacros: (state.user.feedMacros ?? []).filter((m) => m.id !== macroId)
 		};
+	},
+
+	// ── Profile image ────────────────────────────────────────────────
+
+	async setProfileImage(image: ImageAsset | null): Promise<void> {
+		if (!state.user) return;
+
+		await repo.setProfileImage(state.user.id, image);
+		state.user = { ...state.user, profileImage: image, profileEmoji: image ? null : state.user.profileEmoji, updatedAt: new Date() };
+	},
+
+	async setProfileEmoji(emoji: string | null): Promise<void> {
+		if (!state.user) return;
+
+		await repo.setProfileEmoji(state.user.id, emoji);
+		state.user = { ...state.user, profileEmoji: emoji, profileImage: emoji ? null : state.user.profileImage, updatedAt: new Date() };
 	}
 };

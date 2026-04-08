@@ -11,6 +11,7 @@
 	import { hasMockData, seedMockData } from '$lib/utils/mock-data.js';
 	import { seedCategories } from '$lib/persistence/category-seed.service.js';
 	import { sidebarSlot } from '$lib/stores/sidebar-slot.svelte.js';
+	import { createImagePreviewUrl } from '$lib/services/image.service.js';
 	import Newspaper from '@lucide/svelte/icons/newspaper';
 	import Search from '@lucide/svelte/icons/search';
 	import Star from '@lucide/svelte/icons/star';
@@ -36,6 +37,12 @@
 	] as const;
 
 	let navItems = $derived(activeUser.isCreator ? creatorNav : consumerNav);
+
+	let userNavLabel = $derived(activeUser.current?.displayName ?? 'User');
+	let userAvatarUrl = $derived(
+		activeUser.current?.profileImage ? createImagePreviewUrl(activeUser.current.profileImage) : null
+	);
+	let userEmoji = $derived(activeUser.current?.profileEmoji ?? null);
 
 	function isActive(href: string): boolean {
 		const path = page.url.pathname;
@@ -108,8 +115,14 @@
 							? 'bg-sidebar-accent text-sidebar-accent-foreground'
 							: 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'}"
 					>
-						<item.icon class="size-5" />
-						{item.label}
+						{#if item.href === '/user' && userAvatarUrl}
+							<img src={userAvatarUrl} alt="" class="size-5 rounded-full object-cover" />
+						{:else if item.href === '/user' && userEmoji}
+							<span class="text-base leading-none">{userEmoji}</span>
+						{:else}
+							<item.icon class="size-5" />
+						{/if}
+						{item.href === '/user' ? userNavLabel : item.label}
 					</a>
 				{/each}
 			</nav>
@@ -154,8 +167,14 @@
 							? 'text-foreground'
 							: 'text-muted-foreground'}"
 					>
-						<item.icon class="size-6" />
-						{item.label}
+						{#if item.href === '/user' && userAvatarUrl}
+							<img src={userAvatarUrl} alt="" class="size-6 rounded-full object-cover" />
+						{:else if item.href === '/user' && userEmoji}
+							<span class="text-lg leading-none">{userEmoji}</span>
+						{:else}
+							<item.icon class="size-6" />
+						{/if}
+						{item.href === '/user' ? userNavLabel : item.label}
 					</a>
 				{/each}
 			</nav>

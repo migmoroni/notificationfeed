@@ -13,6 +13,7 @@
 
 import type { PriorityLevel } from './priority-level.js';
 import type { FeedMacro, FeedMacroFilters } from '../feed-macro/feed-macro.js';
+import type { ImageAsset } from '../shared/image-asset.js';
 
 // ---------------------------------------------------------------------------
 // Tree activation
@@ -77,6 +78,15 @@ export interface UserConsumer {
 	role: 'consumer';
 	displayName: string;
 
+	/** Profile image (avatar slot, WEBP base64). Null = default icon. Mutually exclusive with profileEmoji. */
+	profileImage: ImageAsset | null;
+
+	/** Profile emoji (alternative to image). Mutually exclusive with profileImage. */
+	profileEmoji: string | null;
+
+	/** Soft-delete flag. Removed users are hidden but kept in DB. */
+	removedAt: Date | null;
+
 	/** Trees the user has subscribed to */
 	activateTrees: TreeActivation[];
 
@@ -129,4 +139,12 @@ export interface UserConsumerRepository {
 	createMacro(userId: string, macro: Omit<FeedMacro, 'id'>): Promise<FeedMacro>;
 	updateMacro(userId: string, macroId: string, filters: FeedMacroFilters): Promise<FeedMacro>;
 	deleteMacro(userId: string, macroId: string): Promise<void>;
+
+	/** Profile image / emoji */
+	setProfileImage(userId: string, image: ImageAsset | null): Promise<void>;
+	setProfileEmoji(userId: string, emoji: string | null): Promise<void>;
+
+	/** Soft-delete / restore */
+	softDelete(userId: string): Promise<void>;
+	restore(userId: string): Promise<void>;
 }

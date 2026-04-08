@@ -11,6 +11,7 @@
 import type { UserBase, UserRole } from '$lib/domain/user/user.js';
 import type { UserConsumer } from '$lib/domain/user/user-consumer.js';
 import type { UserCreator } from '$lib/domain/user/user-creator.js';
+import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
 import { getDatabase } from '$lib/persistence/db.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
@@ -47,7 +48,7 @@ async function loadAllUsers(): Promise<UserBase[]> {
 
 async function persistUser(user: UserBase): Promise<void> {
 	const db = await getDatabase();
-	await db.users.put(user);
+	await db.users.put($state.snapshot(user));
 }
 
 // ── Exported accessor ──────────────────────────────────────────────────
@@ -58,8 +59,9 @@ export const activeUser = {
 	get isConsumer() { return state.current?.role === 'consumer'; },
 	get isCreator() { return state.current?.role === 'creator'; },
 	get allUsers() { return state.allUsers; },
-	get consumers() { return state.allUsers.filter((u): u is UserConsumer => u.role === 'consumer'); },
-	get creators() { return state.allUsers.filter((u): u is UserCreator => u.role === 'creator'); },
+	get consumers() { return state.allUsers.filter((u): u is UserConsumer => u.role === 'consumer' && !u.removedAt); },
+	get creators() { return state.allUsers.filter((u): u is UserCreator => u.role === 'creator' && !u.removedAt); },
+	get removedUsers() { return state.allUsers.filter((u) => !!u.removedAt); },
 	get loading() { return state.loading; },
 
 	/**
@@ -134,6 +136,9 @@ export const activeUser = {
 			id: crypto.randomUUID(),
 			role: 'consumer',
 			displayName,
+			profileImage: null,
+			profileEmoji: null,
+			removedAt: null,
 			activateTrees: [],
 			activateNodes: [],
 			favoriteTabs: [],
@@ -155,6 +160,9 @@ export const activeUser = {
 			id: crypto.randomUUID(),
 			role: 'creator',
 			displayName,
+			profileImage: null,
+			profileEmoji: null,
+			removedAt: null,
 			nostrKeypair: null,
 			syncStatus: 'local',
 			ownedTreeIds: [],
@@ -181,5 +189,71 @@ export const activeUser = {
 		if (state.current?.id === userId) {
 			state.current = updated;
 		}
+	},
+
+	/**
+	 * Update a user's profile image.
+	 */
+	async setProfileImage(userId: string, image: ImageAsset | null): Promise<void> {
+		const user = state.allUsers.find(u => u.id === userId);
+		if (!user) return;
+
+		const updated = { ...user, profileImage: image, profileEmoji: image ? null : user.profileEmoji, updatedAt: new Date() };
+		await persistUser(updated);
+
+		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		if (state.current?.id === userId) {
+			state.current = updated;
+		}
+	},
+
+	async setProfileEmoji(userId: string, emoji: string | null): Promise<void> {
+		const user = state.allUsers.find(u => u.id === userId);
+		if (!user) return;
+
+		const updated = { ...user, profileEmoji: emoji, profileImage: emoji ? null : user.profileImage, updatedAt: new Date() };
+		await persistUser(updated);
+
+		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		if (state.current?.id === userId) {
+			state.current = updated;
+		}
+	},
+
+	/**
+	 * Soft-delete a user (mark as removed, keep in DB).
+	 */
+	async softDelete(userId: string): Promise<void> {
+		const user = state.allUsers.find(u => u.id === userId);
+		if (!user) return;
+
+		const updated = { ...user, removedAt: new Date(), updatedAt: new Date() };
+		await persistUser(updated);
+
+		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+
+		// If the deleted user is the current one, switch to first available
+		if (state.current?.id === userId) {
+			const available = state.allUsers.find(u => u.id !== userId && !u.removedAt);
+			if (available) {
+				state.current = available;
+				saveActiveUserId(available.id);
+			} else {
+				state.current = null;
+			}
+		}
+	},
+
+	/**
+	 * Restore a soft-deleted user.
+	 */
+	async restore(userId: string): Promise<void> {
+		const user = state.allUsers.find(u => u.id === userId);
+		if (!user) return;
+
+		const updated = { ...user, removedAt: null, updatedAt: new Date() };
+		await persistUser(updated);
+
+		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
 	}
 };

@@ -16,6 +16,7 @@ import type {
 import { SYSTEM_FAVORITES_TAB_ID } from '$lib/domain/user/user-consumer.js';
 import type { FeedMacro, FeedMacroFilters } from '$lib/domain/feed-macro/feed-macro.js';
 import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
+import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
 import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
 import { getDatabase } from './db.js';
 
@@ -49,6 +50,9 @@ export function createUserConsumerStore(): UserConsumerRepository {
 				id: uuidv7(),
 				role: 'consumer',
 				displayName: data.displayName,
+				profileImage: null,
+				profileEmoji: null,
+				removedAt: null,
 				activateTrees: [],
 				activateNodes: [],
 				favoriteTabs: [createSystemTab()],
@@ -294,6 +298,52 @@ export function createUserConsumerStore(): UserConsumerRepository {
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
 			user.feedMacros = (user.feedMacros ?? []).filter((m) => m.id !== macroId);
+			user.updatedAt = new Date();
+			await db.users.put(user);
+		},
+
+		// -- Profile image --
+
+		async setProfileImage(userId: string, image: ImageAsset | null): Promise<void> {
+			const db = await getDatabase();
+			const user = await db.users.getById<UserConsumer>(userId);
+			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
+
+			user.profileImage = image;
+			if (image) user.profileEmoji = null;
+			user.updatedAt = new Date();
+			await db.users.put(user);
+		},
+
+		async setProfileEmoji(userId: string, emoji: string | null): Promise<void> {
+			const db = await getDatabase();
+			const user = await db.users.getById<UserConsumer>(userId);
+			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
+
+			user.profileEmoji = emoji;
+			if (emoji) user.profileImage = null;
+			user.updatedAt = new Date();
+			await db.users.put(user);
+		},
+
+		// -- Soft-delete / restore --
+
+		async softDelete(userId: string): Promise<void> {
+			const db = await getDatabase();
+			const user = await db.users.getById<UserConsumer>(userId);
+			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
+
+			user.removedAt = new Date();
+			user.updatedAt = new Date();
+			await db.users.put(user);
+		},
+
+		async restore(userId: string): Promise<void> {
+			const db = await getDatabase();
+			const user = await db.users.getById<UserConsumer>(userId);
+			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
+
+			user.removedAt = null;
 			user.updatedAt = new Date();
 			await db.users.put(user);
 		}
