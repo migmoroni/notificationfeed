@@ -255,13 +255,13 @@ categoryAssignments: [
 [PT.fontRss1]: makeNode(PT.fontRss1, 'font', {
 title: 'Hacker News RSS',
 tags: ['hackernews', 'tech'],
-categoryAssignments: [{ treeId: 'content_type', categoryIds: ['ct-format-news'] }]
+categoryAssignments: [{ treeId: 'content_type', categoryIds: ['ct-access-mode-textual'] }]
 }, { role: 'font', protocol: 'rss', config: { url: 'https://hnrss.org/frontpage' }, defaultEnabled: true }),
 
 [PT.fontAtom1]: makeNode(PT.fontAtom1, 'font', {
 title: 'Svelte Blog (Atom)',
 tags: ['svelte', 'framework'],
-categoryAssignments: [{ treeId: 'content_type', categoryIds: ['ct-format-tutorial'] }]
+categoryAssignments: [{ treeId: 'content_type', categoryIds: ['ct-access-mode-textual'] }]
 }, { role: 'font', protocol: 'atom', config: { url: 'https://svelte.dev/blog/rss.xml' }, defaultEnabled: true }),
 
 [PT.fontNostr1]: makeNode(PT.fontNostr1, 'font', {
@@ -282,14 +282,14 @@ title: 'Security & Privacy',
 tags: ['security', 'privacy', 'infosec'],
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['subj-tech-security'] },
-{ treeId: 'content_type', categoryIds: ['ct-format-news', 'ct-format-analysis'] }
+{ treeId: 'content_type', categoryIds: ['ct-access-mode-textual', 'ct-access-mode-visual'] }
 ]
 }, { role: 'profile', links: [] }),
 
 [PS.fontRss3]: makeNode(PS.fontRss3, 'font', {
 title: 'Krebs on Security',
 tags: ['security', 'infosec'],
-categoryAssignments: [{ treeId: 'content_type', categoryIds: ['ct-format-analysis'] }]
+categoryAssignments: [{ treeId: 'content_type', categoryIds: ['ct-access-mode-textual'] }]
 }, { role: 'font', protocol: 'rss', config: { url: 'https://krebsonsecurity.com/feed/' }, defaultEnabled: true }),
 },
 { '/': PS.root, '*': [PS.fontRss3] },
@@ -305,7 +305,7 @@ title: 'News Sources',
 tags: ['news', 'world'],
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['subj-politics-intl'] },
-{ treeId: 'content_type', categoryIds: ['ct-format-news'] }
+{ treeId: 'content_type', categoryIds: ['ct-access-mode-textual'] }
 ]
 }, { role: 'profile', links: [] }),
 
@@ -327,7 +327,7 @@ title: 'Science & Health',
 tags: ['science', 'health', 'research'],
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['subj-science', 'subj-health'] },
-{ treeId: 'content_type', categoryIds: ['ct-format-news'] }
+{ treeId: 'content_type', categoryIds: ['ct-access-mode-textual'] }
 ]
 }, { role: 'profile', links: [] }),
 
@@ -349,7 +349,7 @@ title: 'Frontend Sources',
 tags: ['frontend', 'web'],
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['subj-tech-webdev'] },
-{ treeId: 'content_type', categoryIds: ['ct-format-tutorial'] }
+{ treeId: 'content_type', categoryIds: ['ct-access-mode-textual'] }
 ]
 }, { role: 'profile', links: [] }),
 
@@ -432,7 +432,7 @@ summary: 'Daily news from around the world',
 tags: ['news', 'world', 'brazil'],
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['subj-politics-intl'] },
-{ treeId: 'content_type', categoryIds: ['ct-format-news'] }
+{ treeId: 'content_type', categoryIds: ['ct-access-mode-textual'] }
 ]
 }, { role: 'creator', links: [] }),
 

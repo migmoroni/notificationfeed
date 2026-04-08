@@ -33,7 +33,7 @@
 
 	const TREES: { id: CategoryTreeId; label: string; description: string; icon: typeof BookOpen }[] = [
 		{ id: 'subject', label: 'Assunto', description: 'Sobre o que é este conteúdo?', icon: BookOpen },
-		{ id: 'content_type', label: 'Formato', description: 'Que tipo de conteúdo é?', icon: FileText },
+		{ id: 'content_type', label: 'Acessibilidade', description: 'Quais propriedades de acessibilidade?', icon: FileText },
 		{ id: 'media_type', label: 'Mídia', description: 'Qual o tipo de mídia principal?', icon: Film },
 		{ id: 'region', label: 'Região', description: 'De qual região geográfica?', icon: Globe }
 	];

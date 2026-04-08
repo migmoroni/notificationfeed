@@ -8,8 +8,8 @@
  *
  * Each tree lives in its own file to keep things manageable:
  *   seed-subject.ts      — IPTC NewsCodes Media Topics (17 topics)
- *   seed-content-type.ts — format taxonomy
- *   seed-media-type.ts   — primary media format
+ *   seed-content-type.ts — accessibility taxonomy (schema.org + W3C WAI)
+ *   seed-media-type.ts   — content media taxonomy (DCMI + schema.org)
  *   seed-region.ts       — geographic taxonomy
  */
 

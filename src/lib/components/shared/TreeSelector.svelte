@@ -12,7 +12,7 @@
 
 	const trees: { id: CategoryTreeId; label: string }[] = [
 		{ id: 'subject', label: 'Assunto' },
-		{ id: 'content_type', label: 'Formato' },
+		{ id: 'content_type', label: 'Acessibilidade' },
 		{ id: 'media_type', label: 'Mídia' },
 		{ id: 'region', label: 'Região' }
 	];
