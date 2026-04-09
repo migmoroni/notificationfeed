@@ -4,7 +4,7 @@
 export type { UserBase, UserRole } from './domain/user/user.js';
 export type { UserConsumer, NewUserConsumer, TreeActivation, NodeActivation, FavoriteTab } from './domain/user/user-consumer.js';
 export { SYSTEM_FAVORITES_TAB_ID } from './domain/user/user-consumer.js';
-export type { UserCreator, NewUserCreator, NostrKeypair, SyncStatus } from './domain/user/user-creator.js';
+export type { UserCreator, NewUserCreator } from './domain/user/user-creator.js';
 export type { PriorityLevel } from './domain/user/priority-level.js';
 
 // Domain — Content Model

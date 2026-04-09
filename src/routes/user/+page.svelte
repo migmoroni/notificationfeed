@@ -378,7 +378,7 @@ disabled={isActive}
 <div class="flex-1 min-w-0">
 <span class="text-sm font-medium truncate block">{user.displayName}</span>
 <span class="text-[10px] text-muted-foreground">
-{summary.trees} pages · {user.syncStatus === 'local' ? 'Local' : 'Synced'}
+{summary.trees} pages
 </span>
 </div>
 
@@ -463,7 +463,7 @@ Configurações globais do aplicativo aparecerão aqui em futuras versões.
 <Dialog.Description>
 {createRole === 'consumer'
 ? 'Consumer consome e organiza feeds. Inscreve-se, segue, favorita e personaliza prioridades.'
-: 'Creator cria e exporta páginas editoriais com profiles e fonts. Pode ser local ou vinculado a Nostr (futuro).'}
+: 'Creator cria e exporta páginas editoriais com profiles e fonts.'}
 </Dialog.Description>
 </Dialog.Header>
 

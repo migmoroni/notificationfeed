@@ -157,7 +157,7 @@ export const activeUser = {
 	},
 
 	/**
-	 * Create a new creator user (local, no Nostr keypair).
+	 * Create a new creator user.
 	 */
 	async createCreator(displayName: string): Promise<UserCreator> {
 		const now = new Date();
@@ -168,8 +168,6 @@ export const activeUser = {
 			profileImage: null,
 			profileEmoji: null,
 			removedAt: null,
-			nostrKeypair: null,
-			syncStatus: 'local',
 			ownedTreeIds: [],
 			ownedMediaIds: [],
 			createdAt: now,
