@@ -2,7 +2,7 @@
  * Database — persistence layer for the unified content model.
  *
  * Stores: contentTrees (with embedded nodes), contentMedias, treePublications,
- *         users, posts, categories, favoriteTabs
+ *         users, posts, categories
  *
  * Removed: contentNodes (nodes now live inside contentTrees)
  *
@@ -21,7 +21,6 @@ treePublications: TableOps;
 users: TableOps;
 posts: TableOps;
 categories: TableOps;
-favoriteTabs: TableOps;
 }
 
 export interface TableOps {
@@ -91,9 +90,6 @@ idb.createObjectStore('posts', { keyPath: 'nodeId' });
 const catStore = idb.createObjectStore('categories', { keyPath: 'id' });
 catStore.createIndex('parentId', 'parentId', { unique: false });
 catStore.createIndex('treeId', 'treeId', { unique: false });
-
-// Favorite tabs
-idb.createObjectStore('favoriteTabs', { keyPath: 'id' });
 }
 };
 
@@ -107,8 +103,7 @@ editorMedias: createIndexedDBTable(idb, 'editorMedias'),
 treePublications: createIndexedDBTable(idb, 'treePublications'),
 users: createIndexedDBTable(idb, 'users'),
 posts: createIndexedDBTable(idb, 'posts'),
-categories: createIndexedDBTable(idb, 'categories'),
-favoriteTabs: createIndexedDBTable(idb, 'favoriteTabs')
+categories: createIndexedDBTable(idb, 'categories')
 });
 };
 

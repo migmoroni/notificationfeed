@@ -163,7 +163,6 @@ item.tabIds = merged;
 await consumer.updateFavoriteTabIds(nodeId, merged);
 }
 state.items = [...state.items];
-state.selectedItemIds = new Set();
 },
 
 async removeItemsFromTab(nodeIds: string[], tabId: string): Promise<void> {
@@ -175,7 +174,6 @@ item.tabIds = filtered;
 await consumer.updateFavoriteTabIds(nodeId, filtered);
 }
 state.items = [...state.items];
-state.selectedItemIds = new Set();
 },
 
 // ── Selection ────────────────────────────────────────────────────

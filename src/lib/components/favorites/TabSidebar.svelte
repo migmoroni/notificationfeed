@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { favorites } from '$lib/stores/favorites.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
-	import { ALL_FAVORITES_ID } from '$lib/persistence/favorite-tab.store.js';
+	import { ALL_FAVORITES_ID } from '$lib/stores/favorites.svelte.js';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Ellipsis from '@lucide/svelte/icons/ellipsis';
 	import Pencil from '@lucide/svelte/icons/pencil';

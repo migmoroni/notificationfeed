@@ -21,10 +21,6 @@ export { CATEGORY_SEED } from './domain/category/category-seed.js';
 export type { CategoryAssignment } from './domain/shared/category-assignment.js';
 export { SUGGESTED_CATEGORIES_PER_TREE, validateAssignments } from './domain/shared/category-assignment.js';
 
-// Domain — Favorite Tab
-export type { FavoriteTab as FavoriteTabDomain } from './domain/favorite-tab/favorite-tab.js';
-export type { FavoriteTabRepository } from './domain/favorite-tab/favorite-tab.js';
-
 // Domain — Shared Value Objects
 export type { ImageAsset, ImageSlot, AcceptedImageFormat } from './domain/shared/image-asset.js';
 

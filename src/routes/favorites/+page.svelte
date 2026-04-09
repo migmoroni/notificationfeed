@@ -67,7 +67,7 @@
 
 <!-- Tab assignment dialog -->
 {#if showAssignment}
-	<TabAssignmentDialog onclose={() => (showAssignment = false)} />
+	<TabAssignmentDialog onclose={() => { favorites.clearSelection(); showAssignment = false; }} />
 {/if}
 
 <!-- Remove confirm dialog -->
