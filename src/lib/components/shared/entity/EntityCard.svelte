@@ -109,11 +109,6 @@
 		showUnsubscribeConfirm = false;
 		showUnsaveConfirm = false;
 	}
-
-	function stopPropagation(e: MouseEvent) {
-		e.preventDefault();
-		e.stopPropagation();
-	}
 </script>
 
 {#snippet cardContent()}
@@ -152,8 +147,7 @@
 			{/if}
 
 			<!-- Actions row -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="flex items-center gap-2 mt-auto pt-2" onclick={stopPropagation} onkeydown={() => {}}>
+			<div class="flex items-center gap-2 mt-auto pt-2">
 				{#if currentPriority}
 					<PriorityBadge level={currentPriority} />
 				{/if}
