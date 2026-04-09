@@ -111,18 +111,18 @@
 				{#each navItems as item}
 					<a
 						href={item.href}
-						class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors {isActive(item.href)
+						class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors min-w-0 {isActive(item.href)
 							? 'bg-sidebar-accent text-sidebar-accent-foreground'
 							: 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'}"
 					>
 						{#if item.href === '/user' && userAvatarUrl}
-							<img src={userAvatarUrl} alt="" class="size-5 rounded-full object-cover" />
+							<img src={userAvatarUrl} alt="" class="size-5 rounded-full object-cover shrink-0" />
 						{:else if item.href === '/user' && userEmoji}
-							<span class="text-base leading-none">{userEmoji}</span>
+							<span class="text-base leading-none shrink-0">{userEmoji}</span>
 						{:else}
-							<item.icon class="size-5" />
+							<item.icon class="size-5 shrink-0" />
 						{/if}
-						{item.href === '/user' ? userNavLabel : item.label}
+						<span class="truncate">{item.href === '/user' ? userNavLabel : item.label}</span>
 					</a>
 				{/each}
 			</nav>

@@ -471,6 +471,7 @@ Configurações globais do aplicativo aparecerão aqui em futuras versões.
 <Input
 bind:value={createName}
 placeholder="Nome de exibição"
+maxlength={50}
 class="w-full"
 onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter') handleCreate(); }}
 />
@@ -575,6 +576,7 @@ class="flex items-center justify-center size-20 rounded-full bg-muted text-muted
 <Input
 bind:value={editName}
 placeholder="Nome de exibição"
+maxlength={50}
 class="w-full"
 onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter') saveEdit(); }}
 />

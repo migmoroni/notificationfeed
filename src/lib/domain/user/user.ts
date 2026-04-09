@@ -12,6 +12,8 @@ export type UserRole = 'consumer' | 'creator';
 export interface UserBase {
 	id: string;
 	role: UserRole;
+
+	/** Display name (max 50 characters) */
 	displayName: string;
 
 	/** Profile image (avatar slot, WEBP base64). Null = default icon. Mutually exclusive with profileEmoji. */
