@@ -19,4 +19,4 @@ loadedTrees = trees;
 return { trees };
 },
 getTrees() { return loadedTrees; }
-});
+}, { singlePageSelect: true });

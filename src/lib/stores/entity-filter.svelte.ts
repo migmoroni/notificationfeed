@@ -37,9 +37,15 @@ getTrees(): ContentTree[];
 	isNodeActivated?: (nodeId: string) => boolean;
 }
 
+export interface EntityFilterOptions {
+	/** When true, only one page (tree) can be selected at a time. */
+	singlePageSelect?: boolean;
+}
+
 // ── Factory ────────────────────────────────────────────────────────────
 
-export function createEntityFilter(source: EntityFilterDataSource): EntityFilterStore {
+export function createEntityFilter(source: EntityFilterDataSource, options?: EntityFilterOptions): EntityFilterStore {
+const singlePageSelect = options?.singlePageSelect ?? false;
 let pageTypeFilter = $state<Set<PageType>>(new Set(ALL_PAGE_TYPES));
 let selectedPageIds = $state<Set<string>>(new Set());
 let selectedFontIds = $state<Set<string>>(new Set());
@@ -90,6 +96,35 @@ return ids;
 function treeForFont(fontNodeId: string): ContentTree | null {
 const treeId = parseTreeId(fontNodeId);
 return buildTreeMap().get(treeId) ?? null;
+}
+
+/** Get the set of page (root) IDs that are linked to a given page via tree-link nodes (bidirectional). */
+function getRelatedPageIds(pageId: string): Set<string> {
+const related = new Set<string>();
+const treeMap = buildTreeMap();
+const targetTreeId = parseTreeId(pageId);
+
+// Forward: trees linked FROM pageId's tree
+const tree = treeMap.get(targetTreeId);
+if (tree) {
+for (const n of Object.values(tree.nodes)) {
+if (!isTreeLinkNode(n)) continue;
+const linked = treeMap.get(n.data.body.instanceTreeId);
+if (linked) related.add(getRootNodeId(linked));
+}
+}
+
+// Reverse: trees that link TO pageId's tree
+for (const t of treeMap.values()) {
+for (const n of Object.values(t.nodes)) {
+if (!isTreeLinkNode(n)) continue;
+if (n.data.body.instanceTreeId === targetTreeId) {
+related.add(getRootNodeId(t));
+}
+}
+}
+
+return related;
 }
 
 /** Get root node ID for a tree that a page belongs to */
@@ -255,7 +290,40 @@ return selectedFontIds.has(nodeId);
 },
 
 togglePage(pageId: string): void {
-const next = new Set(selectedPageIds);
+			if (singlePageSelect) {
+				if (selectedPageIds.has(pageId)) {
+					// Deselect this page; keep only related pages that are still selected
+					const next = new Set(selectedPageIds);
+					next.delete(pageId);
+					// Remove fonts from deselected page
+					const nextFonts = new Set(selectedFontIds);
+					for (const fid of fontIdsForTree(parseTreeId(pageId))) {
+						nextFonts.delete(fid);
+					}
+					selectedPageIds = next;
+					selectedFontIds = nextFonts;
+				} else {
+					// Select new page; keep currently selected pages that are related to it
+					const related = getRelatedPageIds(pageId);
+					const next = new Set<string>([pageId]);
+					const nextFonts = new Set<string>();
+					for (const pid of selectedPageIds) {
+						if (related.has(pid)) {
+							next.add(pid);
+							// Keep fonts of related pages
+							for (const fid of selectedFontIds) {
+								if (fontIdsForTree(parseTreeId(pid)).has(fid)) {
+									nextFonts.add(fid);
+								}
+							}
+						}
+					}
+					selectedPageIds = next;
+					selectedFontIds = nextFonts;
+				}
+				return;
+			}
+			const next = new Set(selectedPageIds);
 if (next.has(pageId)) {
 next.delete(pageId);
 // Cascade: deselect fonts within this page
