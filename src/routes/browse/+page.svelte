@@ -16,15 +16,11 @@
 		browseEntityFilter.hasFilters ? [...browseEntityFilter.getAllowedFontNodeIds()] : []
 	);
 
-	let hasAnyFilter = $derived(browse.hasFilters || browseEntityFilter.hasFilters);
-
-	// When entity filter becomes active but browse has no own filters, load all nodes.
-	// When entity filter is cleared and browse has no own filters, clear nodes.
+	// Load all nodes when entity filter is active without category filters,
+	// or always ensure nodes are loaded for the default view.
 	$effect(() => {
 		if (browseEntityFilter.hasFilters && !browse.hasFilters) {
 			browse.loadAllNodes();
-		} else if (!browseEntityFilter.hasFilters && !browse.hasFilters) {
-			browse.clearNodes();
 		}
 	});
 
@@ -32,8 +28,6 @@
 	let filteredNodes = $derived.by(() => {
 		if (!browseEntityFilter.hasFilters) return browse.nodes;
 		const fontSet = new Set(allowedFontNodeIds);
-		// When entity filter is active, show only font-role nodes that match
-		// (the EntityList groups by role internally, so we pass all matching nodes)
 		const selectedCreators = new Set(browseEntityFilter.selectedCreatorIds);
 		const selectedProfiles = new Set(browseEntityFilter.selectedProfileIds);
 		return browse.nodes.filter((n) => {
@@ -53,6 +47,8 @@
 		await browseEntityFilter.loadNodes();
 		if (browse.hasFilters) {
 			await browse.applyFilters();
+		} else {
+			await browse.loadAllNodes();
 		}
 		sidebarSlot.set(sidebarContent);
 	});
@@ -143,17 +139,9 @@
 		</aside>
 		{/if}
 
-		<!-- Main: filtered results -->
+		<!-- Main: results -->
 		<div class="overflow-y-auto pr-24">
-			{#if hasAnyFilter}
-				<EntityList nodes={filteredNodes} loading={browse.loading} />
-			{:else}
-				<div class="flex flex-col items-center justify-center py-12 text-center">
-					<p class="text-sm text-muted-foreground">
-						Selecione categorias ou pesquise para descobrir conteúdo.
-					</p>
-				</div>
-			{/if}
+			<EntityList nodes={filteredNodes} loading={browse.loading} />
 		</div>
 	</div>
 </div>

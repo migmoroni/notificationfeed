@@ -195,7 +195,7 @@ state.selectedByTree.region.size > 0;
 const hasSearch = state.searchQuery.trim().length > 0;
 
 if (!hasCategories && !hasSearch) {
-state.nodes = [];
+await this.loadAllNodes();
 return;
 }
 
