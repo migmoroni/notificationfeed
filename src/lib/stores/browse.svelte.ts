@@ -48,7 +48,7 @@ function expandCategoryIds(selectedIds: Set<string>, allCategories: Category[]):
 const expanded = new Set(selectedIds);
 for (const catId of selectedIds) {
 for (const cat of allCategories) {
-if (cat.parentId === catId && cat.isActive) {
+if (cat.parentId === catId) {
 expanded.add(cat.id);
 }
 }
@@ -125,13 +125,13 @@ return { creators, profiles, fonts };
 
 getRootCategories(treeId: CategoryTreeId): Category[] {
 return state.categories
-.filter((c) => c.parentId === null && c.treeId === treeId && c.isActive)
+.filter((c) => c.parentId === null && c.treeId === treeId)
 .sort((a, b) => a.order - b.order);
 },
 
 getChildren(parentId: string): Category[] {
 return state.categories
-.filter((c) => c.parentId === parentId && c.isActive)
+.filter((c) => c.parentId === parentId)
 .sort((a, b) => a.order - b.order);
 },
 

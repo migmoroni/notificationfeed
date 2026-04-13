@@ -19,7 +19,7 @@ import { contentTypeSeed } from './seed-content-type.js';
 import { mediaTypeSeed } from './seed-media-type.js';
 import { regionSeed } from './seed-region.js';
 
-export type SeedCategory = Omit<Category, 'isActive'>;
+export type SeedCategory = Category;
 
 export const CATEGORY_SEED: SeedCategory[] = [
 	...subjectSeed,

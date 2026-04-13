@@ -25,8 +25,8 @@
 			categoryRepo.getSublevels('subject'),
 			categoryRepo.getSublevels('content_type')
 		]);
-		subjectCategories = subjects.filter((c) => c.isActive).sort((a, b) => a.order - b.order);
-		contentTypeCategories = contentTypes.filter((c) => c.isActive).sort((a, b) => a.order - b.order);
+		subjectCategories = subjects.sort((a, b) => a.order - b.order);
+		contentTypeCategories = contentTypes.sort((a, b) => a.order - b.order);
 	});
 
 	function toggleCategory(treeId: CategoryTreeId, catId: string) {

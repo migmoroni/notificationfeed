@@ -21,7 +21,6 @@ export async function seedCategories(): Promise<void> {
 	if (existing.length > 0) return;
 
 	for (const seed of CATEGORY_SEED) {
-		const cat: Category = { ...seed, isActive: true };
-		await db.categories.put(cat);
+		await db.categories.put(seed as Category);
 	}
 }

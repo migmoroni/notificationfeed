@@ -48,13 +48,13 @@
 
 	function getRootCategories(treeId: CategoryTreeId): Category[] {
 		return categories
-			.filter((c) => c.parentId === null && c.treeId === treeId && c.isActive)
+			.filter((c) => c.parentId === null && c.treeId === treeId)
 			.sort((a, b) => a.order - b.order);
 	}
 
 	function getChildren(parentId: string): Category[] {
 		return categories
-			.filter((c) => c.parentId === parentId && c.isActive)
+			.filter((c) => c.parentId === parentId)
 			.sort((a, b) => a.order - b.order);
 	}
 

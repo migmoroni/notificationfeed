@@ -41,11 +41,7 @@ export interface Category {
 	/** Sort order among siblings */
 	order: number;
 
-	/** Always true — indicates system-managed category */
-	isSystem: boolean;
 
-	/** Whether the user has this category active locally */
-	isActive: boolean;
 }
 
 export type NewCategory = Omit<Category, 'id' | 'depth'>;
