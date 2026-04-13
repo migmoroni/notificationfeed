@@ -156,7 +156,6 @@ role,
 data: {
 header: {
 title: header.title ?? '',
-tags: header.tags ?? [],
 categoryAssignments: header.categoryAssignments ?? [],
 subtitle: header.subtitle,
 summary: header.summary,
@@ -205,6 +204,7 @@ removedAt: null,
 activateTrees: [],
 activateNodes: [],
 favoriteTabs: [],
+userTags: [],
 feedMacros: [],
 createdAt: now,
 updatedAt: now
@@ -232,7 +232,6 @@ IDS.treeProfileTech,
 {
 [PT.root]: makeNode(PT.root, 'profile', {
 title: 'Tech Sources',
-tags: ['tech', 'development'],
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['anaaa', 'anaab'] }
 ]
@@ -240,19 +239,16 @@ categoryAssignments: [
 
 [PT.fontRss1]: makeNode(PT.fontRss1, 'font', {
 title: 'Hacker News RSS',
-tags: ['hackernews', 'tech'],
 categoryAssignments: [{ treeId: 'content_type', categoryIds: ['baaac'] }]
 }, { role: 'font', protocol: 'rss', config: { url: 'https://hnrss.org/frontpage' }, defaultEnabled: true }),
 
 [PT.fontAtom1]: makeNode(PT.fontAtom1, 'font', {
 title: 'Svelte Blog (Atom)',
-tags: ['svelte', 'framework'],
 categoryAssignments: [{ treeId: 'content_type', categoryIds: ['baaac'] }]
 }, { role: 'font', protocol: 'atom', config: { url: 'https://svelte.dev/blog/rss.xml' }, defaultEnabled: true }),
 
 [PT.fontNostr1]: makeNode(PT.fontNostr1, 'font', {
 title: 'Nostr Dev Updates',
-tags: ['nostr', 'protocol']
 }, { role: 'font', protocol: 'nostr', config: { pubkey: 'npub1mockkey000000000000000000000000000000', relays: ['wss://relay.damus.io'] }, defaultEnabled: true }),
 },
 { '/': PT.root, '*': [PT.fontRss1, PT.fontAtom1, PT.fontNostr1] },
@@ -265,7 +261,6 @@ IDS.treeProfileSecurity,
 {
 [PS.root]: makeNode(PS.root, 'profile', {
 title: 'Security & Privacy',
-tags: ['security', 'privacy', 'infosec'],
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['anaak'] },
 { treeId: 'content_type', categoryIds: ['baaac', 'baaad'] }
@@ -274,7 +269,6 @@ categoryAssignments: [
 
 [PS.fontRss3]: makeNode(PS.fontRss3, 'font', {
 title: 'Krebs on Security',
-tags: ['security', 'infosec'],
 categoryAssignments: [{ treeId: 'content_type', categoryIds: ['baaac'] }]
 }, { role: 'font', protocol: 'rss', config: { url: 'https://krebsonsecurity.com/feed/' }, defaultEnabled: true }),
 },
@@ -288,7 +282,6 @@ IDS.treeProfileNews,
 {
 [PN.root]: makeNode(PN.root, 'profile', {
 title: 'News Sources',
-tags: ['news', 'world'],
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['alaae'] },
 { treeId: 'content_type', categoryIds: ['baaac'] }
@@ -297,7 +290,6 @@ categoryAssignments: [
 
 [PN.fontRss2]: makeNode(PN.fontRss2, 'font', {
 title: 'BBC World RSS',
-tags: ['bbc', 'world']
 }, { role: 'font', protocol: 'rss', config: { url: 'http://feeds.bbci.co.uk/news/world/rss.xml' }, defaultEnabled: true }),
 },
 { '/': PN.root, '*': [PN.fontRss2] },
@@ -310,7 +302,6 @@ IDS.treeProfileScience,
 {
 [PH.root]: makeNode(PH.root, 'profile', {
 title: 'Science & Health',
-tags: ['science', 'health', 'research'],
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['an', 'ah'] },
 { treeId: 'content_type', categoryIds: ['baaac'] }
@@ -319,7 +310,6 @@ categoryAssignments: [
 
 [PH.fontAtom2]: makeNode(PH.fontAtom2, 'font', {
 title: 'Nature News (Atom)',
-tags: ['science', 'research']
 }, { role: 'font', protocol: 'atom', config: { url: 'https://www.nature.com/nature.rss' }, defaultEnabled: true }),
 },
 { '/': PH.root, '*': [PH.fontAtom2] },
@@ -332,7 +322,6 @@ IDS.treeProfileFrontend,
 {
 [PF.root]: makeNode(PF.root, 'profile', {
 title: 'Frontend Sources',
-tags: ['frontend', 'web'],
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['anaaa'] },
 { treeId: 'content_type', categoryIds: ['baaac'] }
@@ -341,12 +330,10 @@ categoryAssignments: [
 
 [PF.fontRss1]: makeNode(PF.fontRss1, 'font', {
 title: 'Hacker News (Creator)',
-tags: ['hackernews']
 }, { role: 'font', protocol: 'rss', config: { url: 'https://hnrss.org/frontpage' }, defaultEnabled: true }),
 
 [PF.fontAtom1]: makeNode(PF.fontAtom1, 'font', {
 title: 'Svelte Blog (Creator)',
-tags: ['svelte']
 }, { role: 'font', protocol: 'atom', config: { url: 'https://svelte.dev/blog/rss.xml' }, defaultEnabled: true }),
 },
 { '/': PF.root, '*': [PF.fontRss1, PF.fontAtom1] },
@@ -359,7 +346,6 @@ IDS.treeProfileNewsDraft,
 {
 [PD.root]: makeNode(PD.root, 'profile', {
 title: 'News Draft Profile',
-tags: ['news'],
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['alaae'] }
 ]
@@ -381,7 +367,6 @@ IDS.treeTechBlog,
 [TB.root]: makeNode(TB.root, 'creator', {
 title: 'TechBlog',
 summary: 'A curated collection of technology feeds',
-tags: ['tech', 'programming', 'web'],
 categoryAssignments: [{ treeId: 'subject', categoryIds: ['anaaa'] }]
 }, { role: 'creator', links: [] }),
 
@@ -415,7 +400,6 @@ IDS.treeNewsDaily,
 [ND.root]: makeNode(ND.root, 'creator', {
 title: 'NewsDaily',
 summary: 'Daily news from around the world',
-tags: ['news', 'world', 'brazil'],
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['alaae'] },
 { treeId: 'content_type', categoryIds: ['baaac'] }
@@ -451,7 +435,6 @@ IDS.treeCreatorPublished,
 [CP.root]: makeNode(CP.root, 'creator', {
 title: 'Dev Curations',
 summary: 'Hand-picked development feeds',
-tags: ['dev', 'curated']
 }, { role: 'creator', links: [] }),
 
 [CP.linkFrontend]: makeNode(CP.linkFrontend, 'tree', {
@@ -475,7 +458,6 @@ IDS.treeCreatorDraft,
 [CD.root]: makeNode(CD.root, 'creator', {
 title: 'News Experiment',
 summary: 'Testing news aggregation',
-tags: ['news', 'experiment']
 }, { role: 'creator', links: [] }),
 
 [CD.linkNews]: makeNode(CD.linkNews, 'tree', {

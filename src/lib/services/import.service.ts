@@ -126,7 +126,6 @@ role: 'profile',
 data: {
 header: {
 title: `Feeds importados (${now.toLocaleDateString('pt-BR')})`,
-tags: ['importado'],
 categoryAssignments: []
 },
 body: { role: 'profile', links: [] }
@@ -154,7 +153,7 @@ const fontNodeId = generateNodeId(treeId, uuidv7());
 const fontNode: TreeNode = {
 role: 'font',
 data: {
-header: { title, tags: [], categoryAssignments: [] },
+header: { title, categoryAssignments: [] },
 body: fontBody
 },
 metadata: { id: fontNodeId, versionSchema: 1, createdAt: now, updatedAt: now }

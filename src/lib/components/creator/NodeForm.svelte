@@ -16,7 +16,6 @@
 	import ProfileBodyForm from './ProfileBodyForm.svelte';
 	import FontBodyForm from './FontBodyForm.svelte';
 	import TreeLinkBodyForm from './TreeLinkBodyForm.svelte';
-	import TagInput from './TagInput.svelte';
 	import CategoryTreePicker from './CategoryTreePicker.svelte';
 	import AvatarPicker from './AvatarPicker.svelte';
 	import MediaUpload from './MediaUpload.svelte';
@@ -54,7 +53,6 @@
 	let header = $state<NodeHeader>(
 		initialHeader ?? {
 			title: '',
-			tags: [],
 			categoryAssignments: []
 		}
 	);
@@ -140,13 +138,6 @@
 			body={body as TreeLinkBody}
 			onchange={(b) => (body = b)}
 			{availableTrees}
-		/>
-	{/if}
-
-	{#if isRoot}
-		<TagInput
-			tags={header.tags}
-			onchange={(tags) => (header = { ...header, tags })}
 		/>
 	{/if}
 

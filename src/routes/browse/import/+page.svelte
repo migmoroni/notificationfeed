@@ -197,15 +197,7 @@
 						<span>{treeNodes.filter((n) => n.role === 'profile').length} profile(s)</span>
 						<span>{treeNodes.filter((n) => n.role === 'font').length} font(s)</span>
 					</div>
-					{#if rootNodeEntry?.data.header.tags?.length}
-						<div class="flex flex-wrap gap-1">
-							{#each rootNodeEntry.data.header.tags as tag (tag)}
-								<span class="rounded-full bg-accent px-2 py-0.5 text-xs text-accent-foreground">
-									{tag}
-								</span>
-							{/each}
-						</div>
-					{/if}
+
 				</div>
 
 				<Button class="w-full" disabled={importing} onclick={handleImportFile}>

@@ -14,6 +14,7 @@ import type { ContentTree, TreeNode } from '$lib/domain/content-tree/content-tre
 import { createCategoryStore } from '$lib/persistence/category.store.js';
 import { createContentTreeStore } from '$lib/persistence/content-tree.store.js';
 import { getEffectiveNodeCategories } from '$lib/domain/shared/category-aggregation.js';
+import { consumer } from '$lib/stores/consumer.svelte.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
 
@@ -70,9 +71,11 @@ return assignment.categoryIds.some((cid) => expandedIds.has(cid));
 function nodeMatchesQuery(node: TreeNode, query: string): boolean {
 if (!query.trim()) return true;
 const h = node.data.header;
+const nodeId = node.metadata.id;
+const tagNames = consumer.getNodeTagNames(nodeId);
 return (
 matchesQuery(h.title, query) ||
-h.tags.some((t) => matchesQuery(t, query)) ||
+tagNames.some((t) => matchesQuery(t, query)) ||
 (h.subtitle ? matchesQuery(h.subtitle, query) : false) ||
 (h.summary ? matchesQuery(h.summary, query) : false)
 );

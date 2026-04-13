@@ -165,7 +165,7 @@
 			{:else}
 				{@const h = rootNode?.data.header}
 				{@const cats = h?.categoryAssignments ?? []}
-				{@const hasContent = !!(h?.subtitle || h?.summary || (h?.tags && h.tags.length > 0) || cats.length > 0 || bodyLinks.length > 0)}
+				{@const hasContent = !!(h?.subtitle || h?.summary || cats.length > 0 || bodyLinks.length > 0)}
 
 				<div class="border rounded-lg divide-y">
 					{#if !hasContent}
@@ -210,20 +210,6 @@
 											>{link.url}</a>
 										</div>
 									</div>
-								{/each}
-							</div>
-						</div>
-					{/if}
-
-					{#if h?.tags && h.tags.length > 0}
-						<div class="px-4 py-3">
-							<div class="flex items-center gap-1.5 mb-1.5">
-								<Tag class="size-3 text-muted-foreground" />
-								<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tags</span>
-							</div>
-							<div class="flex flex-wrap gap-1.5">
-								{#each h.tags as tag}
-									<Badge variant="secondary" class="text-xs">{tag}</Badge>
 								{/each}
 							</div>
 						</div>

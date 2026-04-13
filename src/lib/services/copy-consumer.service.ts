@@ -84,7 +84,6 @@ data: {
 header: {
 ...original.data.header,
 ...headerPatch,
-tags: [...original.data.header.tags],
 categoryAssignments: original.data.header.categoryAssignments.map((a) => ({
 treeId: a.treeId,
 categoryIds: [...a.categoryIds]

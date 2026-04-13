@@ -316,7 +316,6 @@ role: rootRole,
 data: {
 header: {
 title: title ?? 'Nova Página',
-tags: [],
 categoryAssignments: []
 },
 body: rootRole === 'profile'

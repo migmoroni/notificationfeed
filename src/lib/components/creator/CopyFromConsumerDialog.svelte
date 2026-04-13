@@ -158,9 +158,6 @@ onclick={() => toggleSelect(profile.node.metadata.id)}
 <span class="text-xs text-muted-foreground">
 {profile.fontNodes.length} font{profile.fontNodes.length !== 1 ? 's' : ''}
 </span>
-{#each profile.node.data.header.tags.slice(0, 3) as tag}
-<Badge variant="outline" class="text-[10px] h-4">{tag}</Badge>
-{/each}
 </div>
 </div>
 </button>

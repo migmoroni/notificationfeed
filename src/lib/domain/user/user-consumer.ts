@@ -52,6 +52,9 @@ export interface NodeActivation {
 	 * only appears in the system "all_favorites" tab (when favorite === true).
 	 */
 	favoriteTabIds: string[];
+
+	/** User-defined tag assignments for this node */
+	tagIds: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -68,6 +71,16 @@ export interface FavoriteTab {
 }
 
 export const SYSTEM_FAVORITES_TAB_ID = '00000000-0000-0000-0000-allfav000001';
+
+// ---------------------------------------------------------------------------
+// User tags (embedded in user)
+// ---------------------------------------------------------------------------
+
+export interface UserTag {
+	id: string;
+	name: string;
+	createdAt: Date;
+}
 
 // ---------------------------------------------------------------------------
 // UserConsumer
@@ -95,6 +108,9 @@ export interface UserConsumer {
 
 	/** Favorite tabs (system "all_favorites" + custom tabs) */
 	favoriteTabs: FavoriteTab[];
+
+	/** User-defined tags for annotating activated nodes */
+	userTags: UserTag[];
 
 	/** Saved feed filter presets */
 	feedMacros: FeedMacro[];
@@ -130,6 +146,12 @@ export interface UserConsumerRepository {
 	createTab(userId: string, tab: Omit<FavoriteTab, 'id' | 'isSystem' | 'createdAt'>): Promise<FavoriteTab>;
 	updateTab(userId: string, tabId: string, data: Partial<Pick<FavoriteTab, 'title' | 'emoji' | 'position'>>): Promise<FavoriteTab>;
 	deleteTab(userId: string, tabId: string): Promise<void>;
+
+	/** User tag management (embedded in user) */
+	createUserTag(userId: string, name: string): Promise<UserTag>;
+	updateUserTag(userId: string, tagId: string, name: string): Promise<UserTag>;
+	deleteUserTag(userId: string, tagId: string): Promise<void>;
+	updateNodeTagIds(userId: string, nodeId: string, tagIds: string[]): Promise<void>;
 
 	/** Feed macro management (embedded in user) */
 	createMacro(userId: string, macro: Omit<FeedMacro, 'id'>): Promise<FeedMacro>;

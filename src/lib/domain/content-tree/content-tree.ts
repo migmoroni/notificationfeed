@@ -38,7 +38,6 @@ coverMediaId?: string;
 coverEmoji?: string;
 /** Reference to a ContentMedia id (primarily for root nodes) */
 bannerMediaId?: string;
-tags: string[];
 categoryAssignments: CategoryAssignment[];
 }
 
