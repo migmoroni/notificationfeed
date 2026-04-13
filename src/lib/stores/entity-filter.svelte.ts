@@ -19,6 +19,7 @@ isCreatorNode,
 isProfileNode,
 isCollectionNode,
 isTreeLinkNode,
+isFontNode,
 getFontNodes,
 getNodeSection,
 parseTreeId
@@ -127,11 +128,14 @@ related.add(getRootNodeId(t));
 return related;
 }
 
-/** Get root node ID for a tree that a page belongs to */
+/** Get the page type for a given page entry (root role, or 'font' for font pages) */
 function pageRootRole(pageId: string): PageType | null {
 const treeId = parseTreeId(pageId);
 const tree = buildTreeMap().get(treeId);
 if (!tree) return null;
+// Check if this page entry is a font node (not the tree root)
+const node = tree.nodes[pageId];
+if (node && isFontNode(node)) return 'font';
 return rootPageType(tree);
 }
 
@@ -203,6 +207,8 @@ this.setPageTypeFilter(new Set([type]));
 
 getPages(): PageEntry[] {
 const entries: PageEntry[] = [];
+
+// Tree-based pages (creator, profile, collection)
 for (const tree of visiblePageTrees()) {
 const root = getRootNode(tree);
 if (!root) continue;
@@ -223,6 +229,25 @@ if (!root) continue;
 					fontCount: activeFontCount
 				});
 }
+
+// Font entries (when 'font' type is in the filter)
+if (pageTypeFilter.has('font')) {
+	for (const tree of pageTrees()) {
+		for (const fontNode of getFontNodes(tree)) {
+			if (source.isNodeActivated && !source.isNodeActivated(fontNode.metadata.id)) continue;
+			entries.push({
+				id: fontNode.metadata.id,
+				treeId: tree.metadata.id,
+				title: fontNode.data.header.title,
+				coverMediaId: fontNode.data.header.coverMediaId ?? null,
+				coverEmoji: fontNode.data.header.coverEmoji ?? null,
+				pageType: 'font',
+				fontCount: 0
+			});
+		}
+	}
+}
+
 return entries.sort((a, b) => a.title.localeCompare(b.title));
 },
 
@@ -282,6 +307,8 @@ return linked.sort((a, b) => a.title.localeCompare(b.title));
 // ── Selection ────────────────────────────────────────────────
 
 isPageSelected(pageId: string): boolean {
+// Font-type pages use selectedFontIds (same set as nested fonts)
+if (pageRootRole(pageId) === 'font') return selectedFontIds.has(pageId);
 return selectedPageIds.has(pageId);
 },
 
@@ -290,6 +317,11 @@ return selectedFontIds.has(nodeId);
 },
 
 togglePage(pageId: string): void {
+			// Font-type pages route through font selection
+			if (pageRootRole(pageId) === 'font') {
+				this.toggleFont(pageId);
+				return;
+			}
 			if (singlePageSelect) {
 				if (selectedPageIds.has(pageId)) {
 					// Deselect this page; keep only related pages that are still selected

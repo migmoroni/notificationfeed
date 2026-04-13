@@ -8,6 +8,7 @@
 <script lang="ts">
 import type { EntityFilterStore, NodeEntry, PageEntry } from '$lib/stores/entity-filter.types.js';
 import type { PageType } from '$lib/stores/entity-filter.types.js';
+import { ALL_PAGE_TYPES } from '$lib/stores/entity-filter.types.js';
 import type { TreeNode } from '$lib/domain/content-tree/content-tree.js';
 import { isFontNode } from '$lib/domain/content-tree/content-tree.js';
 import * as Collapsible from '$lib/components/ui/collapsible/index.js';
@@ -30,9 +31,10 @@ let { store }: Props = $props();
 
 // Page type labels & icons
 const pageTypeMeta: Record<PageType, { label: string; pluralLabel: string; icon: typeof FileText }> = {
+font: { label: 'Fonte', pluralLabel: 'Fontes', icon: Rss },
+profile: { label: 'Perfil', pluralLabel: 'Perfis', icon: User },
 creator: { label: 'Creator', pluralLabel: 'Creators', icon: FileText },
-profile: { label: 'Profile', pluralLabel: 'Profiles', icon: User },
-collection: { label: 'Collection', pluralLabel: 'Collections', icon: FolderOpen }
+collection: { label: 'Coleção', pluralLabel: 'Coleções', icon: FolderOpen }
 };
 
 // Auto-open pages that have active selections
@@ -62,7 +64,7 @@ const PAGE_LIMIT = 5;
 
 let groupedPages = $derived.by(() => {
 	const groups: { type: PageType; label: string; pages: PageEntry[] }[] = [];
-	const typeOrder: PageType[] = ['creator', 'profile', 'collection'];
+	const typeOrder: readonly PageType[] = ALL_PAGE_TYPES;
 	const byType = new Map<PageType, PageEntry[]>();
 	for (const page of pages) {
 		let arr = byType.get(page.pageType);
@@ -112,8 +114,9 @@ class="ml-5 flex flex-1 min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-[
 {#snippet pageNode(page: PageEntry)}
 {@const isOpen = isBranchOpen(page.id)}
 {@const isSelected = store.isPageSelected(page.id)}
-{@const pageFonts = store.getFonts(page.id)}
-{@const linkedPages = store.getLinkedPages(page.id)}
+{@const isFont = page.pageType === 'font'}
+{@const pageFonts = isFont ? [] : store.getFonts(page.id)}
+{@const linkedPages = isFont ? [] : store.getLinkedPages(page.id)}
 {@const hasChildren = pageFonts.length > 0 || linkedPages.length > 0}
 {@const childCount = pageFonts.length > 0 ? pageFonts.length : linkedPages.length}
 {@const PageIcon = pageTypeIcon(page.pageType)}
@@ -172,17 +175,18 @@ class="flex flex-1 min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-[13px]
 <div class="flex flex-col gap-1 min-w-0 overflow-x-hidden">
 <!-- Page type filter — segmented row -->
 <div class="flex items-center gap-1 px-2 py-1">
-{#each (['creator', 'profile', 'collection'] as const) as pt (pt)}
+{#each (ALL_PAGE_TYPES) as pt (pt)}
 {@const isActive = store.pageTypeFilter.has(pt)}
 <button
 onclick={() => store.togglePageType(pt)}
-class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors
+class="flex-1 flex items-center justify-center rounded-md p-2 transition-colors
 {isActive
 ? 'bg-accent text-accent-foreground'
 : 'text-muted-foreground hover:bg-accent/40 hover:text-foreground'}"
+title={pageTypeMeta[pt].label}
+aria-label={pageTypeMeta[pt].label}
 >
-<svelte:component this={pageTypeMeta[pt].icon} class="size-3.5" />
-{pageTypeMeta[pt].label}
+<svelte:component this={pageTypeMeta[pt].icon} class="size-4" />
 </button>
 {/each}
 {#if totalSelected > 0}

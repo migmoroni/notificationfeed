@@ -13,10 +13,10 @@ import type { TreeSection } from '$lib/domain/content-tree/content-tree.js';
 
 // ── Page types available for filtering ─────────────────────────────────
 
-/** Root node roles that qualify a tree as a "page". */
-export type PageType = 'creator' | 'profile' | 'collection';
+/** Node roles available for filtering. */
+export type PageType = 'font' | 'profile' | 'creator' | 'collection';
 
-export const ALL_PAGE_TYPES: readonly PageType[] = ['creator', 'profile', 'collection'] as const;
+export const ALL_PAGE_TYPES: readonly PageType[] = ['font', 'profile', 'creator', 'collection'] as const;
 
 // ── View models ────────────────────────────────────────────────────────
 
