@@ -4,6 +4,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		open: boolean;
@@ -45,29 +46,29 @@
 		</div>
 
 		<Dialog.Header class="text-center">
-			<Dialog.Title class="text-lg">Remover página</Dialog.Title>
+			<Dialog.Title class="text-lg">{t('dialog.delete_page.title')}</Dialog.Title>
 			<Dialog.Description class="text-sm text-muted-foreground leading-relaxed">
-				A página será marcada como removida. Você poderá restaurá-la depois.
+				{t('dialog.delete_page.description')}
 			</Dialog.Description>
 		</Dialog.Header>
 
 		<div class="space-y-2 py-2">
 			<p class="text-sm text-muted-foreground">
-				Para confirmar, digite o título da página:
+				{t('dialog.delete_page.confirm_hint')}
 			</p>
 			<div class="rounded-md bg-muted px-3 py-2 text-sm font-mono font-medium select-all">
 				{pageTitle}
 			</div>
 			<Input
 				bind:value={typedTitle}
-				placeholder="Digite o título aqui"
+				placeholder={t('dialog.delete_page.placeholder')}
 				class="font-mono"
 			/>
 		</div>
 
 		<Dialog.Footer>
 			<Button variant="outline" onclick={() => { typedTitle = ''; oncancel(); }}>
-				Cancelar
+				{t('btn.cancel')}
 			</Button>
 			<Button
 				variant="destructive"
@@ -75,7 +76,7 @@
 				onclick={handleConfirm}
 			>
 				<Trash2 class="size-4 mr-1.5" />
-				Excluir página
+				{t('dialog.delete_page.confirm')}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

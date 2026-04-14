@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '$lib/i18n/t.js';
 	import { favorites } from '$lib/stores/favorites.svelte.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -40,7 +41,7 @@
 <Dialog.Root open={true} onOpenChange={(open) => { if (!open) onclose(); }}>
 	<Dialog.Content class="sm:max-w-sm">
 		<Dialog.Header>
-			<Dialog.Title>Organizar em Tabs</Dialog.Title>
+			<Dialog.Title>{t('favorites.organize_tabs')}</Dialog.Title>
 			<Dialog.Description>
 				Selecione as tabs para os {favorites.selectedCount} item(s) selecionado(s).
 			</Dialog.Description>
@@ -81,7 +82,7 @@
 		</div>
 
 		<Dialog.Footer>
-			<Button onclick={onclose}>Fechar</Button>
+			<Button onclick={onclose}>{t('btn.close')}</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 	import Filter from '@lucide/svelte/icons/filter';
 	import X from '@lucide/svelte/icons/x';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		subjectIds?: string[];
@@ -80,7 +81,7 @@
 		<!-- Filter panel -->
 		<div class="absolute left-0 top-full mt-2 z-50 w-72 rounded-lg border border-border bg-popover p-3 shadow-md">
 			<div class="flex items-center justify-between mb-3">
-				<span class="text-sm font-semibold">Filtrar por categoria</span>
+				<span class="text-sm font-semibold">{t('feed.filter_by_category')}</span>
 				{#if activeCount > 0}
 					<button onclick={clearAll} class="text-xs text-muted-foreground hover:text-foreground">
 						Limpar
@@ -91,7 +92,7 @@
 			<!-- Subject categories -->
 			{#if subjectCategories.length > 0}
 				<div class="mb-3">
-					<p class="text-xs font-medium text-muted-foreground mb-1.5">Assunto</p>
+					<p class="text-xs font-medium text-muted-foreground mb-1.5">{t('category_tree.subject')}</p>
 					<div class="flex flex-wrap gap-1.5">
 						{#each subjectCategories as cat (cat.id)}
 							<button
@@ -111,7 +112,7 @@
 			<!-- Content type categories -->
 			{#if contentTypeCategories.length > 0}
 				<div>
-					<p class="text-xs font-medium text-muted-foreground mb-1.5">Tipo de Conteúdo</p>
+					<p class="text-xs font-medium text-muted-foreground mb-1.5">{t('category_tree.content_type')}</p>
 					<div class="flex flex-wrap gap-1.5">
 						{#each contentTypeCategories as cat (cat.id)}
 							<button

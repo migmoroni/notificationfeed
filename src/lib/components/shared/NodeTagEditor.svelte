@@ -4,6 +4,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import X from '@lucide/svelte/icons/x';
 	import Tag from '@lucide/svelte/icons/tag';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		/** IDs of tags currently assigned to this node */
@@ -137,7 +138,7 @@
 	<div class="relative">
 		<Input
 			bind:value={inputValue}
-			placeholder="Adicionar tag…"
+			placeholder={t('tags.add_placeholder')}
 			onkeydown={handleKeydown}
 			oninput={handleInput}
 			onblur={handleBlur}
@@ -164,7 +165,7 @@
 							{selectedIndex === suggestions.length ? 'bg-accent' : 'hover:bg-accent/50'}"
 						onmousedown={(e) => { e.preventDefault(); createAndAssign(); }}
 					>
-						Criar "{inputValue.trim().toLowerCase()}"
+						{t('tags.create', { name: inputValue.trim().toLowerCase() })}
 					</button>
 				{/if}
 			</div>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import UserCheck from '@lucide/svelte/icons/user-check';
 	import UserPlus from '@lucide/svelte/icons/user-plus';
+	import { t } from '$lib/i18n/t.js';
 
 	/**
 	 * Subscribe toggle button for CreatorPages.
@@ -27,14 +28,14 @@
 			{subscribed
 				? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20'
 				: 'text-muted-foreground hover:text-foreground hover:bg-muted'}"
-		aria-label={subscribed ? 'Cancelar inscrição' : 'Inscrever-se'}
+		aria-label={subscribed ? t('aria.unsubscribe') : t('aria.subscribe')}
 	>
 		{#if subscribed}
 			<UserCheck class="size-3.5" />
-			<span>Inscrito</span>
+			<span>{t('subscribe.subscribed')}</span>
 		{:else}
 			<UserPlus class="size-3.5" />
-			<span>Inscrever-se</span>
+			<span>{t('subscribe.subscribe')}</span>
 		{/if}
 	</button>
 {:else}
@@ -44,14 +45,14 @@
 			{subscribed
 				? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20'
 				: 'text-muted-foreground hover:text-foreground hover:bg-muted border border-border'}"
-		aria-label={subscribed ? 'Cancelar inscrição' : 'Inscrever-se'}
+		aria-label={subscribed ? t('aria.unsubscribe') : t('aria.subscribe')}
 	>
 		{#if subscribed}
 			<UserCheck class="size-4" />
-			<span>Inscrito</span>
+			<span>{t('subscribe.subscribed')}</span>
 		{:else}
 			<UserPlus class="size-4" />
-			<span>Inscrever-se</span>
+			<span>{t('subscribe.subscribe')}</span>
 		{/if}
 	</button>
 {/if}

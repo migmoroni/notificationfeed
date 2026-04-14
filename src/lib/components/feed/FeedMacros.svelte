@@ -5,6 +5,7 @@
 	import Bookmark from '@lucide/svelte/icons/bookmark';
 	import Layers from '@lucide/svelte/icons/layers';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import { t } from '$lib/i18n/t.js';
 
 	let hasAnyFilter = $derived(
 		feedEntityFilter.hasFilters ||
@@ -25,7 +26,7 @@
 				: 'text-muted-foreground hover:bg-accent hover:text-foreground'}"
 		>
 			<Bookmark class="size-3.5 shrink-0" />
-			<span class="truncate">Todos</span>
+			<span class="truncate">{t('feed.all')}</span>
 		</button>
 
 		<!-- "All my macros combined" — visible when 2+ saved macros -->
@@ -38,7 +39,7 @@
 					: 'text-muted-foreground hover:bg-accent hover:text-foreground'}"
 			>
 				<Layers class="size-3.5 shrink-0" />
-				<span class="truncate">Todos dos meus filtros</span>
+				<span class="truncate">{t('feed.all_my_filters')}</span>
 			</button>
 		{/if}
 
@@ -58,7 +59,7 @@
 				<button
 					onclick={() => feedMacros.deleteMacro(macro.id)}
 					class="p-1.5 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity rounded-md hover:bg-accent"
-					aria-label="Excluir feed"
+					aria-label={t('feed.delete_feed')}
 				>
 					<Trash2 class="size-3.5" />
 				</button>

@@ -16,6 +16,7 @@ import PostCard from '$lib/components/feed/PostCard.svelte';
 import * as Tabs from '$lib/components/ui/tabs/index.js';
 import Eye from '@lucide/svelte/icons/eye';
 import Rss from '@lucide/svelte/icons/rss';
+import { t } from '$lib/i18n/t.js';
 
 function toSortedPost(post: CanonicalPost): SortedPost<CanonicalPost> {
 return { post, priority: 3 };
@@ -78,32 +79,32 @@ return `/preview/node/${node.metadata.id}`;
 	</div>
 {/snippet}
 <svelte:head>
-<title>Notfeed — Preview</title>
+<title>{t('page_title.preview')}</title>
 </svelte:head>
 
 <div class="mx-auto w-full h-full flex flex-col overflow-hidden py-4 px-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
 <div class="mb-4">
-<h1 class="text-xl font-bold">Preview</h1>
+<h1 class="text-xl font-bold">{t('title.preview')}</h1>
 </div>
 
 {#if !activeUser.isCreator}
 <div class="py-12 text-center">
 <Eye class="size-12 mx-auto text-muted-foreground mb-3" />
 <p class="text-sm text-muted-foreground mb-2">
-Acesse com um usuário Creator para ver o preview.
+{t('preview.access_creator')}
 </p>
 <a href="/user" class="text-sm text-primary hover:underline">
-Trocar de usuário →
+{t('pages.switch_user')}
 </a>
 </div>
 {:else if creator.trees.length === 0}
 <div class="py-12 text-center">
 <Eye class="size-12 mx-auto text-muted-foreground mb-3" />
 <p class="text-sm text-muted-foreground mb-2">
-Nenhuma página criada ainda.
+{t('preview.no_pages')}
 </p>
 <a href="/pages" class="text-sm text-primary hover:underline">
-Ir para Pages →
+{t('preview.go_to_pages')}
 </a>
 </div>
 {:else}
@@ -119,8 +120,8 @@ Ir para Pages →
 <div class="overflow-y-auto pr-24 pb-24">
 <Tabs.Root value="overview">
 <Tabs.List>
-<Tabs.Trigger value="overview">Visão Geral</Tabs.Trigger>
-<Tabs.Trigger value="feed">Feed</Tabs.Trigger>
+<Tabs.Trigger value="overview">{t('preview.overview')}</Tabs.Trigger>
+<Tabs.Trigger value="feed">{t('preview.feed_tab')}</Tabs.Trigger>
 </Tabs.List>
 
 <Tabs.Content value="overview" class="mt-4">
@@ -132,7 +133,7 @@ Ir para Pages →
 </div>
 {:else if filteredNodes.length === 0}
 <div class="py-12 text-center">
-<p class="text-sm text-muted-foreground">Nenhum resultado para o filtro selecionado.</p>
+<p class="text-sm text-muted-foreground">{t('preview.no_filter_results')}</p>
 </div>
 {:else}
 <div class="flex flex-col gap-4">
@@ -197,10 +198,10 @@ Fonts ({filteredFonts.length})
 <div class="py-12 text-center">
 <Rss class="size-8 mx-auto text-muted-foreground mb-2" />
 <p class="text-sm text-muted-foreground">
-Nenhum post encontrado para as fonts desta página.
+{t('preview.no_posts_for_fonts')}
 </p>
 <p class="text-xs text-muted-foreground mt-1">
-As fonts precisam ser ingeridas para que posts apareçam aqui.
+{t('preview.fonts_need_ingestion')}
 </p>
 </div>
 {:else}

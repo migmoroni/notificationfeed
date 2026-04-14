@@ -6,6 +6,7 @@
 	import FolderPlus from '@lucide/svelte/icons/folder-plus';
 	import FolderPen from '@lucide/svelte/icons/folder-pen';
 	import Folder from '@lucide/svelte/icons/folder-cog';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		open: boolean;
@@ -43,14 +44,14 @@
 		let valid = true;
 
 		if (!emoji.trim()) {
-			emojiError = 'Emoji obrigatório';
+			emojiError = t('validation.emoji_required');
 			valid = false;
 		}
 		if (!title.trim()) {
-			titleError = 'Título obrigatório';
+			titleError = t('validation.title_required');
 			valid = false;
 		} else if (title.trim().length > 20) {
-			titleError = 'Máximo 20 caracteres';
+			titleError = t('validation.max_chars', { max: '20' });
 			valid = false;
 		}
 
@@ -84,27 +85,27 @@
 		switch (mode) {
 			case 'create':
 				return {
-					title: 'Nova Tab',
-					description: 'Crie uma tab para organizar seus favoritos.',
-					confirmLabel: 'Criar',
+					title: t('dialog.tab.new_title'),
+					description: t('dialog.tab.new_description'),
+					confirmLabel: t('dialog.tab.new_confirm'),
 					confirmVariant: 'default' as const,
 					iconBg: 'bg-primary/10',
 					iconColor: 'text-primary'
 				};
 			case 'edit':
 				return {
-					title: 'Editar Tab',
-					description: 'Edite o emoji e título da tab.',
-					confirmLabel: 'Salvar',
+					title: t('dialog.tab.edit_title'),
+					description: t('dialog.tab.edit_description'),
+					confirmLabel: t('dialog.tab.edit_confirm'),
 					confirmVariant: 'default' as const,
 					iconBg: 'bg-accent',
 					iconColor: 'text-accent-foreground'
 				};
 			case 'delete':
 				return {
-					title: 'Excluir Tab',
-					description: 'Excluir esta tab de favoritos? Os itens não serão removidos, apenas a organização será perdida.',
-					confirmLabel: 'Excluir',
+					title: t('dialog.tab.delete_title'),
+					description: t('dialog.tab.delete_description'),
+					confirmLabel: t('dialog.tab.delete_confirm'),
 					confirmVariant: 'destructive' as const,
 					iconBg: 'bg-destructive/10',
 					iconColor: 'text-destructive'
@@ -142,7 +143,7 @@
 				<div class="flex gap-3 items-end">
 					<!-- Selected emoji display -->
 					<div class="flex flex-col gap-1.5 w-16 shrink-0">
-						<span class="text-sm font-medium">Emoji</span>
+					<span class="text-sm font-medium">{t('dialog.tab.emoji_label')}</span>
 						<div class="flex items-center justify-center h-10 rounded-md border border-input bg-background text-2xl">
 							{emoji || '?'}
 						</div>
@@ -153,11 +154,11 @@
 
 					<!-- Title field -->
 					<div class="flex flex-col gap-1.5 flex-1">
-						<label for="tab-title" class="text-sm font-medium">Título</label>
-						<Input
-							id="tab-title"
-							bind:value={title}
-							placeholder="Estudos"
+					<label for="tab-title" class="text-sm font-medium">{t('dialog.tab.title_label')}</label>
+					<Input
+						id="tab-title"
+						bind:value={title}
+						placeholder={t('dialog.tab.default_name')}
 							class="h-10"
 							maxlength={20}
 							onkeydown={handleKeydown}
@@ -174,7 +175,7 @@
 		{/if}
 
 		<Dialog.Footer>
-			<Button variant="outline" onclick={oncancel}>Cancelar</Button>
+			<Button variant="outline" onclick={oncancel}>{t('btn.cancel')}</Button>
 			<Button variant={config.confirmVariant} onclick={handleConfirm}>
 				{config.confirmLabel}
 			</Button>

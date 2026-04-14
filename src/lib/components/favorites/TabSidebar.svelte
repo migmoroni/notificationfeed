@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '$lib/i18n/t.js';
 	import { favorites } from '$lib/stores/favorites.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { ALL_FAVORITES_ID } from '$lib/stores/favorites.svelte.js';
@@ -71,7 +72,7 @@
 
 <nav
 	class="flex gap-1 {layout.isExpanded ? 'flex-col' : 'flex-row overflow-x-auto pb-2'}"
-	aria-label="Tabs de favoritos"
+	aria-label={t('aria.favorite_tabs')}
 >
 	<!-- System tab: all_favorites -->
 	<button
@@ -84,7 +85,7 @@
 	>
 		<span class="text-base">⭐</span>
 		{#if layout.isExpanded}
-			<span class="truncate">Todos</span>
+			<span class="truncate">{t('favorites.all')}</span>
 			<span class="ml-auto text-xs text-muted-foreground">{favorites.count}</span>
 		{/if}
 	</button>
@@ -113,7 +114,7 @@
 					onclick={(e) => toggleMenu(tab.id, e)}
 					class="absolute right-0 top-0 flex items-center justify-center size-7 rounded text-muted-foreground hover:text-foreground opacity-0 hover:opacity-100 focus:opacity-100 transition-opacity
 						{favorites.activeTabId === tab.id ? 'opacity-100' : ''}"
-					aria-label="Opções da tab {tab.title}"
+					aria-label={t('aria.tab_options', { title: tab.title })}
 				>
 					<Ellipsis class="size-3.5" />
 				</button>
@@ -144,11 +145,11 @@
 	<button
 		onclick={handleCreateTab}
 		class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors shrink-0"
-		aria-label="Criar nova tab"
+		aria-label={t('aria.create_new_tab')}
 	>
 		<Plus class="size-4" />
 		{#if layout.isExpanded}
-			<span>Nova tab</span>
+			<span>{t('favorites.new_tab')}</span>
 		{/if}
 	</button>
 </nav>

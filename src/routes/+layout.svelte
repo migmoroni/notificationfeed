@@ -12,6 +12,7 @@
 	import { seedCategories } from '$lib/persistence/category-seed.service.js';
 	import { sidebarSlot } from '$lib/stores/sidebar-slot.svelte.js';
 	import { createImagePreviewUrl } from '$lib/services/image.service.js';
+	import { t, initLanguage, setLanguage } from '$lib/i18n/index.js';
 	import Newspaper from '@lucide/svelte/icons/newspaper';
 	import Search from '@lucide/svelte/icons/search';
 	import Star from '@lucide/svelte/icons/star';
@@ -24,16 +25,16 @@
 	let ready = $state(false);
 
 	const consumerNav = [
-		{ href: '/', label: 'Feed', icon: Newspaper },
-		{ href: '/browse', label: 'Browse', icon: Search },
-		{ href: '/favorites', label: 'Favoritos', icon: Star },
-		{ href: '/user', label: 'User', icon: CircleUser }
+		{ href: '/', labelKey: 'nav.feed', icon: Newspaper },
+		{ href: '/browse', labelKey: 'nav.browse', icon: Search },
+		{ href: '/favorites', labelKey: 'nav.favorites', icon: Star },
+		{ href: '/user', labelKey: 'nav.user', icon: CircleUser }
 	] as const;
 
 	const creatorNav = [
-		{ href: '/pages', label: 'Pages', icon: FileStack },
-		{ href: '/preview', label: 'Preview', icon: Eye },
-		{ href: '/user', label: 'User', icon: CircleUser }
+		{ href: '/pages', labelKey: 'nav.pages', icon: FileStack },
+		{ href: '/preview', labelKey: 'nav.preview', icon: Eye },
+		{ href: '/user', labelKey: 'nav.user', icon: CircleUser }
 	] as const;
 
 	let navItems = $derived(activeUser.isCreator ? creatorNav : consumerNav);
@@ -57,6 +58,13 @@
 		(async () => {
 			await seedCategories();
 			await activeUser.init();
+
+			// Initialize i18n language from user preference
+			const detectedLang = initLanguage(activeUser.current?.language);
+			// Persist detected language if user has none saved
+			if (activeUser.current && !activeUser.current.language) {
+				await activeUser.setLanguage(activeUser.current.id, detectedLang);
+			}
 
 			// Always init consumer (needed for feed data even when creator is active)
 			await consumer.init(activeUser.current?.role === 'consumer' ? activeUser.current.id : undefined);
@@ -122,7 +130,7 @@
 						{:else}
 							<item.icon class="size-5 shrink-0" />
 						{/if}
-						<span class="truncate">{item.href === '/user' ? userNavLabel : item.label}</span>
+						<span class="truncate">{item.href === '/user' ? userNavLabel : t(item.labelKey)}</span>
 					</a>
 				{/each}
 			</nav>
@@ -139,7 +147,7 @@
 				{@render children()}
 			{:else}
 				<div class="flex items-center justify-center h-full">
-					<div class="animate-pulse text-sm text-muted-foreground">Carregando…</div>
+					<div class="animate-pulse text-sm text-muted-foreground">{t('app.loading')}</div>
 				</div>
 			{/if}
 		</main>
@@ -151,7 +159,7 @@
 					{@render children()}
 				{:else}
 					<div class="flex items-center justify-center h-full">
-						<div class="animate-pulse text-sm text-muted-foreground">Carregando…</div>
+						<div class="animate-pulse text-sm text-muted-foreground">{t('app.loading')}</div>
 					</div>
 				{/if}
 			</main>
@@ -174,7 +182,7 @@
 						{:else}
 							<item.icon class="size-6" />
 						{/if}
-						{item.href === '/user' ? userNavLabel : item.label}
+						{item.href === '/user' ? userNavLabel : t(item.labelKey)}
 					</a>
 				{/each}
 			</nav>

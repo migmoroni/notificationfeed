@@ -4,6 +4,7 @@
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import X from '@lucide/svelte/icons/x';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		treeId: CategoryTreeId;
@@ -46,7 +47,7 @@
 			<button
 				onclick={handleClearTree}
 				class="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-				aria-label="Limpar filtro de {label}"
+				aria-label={t('entity_filter.clear_category', { label })}
 			>
 				<X class="size-3" />
 				{selectedCount}
@@ -92,6 +93,6 @@
 	{/each}
 
 	{#if roots.length === 0 && !store.loading}
-		<p class="text-sm text-muted-foreground px-2 py-2">Nenhuma categoria.</p>
+		<p class="text-sm text-muted-foreground px-2 py-2">{t('entity_filter.no_categories')}</p>
 	{/if}
 </div>

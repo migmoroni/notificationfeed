@@ -13,6 +13,8 @@ import type { ContentMedia } from '$lib/domain/content-media/content-media.js';
 import { createContentTreeStore } from '$lib/persistence/content-tree.store.js';
 import { createContentMediaStore } from '$lib/persistence/content-media.store.js';
 import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
+import { t } from '$lib/i18n/t.js';
+import { currentLanguage } from '$lib/i18n/store.svelte.js';
 
 export interface ImportResult {
 success: boolean;
@@ -57,7 +59,7 @@ const existingTree = await treeRepo.getById(treeExport.tree.metadata.id);
 if (existingTree) {
 return {
 success: false,
-message: `Esta árvore já foi importada anteriormente.`
+message: t('import.already_imported')
 };
 }
 
@@ -76,11 +78,11 @@ await treeRepo.put(treeExport.tree);
 
 const nodeCount = Object.keys(treeExport.tree.nodes).length;
 const rootNode = Object.values(treeExport.tree.nodes).find((n) => n.role === 'creator' || n.role === 'profile');
-const title = rootNode?.data.header.title ?? 'Importado';
+const title = rootNode?.data.header.title ?? t('import.without_title');
 
 return {
 success: true,
-message: `Importado: "${title}" com ${nodeCount} nó(s) e ${mediaIds.length} mídia(s).`,
+message: t('import.success', { title, nodeCount: String(nodeCount), mediaCount: String(mediaIds.length) }),
 treeId: treeExport.tree.metadata.id,
 nodeCount,
 mediaIds
@@ -112,7 +114,7 @@ const validUrls = urls
 if (validUrls.length === 0) {
 return {
 success: false,
-message: 'Nenhuma URL válida encontrada. URLs devem começar com http:// ou https://.'
+message: t('import.no_valid_urls')
 };
 }
 
@@ -125,7 +127,7 @@ const rootNode: TreeNode = {
 role: 'profile',
 data: {
 header: {
-title: `Feeds importados (${now.toLocaleDateString('pt-BR')})`,
+title: t('import.tree_title', { date: now.toLocaleDateString(currentLanguage()) }),
 categoryAssignments: []
 },
 body: { role: 'profile', links: [] }
@@ -173,7 +175,7 @@ await treeRepo.put(tree);
 
 return {
 success: true,
-message: `Importadas ${unsectionedIds.length} font(s) em uma nova árvore.`,
+message: t('import.font_count', { count: String(unsectionedIds.length) }),
 treeId: tree.metadata.id,
 nodeCount: Object.keys(nodes).length
 };

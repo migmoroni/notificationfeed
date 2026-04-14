@@ -8,6 +8,7 @@
 	import MediaPickerDialog from '$lib/components/shared/dialog/MediaPickerDialog.svelte';
 	import Upload from '@lucide/svelte/icons/upload';
 	import X from '@lucide/svelte/icons/x';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		slot: ImageSlot;
@@ -89,10 +90,10 @@
 			onclick={() => fileInput.click()}
 		>
 			{#if loading}
-				<span class="text-xs animate-pulse">Processando…</span>
+				<span class="text-xs animate-pulse">{t('media_upload.processing')}</span>
 			{:else}
 				<Upload class="size-5" />
-				<span class="text-[11px]">Clique para enviar</span>
+				<span class="text-[11px]">{t('media_upload.click_to_upload')}</span>
 			{/if}
 		</button>
 		<Button variant="outline" size="sm" onclick={() => (showMediaPicker = true)}>

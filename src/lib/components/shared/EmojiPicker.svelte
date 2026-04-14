@@ -2,6 +2,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import Search from '@lucide/svelte/icons/search';
 	import { CATEGORIES, type EmojiEntry } from './emojis/index.js';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		value?: string;
@@ -46,7 +47,7 @@
 		<Search class="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
 		<Input
 			bind:value={search}
-			placeholder="Search emoji..."
+			placeholder={t('emoji.search_placeholder')}
 			class="h-8 text-xs pl-7"
 		/>
 	</div>
@@ -66,7 +67,7 @@
 		{/each}
 		{#if visibleEmojis.length === 0}
 			<div class="col-span-8 py-4 text-center text-xs text-muted-foreground">
-				Nenhum emoji encontrado
+				{t('emoji.not_found')}
 			</div>
 		{/if}
 	</div>

@@ -7,6 +7,7 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import X from '@lucide/svelte/icons/x';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		assignments: CategoryAssignment[];
@@ -62,10 +63,10 @@
 </script>
 
 <div class="space-y-3">
-	<Label>Categorias</Label>
+	<Label>{t('category_picker.categories')}</Label>
 
 	{#if loading}
-		<p class="text-xs text-muted-foreground animate-pulse">Carregando categorias…</p>
+		<p class="text-xs text-muted-foreground animate-pulse">{t('category_picker.loading')}</p>
 	{:else}
 		{#each TREES as tree}
 			{@const selected = getSelectedIds(tree.id)}

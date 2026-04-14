@@ -5,6 +5,7 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		body: CreatorBody;
@@ -37,7 +38,7 @@
 
 <div class="space-y-3">
 	<div class="flex items-center justify-between">
-		<Label>Links externos</Label>
+		<Label>{t('form.external_links')}</Label>
 		<Button variant="ghost" size="sm" class="h-7 text-xs" onclick={addLink}>
 			<Plus class="size-3 mr-1" />
 			Adicionar link
@@ -45,7 +46,7 @@
 	</div>
 
 	{#if links.length === 0}
-		<p class="text-xs text-muted-foreground">Nenhum link. Adicione um site, linktree, etc.</p>
+		<p class="text-xs text-muted-foreground">{t('form.no_links')}</p>
 	{/if}
 
 	{#each links as link, i}
@@ -53,13 +54,13 @@
 			<div class="flex-1 space-y-1">
 				<Input
 					class="h-8 text-sm"
-					placeholder="Título (ex: Meu site)"
+					placeholder={t('form.link_title_placeholder')}
 					value={link.title}
 					oninput={(e) => updateLink(i, 'title', e.currentTarget.value)}
 				/>
 				<Input
 					class="h-8 text-sm"
-					placeholder="https://..."
+					placeholder={t('form.link_url_placeholder')}
 					type="url"
 					value={link.url}
 					oninput={(e) => updateLink(i, 'url', e.currentTarget.value)}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Eye from '@lucide/svelte/icons/eye';
 	import EyeOff from '@lucide/svelte/icons/eye-off';
+	import { t } from '$lib/i18n/t.js';
 
 	/**
 	 * Follow toggle button for Profiles and Fonts.
@@ -27,14 +28,14 @@
 			{following
 				? 'text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'
 				: 'text-muted-foreground hover:text-foreground hover:bg-muted'}"
-		aria-label={following ? 'Deixar de seguir' : 'Seguir'}
+		aria-label={following ? t('aria.unfollow') : t('aria.follow')}
 	>
 		{#if following}
 			<Eye class="size-3.5" />
-			<span>Segue</span>
+			<span>{t('follow.following')}</span>
 		{:else}
 			<EyeOff class="size-3.5" />
-			<span>Seguir</span>
+			<span>{t('follow.follow')}</span>
 		{/if}
 	</button>
 {:else}
@@ -44,14 +45,14 @@
 			{following
 				? 'text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'
 				: 'text-muted-foreground hover:text-foreground hover:bg-muted border border-border'}"
-		aria-label={following ? 'Deixar de seguir' : 'Seguir'}
+		aria-label={following ? t('aria.unfollow') : t('aria.follow')}
 	>
 		{#if following}
 			<Eye class="size-4" />
-			<span>Segue</span>
+			<span>{t('follow.following')}</span>
 		{:else}
 			<EyeOff class="size-4" />
-			<span>Seguir</span>
+			<span>{t('follow.follow')}</span>
 		{/if}
 	</button>
 {/if}

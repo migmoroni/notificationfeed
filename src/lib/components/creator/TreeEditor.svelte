@@ -28,6 +28,7 @@ import FolderPlus from '@lucide/svelte/icons/folder-plus';
 import X from '@lucide/svelte/icons/x';
 import ArrowUp from '@lucide/svelte/icons/arrow-up';
 import ArrowDown from '@lucide/svelte/icons/arrow-down';
+import { t } from '$lib/i18n/t.js';
 
 const SECTION_COLORS = [
 '#e74c3c', '#e91e90', '#c0392b', '#ad1457',
@@ -155,16 +156,16 @@ return result;
 function getLinkedTreeTitle(node: TreeNode): string {
 const body = node.data.body as TreeLinkBody;
 const linkedTree = creator.trees.find((t) => t.metadata.id === body.instanceTreeId);
-if (!linkedTree) return node.data.header.title || '(não encontrada)';
+if (!linkedTree) return node.data.header.title || t('tree_editor.not_found');
 const root = domainGetRootNode(linkedTree);
 return root?.data.header.title ?? node.data.header.title;
 }
 
 /** The child role name for display depending on root role */
 let childLabel = $derived(
-rootRole === 'profile' ? 'Fonts' :
-rootRole === 'creator' ? 'Links' :
-rootRole === 'collection' ? 'Links' : 'Itens'
+rootRole === 'profile' ? t('entity.fonts') :
+rootRole === 'creator' ? t('entity.links') :
+rootRole === 'collection' ? t('entity.links') : t('entity.items')
 );
 
 /** What items count to show in the header */
@@ -396,7 +397,7 @@ value={entry.pathKey === '*' ? '' : entry.pathKey}
 onclick={(e) => e.stopPropagation()}
 onchange={(e) => { e.stopPropagation(); moveNodeToSection(entry.nodeId, entry.pathKey!, e.currentTarget.value || null); }}
 >
-<option value="">Sem seção</option>
+<option value="">{t('tree_editor.no_section')}</option>
 {#each tree.sections as s}
 <option value={s.id}>{s.title}</option>
 {/each}
@@ -452,7 +453,7 @@ oncancel={() => (editingNodeId = null)}
 {#if linkedRoot}
 <Badge variant="outline" class="text-[10px] uppercase">{linkedRoot.role}</Badge>
 {:else}
-<Badge variant="destructive" class="text-[10px]">não encontrada</Badge>
+<Badge variant="destructive" class="text-[10px]">{t('tree_editor.not_found_badge')}</Badge>
 {/if}
 {#if entry.pathKey && tree.sections.length > 0}
 <select
@@ -461,7 +462,7 @@ value={entry.pathKey === '*' ? '' : entry.pathKey}
 onclick={(e) => e.stopPropagation()}
 onchange={(e) => { e.stopPropagation(); moveNodeToSection(entry.nodeId, entry.pathKey!, e.currentTarget.value || null); }}
 >
-<option value="">Sem seção</option>
+<option value="">{t('tree_editor.no_section')}</option>
 {#each tree.sections as s}
 <option value={s.id}>{s.title}</option>
 {/each}
@@ -497,7 +498,7 @@ oncancel={() => (editingNodeId = null)}
 
 <div class="space-y-2">
 <div class="flex items-center justify-between">
-<span class="text-xs font-medium text-muted-foreground">Fonts ({fonts.length})</span>
+<span class="text-xs font-medium text-muted-foreground">{t('tree_editor.fonts_count', { count: String(fonts.length) })}</span>
 <Button variant="ghost" size="sm" class="h-7 text-xs" onclick={() => (addFontToPath = pathKey)}>
 <Plus class="size-3 mr-1" />
 Font
@@ -521,7 +522,7 @@ oncancel={() => (addFontToPath = null)}
 {/if}
 
 {#if fonts.length === 0 && addFontToPath !== pathKey}
-<p class="text-xs text-muted-foreground text-center py-2">Nenhuma font. Adicione uma feed source.</p>
+<p class="text-xs text-muted-foreground text-center py-2">{t('tree_editor.no_fonts')}</p>
 {/if}
 </div>
 {/snippet}
@@ -568,7 +569,7 @@ value={entry.pathKey === '*' ? '' : entry.pathKey}
 onclick={(e) => e.stopPropagation()}
 onchange={(e) => { e.stopPropagation(); moveNodeToSection(entry.nodeId, entry.pathKey, e.currentTarget.value || null); }}
 >
-<option value="">Sem seção</option>
+<option value="">{t('tree_editor.no_section')}</option>
 {#each tree.sections as s}
 <option value={s.id}>{s.title}</option>
 {/each}
@@ -615,28 +616,28 @@ oncancel={() => (editingNodeId = null)}
 <!-- ═══ Section editing snippet ═══ -->
 {#snippet sectionEditor(section: TreeSection)}
 <div class="border rounded-lg p-4 space-y-3" style="border-left: 4px solid {section.color};">
-<p class="text-xs font-medium text-muted-foreground">Editar seção</p>
+<p class="text-xs font-medium text-muted-foreground">{t('tree_editor.edit_section')}</p>
 <div class="flex items-center gap-2">
-<button type="button" class="text-xl shrink-0 w-8 h-8 flex items-center justify-center rounded hover:bg-accent" title="Escolher ícone" onclick={() => { pendingSectionEmoji = editSectionEmoji; emojiDialogTarget = 'edit'; }}>
+<button type="button" class="text-xl shrink-0 w-8 h-8 flex items-center justify-center rounded hover:bg-accent" title={t('tree_editor.choose_icon')} onclick={() => { pendingSectionEmoji = editSectionEmoji; emojiDialogTarget = 'edit'; }}>
 {editSectionEmoji}
 </button>
 <Input class="h-8 text-sm flex-1" maxlength={30} bind:value={editSectionTitle} onkeydown={(e) => { if (e.key === 'Enter') handleUpdateSection(); }} />
-<Button variant="outline" size="sm" disabled={saving || !editSectionTitle.trim()} onclick={() => handleUpdateSection()}>Salvar</Button>
+<Button variant="outline" size="sm" disabled={saving || !editSectionTitle.trim()} onclick={() => handleUpdateSection()}>{t('btn.save')}</Button>
 <button type="button" class="p-1 hover:bg-accent rounded" onclick={() => (editingSectionId = null)}>
 <X class="size-4" />
 </button>
 </div>
 <div class="space-y-1.5">
-<span class="text-xs text-muted-foreground">Cor</span>
+<span class="text-xs text-muted-foreground">{t('tree_editor.color_label')}</span>
 <div class="flex flex-wrap gap-1.5">
 {#each SECTION_COLORS as c}
-<button type="button" aria-label="Cor {c}" class="w-6 h-6 rounded-full transition-all" style="background:{c}; {editSectionColor === c ? 'box-shadow:0 0 0 2px var(--background), 0 0 0 4px ' + c + '; transform:scale(1.15)' : ''}" onclick={() => (editSectionColor = c)}></button>
+<button type="button" aria-label={t('aria.color', { c })} class="w-6 h-6 rounded-full transition-all" style="background:{c}; {editSectionColor === c ? 'box-shadow:0 0 0 2px var(--background), 0 0 0 4px ' + c + '; transform:scale(1.15)' : ''}" onclick={() => (editSectionColor = c)}></button>
 {/each}
 </div>
 </div>
 <label class="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
 <input type="checkbox" class="rounded" bind:checked={editSectionHideTitle} />
-Ocultar título na visualização
+{t('tree_editor.hide_title')}
 </label>
 </div>
 {/snippet}
@@ -649,7 +650,7 @@ Ocultar título na visualização
 <div class="flex gap-1">
 <Button variant="outline" size="sm" onclick={() => (addingSection = true)}>
 <FolderPlus class="size-4 mr-1" />
-Seção
+{t('tree_editor.section_button')}
 </Button>
 {#if rootRole === 'creator' || rootRole === 'collection'}
 <Button variant="outline" size="sm" onclick={() => { showAddChild = true; addToSectionId = null; }}>
@@ -673,32 +674,32 @@ Profile
 <!-- Inline section creation -->
 {#if addingSection}
 <div class="border rounded-lg p-4 bg-muted/20 space-y-3">
-<p class="text-xs font-medium text-muted-foreground">Nova seção</p>
+<p class="text-xs font-medium text-muted-foreground">{t('tree_editor.new_section')}</p>
 <div class="flex items-center gap-2">
-<button type="button" class="text-xl shrink-0 w-8 h-8 flex items-center justify-center rounded hover:bg-accent" title="Escolher ícone" onclick={() => { pendingSectionEmoji = newSectionEmoji; emojiDialogTarget = 'new'; }}>
+<button type="button" class="text-xl shrink-0 w-8 h-8 flex items-center justify-center rounded hover:bg-accent" title={t('tree_editor.choose_icon')} onclick={() => { pendingSectionEmoji = newSectionEmoji; emojiDialogTarget = 'new'; }}>
 {newSectionEmoji}
 </button>
 <Input
 class="h-8 text-sm flex-1"
-placeholder="Nome da seção"
+placeholder={t('tree_editor.section_name_placeholder')}
 maxlength={30}
 bind:value={newSectionTitle}
 onkeydown={(e) => { if (e.key === 'Enter') handleCreateSection(); }}
 />
 <Button variant="outline" size="sm" disabled={saving || !newSectionTitle.trim()} onclick={() => handleCreateSection()}>
-Criar
+{t('btn.create')}
 </Button>
 <button type="button" class="p-1 hover:bg-accent rounded" onclick={() => (addingSection = false)}>
 <X class="size-4" />
 </button>
 </div>
 <div class="space-y-1.5">
-<span class="text-xs text-muted-foreground">Cor</span>
+<span class="text-xs text-muted-foreground">{t('tree_editor.color_label')}</span>
 <div class="flex flex-wrap gap-1.5">
 {#each SECTION_COLORS as c}
 <button
 type="button"
-aria-label="Cor {c}"
+aria-label={t('aria.color', { c })}
 class="w-6 h-6 rounded-full transition-all"
 style="background:{c}; {newSectionColor === c ? 'box-shadow:0 0 0 2px var(--background), 0 0 0 4px ' + c + '; transform:scale(1.15)' : ''}"
 onclick={() => (newSectionColor = c)}
@@ -708,7 +709,7 @@ onclick={() => (newSectionColor = c)}
 </div>
 <label class="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
 <input type="checkbox" class="rounded" bind:checked={newSectionHideTitle} />
-Ocultar título na visualização
+{t('tree_editor.hide_title')}
 </label>
 </div>
 {/if}
@@ -753,11 +754,11 @@ oncancel={() => (showAddProfile = false)}
 {#if childCount === 0 && !showAddChild && !showAddProfile && tree.sections.length === 0}
 <p class="text-sm text-muted-foreground text-center py-4">
 {#if rootRole === 'profile'}
-Nenhuma font ainda. Adicione uma feed source.
+{t('tree_editor.no_fonts')}
 {:else if rootRole === 'creator' || rootRole === 'collection'}
-Nenhum link ainda. Vincule uma página.
+{t('tree_editor.no_links')}
 {:else}
-Nenhum profile ainda. Adicione um para começar.
+{t('tree_editor.no_profiles')}
 {/if}
 </p>
 {/if}
@@ -824,7 +825,7 @@ addToSectionId = section.id;
 </div>
 {:else}
 {#if addToSectionId !== section.id}
-<p class="text-xs text-muted-foreground text-center pb-3">Seção vazia.</p>
+<p class="text-xs text-muted-foreground text-center pb-3">{t('tree_editor.section_empty')}</p>
 {/if}
 {/if}
 {#if rootRole === 'profile' && addToSectionId === section.id}
@@ -849,7 +850,7 @@ oncancel={() => { addToSectionId = null; }}
 {@const unsectioned = allFonts.filter((f) => f.pathKey === '*')}
 {#if unsectioned.length > 0 || tree.sections.length > 0}
 {#if tree.sections.length > 0}
-<div class="text-xs text-muted-foreground uppercase tracking-wider px-1 pt-1">Sem seção</div>
+<div class="text-xs text-muted-foreground uppercase tracking-wider px-1 pt-1">{t('tree_editor.no_section')}</div>
 {/if}
 {#each unsectioned as entry (entry.nodeId)}
 {@render fontCard(entry)}
@@ -859,7 +860,7 @@ oncancel={() => { addToSectionId = null; }}
 {@const unsectioned = allTreeLinks.filter((l) => l.pathKey === '*')}
 {#if unsectioned.length > 0}
 {#if tree.sections.length > 0}
-<div class="text-xs text-muted-foreground uppercase tracking-wider px-1 pt-1">Sem seção</div>
+<div class="text-xs text-muted-foreground uppercase tracking-wider px-1 pt-1">{t('tree_editor.no_section')}</div>
 {/if}
 {#each unsectioned as entry (entry.nodeId)}
 {@render treeLinkCard(entry)}
@@ -869,7 +870,7 @@ oncancel={() => { addToSectionId = null; }}
 {@const unsectioned = allProfiles.filter((p) => p.pathKey === '*')}
 {#if unsectioned.length > 0}
 {#if tree.sections.length > 0}
-<div class="text-xs text-muted-foreground uppercase tracking-wider px-1 pt-1">Sem seção</div>
+<div class="text-xs text-muted-foreground uppercase tracking-wider px-1 pt-1">{t('tree_editor.no_section')}</div>
 {/if}
 {#each unsectioned as entry (entry.nodeId)}
 {@render profileCard(entry)}
@@ -882,9 +883,9 @@ oncancel={() => { addToSectionId = null; }}
 {#if deleteConfirm}
 <ConfirmDialog
 open={!!deleteConfirm}
-title="Excluir {deleteConfirm.type === 'node' ? 'Nó' : 'Seção'}"
-description="Tem certeza que deseja excluir &quot;{deleteConfirm.title}&quot;?{deleteConfirm.type === 'node' ? ' Se for um profile, todas as fonts filhas também serão removidas da árvore.' : ' Os itens dentro serão movidos para fora da seção.'}"
-confirmLabel="Excluir"
+title={deleteConfirm.type === 'node' ? t('dialog.tree_delete.title_node') : t('dialog.tree_delete.title_section')}
+description={deleteConfirm.type === 'node' ? t('dialog.tree_delete.description_node', { title: deleteConfirm.title }) : t('dialog.tree_delete.description_section', { title: deleteConfirm.title })}
+confirmLabel={t('btn.delete')}
 onconfirm={() => {
 if (deleteConfirm?.type === 'node' && deleteConfirm.nodeId) handleDeleteNode(deleteConfirm.nodeId);
 else if (deleteConfirm?.type === 'section' && deleteConfirm.sectionId) handleDeleteSection(deleteConfirm.sectionId);
@@ -902,8 +903,8 @@ oncancel={() => (deleteConfirm = null)}
 </div>
 </div>
 <Dialog.Header class="text-center">
-<Dialog.Title>Escolher Ícone</Dialog.Title>
-<Dialog.Description>Selecione um emoji para a seção.</Dialog.Description>
+<Dialog.Title>{t('tree_editor.choose_section_icon')}</Dialog.Title>
+<Dialog.Description>{t('tree_editor.choose_section_icon_description')}</Dialog.Description>
 </Dialog.Header>
 <div class="flex flex-col gap-4 py-4">
 <div class="flex items-center justify-center">
@@ -914,12 +915,12 @@ oncancel={() => (deleteConfirm = null)}
 <EmojiPicker value={pendingSectionEmoji} onselect={(e) => (pendingSectionEmoji = e)} />
 </div>
 <Dialog.Footer>
-<Button variant="outline" onclick={() => (emojiDialogTarget = null)}>Cancelar</Button>
+<Button variant="outline" onclick={() => (emojiDialogTarget = null)}>{t('btn.cancel')}</Button>
 <Button disabled={!pendingSectionEmoji} onclick={() => {
 if (emojiDialogTarget === 'new') newSectionEmoji = pendingSectionEmoji;
 else if (emojiDialogTarget === 'edit') editSectionEmoji = pendingSectionEmoji;
 emojiDialogTarget = null;
-}}>Confirmar</Button>
+}}>{t('btn.confirm')}</Button>
 </Dialog.Footer>
 </Dialog.Content>
 </Dialog.Root>

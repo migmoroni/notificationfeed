@@ -6,6 +6,7 @@
   for font shows posts feed.
 -->
 <script lang="ts">
+import { t } from '$lib/i18n/t.js';
 import { untrack } from 'svelte';
 import type { TreeNode } from '$lib/domain/content-tree/content-tree.js';
 import { isFontNode, isProfileNode, isCreatorNode, isTreeLinkNode, isCollectionNode, parseTreeId } from '$lib/domain/content-tree/content-tree.js';
@@ -259,7 +260,7 @@ showUnsaveConfirm = false;
 </script>
 
 <svelte:head>
-<title>Notfeed — {node?.data.header.title ?? 'Carregando...'}</title>
+<title>Notfeed — {node?.data.header.title ?? t('node_detail.loading')}</title>
 </svelte:head>
 
 <div class="mx-auto w-full px-4 py-4 {layout.isExpanded ? 'max-w-3xl' : 'max-w-xl'}">
@@ -269,13 +270,13 @@ onclick={() => history.back()}
 class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4"
 >
 <ArrowLeft class="size-4" />
-<span>Voltar</span>
+<span>{t('btn.back')}</span>
 </button>
 
 {#if loading}
-<div class="text-center py-12 text-muted-foreground text-sm">Carregando…</div>
+<div class="text-center py-12 text-muted-foreground text-sm">{t('node_detail.loading')}</div>
 {:else if !node}
-<div class="text-center py-12 text-muted-foreground text-sm">Node não encontrado.</div>
+<div class="text-center py-12 text-muted-foreground text-sm">{t('node_detail.not_found')}</div>
 {:else}
 <!-- Banner -->
 {#if bannerUrl}

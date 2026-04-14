@@ -55,6 +55,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 				profileImage: null,
 				profileEmoji: null,
 				removedAt: null,
+				language: 'en-US',
 				activateTrees: [],
 				activateNodes: [],
 				favoriteTabs: [createSystemTab()],

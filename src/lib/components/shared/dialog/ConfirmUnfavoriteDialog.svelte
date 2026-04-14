@@ -1,6 +1,7 @@
 <script lang="ts">
 	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
 	import StarOff from '@lucide/svelte/icons/star-off';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		open: boolean;
@@ -14,14 +15,14 @@
 
 	let description = $derived(
 		count > 1
-			? `Remover ${count} itens dos favoritos? Eles não serão excluídos, apenas perderão o status de favorito.`
-			: 'Remover dos favoritos? O item não será excluído, apenas perderá o status de favorito.'
+			? t('dialog.unfavorite.description_many', { count: String(count) })
+			: t('dialog.unfavorite.description')
 	);
 </script>
 
 <ConfirmDialog
 	bind:open
-	title="Desfavoritar"
+	title={t('dialog.unfavorite.title')}
 	{description}
 	{onconfirm}
 	{oncancel}

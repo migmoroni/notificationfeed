@@ -1,6 +1,7 @@
 <script lang="ts">
 	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
 	import EyeOff from '@lucide/svelte/icons/eye-off';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		open: boolean;
@@ -13,16 +14,16 @@
 
 	let description = $derived(
 		title
-			? `Deixar de seguir "${title}"? Você não receberá mais seus posts.`
-			: 'Deixar de seguir? Você não receberá mais posts desta fonte.'
+			? t('dialog.unfollow.description_named', { title })
+			: t('dialog.unfollow.description')
 	);
 </script>
 
 <ConfirmDialog
 	bind:open
-	title="Deixar de seguir"
+	title={t('dialog.unfollow.title')}
 	{description}
-	confirmLabel="Deixar de seguir"
+	confirmLabel={t('dialog.unfollow.confirm')}
 	{onconfirm}
 	{oncancel}
 >

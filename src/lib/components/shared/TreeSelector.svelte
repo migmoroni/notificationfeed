@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '$lib/i18n/t.js';
 	import type { CategoryTreeStore } from '$lib/stores/category-tree.types.js';
 	import type { Category, CategoryTreeId } from '$lib/domain/category/category.js';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
@@ -156,7 +157,7 @@
 				{/if}
 			{/each}
 			{#if roots.length === 0 && !store.loading}
-				<p class="text-xs text-muted-foreground px-1 py-2">Nenhuma categoria.</p>
+				<p class="text-xs text-muted-foreground px-1 py-2">{t('entity_filter.no_categories')}</p>
 			{/if}
 		</div>
 	{/if}

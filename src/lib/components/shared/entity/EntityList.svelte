@@ -4,6 +4,7 @@
   Replaces the old EntityList that worked with BrowseEntity[] union type.
 -->
 <script lang="ts">
+	import { t } from '$lib/i18n/t.js';
 	import type { TreeNode } from '$lib/domain/content-tree/content-tree.js';
 	import EntityCard from './EntityCard.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
@@ -42,7 +43,7 @@
 	</div>
 {:else if nodes.length === 0}
 	<div class="flex flex-col items-center justify-center py-12 text-center">
-		<p class="text-sm text-muted-foreground">Selecione uma categoria para ver conteúdo.</p>
+		<p class="text-sm text-muted-foreground">{t('entity_list.select_category')}</p>
 	</div>
 {:else}
 	<div class="flex flex-col gap-4">

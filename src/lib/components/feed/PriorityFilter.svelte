@@ -2,6 +2,7 @@
 	import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 	import { PRIORITY_LEVELS } from '$lib/components/shared/priority/priority.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import { t } from '$lib/i18n/t.js';
 
 	export type PriorityFilterValue = PriorityLevel | 'all';
 
@@ -12,10 +13,10 @@
 
 	let { value, onchange }: Props = $props();
 
-	const options: { value: PriorityFilterValue; label: string }[] = [
-		{ value: 'all', label: 'Todos' },
-		...PRIORITY_LEVELS.map((p) => ({ value: p.level, label: p.name }))
-	];
+	const options: { value: PriorityFilterValue; label: string }[] = $derived([
+		{ value: 'all', label: t('feed.priority_all') },
+		...PRIORITY_LEVELS.map((p) => ({ value: p.level, label: t(p.nameKey) }))
+	]);
 
 	function handleChange(newValue: string) {
 		const parsed = newValue === 'all' ? 'all' : (Number(newValue) as PriorityLevel);

@@ -15,6 +15,7 @@
 	import Library from '@lucide/svelte/icons/library';
 	import Archive from '@lucide/svelte/icons/archive';
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
+	import { t } from '$lib/i18n/t.js';
 
 	const roleMeta: Record<string, { label: string; icon: typeof Users }> = {
 		creator: { label: 'Creator', icon: Users },
@@ -27,25 +28,25 @@
 </script>
 
 <svelte:head>
-	<title>Notfeed — Pages</title>
+	<title>{t('page_title.pages')}</title>
 </svelte:head>
 
 <div class="container mx-auto px-4 py-6 {layout.isExpanded ? 'max-w-4xl' : 'max-w-2xl'}">
 	<div class="flex items-center justify-between mb-6">
-		<h1 class="text-xl font-bold">Pages</h1>
+		<h1 class="text-xl font-bold">{t('title.pages')}</h1>
 
 		{#if activeUser.isCreator}
 			<div class="flex items-center gap-2">
 				{#if creator.removedTrees.length > 0}
 					<Button variant={showRemoved ? 'secondary' : 'ghost'} size="sm" onclick={() => (showRemoved = !showRemoved)}>
 						<Archive class="size-4 mr-1" />
-						Removidas ({creator.removedTrees.length})
+					{t('pages.removed')} ({creator.removedTrees.length})
 					</Button>
 				{/if}
 				{#if !showRemoved}
 					<Button href="/pages/new">
 						<Plus class="size-4 mr-1" />
-						Nova Page
+					{t('title.new_page')}
 					</Button>
 				{/if}
 			</div>
@@ -56,31 +57,31 @@
 		<div class="py-12 text-center">
 			<FileStack class="size-12 mx-auto text-muted-foreground mb-3" />
 			<p class="text-sm text-muted-foreground mb-2">
-				Acesse com um usuário Creator para gerenciar suas páginas.
+				{t('pages.access_creator')}
 			</p>
 			<a href="/user" class="text-sm text-primary hover:underline">
-				Trocar de usuário →
+				{t('pages.switch_user')}
 			</a>
 		</div>
 	{:else if displayTrees.length === 0 && showRemoved}
 		<div class="py-12 text-center">
 			<Archive class="size-12 mx-auto text-muted-foreground mb-3" />
 			<p class="text-sm text-muted-foreground mb-2">
-				Nenhuma página removida.
+				{t('pages.no_removed')}
 			</p>
 			<Button variant="outline" onclick={() => (showRemoved = false)}>
-				Ver páginas ativas
+				{t('pages.view_active')}
 			</Button>
 		</div>
 	{:else if displayTrees.length === 0}
 		<div class="py-12 text-center">
 			<FileStack class="size-12 mx-auto text-muted-foreground mb-3" />
 			<p class="text-sm text-muted-foreground mb-2">
-				Nenhuma página ainda. Crie sua primeira!
+				{t('pages.empty')}
 			</p>
 			<Button href="/pages/new" variant="outline">
 				<Plus class="size-4 mr-1" />
-				Criar Page
+				{t('pages.create_page')}
 			</Button>
 		</div>
 	{:else}
@@ -123,7 +124,7 @@
 									</div>
 								{/if}
 								<div class="flex-1 min-w-0">
-									<Card.Title class="text-base truncate">{rootNode?.data.header.title ?? 'Sem título'}</Card.Title>
+									<Card.Title class="text-base truncate">{rootNode?.data.header.title ?? t('import.without_title')}</Card.Title>
 									{#if rootNode?.data.header.subtitle}
 										<p class="text-xs font-medium mt-0.5 truncate">{rootNode.data.header.subtitle}</p>
 									{/if}

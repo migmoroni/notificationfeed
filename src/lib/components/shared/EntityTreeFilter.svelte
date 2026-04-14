@@ -6,6 +6,7 @@
   each expandable to show its font nodes.
 -->
 <script lang="ts">
+import { t } from '$lib/i18n/t.js';
 import type { EntityFilterStore, NodeEntry, PageEntry } from '$lib/stores/entity-filter.types.js';
 import type { PageType } from '$lib/stores/entity-filter.types.js';
 import { ALL_PAGE_TYPES } from '$lib/stores/entity-filter.types.js';
@@ -29,12 +30,20 @@ store: EntityFilterStore;
 
 let { store }: Props = $props();
 
-// Page type labels & icons
-const pageTypeMeta: Record<PageType, { label: string; pluralLabel: string; icon: typeof FileText }> = {
-font: { label: 'Fonte', pluralLabel: 'Fontes', icon: Rss },
-profile: { label: 'Perfil', pluralLabel: 'Perfis', icon: User },
-creator: { label: 'Creator', pluralLabel: 'Creators', icon: FileText },
-collection: { label: 'Coleção', pluralLabel: 'Coleções', icon: FolderOpen }
+// Page type icons
+const pageTypeIcons: Record<PageType, typeof FileText> = {
+font: Rss,
+profile: User,
+creator: FileText,
+collection: FolderOpen
+};
+
+// Page type i18n keys
+const pageTypeKeys: Record<PageType, { labelKey: string; pluralKey: string }> = {
+font: { labelKey: 'entity.font', pluralKey: 'entity.font_plural' },
+profile: { labelKey: 'entity.profile', pluralKey: 'entity.profile_plural' },
+creator: { labelKey: 'entity.creator', pluralKey: 'entity.creator_plural' },
+collection: { labelKey: 'entity.collection', pluralKey: 'entity.collection_plural' }
 };
 
 // Auto-open pages that have active selections
@@ -71,10 +80,10 @@ let groupedPages = $derived.by(() => {
 		if (!arr) { arr = []; byType.set(page.pageType, arr); }
 		arr.push(page);
 	}
-	for (const t of typeOrder) {
-		const arr = byType.get(t);
+	for (const pt of typeOrder) {
+		const arr = byType.get(pt);
 		if (arr && arr.length > 0) {
-			groups.push({ type: t, label: pageTypeMeta[t].pluralLabel, pages: arr });
+			groups.push({ type: pt, label: t(pageTypeKeys[pt].pluralKey), pages: arr });
 		}
 	}
 	return groups;
@@ -90,7 +99,7 @@ return Rss;
 }
 
 function pageTypeIcon(pt: PageType) {
-return pageTypeMeta[pt].icon;
+return pageTypeIcons[pt];
 }
 </script>
 
@@ -183,17 +192,17 @@ class="flex-1 flex items-center justify-center rounded-md p-2 transition-colors
 {isActive
 ? 'bg-accent text-accent-foreground'
 : 'text-muted-foreground hover:bg-accent/40 hover:text-foreground'}"
-title={pageTypeMeta[pt].label}
-aria-label={pageTypeMeta[pt].label}
+title={t(pageTypeKeys[pt].labelKey)}
+aria-label={t(pageTypeKeys[pt].labelKey)}
 >
-<svelte:component this={pageTypeMeta[pt].icon} class="size-4" />
+<svelte:component this={pageTypeIcons[pt]} class="size-4" />
 </button>
 {/each}
 {#if totalSelected > 0}
 <button
 onclick={() => store.clearAll()}
 class="flex items-center justify-center size-7 shrink-0 rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-aria-label="Limpar filtro"
+aria-label={t('aria.clear_filter')}
 >
 <X class="size-3.5" />
 </button>
@@ -207,7 +216,7 @@ aria-label="Limpar filtro"
 {@const isExpanded = isFocused || expandedGroups.has(group.type)}
 {@const visiblePages = isExpanded ? group.pages : group.pages.slice(0, PAGE_LIMIT)}
 {@const hasMore = !isExpanded && group.pages.length > PAGE_LIMIT}
-{@const GroupIcon = pageTypeMeta[group.type].icon}
+{@const GroupIcon = pageTypeIcons[group.type]}
 <div class="flex flex-col">
 {#if groupedPages.length > 1}
 <div class="flex items-center gap-2 px-2 py-1">
@@ -232,6 +241,6 @@ Mais {group.pages.length - PAGE_LIMIT}
 {/each}
 </div>
 {:else}
-<p class="px-3 py-4 text-xs text-muted-foreground text-center">Nenhuma página disponível.</p>
+<p class="px-3 py-4 text-xs text-muted-foreground text-center">{t('entity_filter.no_pages')}</p>
 {/if}
 </div>

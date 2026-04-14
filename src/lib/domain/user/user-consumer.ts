@@ -100,6 +100,9 @@ export interface UserConsumer {
 	/** Soft-delete flag. Removed users are hidden but kept in DB. */
 	removedAt: Date | null;
 
+	/** Preferred UI language (e.g. 'en-US', 'pt-BR'). */
+	language: string;
+
 	/** Trees the user has subscribed to */
 	activateTrees: TreeActivation[];
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '$lib/i18n/t.js';
 	import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 	import { PRIORITY_LEVELS, PRIORITY_INACTIVE_CLASS } from '$lib/components/shared/priority/priority.js';
 
@@ -27,9 +28,9 @@
 			onclick={(e) => handleClick(p.level, e)}
 			class="inline-flex items-center justify-center {sizeClass} rounded font-bold transition-colors border
 				{current === p.level ? p.activeClass : PRIORITY_INACTIVE_CLASS}"
-			aria-label="Prioridade {p.name}"
+			aria-label={t('aria.priority', { name: t(p.nameKey) })}
 		>
-			{p.label}
+			{t(p.labelKey)}
 		</button>
 	{/each}
 </div>

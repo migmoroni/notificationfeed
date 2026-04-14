@@ -11,6 +11,7 @@
 	import { formatRelativeDate } from '$lib/utils/date.js';
 	import CircleDot from '@lucide/svelte/icons/circle-dot';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		sortedPost: SortedPost<CanonicalPost>;
@@ -52,7 +53,7 @@
 	onkeydown={handleKeydown}
 	tabindex="0"
 	role="button"
-	aria-label="Abrir post: {sortedPost.post.title}"
+	aria-label={t('aria.open_post', { title: sortedPost.post.title })}
 >
 	<!-- Font side tab -->
 	{#if fontNode}

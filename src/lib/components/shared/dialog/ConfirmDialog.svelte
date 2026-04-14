@@ -3,6 +3,7 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import type { ButtonVariant } from '$lib/components/ui/button/button.svelte';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		open: boolean;
@@ -21,8 +22,8 @@
 		open = $bindable(),
 		title,
 		description,
-		confirmLabel = 'Confirmar',
-		cancelLabel = 'Cancelar',
+		confirmLabel = t('btn.confirm'),
+		cancelLabel = t('btn.cancel'),
 		confirmVariant = 'destructive',
 		icon,
 		onconfirm,

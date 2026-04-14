@@ -15,6 +15,7 @@
 	import FileText from '@lucide/svelte/icons/file-text';
 	import Globe from '@lucide/svelte/icons/globe';
 	import Film from '@lucide/svelte/icons/film';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		assignments: CategoryAssignment[];
@@ -148,11 +149,11 @@
 		onclick={() => (sectionOpen = !sectionOpen)}
 	>
 		<Tag class="size-4 text-muted-foreground shrink-0" />
-		<span class="text-sm font-medium flex-1">Categorias</span>
+		<span class="text-sm font-medium flex-1">{t('category_picker.categories')}</span>
 		{#if totalSelected > 0}
 			<Badge variant="secondary" class="text-xs">{totalSelected} selecionada{totalSelected !== 1 ? 's' : ''}</Badge>
 		{:else}
-			<span class="text-xs text-muted-foreground">Nenhuma</span>
+			<span class="text-xs text-muted-foreground">{t('category_picker.none')}</span>
 		{/if}
 		{#if sectionOpen}
 			<ChevronDown class="size-4 text-muted-foreground shrink-0" />
@@ -188,7 +189,7 @@
 			{/if}
 
 			{#if loading}
-				<p class="text-xs text-muted-foreground animate-pulse py-2">Carregando categorias…</p>
+				<p class="text-xs text-muted-foreground animate-pulse py-2">{t('category_picker.loading')}</p>
 			{:else}
 				{#each TREES as tree}
 					{@const selected = getSelectedIds(tree.id)}

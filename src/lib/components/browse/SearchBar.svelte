@@ -3,6 +3,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import Search from '@lucide/svelte/icons/search';
 	import X from '@lucide/svelte/icons/x';
+	import { t } from '$lib/i18n/t.js';
 
 	let inputValue = $state('');
 	let debounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -28,7 +29,7 @@
 	<Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
 	<Input
 		type="text"
-		placeholder="Buscar pages, profiles, fonts..."
+		placeholder={t('browse.search_placeholder')}
 		value={inputValue}
 		oninput={handleInput}
 		class="pl-8 pr-8 h-9 text-sm"
@@ -37,7 +38,7 @@
 		<button
 			onclick={handleClear}
 			class="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-			aria-label="Limpar busca"
+			aria-label={t('aria.clear_search')}
 		>
 			<X class="size-4" />
 		</button>

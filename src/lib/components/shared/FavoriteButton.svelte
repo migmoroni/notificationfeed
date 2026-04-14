@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Star from '@lucide/svelte/icons/star';
 	import StarOff from '@lucide/svelte/icons/star-off';
+	import { t } from '$lib/i18n/t.js';
 
 	/**
 	 * Reusable star-toggle button for favorite state.
@@ -28,7 +29,7 @@
 <button
 	{onclick}
 	class="{containerClass} {favorite ? 'text-yellow-500' : 'text-muted-foreground hover:text-foreground'}"
-	aria-label={favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+	aria-label={favorite ? t('aria.remove_from_favorites') : t('aria.add_to_favorites')}
 >
 	{#if favorite}
 		<Star class="{iconClass} fill-current" />

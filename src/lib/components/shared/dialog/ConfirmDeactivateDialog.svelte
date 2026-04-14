@@ -1,6 +1,7 @@
 <script lang="ts">
 	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
 	import ToggleLeft from '@lucide/svelte/icons/toggle-left';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		open: boolean;
@@ -13,16 +14,16 @@
 
 	let description = $derived(
 		title
-			? `Desativar "${title}"? Você não receberá mais posts desta fonte.`
-			: 'Desativar? Você não receberá mais posts desta fonte.'
+			? t('dialog.deactivate.description_named', { title })
+			: t('dialog.deactivate.description')
 	);
 </script>
 
 <ConfirmDialog
 	bind:open
-	title="Desativar fonte"
+	title={t('dialog.deactivate.title')}
 	{description}
-	confirmLabel="Desativar"
+	confirmLabel={t('dialog.deactivate.confirm')}
 	{onconfirm}
 	{oncancel}
 >

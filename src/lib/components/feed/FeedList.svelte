@@ -11,6 +11,7 @@
 	import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 	import { feed } from '$lib/stores/feed.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
+	import { t } from '$lib/i18n/t.js';
 	import { PRIORITY_LEVELS } from '$lib/components/shared/priority/priority.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import PostCard from './PostCard.svelte';
@@ -120,12 +121,12 @@
 {:else if filtered.length === 0}
 	<div class="flex flex-col items-center justify-center py-16 text-muted-foreground">
 		<Newspaper class="size-12 mb-4 opacity-30" />
-		<p class="text-lg font-medium mb-1">Nenhum post ainda</p>
+		<p class="text-lg font-medium mb-1">{t('feed.empty_no_posts')}</p>
 		<p class="text-sm">
 			{#if filter !== 'all'}
-				Nenhum post com essa prioridade.
+				{t('feed.empty_no_priority')}
 			{:else}
-				Adicione fontes para começar a receber conteúdo.
+				{t('feed.empty_add_sources')}
 			{/if}
 		</p>
 	</div>
@@ -137,7 +138,7 @@
 			{/if}
 			<section>
 				<h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
-					{group.config.name} ({group.posts.length})
+					{t(group.config.nameKey)} ({group.posts.length})
 				</h3>
 				{@render postGrid(group.posts.slice(0, visibleCount))}
 			</section>

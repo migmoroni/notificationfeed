@@ -31,10 +31,28 @@ import X from '@lucide/svelte/icons/x';
 import Newspaper from '@lucide/svelte/icons/newspaper';
 import FileStack from '@lucide/svelte/icons/file-stack';
 import ChevronDown from '@lucide/svelte/icons/chevron-down';
+import { t } from '$lib/i18n/t.js';
+import { currentLanguage, setLanguage } from '$lib/i18n/store.svelte.js';
+import { ALL_LANGUAGES } from '$lib/i18n/types.js';
+import type { Language } from '$lib/i18n/types.js';
 
 onMount(() => {
 	activeUser.reload();
 });
+
+// ── Language ────────────────────────────────────────────────────────
+
+const LANGUAGE_LABELS: Record<Language, string> = {
+	'en-US': 'English',
+	'pt-BR': 'Português (BR)'
+};
+
+async function handleLanguageChange(lang: Language) {
+	setLanguage(lang);
+	if (activeUser.current) {
+		await activeUser.setLanguage(activeUser.current.id, lang);
+	}
+}
 
 // ── Create user dialog ─────────────────────────────────────────────
 
@@ -223,11 +241,11 @@ let showRemoved = $state(false);
 </script>
 
 <svelte:head>
-<title>Notfeed — Usuários</title>
+<title>{t('page_title.users')}</title>
 </svelte:head>
 
 <div class="container mx-auto px-4 py-6 {layout.isExpanded ? 'max-w-2xl' : 'max-w-lg'}">
-<h1 class="text-xl font-bold mb-6">Usuários</h1>
+<h1 class="text-xl font-bold mb-6">{t('title.users')}</h1>
 
 <!-- Active user banner -->
 {#if activeUser.current}
@@ -253,7 +271,7 @@ class="size-12 rounded-full object-cover"
 <p class="text-sm font-semibold truncate">{activeUser.current.displayName}</p>
 <div class="flex items-center gap-1.5 mt-0.5">
 <Badge variant={activeUser.isConsumer ? 'secondary' : 'outline'} class="text-[10px]">
-{activeUser.isConsumer ? 'Consumer' : 'Creator'}
+{activeUser.isConsumer ? t('role.consumer') : t('role.creator')}
 </Badge>
 {#if activeUser.isConsumer}
 <span class="text-[10px] text-muted-foreground">
@@ -277,16 +295,16 @@ class="size-12 rounded-full object-cover"
 <section class="mb-6">
 <div class="flex items-center justify-between mb-3">
 <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-Consumers
+{t('user.consumers')}
 </h2>
 <Button variant="ghost" size="sm" class="h-7 gap-1 text-xs" onclick={() => openCreateDialog('consumer')}>
 <Plus class="size-3.5" />
-Criar
+{t('btn.create')}
 </Button>
 </div>
 
 {#if activeUser.consumers.length === 0}
-<p class="text-sm text-muted-foreground py-2">Nenhum consumer criado.</p>
+<p class="text-sm text-muted-foreground py-2">{t('user.no_consumers')}</p>
 {:else}
 <div class="flex flex-col gap-2">
 {#each activeUser.consumers as user (user.id)}
@@ -318,7 +336,7 @@ disabled={isActive}
 </div>
 
 {#if isActive}
-<Badge variant="default" class="text-[10px] shrink-0">Ativo</Badge>
+<Badge variant="default" class="text-[10px] shrink-0">{t('user.active_badge')}</Badge>
 {/if}
 </button>
 
@@ -342,16 +360,16 @@ disabled={isActive}
 <section class="mb-6">
 <div class="flex items-center justify-between mb-3">
 <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-Creators
+{t('user.creators')}
 </h2>
 <Button variant="ghost" size="sm" class="h-7 gap-1 text-xs" onclick={() => openCreateDialog('creator')}>
 <Plus class="size-3.5" />
-Criar
+{t('btn.create')}
 </Button>
 </div>
 
 {#if activeUser.creators.length === 0}
-<p class="text-sm text-muted-foreground py-2">Nenhum creator criado.</p>
+<p class="text-sm text-muted-foreground py-2">{t('user.no_creators')}</p>
 {:else}
 <div class="flex flex-col gap-2">
 {#each activeUser.creators as user (user.id)}
@@ -383,7 +401,7 @@ disabled={isActive}
 </div>
 
 {#if isActive}
-<Badge variant="default" class="text-[10px] shrink-0">Ativo</Badge>
+<Badge variant="default" class="text-[10px] shrink-0">{t('user.active_badge')}</Badge>
 {/if}
 </button>
 
@@ -409,7 +427,7 @@ disabled={isActive}
 <Collapsible.Trigger class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full mb-3">
 <ChevronDown class="size-4 transition-transform {showRemoved ? 'rotate-180' : ''}" />
 <span class="font-semibold uppercase tracking-wider text-[13px]">
-Removidos ({activeUser.removedUsers.length})
+{t('user.removed_count', { count: String(activeUser.removedUsers.length) })}
 </span>
 </Collapsible.Trigger>
 <Collapsible.Content>
@@ -428,12 +446,12 @@ Removidos ({activeUser.removedUsers.length})
 <div class="flex-1 min-w-0">
 <span class="text-sm font-medium truncate block">{user.displayName}</span>
 <span class="text-[10px] text-muted-foreground">
-{user.role === 'consumer' ? 'Consumer' : 'Creator'} · Removido
+{user.role === 'consumer' ? t('role.consumer') : t('role.creator')} · {t('user.removed_label')}
 </span>
 </div>
 <Button variant="outline" size="sm" class="h-7 gap-1 text-xs shrink-0" onclick={() => restoreUser(user.id)}>
 <Undo2 class="size-3.5" />
-Restaurar
+{t('btn.restore')}
 </Button>
 </div>
 {/each}
@@ -447,11 +465,26 @@ Restaurar
 <!-- App settings -->
 <section>
 <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-Configurações do App
+{t('user.app_settings')}
 </h2>
-<p class="text-sm text-muted-foreground">
-Configurações globais do aplicativo aparecerão aqui em futuras versões.
-</p>
+
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm font-medium">{t('user.language')}</p>
+<p class="text-xs text-muted-foreground">{t('user.language_hint')}</p>
+</div>
+<select
+class="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+value={currentLanguage()}
+onchange={(e) => handleLanguageChange((e.target as HTMLSelectElement).value as Language)}
+>
+{#each ALL_LANGUAGES as lang}
+<option value={lang}>{LANGUAGE_LABELS[lang]}</option>
+{/each}
+</select>
+</div>
+</div>
 </section>
 </div>
 
@@ -459,18 +492,18 @@ Configurações globais do aplicativo aparecerão aqui em futuras versões.
 <Dialog.Root bind:open={showCreateDialog}>
 <Dialog.Content class="sm:max-w-sm">
 <Dialog.Header>
-<Dialog.Title>Criar {createRole === 'consumer' ? 'Consumer' : 'Creator'}</Dialog.Title>
+<Dialog.Title>{t('user.create_role', { role: createRole === 'consumer' ? t('role.consumer') : t('role.creator') })}</Dialog.Title>
 <Dialog.Description>
 {createRole === 'consumer'
-? 'Consumer consome e organiza feeds. Inscreve-se, segue, favorita e personaliza prioridades.'
-: 'Creator cria e exporta páginas editoriais com profiles e fonts.'}
+? t('user.consumer_description')
+: t('user.creator_description_create')}
 </Dialog.Description>
 </Dialog.Header>
 
 <div class="py-2">
 <Input
 bind:value={createName}
-placeholder="Nome de exibição"
+placeholder={t('user.display_name')}
 maxlength={50}
 class="w-full"
 onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter') handleCreate(); }}
@@ -478,8 +511,8 @@ onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter') handleCreate(); }}
 </div>
 
 <Dialog.Footer>
-<Button variant="outline" onclick={() => (showCreateDialog = false)}>Cancelar</Button>
-<Button onclick={handleCreate} disabled={!createName.trim()}>Criar</Button>
+<Button variant="outline" onclick={() => (showCreateDialog = false)}>{t('btn.cancel')}</Button>
+<Button onclick={handleCreate} disabled={!createName.trim()}>{t('btn.create')}</Button>
 </Dialog.Footer>
 </Dialog.Content>
 </Dialog.Root>
@@ -488,8 +521,8 @@ onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter') handleCreate(); }}
 <Dialog.Root open={!!editingUser} onOpenChange={(v) => { if (!v) closeEdit(); }}>
 <Dialog.Content class="sm:max-w-sm">
 <Dialog.Header>
-<Dialog.Title>Editar Usuário</Dialog.Title>
-<Dialog.Description>Altere o nome e avatar de perfil.</Dialog.Description>
+<Dialog.Title>{t('user.edit_user')}</Dialog.Title>
+<Dialog.Description>{t('user.edit_description')}</Dialog.Description>
 </Dialog.Header>
 
 <div class="flex flex-col items-center gap-4 py-4">
@@ -502,7 +535,7 @@ class="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md transition-color
 {editAvatarMode === 'image' ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground hover:text-foreground'}"
 >
 <Camera class="size-3.5" />
-Imagem
+{t('user.image_mode')}
 </button>
 <button
 type="button"
@@ -511,7 +544,7 @@ class="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md transition-color
 {editAvatarMode === 'emoji' ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground hover:text-foreground'}"
 >
 <Smile class="size-3.5" />
-Emoji
+{t('user.emoji_mode')}
 </button>
 </div>
 
@@ -575,7 +608,7 @@ class="flex items-center justify-center size-20 rounded-full bg-muted text-muted
 <!-- Name -->
 <Input
 bind:value={editName}
-placeholder="Nome de exibição"
+placeholder={t('user.display_name')}
 maxlength={50}
 class="w-full"
 onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter') saveEdit(); }}
@@ -583,8 +616,8 @@ onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter') saveEdit(); }}
 </div>
 
 <Dialog.Footer>
-<Button variant="outline" onclick={closeEdit}>Cancelar</Button>
-<Button onclick={saveEdit} disabled={!editName.trim()}>Salvar</Button>
+<Button variant="outline" onclick={closeEdit}>{t('btn.cancel')}</Button>
+<Button onclick={saveEdit} disabled={!editName.trim()}>{t('btn.save')}</Button>
 </Dialog.Footer>
 </Dialog.Content>
 </Dialog.Root>
@@ -608,8 +641,8 @@ oncancel={cancelDelete}
 </div>
 </div>
 <Dialog.Header class="text-center">
-<Dialog.Title>Escolher Emoji</Dialog.Title>
-<Dialog.Description>Selecione um emoji como avatar de perfil.</Dialog.Description>
+<Dialog.Title>{t('user.choose_emoji')}</Dialog.Title>
+<Dialog.Description>{t('user.select_emoji_avatar')}</Dialog.Description>
 </Dialog.Header>
 <div class="flex flex-col gap-4 py-4">
 <div class="flex items-center justify-center">
@@ -620,8 +653,8 @@ oncancel={cancelDelete}
 <EmojiPicker value={pendingDialogEmoji} onselect={(e) => (pendingDialogEmoji = e)} />
 </div>
 <Dialog.Footer>
-<Button variant="outline" onclick={() => (showEmojiDialog = false)}>Cancelar</Button>
-<Button disabled={!pendingDialogEmoji} onclick={confirmEmojiDialog}>Confirmar</Button>
+<Button variant="outline" onclick={() => (showEmojiDialog = false)}>{t('btn.cancel')}</Button>
+<Button disabled={!pendingDialogEmoji} onclick={confirmEmojiDialog}>{t('btn.confirm')}</Button>
 </Dialog.Footer>
 </Dialog.Content>
 </Dialog.Root>

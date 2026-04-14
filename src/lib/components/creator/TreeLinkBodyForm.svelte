@@ -3,6 +3,7 @@
 	import type { ContentTree } from '$lib/domain/content-tree/content-tree.js';
 	import { getRootNode } from '$lib/domain/content-tree/content-tree.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		body: TreeLinkBody;
@@ -20,9 +21,9 @@
 </script>
 
 <div class="space-y-2">
-	<Label for="tree-link-target">Página vinculada</Label>
+	<Label for="tree-link-target">{t('tree_link.linked_page')}</Label>
 	{#if availableTrees.length === 0}
-		<p class="text-sm text-muted-foreground">Nenhuma página compatível disponível.</p>
+		<p class="text-sm text-muted-foreground">{t('tree_link.no_compatible')}</p>
 	{:else}
 		<select
 			id="tree-link-target"
@@ -30,7 +31,7 @@
 			value={body.instanceTreeId}
 			onchange={handleSelect}
 		>
-			<option value="">Selecione uma página...</option>
+			<option value="">{t('tree_link.select_page')}</option>
 			{#each availableTrees as tree}
 				{@const root = getRootNode(tree)}
 				<option value={tree.metadata.id}>{root?.data.header.title ?? tree.metadata.id}</option>

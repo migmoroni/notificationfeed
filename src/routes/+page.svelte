@@ -19,6 +19,7 @@
 	import Check from '@lucide/svelte/icons/check';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Pencil from '@lucide/svelte/icons/pencil';
+	import { t } from '$lib/i18n/t.js';
 
 	let filter: PriorityFilterValue = $state('all');
 	let refreshing = $state(false);
@@ -157,7 +158,7 @@
 					? 'border-b-2 border-primary text-foreground'
 					: 'text-muted-foreground hover:text-foreground'}"
 			>
-				Filtros Salvos
+				{t('feed.filters_saved')}
 			</button>
 			<button
 				onclick={() => activeTab = 'advanced'}
@@ -166,7 +167,7 @@
 					? 'border-b-2 border-primary text-foreground'
 					: 'text-muted-foreground hover:text-foreground'}"
 			>
-				Filtros Avançados
+				{t('feed.filters_advanced')}
 			</button>
 		</div>
 
@@ -179,23 +180,23 @@
 						class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-primary-foreground bg-primary hover:bg-primary/90 transition-colors"
 					>
 						<Check class="size-3.5" />
-						Salvar
+						{t('btn.save')}
 					</button>
 					<button
 						onclick={cancelEdit}
 						class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent transition-colors border border-border"
 					>
-						Cancelar
+						{t('btn.cancel')}
 					</button>
 				</div>
 			{:else if isEditing}
 				<div class="flex items-center gap-1.5">
-					<span class="flex-1 text-xs text-muted-foreground px-1">Editando filtros...</span>
+					<span class="flex-1 text-xs text-muted-foreground px-1">{t('feed.editing_filters')}</span>
 					<button
 						onclick={cancelEdit}
 						class="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent transition-colors border border-border"
 					>
-						Cancelar
+						{t('btn.cancel')}
 					</button>
 				</div>
 			{:else if activeMacro}
@@ -205,14 +206,14 @@
 						class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors border border-border"
 					>
 						<Pencil class="size-3.5" />
-						Editar
+						{t('btn.edit')}
 					</button>
 					<button
 						onclick={requestDelete}
 						class="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors border border-destructive/30"
 					>
 						<Trash2 class="size-3.5" />
-						Excluir
+						{t('btn.delete')}
 					</button>
 				</div>
 			{:else if hasAdvancedFilters && !feedMacros.isCurrentStateSaved}
@@ -221,7 +222,7 @@
 						<input
 							type="text"
 							bind:value={newMacroName}
-							placeholder="Nome do feed..."
+							placeholder={t('feed.macro_name_placeholder')}
 							class="flex-1 h-7 rounded-md border border-input bg-background px-2 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
 							onkeydown={(e) => e.key === 'Enter' && handleSaveMacro()}
 							autofocus
@@ -246,7 +247,7 @@
 						class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors border border-dashed border-primary/30"
 					>
 						<Plus class="size-3.5" />
-						Salvar filtro atual
+					{t('feed.save_current_filter')}
 					</button>
 				{/if}
 			{:else}
@@ -255,7 +256,7 @@
 					class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors border border-dashed border-border"
 				>
 					<Plus class="size-3.5" />
-					Criar filtro
+					{t('feed.create_filter')}
 				</button>
 			{/if}
 		</div>
@@ -272,14 +273,14 @@
 {/snippet}
 
 <svelte:head>
-	<title>Notfeed — Feed</title>
+	<title>{t('page_title.feed')}</title>
 </svelte:head>
 
 <div class="mx-auto w-full h-full flex flex-col overflow-hidden pt-4 px-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
 	<!-- Header -->
 	<div class="flex items-center justify-between mb-4 gap-3 pr-24">
 		<div class="flex items-center gap-3 min-w-0">
-			<h1 class="text-xl font-bold shrink-0">Feed</h1>
+			<h1 class="text-xl font-bold shrink-0">{t('title.feed')}</h1>
 			{#if feed.lastRefresh}
 				<span class="text-xs text-muted-foreground truncate hidden sm:inline">
 					{formatRelativeDate(feed.lastRefresh)}
@@ -290,7 +291,7 @@
 			onclick={handleRefresh}
 			disabled={refreshing}
 			class="inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50"
-			aria-label="Atualizar feed"
+			aria-label={t('aria.update_feed')}
 		>
 			<RefreshCw class="size-4 {refreshing ? 'animate-spin' : ''}" />
 		</button>
@@ -341,7 +342,7 @@
 				onclick={() => feedCategories.clearAll()}
 				class="text-xs text-muted-foreground hover:text-foreground transition-colors underline"
 			>
-				Limpar todos
+				{t('btn.clear_all')}
 			</button>
 		{/if}
 	</div>
@@ -356,10 +357,9 @@
 
 <ConfirmDialog
 	bind:open={showDeleteConfirm}
-	title="Excluir filtro salvo"
-	description={deletingMacroName ? `Excluir "${deletingMacroName}"? Esta ação não pode ser desfeita.` : 'Excluir este filtro salvo?'}
-	confirmLabel="Excluir"
-	cancelLabel="Cancelar"
+	title={t('feed.delete_saved_filter')}
+	description={deletingMacroName ? t('feed.delete_macro_description_named', { name: deletingMacroName }) : t('feed.delete_macro_description')}
+	confirmLabel={t('btn.delete')}
 	onconfirm={confirmDelete}
 	oncancel={() => { showDeleteConfirm = false; deletingMacroId = null; }}
 >

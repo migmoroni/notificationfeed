@@ -2,6 +2,7 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		open: boolean;
@@ -19,7 +20,7 @@
 		open = $bindable(),
 		previewUrl = null,
 		emoji = null,
-		mediaLabel = 'imagem',
+		mediaLabel = t('dialog.remove_media.default_label'),
 		onconfirm,
 		oncancel
 	}: Props = $props();
@@ -53,16 +54,15 @@
 		</div>
 
 		<Dialog.Header class="text-center">
-			<Dialog.Title>Remover {mediaLabel}</Dialog.Title>
+			<Dialog.Title>{t('dialog.remove_media.title', { mediaLabel })}</Dialog.Title>
 			<Dialog.Description>
-				Tem certeza que deseja remover esta {mediaLabel}?
-				A mídia continuará disponível na sua biblioteca.
+				{t('dialog.remove_media.description', { mediaLabel })}
 			</Dialog.Description>
 		</Dialog.Header>
 
 		<Dialog.Footer>
-			<Button variant="outline" onclick={oncancel}>Cancelar</Button>
-			<Button variant="destructive" onclick={onconfirm}>Remover</Button>
+			<Button variant="outline" onclick={oncancel}>{t('btn.cancel')}</Button>
+			<Button variant="destructive" onclick={onconfirm}>{t('btn.remove')}</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

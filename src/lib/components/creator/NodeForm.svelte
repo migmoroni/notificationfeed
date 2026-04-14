@@ -19,6 +19,7 @@
 	import CategoryTreePicker from './CategoryTreePicker.svelte';
 	import AvatarPicker from './AvatarPicker.svelte';
 	import MediaUpload from './MediaUpload.svelte';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		mode: 'create' | 'edit';
@@ -104,11 +105,11 @@
 	}
 
 	const roleLabels: Record<NodeRole, { create: string; save: string }> = {
-		creator: { create: 'Criar Página', save: 'Salvar' },
-		profile: { create: 'Adicionar Profile', save: 'Salvar' },
-		font: { create: 'Adicionar Font', save: 'Salvar' },
-		collection: { create: 'Criar Collection', save: 'Salvar' },
-		tree: { create: 'Criar Tree Link', save: 'Salvar' }
+		creator: { create: t('node_form.create_creator'), save: t('btn.save') },
+		profile: { create: t('node_form.create_profile'), save: t('btn.save') },
+		font: { create: t('node_form.create_font'), save: t('btn.save') },
+		collection: { create: t('node_form.create_collection'), save: t('btn.save') },
+		tree: { create: t('node_form.create_tree_link'), save: t('btn.save') }
 	};
 </script>
 
@@ -149,12 +150,12 @@
 
 	<div class="rounded-lg border p-4 space-y-4">
 		<div>
-			<p class="text-sm font-semibold">Imagens</p>
-			<p class="text-xs text-muted-foreground mt-0.5">Escolha imagens que representem esta página.</p>
+			<p class="text-sm font-semibold">{t('node_form.images')}</p>
+			<p class="text-xs text-muted-foreground mt-0.5">{t('node_form.images_hint')}</p>
 		</div>
 
 		<div class="space-y-1.5">
-			<span class="text-sm font-medium">Avatar</span>
+			<span class="text-sm font-medium">{t('node_form.avatar')}</span>
 			<AvatarPicker
 				mediaId={header.coverMediaId}
 				emoji={header.coverEmoji}
@@ -165,7 +166,7 @@
 		{#if isRoot}
 			<MediaUpload
 				slot="banner"
-				label="Banner — capa exibida no topo"
+				label={t('node_form.banner_hint')}
 				mediaId={header.bannerMediaId}
 				onchange={(id) => (header = { ...header, bannerMediaId: id })}
 			/>
@@ -175,12 +176,12 @@
 	<div class="flex gap-2 justify-end">
 		{#if oncancel}
 			<Button variant="outline" type="button" onclick={oncancel} disabled={saving}>
-				Cancelar
+				{t('btn.cancel')}
 			</Button>
 		{/if}
 		<Button type="submit" disabled={!isValid || saving}>
 			{#if saving}
-				Salvando…
+				{t('node_form.saving')}
 			{:else}
 				{roleLabels[role][mode === 'create' ? 'create' : 'save']}
 			{/if}

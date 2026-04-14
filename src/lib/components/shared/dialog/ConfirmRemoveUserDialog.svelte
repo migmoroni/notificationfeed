@@ -3,6 +3,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		open: boolean;
@@ -44,29 +45,29 @@
 		</div>
 
 		<Dialog.Header class="text-center">
-			<Dialog.Title>Remover Usuário</Dialog.Title>
+			<Dialog.Title>{t('dialog.remove_user.title')}</Dialog.Title>
 			<Dialog.Description class="text-sm text-muted-foreground leading-relaxed">
-				O usuário será marcado como removido. Você poderá restaurá-lo depois.
+				{t('dialog.remove_user.description')}
 			</Dialog.Description>
 		</Dialog.Header>
 
 		<div class="space-y-2 py-2">
 			<p class="text-sm text-muted-foreground">
-				Para confirmar, digite o nome do usuário:
+				{t('dialog.remove_user.confirm_hint')}
 			</p>
 			<div class="rounded-md bg-muted px-3 py-2 text-sm font-medium select-all">
 				{displayName}
 			</div>
 			<Input
 				bind:value={typedName}
-				placeholder="Digite o nome do usuário"
+				placeholder={t('dialog.remove_user.placeholder')}
 				onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter' && canConfirm) handleConfirm(); }}
 			/>
 		</div>
 
 		<Dialog.Footer>
 			<Button variant="outline" onclick={() => { typedName = ''; oncancel(); }}>
-				Cancelar
+				{t('btn.cancel')}
 			</Button>
 			<Button
 				variant="destructive"
@@ -74,7 +75,7 @@
 				onclick={handleConfirm}
 			>
 				<Trash2 class="size-4 mr-1.5" />
-				Remover
+				{t('btn.remove')}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

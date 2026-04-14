@@ -11,6 +11,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import X from '@lucide/svelte/icons/x';
 	import Upload from '@lucide/svelte/icons/upload';
+	import { t } from '$lib/i18n/t.js';
 
 	let allowedFontNodeIds = $derived(
 		browseEntityFilter.hasFilters ? [...browseEntityFilter.getAllowedFontNodeIds()] : []
@@ -65,16 +66,16 @@
 {/snippet}
 
 <svelte:head>
-	<title>Notfeed — Browse</title>
+	<title>{t('page_title.browse')}</title>
 </svelte:head>
 
 <div class="mx-auto w-full h-full flex flex-col overflow-hidden py-4 px-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
 	<!-- Header -->
 	<div class="mb-4 flex items-center justify-between pr-24">
-		<h1 class="text-xl font-bold">Browse</h1>
+		<h1 class="text-xl font-bold">{t('title.browse')}</h1>
 		<Button variant="outline" size="sm" onclick={() => goto('/browse/import')}>
 			<Upload class="mr-1.5 size-4" />
-			Importar
+			{t('btn.import')}
 		</Button>
 	</div>
 
@@ -126,7 +127,7 @@
 				onclick={() => browse.clearAllCategories()}
 				class="text-xs text-muted-foreground hover:text-foreground transition-colors underline"
 			>
-				Limpar todos
+				{t('btn.clear_all')}
 			</button>
 		</div>
 	{/if}

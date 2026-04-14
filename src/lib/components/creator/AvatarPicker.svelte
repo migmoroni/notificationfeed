@@ -10,6 +10,7 @@
 	import X from '@lucide/svelte/icons/x';
 	import Image from '@lucide/svelte/icons/image';
 	import Smile from '@lucide/svelte/icons/smile';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		mediaId: string | undefined;
@@ -130,7 +131,7 @@
 						<span class="text-[10px] animate-pulse">…</span>
 					{:else}
 						<Upload class="size-5" />
-						<span class="text-[10px]">Enviar</span>
+						<span class="text-[10px]">{t('avatar_picker.upload')}</span>
 					{/if}
 				</button>
 				<Button variant="outline" size="sm" onclick={() => (showMediaPicker = true)}>
@@ -205,8 +206,8 @@
 			</div>
 		</div>
 		<Dialog.Header class="text-center">
-			<Dialog.Title>Escolher Emoji</Dialog.Title>
-			<Dialog.Description>Selecione um emoji para usar como avatar.</Dialog.Description>
+			<Dialog.Title>{t('avatar_picker.choose_emoji')}</Dialog.Title>
+			<Dialog.Description>{t('avatar_picker.choose_emoji_description')}</Dialog.Description>
 		</Dialog.Header>
 
 		<div class="flex flex-col gap-4 py-4">
@@ -219,8 +220,8 @@
 		</div>
 
 		<Dialog.Footer>
-			<Button variant="outline" onclick={() => (showEmojiDialog = false)}>Cancelar</Button>
-			<Button disabled={!pendingEmoji} onclick={confirmEmoji}>Confirmar</Button>
+			<Button variant="outline" onclick={() => (showEmojiDialog = false)}>{t('btn.cancel')}</Button>
+			<Button disabled={!pendingEmoji} onclick={confirmEmoji}>{t('btn.confirm')}</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

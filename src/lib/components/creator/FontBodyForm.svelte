@@ -8,6 +8,7 @@
 	import * as Select from '$lib/components/ui/select/index.js';
 	import X from '@lucide/svelte/icons/x';
 	import Plus from '@lucide/svelte/icons/plus';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		body: FontBody;
@@ -82,7 +83,7 @@
 
 <div class="space-y-4">
 	<div class="space-y-2">
-		<Label>Protocolo *</Label>
+		<Label>{t('form.protocol')}</Label>
 		<Select.Root type="single" value={protocol} onValueChange={handleProtocolChange}>
 			<Select.Trigger class="w-full">
 				{#if protocol === 'rss'}RSS
@@ -106,7 +107,7 @@
 				type="url"
 				bind:value={rssUrl}
 				oninput={() => emit()}
-				placeholder="https://example.com/feed.xml"
+				placeholder={t('form.feed_url_placeholder')}
 			/>
 		</div>
 	{:else if protocol === 'atom'}
@@ -117,23 +118,23 @@
 				type="url"
 				bind:value={atomUrl}
 				oninput={() => emit()}
-				placeholder="https://example.com/atom.xml"
+				placeholder={t('form.atom_url_placeholder')}
 			/>
 		</div>
 	{:else if protocol === 'nostr'}
 		<div class="space-y-4">
 			<div class="space-y-2">
-				<Label for="nostr-pubkey">Public Key (npub/hex) *</Label>
+				<Label for="nostr-pubkey">{t('form.nostr_pubkey')}</Label>
 				<Input
 					id="nostr-pubkey"
 					bind:value={nostrPubkey}
 					oninput={() => emit()}
-					placeholder="npub1... ou hex"
+					placeholder={t('form.nostr_pubkey_placeholder')}
 				/>
 			</div>
 
 			<div class="space-y-2">
-				<Label>Relays</Label>
+				<Label>{t('form.relays')}</Label>
 				{#if nostrRelays.length > 0}
 					<div class="flex flex-wrap gap-1">
 						{#each nostrRelays as relay}
@@ -154,7 +155,7 @@
 					<Input
 						bind:value={newRelay}
 						onkeydown={handleRelayKeydown}
-						placeholder="wss://relay.example.com"
+						placeholder={t('form.nostr_relay_placeholder')}
 						class="flex-1"
 					/>
 					<Button type="button" variant="outline" size="icon" onclick={addRelay}>
@@ -171,6 +172,6 @@
 			checked={defaultEnabled}
 			onCheckedChange={(v) => { defaultEnabled = v; emit(); }}
 		/>
-		<Label for="font-enabled">Ativo por padrão</Label>
+		<Label for="font-enabled">{t('form.active_by_default')}</Label>
 	</div>
 </div>

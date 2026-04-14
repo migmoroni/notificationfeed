@@ -24,6 +24,7 @@
 	import PenLine from '@lucide/svelte/icons/pen-line';
 	import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
 	import Tag from '@lucide/svelte/icons/tag';
+	import { t } from '$lib/i18n/t.js';
 
 	let treeId = $derived(page.params.id!);
 	let tree = $derived(creator.allTrees.find((t) => t.metadata.id === treeId));
@@ -58,7 +59,12 @@
 		return allCategories.find((c) => c.id === catId)?.label ?? catId;
 	}
 
-	const TREE_LABELS: Record<string, string> = { subject: 'Assunto', content_type: 'Formato', media_type: 'Mídia', region: 'Região' };
+	const TREE_LABELS: Record<string, string> = {
+		subject: t('category_tree.subject'),
+		content_type: t('category_tree.content_type'),
+		media_type: t('category_tree.media_type'),
+		region: t('category_tree.region')
+	};
 
 	/** Get external links from body (only creator/profile have them) */
 	let bodyLinks = $derived.by((): ExternalLink[] => {
@@ -95,18 +101,18 @@
 </script>
 
 <svelte:head>
-	<title>Notfeed — {rootNode?.data.header.title ?? 'Page'}</title>
+	<title>{t('page_title.detail', { title: rootNode?.data.header.title ?? 'Page' })}</title>
 </svelte:head>
 
 <div class="container mx-auto px-4 py-6 {layout.isExpanded ? 'max-w-3xl' : 'max-w-2xl'}">
 	<button onclick={() => history.back()} class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
 		<ArrowLeft class="size-4" />
-		Voltar
+		{t('btn.back')}
 	</button>
 
 	{#if !tree}
 		<div class="py-12 text-center">
-			<p class="text-sm text-muted-foreground">Página não encontrada.</p>
+			<p class="text-sm text-muted-foreground">{t('pages.not_found')}</p>
 		</div>
 	{:else}
 		<!-- Header -->
@@ -143,9 +149,9 @@
 		<!-- Page metadata section -->
 		<div class="space-y-4 mb-6">
 			<div class="flex items-center justify-between">
-				<h2 class="text-sm font-semibold">Dados da Página</h2>
-				<Button variant="ghost" size="sm" onclick={() => (editing = !editing)}>
-					{editing ? 'Cancelar' : 'Editar'}
+			<h2 class="text-sm font-semibold">{t('pages.page_data')}</h2>
+			<Button variant="ghost" size="sm" onclick={() => (editing = !editing)}>
+				{editing ? t('btn.cancel') : t('btn.edit')}
 				</Button>
 			</div>
 
@@ -170,20 +176,20 @@
 				<div class="border rounded-lg divide-y">
 					{#if !hasContent}
 						<div class="px-4 py-6 text-center">
-							<p class="text-sm text-muted-foreground italic">Nenhuma informação adicional. Clique em Editar para preencher.</p>
+						<p class="text-sm text-muted-foreground italic">{t('pages.no_additional_info')}</p>
 						</div>
 					{/if}
 
 					{#if h?.subtitle}
 						<div class="px-4 py-3">
-							<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Subtítulo</span>
+							<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('pages.subtitle_label')}</span>
 							<p class="text-sm mt-0.5">{h.subtitle}</p>
 						</div>
 					{/if}
 
 					{#if h?.summary}
 						<div class="px-4 py-3">
-							<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Descrição</span>
+							<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('pages.description_label')}</span>
 							<p class="text-sm mt-0.5 whitespace-pre-line">{h.summary}</p>
 						</div>
 					{/if}
@@ -192,7 +198,7 @@
 						<div class="px-4 py-3">
 							<div class="flex items-center gap-1.5 mb-1.5">
 								<ExternalLinkIcon class="size-3 text-muted-foreground" />
-								<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Links</span>
+								<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('pages.links_label')}</span>
 							</div>
 							<div class="space-y-1.5">
 								{#each bodyLinks as link}
@@ -217,7 +223,7 @@
 
 					{#if cats.length > 0}
 						<div class="px-4 py-3">
-							<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Categorias</span>
+							<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('pages.categories_label')}</span>
 							<div class="mt-1.5 space-y-1.5">
 								{#each cats as assignment}
 									<div>
@@ -249,20 +255,20 @@
 		<div class="space-y-3 mb-6">
 			<div class="flex items-center gap-2">
 				<PenLine class="size-4 text-muted-foreground" />
-				<h2 class="text-sm font-semibold">Assinatura</h2>
+				<h2 class="text-sm font-semibold">{t('pages.author_signing')}</h2>
 			</div>
 			<p class="text-xs text-muted-foreground">
-				Vincule esta página a uma creator page para assinar seu conteúdo.
+				{t('pages.link_hint')}
 			</p>
 			<div class="space-y-2">
-				<Label for="author-tree">Creator page</Label>
+				<Label for="author-tree">{t('pages.creator_page_label')}</Label>
 				<select
 					id="author-tree"
 					class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
 					value={currentAuthorTreeId}
 					onchange={handleAuthorChange}
 				>
-					<option value="">Nenhuma (sem assinatura)</option>
+					<option value="">{t('pages.no_subscription')}</option>
 					{#each creatorTrees as ct}
 						{@const ctRoot = domainGetRootNode(ct)}
 						{#if ct.metadata.id !== treeId}
@@ -283,7 +289,7 @@
 				onclick={() => (showCopyDialog = true)}
 			>
 				<Copy class="size-4 mr-1" />
-				Copiar do Consumer
+				{t('pages.copy_from_consumer')}
 			</Button>
 
 			{#if isRemoved}
@@ -293,7 +299,7 @@
 					onclick={handleRestore}
 				>
 					<ArchiveRestore class="size-4 mr-1" />
-					Restaurar Page
+					{t('pages.restore_page')}
 				</Button>
 			{:else}
 				<Button
@@ -303,7 +309,7 @@
 					onclick={() => (showDeleteConfirm = true)}
 				>
 					<Trash2 class="size-4 mr-1" />
-					Excluir Page
+					{t('pages.delete_page')}
 				</Button>
 			{/if}
 		</div>

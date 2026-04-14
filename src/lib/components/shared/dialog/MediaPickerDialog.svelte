@@ -6,6 +6,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import Images from '@lucide/svelte/icons/images';
 	import Check from '@lucide/svelte/icons/check';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		open: boolean;
@@ -47,14 +48,14 @@
 			</div>
 		</div>
 		<Dialog.Header class="text-center">
-			<Dialog.Title>Escolher imagem</Dialog.Title>
-			<Dialog.Description>Selecione uma imagem existente da sua biblioteca.</Dialog.Description>
+			<Dialog.Title>{t('dialog.media_picker.title')}</Dialog.Title>
+			<Dialog.Description>{t('dialog.media_picker.description')}</Dialog.Description>
 		</Dialog.Header>
 
 		{#if allMedias.length === 0}
 			<div class="flex flex-col items-center justify-center py-8 text-muted-foreground gap-2">
 				<Images class="size-8" />
-				<p class="text-sm">Nenhuma imagem na biblioteca.</p>
+				<p class="text-sm">{t('dialog.media_picker.empty')}</p>
 			</div>
 		{:else}
 			<div class="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto py-2">
@@ -79,8 +80,8 @@
 		{/if}
 
 		<Dialog.Footer>
-			<Button variant="outline" onclick={oncancel}>Cancelar</Button>
-			<Button disabled={!picked} onclick={handleConfirm}>Selecionar</Button>
+			<Button variant="outline" onclick={oncancel}>{t('btn.cancel')}</Button>
+			<Button disabled={!picked} onclick={handleConfirm}>{t('btn.select')}</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

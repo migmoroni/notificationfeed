@@ -11,14 +11,26 @@
 	import Users from '@lucide/svelte/icons/users';
 	import Newspaper from '@lucide/svelte/icons/newspaper';
 	import Library from '@lucide/svelte/icons/library';
+	import { t } from '$lib/i18n/t.js';
 
 	type RootRole = 'creator' | 'profile' | 'collection';
 
-	const rootRoleOptions: { value: RootRole; label: string; description: string; icon: typeof Users }[] = [
-		{ value: 'creator', label: 'Creator', description: 'Agregue profiles em uma página pública', icon: Users },
-		{ value: 'profile', label: 'Profile', description: 'Adicione feeds (fonts) para ler conteúdo', icon: Newspaper },
-		{ value: 'collection', label: 'Collection', description: 'Coleção de links para outras páginas', icon: Library },
-	];
+	const rootRoleOptions = $derived([{
+		value: 'creator' as RootRole,
+		label: t('role.creator'),
+		description: t('role.creator_description'),
+		icon: Users
+	}, {
+		value: 'profile' as RootRole,
+		label: t('role.profile'),
+		description: t('role.profile_description'),
+		icon: Newspaper
+	}, {
+		value: 'collection' as RootRole,
+		label: t('role.collection'),
+		description: t('role.collection_description'),
+		icon: Library
+	}]);
 
 	let selectedRole = $state<RootRole>('creator');
 	let title = $state('');
@@ -40,7 +52,7 @@
 			if (lastTree) {
 				goto(`/pages/${lastTree.metadata.id}`, { replaceState: true });
 			} else {
-				error = 'Erro ao criar página. Tente novamente.';
+				error = t('error.create_page');
 				saving = false;
 			}
 		}
@@ -48,21 +60,21 @@
 </script>
 
 <svelte:head>
-	<title>Notfeed — Nova Page</title>
+	<title>{t('page_title.new_page')}</title>
 </svelte:head>
 
 <div class="container mx-auto px-4 py-6 {layout.isExpanded ? 'max-w-xl' : 'max-w-md'}">
 	<button onclick={() => history.back()} class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
 		<ArrowLeft class="size-4" />
-		Voltar
+		{t('btn.back')}
 	</button>
 
-	<h1 class="text-xl font-bold mb-2">Nova Page</h1>
-	<p class="text-sm text-muted-foreground mb-6">Escolha o tipo e dê um nome. Você poderá configurar os detalhes na próxima tela.</p>
+	<h1 class="text-xl font-bold mb-2">{t('title.new_page')}</h1>
+	<p class="text-sm text-muted-foreground mb-6">{t('new_page.choose_hint')}</p>
 
 	<!-- Step 1: Role selection -->
 	<div class="space-y-2 mb-6">
-		<Label>Tipo da página</Label>
+		<Label>{t('new_page.page_type')}</Label>
 		<div class="grid gap-2">
 			{#each rootRoleOptions as opt}
 				{@const Icon = opt.icon}
@@ -86,11 +98,11 @@
 	<!-- Step 2: Title -->
 	<form onsubmit={(e) => { e.preventDefault(); handleCreate(); }} class="space-y-4">
 		<div class="space-y-2">
-			<Label for="page-title">Nome da página *</Label>
+			<Label for="page-title">{t('pages.page_name_label')} *</Label>
 			<Input
 				id="page-title"
 				bind:value={title}
-				placeholder="Ex: Meu Blog, Tech News, Design Refs..."
+				placeholder={t('new_page.name_placeholder')}
 				required
 				autofocus
 			/>
@@ -102,10 +114,10 @@
 
 		<div class="flex gap-2 justify-end pt-2">
 			<Button variant="outline" type="button" onclick={() => history.back()} disabled={saving}>
-				Cancelar
+				{t('btn.cancel')}
 			</Button>
 			<Button type="submit" disabled={!isValid || saving}>
-				{saving ? 'Criando…' : 'Criar e configurar'}
+				{saving ? t('new_page.creating') : t('new_page.create_and_configure')}
 			</Button>
 		</div>
 	</form>

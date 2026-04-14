@@ -12,6 +12,7 @@
 	import FileJson from '@lucide/svelte/icons/file-json';
 	import Check from '@lucide/svelte/icons/check';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
+	import { t } from '$lib/i18n/t.js';
 
 	let activeTab = $state('file');
 
@@ -49,13 +50,13 @@
 			const text = reader.result as string;
 			const parsed = parseNotfeedJson(text);
 			if (!parsed) {
-				fileError = 'Arquivo inválido. Verifique se é um .notfeed.json válido.';
+				fileError = t('error.invalid_file');
 				return;
 			}
 			parsedExport = parsed;
 		};
 		reader.onerror = () => {
-			fileError = 'Erro ao ler o arquivo.';
+			fileError = t('error.read_file');
 		};
 		reader.readAsText(file);
 	}
@@ -76,7 +77,7 @@
 				browse.loadCategories();
 			}
 		} catch (err) {
-			resultMessage = `Erro inesperado: ${err instanceof Error ? err.message : String(err)}`;
+			resultMessage = t('error.unexpected', { message: err instanceof Error ? err.message : String(err) });
 			resultSuccess = false;
 		} finally {
 			importing = false;
@@ -104,7 +105,7 @@
 				urlText = '';
 			}
 		} catch (err) {
-			resultMessage = `Erro inesperado: ${err instanceof Error ? err.message : String(err)}`;
+			resultMessage = t('error.unexpected', { message: err instanceof Error ? err.message : String(err) });
 			resultSuccess = false;
 		} finally {
 			importing = false;
@@ -113,7 +114,7 @@
 </script>
 
 <svelte:head>
-	<title>Notfeed — Importar</title>
+	<title>{t('page_title.import')}</title>
 </svelte:head>
 
 <div class="mx-auto w-full max-w-2xl px-4 py-4">
@@ -123,8 +124,8 @@
 			<ArrowLeft class="size-5" />
 		</Button>
 		<div>
-			<h1 class="text-xl font-bold">Importar</h1>
-			<p class="text-sm text-muted-foreground">Adicione conteúdo ao seu catálogo</p>
+			<h1 class="text-xl font-bold">{t('title.import')}</h1>
+			<p class="text-sm text-muted-foreground">{t('browse.add_content')}</p>
 		</div>
 	</div>
 
@@ -149,11 +150,11 @@
 		<TabsList class="grid w-full grid-cols-2">
 			<TabsTrigger value="file">
 				<FileJson class="mr-1.5 size-4" />
-				Arquivo .notfeed.json
+				{t('browse.file_tab')}
 			</TabsTrigger>
 			<TabsTrigger value="urls">
 				<Link class="mr-1.5 size-4" />
-				URLs
+				{t('browse.urls_tab')}
 			</TabsTrigger>
 		</TabsList>
 
@@ -162,7 +163,7 @@
 			<div class="rounded-lg border-2 border-dashed border-muted p-6 text-center">
 				<Upload class="mx-auto mb-2 size-8 text-muted-foreground" />
 				<p class="mb-2 text-sm text-muted-foreground">
-					Selecione um arquivo <code class="rounded bg-muted px-1.5 py-0.5 text-xs">.notfeed.json</code>
+					{t('browse.select_file')} <code class="rounded bg-muted px-1.5 py-0.5 text-xs">.notfeed.json</code>
 				</p>
 				<input
 					type="file"
@@ -181,7 +182,7 @@
 				{@const treeNodes = Object.values(parsedExport.tree.nodes)}
 				{@const rootNodeEntry = treeNodes.find((n) => n.role === 'creator')}
 				<div class="rounded-lg border bg-card p-4 space-y-2">
-					<h3 class="font-semibold">{rootNodeEntry?.data.header.title ?? 'Sem título'}</h3>
+					<h3 class="font-semibold">{rootNodeEntry?.data.header.title ?? t('import.without_title')}</h3>
 					{#if rootNodeEntry?.data.header.subtitle}
 						<p class="text-sm font-medium">{rootNodeEntry.data.header.subtitle}</p>
 					{/if}
@@ -202,9 +203,9 @@
 
 				<Button class="w-full" disabled={importing} onclick={handleImportFile}>
 					{#if importing}
-						Importando…
+						{t('browse.importing')}
 					{:else}
-						Importar página
+						{t('browse.import_page')}
 					{/if}
 				</Button>
 			{/if}
@@ -214,7 +215,7 @@
 		<TabsContent value="urls" class="mt-4 space-y-4">
 			<div>
 				<label for="url-input" class="mb-1.5 block text-sm font-medium">
-					Cole as URLs (uma por linha)
+					{t('browse.paste_urls')}
 				</label>
 				<textarea
 					id="url-input"
@@ -224,15 +225,15 @@
 					class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y"
 				></textarea>
 				<p class="mt-1 text-xs text-muted-foreground">
-					{urlCount()} URL(s) válida(s) detectada(s). Suporta RSS e Atom.
+					{t('import.valid_urls', { count: String(urlCount()) })}
 				</p>
 			</div>
 
 			<Button class="w-full" disabled={importing || urlCount() === 0} onclick={handleImportUrls}>
 				{#if importing}
-					Importando…
+					{t('browse.importing')}
 				{:else}
-					Importar {urlCount()} URL(s)
+					{t('browse.import_urls', { count: String(urlCount()) })}
 				{/if}
 			</Button>
 		</TabsContent>
@@ -244,7 +245,7 @@
 			onclick={() => history.back()}
 			class="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
 		>
-			Voltar
+			{t('btn.back')}
 		</button>
 	</div>
 </div>

@@ -35,6 +35,7 @@ export function createUserCreatorStore(): UserCreatorRepository {
 				id: crypto.randomUUID(),
 				role: 'creator',
 				displayName: data.displayName,
+				language: 'en-US',
 				profileImage: null,
 				profileEmoji: null,
 				removedAt: null,

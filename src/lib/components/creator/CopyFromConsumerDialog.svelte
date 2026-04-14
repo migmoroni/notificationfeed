@@ -11,6 +11,7 @@ import Copy from '@lucide/svelte/icons/copy';
 import User from '@lucide/svelte/icons/user';
 import Rss from '@lucide/svelte/icons/rss';
 import Check from '@lucide/svelte/icons/check';
+import { t } from '$lib/i18n/t.js';
 
 interface Props {
 open: boolean;
@@ -114,20 +115,20 @@ copying = false;
 <Dialog.Header>
 <Dialog.Title class="flex items-center gap-2">
 <Copy class="size-5" />
-Copiar do Consumer
+{t('copy_consumer.title')}
 </Dialog.Title>
 <Dialog.Description>
-Selecione profiles para copiar. Uma cópia independente será criada no espaço do creator.
+{t('copy_consumer.description')}
 </Dialog.Description>
 </Dialog.Header>
 
 {#if loading}
 <div class="py-8 text-center">
-<span class="text-sm text-muted-foreground animate-pulse">Carregando…</span>
+<span class="text-sm text-muted-foreground animate-pulse">{t('app.loading')}</span>
 </div>
 {:else if profiles.length === 0}
 <div class="py-8 text-center">
-<p class="text-sm text-muted-foreground">Nenhum profile encontrado em árvores externas.</p>
+<p class="text-sm text-muted-foreground">{t('copy_consumer.no_profiles')}</p>
 </div>
 {:else}
 <div class="space-y-2 py-2">
@@ -166,15 +167,15 @@ onclick={() => toggleSelect(profile.node.metadata.id)}
 {/if}
 
 <Dialog.Footer>
-<Button variant="outline" onclick={onclose} disabled={copying}>Cancelar</Button>
+<Button variant="outline" onclick={onclose} disabled={copying}>{t('btn.cancel')}</Button>
 <Button
 disabled={selectedIds.size === 0 || copying}
 onclick={handleCopy}
 >
 {#if copying}
-Copiando…
+{t('copy_consumer.copying')}
 {:else}
-Copiar {selectedIds.size} profile{selectedIds.size !== 1 ? 's' : ''}
+{t('copy_consumer.copy_count', { count: String(selectedIds.size) })}
 {/if}
 </Button>
 </Dialog.Footer>

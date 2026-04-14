@@ -11,10 +11,10 @@ import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 
 export interface PriorityConfig {
 	level: PriorityLevel;
-	/** Numeric label used in priority toggle buttons. */
-	label: string;
-	/** Human-readable name used in filters and badges. */
-	name: string;
+	/** i18n key for the priority label. */
+	labelKey: string;
+	/** i18n key for the human-readable name. */
+	nameKey: string;
 	/** Badge variant for shadcn Badge component. */
 	badgeVariant: 'destructive' | 'secondary' | 'outline';
 	/** Tailwind classes applied when the priority button is active. */
@@ -24,22 +24,22 @@ export interface PriorityConfig {
 export const PRIORITY_LEVELS: PriorityConfig[] = [
 	{
 		level: 1,
-		label: 'Alta',
-		name: 'Alta',
+		labelKey: 'feed.priority_high',
+		nameKey: 'feed.priority_high',
 		badgeVariant: 'destructive',
 		activeClass: 'bg-destructive text-destructive-foreground border-destructive'
 	},
 	{
 		level: 2,
-		label: 'Média',
-		name: 'Média',
+		labelKey: 'feed.priority_medium',
+		nameKey: 'feed.priority_medium',
 		badgeVariant: 'secondary',
 		activeClass: 'bg-secondary text-secondary-foreground border-secondary'
 	},
 	{
 		level: 3,
-		label: 'Baixa',
-		name: 'Baixa',
+		labelKey: 'feed.priority_low',
+		nameKey: 'feed.priority_low',
 		badgeVariant: 'outline',
 		activeClass: 'bg-accent text-accent-foreground border-accent'
 	}

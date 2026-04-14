@@ -13,6 +13,8 @@ import type { UserConsumer } from '$lib/domain/user/user-consumer.js';
 import type { UserCreator } from '$lib/domain/user/user-creator.js';
 import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
 import { getDatabase } from '$lib/persistence/db.js';
+import { DEFAULT_LANGUAGE } from '$lib/i18n/types.js';
+import { setLanguage, initLanguage } from '$lib/i18n/store.svelte.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
 
@@ -117,6 +119,7 @@ export const activeUser = {
 		if (user) {
 			state.current = user;
 			saveActiveUserId(user.id);
+			initLanguage(user.language);
 		}
 	},
 
@@ -144,6 +147,7 @@ export const activeUser = {
 			profileImage: null,
 			profileEmoji: null,
 			removedAt: null,
+			language: DEFAULT_LANGUAGE,
 			activateTrees: [],
 			activateNodes: [],
 			favoriteTabs: [],
@@ -169,6 +173,7 @@ export const activeUser = {
 			profileImage: null,
 			profileEmoji: null,
 			removedAt: null,
+			language: DEFAULT_LANGUAGE,
 			ownedTreeIds: [],
 			ownedMediaIds: [],
 			createdAt: now,
@@ -259,5 +264,21 @@ export const activeUser = {
 		await persistUser(updated);
 
 		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+	},
+
+	/**
+	 * Update a user's preferred language.
+	 */
+	async setLanguage(userId: string, language: string): Promise<void> {
+		const user = state.allUsers.find(u => u.id === userId);
+		if (!user) return;
+
+		const updated = { ...user, language, updatedAt: new Date() };
+		await persistUser(updated);
+
+		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		if (state.current?.id === userId) {
+			state.current = updated;
+		}
 	}
 };

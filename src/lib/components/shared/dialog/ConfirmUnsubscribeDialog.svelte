@@ -1,6 +1,7 @@
 <script lang="ts">
 	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
 	import UserMinus from '@lucide/svelte/icons/user-minus';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		open: boolean;
@@ -13,16 +14,16 @@
 
 	let description = $derived(
 		title
-			? `Cancelar inscrição de "${title}"? Você deixará de receber posts desta página.`
-			: 'Cancelar inscrição? Você deixará de receber posts desta página.'
+			? t('dialog.unsubscribe.description_named', { title })
+			: t('dialog.unsubscribe.description')
 	);
 </script>
 
 <ConfirmDialog
 	bind:open
-	title="Cancelar inscrição"
+	title={t('dialog.unsubscribe.title')}
 	{description}
-	confirmLabel="Cancelar inscrição"
+	confirmLabel={t('dialog.unsubscribe.confirm')}
 	{onconfirm}
 	{oncancel}
 >
