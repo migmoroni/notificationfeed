@@ -2,6 +2,7 @@
 	import { activeUser } from '$lib/stores/active-user.svelte.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { browse } from '$lib/stores/browse.svelte.js';
+	import { browseCategories } from '$lib/stores/browse-categories.svelte.js';
 	import { parseNotfeedJson, importTreeExport, importSimpleUrls } from '$lib/services/import.service.js';
 	import type { TreeExport } from '$lib/domain/tree-export/index.js';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs/index.js';
@@ -74,7 +75,7 @@
 			if (result.success) {
 				// Reload consumer states + browse data
 				await consumer.init(activeUser.current?.id);
-				browse.loadCategories();
+				browseCategories.loadCategories();
 			}
 		} catch (err) {
 			resultMessage = t('error.unexpected', { message: err instanceof Error ? err.message : String(err) });
@@ -101,7 +102,7 @@
 
 			if (result.success) {
 				await consumer.init(activeUser.current?.id);
-				browse.loadCategories();
+				browseCategories.loadCategories();
 				urlText = '';
 			}
 		} catch (err) {

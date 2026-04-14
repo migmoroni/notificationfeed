@@ -5,7 +5,8 @@
  * allowing CategoryTree / TreeSelector components to be reused across pages.
  *
  * Stores may optionally support filter modes ('any' | 'all') per category.
- * When supported, clicking a category cycles: unselected → any → all → unselected.
+ * When supported, clicking a category toggles between 'any' and 'all' modes.
+ * An explicit deselect action (X button) removes the selection.
  *   - 'any': post matches if it has at least one of the selected categories (OR)
  *   - 'all': post matches only if it has every selected category (AND)
  */
@@ -22,6 +23,7 @@ export interface CategoryTreeStore {
 	isSelected(categoryId: string, treeId: CategoryTreeId): boolean;
 	getSelectedCount(treeId: CategoryTreeId): number;
 	toggleCategory(categoryId: string, treeId: CategoryTreeId): void;
+	deselectCategory?(categoryId: string, treeId: CategoryTreeId): void;
 	clearTree(treeId: CategoryTreeId): void;
 
 	/** Whether this store supports tri-state filter modes (any/all). */

@@ -10,6 +10,7 @@
 	import { PriorityFilter } from '$lib/components/feed/index.js';
 	import FeedMacros from '$lib/components/feed/FeedMacros.svelte';
 	import FilterSidebar from '$lib/components/shared/FilterSidebar.svelte';
+	import ActiveCategoryBadges from '$lib/components/shared/ActiveCategoryBadges.svelte';
 	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
 	import type { PriorityFilterValue } from '$lib/components/feed/index.js';
 	import { formatRelativeDate } from '$lib/utils/date.js';
@@ -20,7 +21,6 @@
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import { t } from '$lib/i18n/t.js';
-	import { tCat } from '$lib/i18n/category.js';
 
 	let filter: PriorityFilterValue = $state('all');
 	let refreshing = $state(false);
@@ -148,6 +148,8 @@
 		selectedContentTypes;
 		selectedMediaTypes;
 		selectedRegions;
+		anyIds;
+		allIds;
 		feedEntityFilter.selectedCreatorIds;
 		feedEntityFilter.selectedProfileIds;
 		feedEntityFilter.selectedFontIds;
@@ -319,40 +321,7 @@
 	<!-- Priority filter + active category badges -->
 	<div class="flex items-center gap-3 mb-4 flex-wrap">
 		<PriorityFilter value={filter} onchange={(v) => (filter = v)} />
-
-		{#if feedCategories.getSelectedCount('subject') > 0 || feedCategories.getSelectedCount('content_type') > 0 || feedCategories.getSelectedCount('media_type') > 0 || feedCategories.getSelectedCount('region') > 0}
-			{@const allTrees = [
-				{ treeId: 'subject' as const, ids: selectedSubjects },
-				{ treeId: 'content_type' as const, ids: selectedContentTypes },
-				{ treeId: 'media_type' as const, ids: selectedMediaTypes },
-				{ treeId: 'region' as const, ids: selectedRegions }
-			]}
-			{#each allTrees as { treeId, ids }}
-				{#each ids as catId (catId)}
-					{@const cat = feedCategories.categories.find((c) => c.id === catId)}
-					{@const mode = feedCategories.getFilterMode(catId, treeId)}
-					{#if cat}
-						<button
-							onclick={() => feedCategories.toggleCategory(catId, treeId)}
-							class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors
-								{mode === 'all'
-									? 'bg-primary text-primary-foreground hover:bg-primary/80'
-									: 'bg-accent text-accent-foreground hover:bg-accent/80 ring-1 ring-accent-foreground/20'}"
-							title={mode === 'all' ? t('category_filter.mode_all') : t('category_filter.mode_any')}
-						>
-							{tCat(cat.id)}
-							<X class="size-3" />
-						</button>
-					{/if}
-				{/each}
-			{/each}
-			<button
-				onclick={() => feedCategories.clearAll()}
-				class="text-xs text-muted-foreground hover:text-foreground transition-colors underline"
-			>
-				{t('btn.clear_all')}
-			</button>
-		{/if}
+		<ActiveCategoryBadges store={feedCategories} />
 	</div>
 
 	<div class="flex-1 min-h-0 overflow-hidden">

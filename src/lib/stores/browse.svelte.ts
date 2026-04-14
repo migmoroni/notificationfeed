@@ -4,6 +4,9 @@
  * Supports simultaneous filtering by category trees (subject + content_type + region)
  * with multi-select within each tree. Text search combined with category filters.
  *
+ * Category state is managed by browseCategories (CategoryFilterInstance).
+ * This store owns: nodes, trees, search, and the applyFilters() pipeline.
+ *
  * Entities are TreeNode[] extracted from ContentTrees.
  *
  * Pattern: module-level $state + exported read-only accessor + actions.
@@ -11,23 +14,14 @@
 
 import type { Category, CategoryTreeId } from '$lib/domain/category/category.js';
 import type { ContentTree, TreeNode } from '$lib/domain/content-tree/content-tree.js';
-import type { CategoryFilterMode } from '$lib/stores/category-tree.types.js';
-import { createCategoryStore } from '$lib/persistence/category.store.js';
 import { createContentTreeStore } from '$lib/persistence/content-tree.store.js';
 import { getEffectiveNodeCategories } from '$lib/domain/shared/category-aggregation.js';
 import { consumer } from '$lib/stores/consumer.svelte.js';
+import { browseCategories } from '$lib/stores/browse-categories.svelte.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
 
-type TreeModes = Record<CategoryTreeId, Map<string, CategoryFilterMode>>;
-
-function emptyTreeModes(): TreeModes {
-return { subject: new Map(), content_type: new Map(), media_type: new Map(), region: new Map() };
-}
-
 interface BrowseStoreState {
-categories: Category[];
-modeByTree: TreeModes;
 nodes: TreeNode[];
 trees: ContentTree[];
 searchQuery: string;
@@ -35,15 +29,12 @@ loading: boolean;
 }
 
 let state = $state<BrowseStoreState>({
-categories: [],
-modeByTree: emptyTreeModes(),
 nodes: [],
 trees: [],
 searchQuery: '',
 loading: false
 });
 
-const categoryRepo = createCategoryStore();
 const treeRepo = createContentTreeStore();
 
 // ── Helpers ────────────────────────────────────────────────────────────
@@ -114,27 +105,13 @@ return nodes;
 // ── Exported accessor ──────────────────────────────────────────────────
 
 export const browse = {
-get categories() { return state.categories; },
-get modeByTree() { return state.modeByTree; },
 get nodes() { return state.nodes; },
 get trees() { return state.trees; },
 get searchQuery() { return state.searchQuery; },
 get loading() { return state.loading; },
 
-get supportsFilterMode(): true { return true; },
-
-getFilterMode(categoryId: string, treeId: CategoryTreeId): CategoryFilterMode | undefined {
-return state.modeByTree[treeId].get(categoryId);
-},
-
 get hasFilters() {
-return (
-state.modeByTree.subject.size > 0 ||
-state.modeByTree.content_type.size > 0 ||
-state.modeByTree.media_type.size > 0 ||
-state.modeByTree.region.size > 0 ||
-state.searchQuery.trim().length > 0
-);
+return browseCategories.hasFilters || state.searchQuery.trim().length > 0;
 },
 
 /** Nodes grouped by role for display */
@@ -152,63 +129,7 @@ case 'font': fonts.push(n); break;
 return { creators, profiles, fonts };
 },
 
-getRootCategories(treeId: CategoryTreeId): Category[] {
-return state.categories
-.filter((c) => c.parentId === null && c.treeId === treeId)
-.sort((a, b) => a.order - b.order);
-},
-
-getChildren(parentId: string): Category[] {
-return state.categories
-.filter((c) => c.parentId === parentId)
-.sort((a, b) => a.order - b.order);
-},
-
-isSelected(categoryId: string, treeId: CategoryTreeId): boolean {
-return state.modeByTree[treeId].has(categoryId);
-},
-
-getSelectedCount(treeId: CategoryTreeId): number {
-return state.modeByTree[treeId].size;
-},
-
 // ── Actions ──────────────────────────────────────────────────────
-
-async loadCategories(): Promise<void> {
-state.loading = true;
-try {
-state.categories = await categoryRepo.getAll();
-} finally {
-state.loading = false;
-}
-},
-
-async toggleCategory(categoryId: string, treeId: CategoryTreeId): Promise<void> {
-const current = state.modeByTree[treeId];
-const next = new Map(current);
-const mode = next.get(categoryId);
-
-if (mode === undefined) {
-next.set(categoryId, 'any');
-} else if (mode === 'any') {
-next.set(categoryId, 'all');
-} else {
-next.delete(categoryId);
-}
-
-state.modeByTree = { ...state.modeByTree, [treeId]: next };
-await this.applyFilters();
-},
-
-async clearTree(treeId: CategoryTreeId): Promise<void> {
-state.modeByTree = { ...state.modeByTree, [treeId]: new Map() };
-await this.applyFilters();
-},
-
-async clearAllCategories(): Promise<void> {
-state.modeByTree = emptyTreeModes();
-await this.applyFilters();
-},
 
 async setSearchQuery(query: string): Promise<void> {
 state.searchQuery = query;
@@ -221,11 +142,7 @@ this.applyFilters();
 },
 
 async applyFilters(): Promise<void> {
-const hasCategories =
-state.modeByTree.subject.size > 0 ||
-state.modeByTree.content_type.size > 0 ||
-state.modeByTree.media_type.size > 0 ||
-state.modeByTree.region.size > 0;
+const hasCategories = browseCategories.hasFilters;
 const hasSearch = state.searchQuery.trim().length > 0;
 
 if (!hasCategories && !hasSearch) {
@@ -240,7 +157,6 @@ state.trees = allTrees;
 
 const allNodes = extractAllNodes(allTrees);
 
-// Split selected IDs by mode per tree, then expand for children
 const treeKeys = ['subject', 'content_type', 'media_type', 'region'] as const;
 
 const anyExpanded: Record<CategoryTreeId, Set<string>> = { subject: new Set(), content_type: new Set(), media_type: new Set(), region: new Set() };
@@ -249,12 +165,12 @@ const allExpanded: Record<CategoryTreeId, Set<string>> = { subject: new Set(), c
 for (const tk of treeKeys) {
 const anyIds = new Set<string>();
 const allIds = new Set<string>();
-for (const [id, mode] of state.modeByTree[tk]) {
+for (const [id, mode] of browseCategories.modeByTree[tk]) {
 if (mode === 'any') anyIds.add(id);
 else allIds.add(id);
 }
-anyExpanded[tk] = expandCategoryIds(anyIds, state.categories);
-allExpanded[tk] = expandCategoryIds(allIds, state.categories);
+anyExpanded[tk] = expandCategoryIds(anyIds, browseCategories.categories);
+allExpanded[tk] = expandCategoryIds(allIds, browseCategories.categories);
 }
 
 let matched = allNodes;

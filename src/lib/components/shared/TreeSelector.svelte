@@ -40,6 +40,13 @@
 		store.toggleCategory(categoryId, treeId);
 	}
 
+	function handleDeselect(e: MouseEvent, categoryId: string, treeId: CategoryTreeId) {
+		e.stopPropagation();
+		if (store.deselectCategory) {
+			store.deselectCategory(categoryId, treeId);
+		}
+	}
+
 	function handleClickOutside(e: MouseEvent) {
 		if (openTreeId && containerEl && !containerEl.contains(e.target as Node)) {
 			openTreeId = null;
@@ -140,13 +147,23 @@
 									<span class="px-1 text-[11px] font-medium text-muted-foreground/70">{tCat(child.id)}</span>
 									<div class="grid grid-cols-3 gap-1 mt-1">
 										{#each grandchildren as gc (gc.id)}
-											<button
-												onclick={() => handleToggle(gc.id, activeTreeId)}
-												class="rounded-md px-2.5 py-1.5 text-xs transition-colors text-left truncate
-													{catButtonClass(gc.id, activeTreeId)}"
-											>
-												{tCat(gc.id)}
-											</button>
+											<div class="group relative">
+												<button
+													onclick={() => handleToggle(gc.id, activeTreeId)}
+													class="w-full rounded-md px-2.5 py-1.5 text-xs transition-colors text-left truncate
+														{catButtonClass(gc.id, activeTreeId)}"
+												>
+													{tCat(gc.id)}
+												</button>
+												{#if store.isSelected(gc.id, activeTreeId)}
+													<button
+														onclick={(e) => handleDeselect(e, gc.id, activeTreeId)}
+														class="absolute right-0.5 top-1/2 -translate-y-1/2 p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-background/50 transition-opacity"
+													>
+														<X class="size-3" />
+													</button>
+												{/if}
+											</div>
 										{/each}
 									</div>
 								</div>
@@ -157,26 +174,46 @@
 							{#if leafChildren.length > 0}
 								<div class="grid grid-cols-3 gap-1 mt-1">
 									{#each leafChildren as child (child.id)}
-										<button
-											onclick={() => handleToggle(child.id, activeTreeId)}
-											class="rounded-md px-2.5 py-1.5 text-xs transition-colors text-left truncate
-												{catButtonClass(child.id, activeTreeId)}"
-										>
-											{tCat(child.id)}
-										</button>
+										<div class="group relative">
+											<button
+												onclick={() => handleToggle(child.id, activeTreeId)}
+												class="w-full rounded-md px-2.5 py-1.5 text-xs transition-colors text-left truncate
+													{catButtonClass(child.id, activeTreeId)}"
+											>
+												{tCat(child.id)}
+											</button>
+											{#if store.isSelected(child.id, activeTreeId)}
+												<button
+													onclick={(e) => handleDeselect(e, child.id, activeTreeId)}
+													class="absolute right-0.5 top-1/2 -translate-y-1/2 p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-background/50 transition-opacity"
+												>
+													<X class="size-3" />
+												</button>
+											{/if}
+										</div>
 									{/each}
 								</div>
 							{/if}
 						{/each}
 					</div>
 				{:else}
-					<button
-						onclick={() => handleToggle(root.id, activeTreeId)}
-						class="flex w-full items-center rounded-md px-2.5 py-1.5 text-xs transition-colors text-left
-							{catButtonClass(root.id, activeTreeId)}"
-					>
-						<span class="truncate">{tCat(root.id)}</span>
-					</button>
+					<div class="group relative flex w-full items-center">
+						<button
+							onclick={() => handleToggle(root.id, activeTreeId)}
+							class="w-full rounded-md px-2.5 py-1.5 text-xs transition-colors text-left
+								{catButtonClass(root.id, activeTreeId)}"
+						>
+							<span class="truncate">{tCat(root.id)}</span>
+						</button>
+						{#if store.isSelected(root.id, activeTreeId)}
+							<button
+								onclick={(e) => handleDeselect(e, root.id, activeTreeId)}
+								class="absolute right-0.5 top-1/2 -translate-y-1/2 p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-background/50 transition-opacity"
+							>
+								<X class="size-3" />
+							</button>
+						{/if}
+					</div>
 				{/if}
 			{/each}
 			{#if roots.length === 0 && !store.loading}
