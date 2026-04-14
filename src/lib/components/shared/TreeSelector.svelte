@@ -109,7 +109,7 @@
 		{@const activeTreeId = openTreeId}
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class="w-[520px] max-h-[70vh] overflow-y-auto rounded-lg border bg-background shadow-lg p-3 z-50"
+			class="w-[640px] max-h-[70vh] overflow-y-auto rounded-lg border bg-background shadow-lg p-3 z-50"
 			style={flyoutStyle}
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => { if (e.key === 'Escape') openTreeId = null; }}
