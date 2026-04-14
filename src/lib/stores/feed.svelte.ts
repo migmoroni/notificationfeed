@@ -107,7 +107,7 @@ if (node) return node;
 return undefined;
 },
 
-filteredByCategories(subjectIds: string[], contentTypeIds: string[], regionIds: string[] = []): SortedPost<CanonicalPost>[] {
+filteredByCategories(subjectIds: string[], contentTypeIds: string[], mediaTypeIds: string[] = [], regionIds: string[] = []): SortedPost<CanonicalPost>[] {
 let sorted = computePrioritized();
 
 if (subjectIds.length > 0) {
@@ -117,6 +117,11 @@ sorted = sorted.filter((sp) => allowed.has(sp.post.nodeId));
 
 if (contentTypeIds.length > 0) {
 const allowed = nodeIdsMatchingCategories('content_type', contentTypeIds);
+sorted = sorted.filter((sp) => allowed.has(sp.post.nodeId));
+}
+
+if (mediaTypeIds.length > 0) {
+const allowed = nodeIdsMatchingCategories('media_type', mediaTypeIds);
 sorted = sorted.filter((sp) => allowed.has(sp.post.nodeId));
 }
 

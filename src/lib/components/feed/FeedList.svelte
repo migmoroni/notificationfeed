@@ -21,12 +21,13 @@
 		filter?: PriorityFilterValue;
 		subjectIds?: string[];
 		contentTypeIds?: string[];
+		mediaTypeIds?: string[];
 		regionIds?: string[];
 		/** Allowed font node IDs (from entity filter). Empty = no filter. */
 		nodeIds?: string[];
 	}
 
-	let { filter = 'all', subjectIds = [], contentTypeIds = [], regionIds = [], nodeIds = [] }: Props = $props();
+	let { filter = 'all', subjectIds = [], contentTypeIds = [], mediaTypeIds = [], regionIds = [], nodeIds = [] }: Props = $props();
 
 	const PAGE_SIZE = 20;
 	let visibleCount = $state(PAGE_SIZE);
@@ -34,8 +35,8 @@
 
 	// Get base posts (with category filtering if applicable)
 	let basePosts = $derived(
-		(subjectIds.length > 0 || contentTypeIds.length > 0 || regionIds.length > 0)
-			? feed.filteredByCategories(subjectIds, contentTypeIds, regionIds)
+		(subjectIds.length > 0 || contentTypeIds.length > 0 || mediaTypeIds.length > 0 || regionIds.length > 0)
+			? feed.filteredByCategories(subjectIds, contentTypeIds, mediaTypeIds, regionIds)
 			: feed.prioritized
 	);
 

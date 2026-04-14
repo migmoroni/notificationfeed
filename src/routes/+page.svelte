@@ -29,6 +29,7 @@
 		feedEntityFilter.hasFilters ||
 		feedCategories.getSelectedIds('subject').length > 0 ||
 		feedCategories.getSelectedIds('content_type').length > 0 ||
+		feedCategories.getSelectedIds('media_type').length > 0 ||
 		feedCategories.getSelectedIds('region').length > 0
 	);
 
@@ -111,6 +112,7 @@
 
 	let selectedSubjects = $derived(feedCategories.getSelectedIds('subject'));
 	let selectedContentTypes = $derived(feedCategories.getSelectedIds('content_type'));
+	let selectedMediaTypes = $derived(feedCategories.getSelectedIds('media_type'));
 	let selectedRegions = $derived(feedCategories.getSelectedIds('region'));
 	let allowedNodeIds = $derived(feedEntityFilter.hasFilters ? [...feedEntityFilter.getAllowedFontNodeIds()] : []);
 
@@ -129,6 +131,7 @@
 		// Track filter changes to clear active macro if needed (skip while editing)
 		selectedSubjects;
 		selectedContentTypes;
+		selectedMediaTypes;
 		selectedRegions;
 		feedEntityFilter.selectedCreatorIds;
 		feedEntityFilter.selectedProfileIds;
@@ -302,7 +305,7 @@
 	<div class="flex items-center gap-3 mb-4 flex-wrap">
 		<PriorityFilter value={filter} onchange={(v) => (filter = v)} />
 
-		{#if feedCategories.getSelectedCount('subject') > 0 || feedCategories.getSelectedCount('content_type') > 0 || feedCategories.getSelectedCount('region') > 0}
+		{#if feedCategories.getSelectedCount('subject') > 0 || feedCategories.getSelectedCount('content_type') > 0 || feedCategories.getSelectedCount('media_type') > 0 || feedCategories.getSelectedCount('region') > 0}
 			{#each selectedSubjects as catId (catId)}
 				{@const cat = feedCategories.categories.find((c) => c.id === catId)}
 				{#if cat}
@@ -320,6 +323,18 @@
 				{#if cat}
 					<button
 						onclick={() => feedCategories.toggleCategory(catId, 'content_type')}
+						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
+					>
+						{tCat(cat.id)}
+						<X class="size-3" />
+					</button>
+				{/if}
+			{/each}
+			{#each selectedMediaTypes as catId (catId)}
+				{@const cat = feedCategories.categories.find((c) => c.id === catId)}
+				{#if cat}
+					<button
+						onclick={() => feedCategories.toggleCategory(catId, 'media_type')}
 						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
 					>
 						{tCat(cat.id)}
@@ -351,7 +366,7 @@
 	<div class="flex-1 min-h-0 overflow-hidden">
 		<!-- Feed list -->
 		<div class="overflow-y-auto h-full pr-24 pb-24 pt-4">
-			<FeedList {filter} subjectIds={selectedSubjects} contentTypeIds={selectedContentTypes} regionIds={selectedRegions} nodeIds={allowedNodeIds} />
+			<FeedList {filter} subjectIds={selectedSubjects} contentTypeIds={selectedContentTypes} mediaTypeIds={selectedMediaTypes} regionIds={selectedRegions} nodeIds={allowedNodeIds} />
 		</div>
 	</div>
 </div>

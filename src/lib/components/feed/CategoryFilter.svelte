@@ -11,29 +11,39 @@
 	interface Props {
 		subjectIds?: string[];
 		contentTypeIds?: string[];
-		onchange?: (filters: { subjectIds: string[]; contentTypeIds: string[] }) => void;
+		mediaTypeIds?: string[];
+		regionIds?: string[];
+		onchange?: (filters: { subjectIds: string[]; contentTypeIds: string[]; mediaTypeIds: string[]; regionIds: string[] }) => void;
 	}
 
-	let { subjectIds = [], contentTypeIds = [], onchange }: Props = $props();
+	let { subjectIds = [], contentTypeIds = [], mediaTypeIds = [], regionIds = [], onchange }: Props = $props();
 
 	let subjectCategories: Category[] = $state([]);
 	let contentTypeCategories: Category[] = $state([]);
+	let mediaTypeCategories: Category[] = $state([]);
+	let regionCategories: Category[] = $state([]);
 	let showPanel = $state(false);
 
 	const categoryRepo = createCategoryStore();
 
 	onMount(async () => {
-		const [subjects, contentTypes] = await Promise.all([
+		const [subjects, contentTypes, mediaTypes, regions] = await Promise.all([
 			categoryRepo.getSublevels('subject'),
-			categoryRepo.getSublevels('content_type')
+			categoryRepo.getSublevels('content_type'),
+			categoryRepo.getSublevels('media_type'),
+			categoryRepo.getSublevels('region')
 		]);
 		subjectCategories = subjects.sort((a, b) => a.order - b.order);
 		contentTypeCategories = contentTypes.sort((a, b) => a.order - b.order);
+		mediaTypeCategories = mediaTypes.sort((a, b) => a.order - b.order);
+		regionCategories = regions.sort((a, b) => a.order - b.order);
 	});
 
 	function toggleCategory(treeId: CategoryTreeId, catId: string) {
 		let newSubjects = [...subjectIds];
 		let newContentTypes = [...contentTypeIds];
+		let newMediaTypes = [...mediaTypeIds];
+		let newRegions = [...regionIds];
 
 		if (treeId === 'subject') {
 			if (newSubjects.includes(catId)) {
@@ -41,22 +51,34 @@
 			} else {
 				newSubjects = [...newSubjects, catId];
 			}
-		} else {
+		} else if (treeId === 'content_type') {
 			if (newContentTypes.includes(catId)) {
 				newContentTypes = newContentTypes.filter((id) => id !== catId);
 			} else {
 				newContentTypes = [...newContentTypes, catId];
 			}
+		} else if (treeId === 'media_type') {
+			if (newMediaTypes.includes(catId)) {
+				newMediaTypes = newMediaTypes.filter((id) => id !== catId);
+			} else {
+				newMediaTypes = [...newMediaTypes, catId];
+			}
+		} else {
+			if (newRegions.includes(catId)) {
+				newRegions = newRegions.filter((id) => id !== catId);
+			} else {
+				newRegions = [...newRegions, catId];
+			}
 		}
 
-		onchange?.({ subjectIds: newSubjects, contentTypeIds: newContentTypes });
+		onchange?.({ subjectIds: newSubjects, contentTypeIds: newContentTypes, mediaTypeIds: newMediaTypes, regionIds: newRegions });
 	}
 
 	function clearAll() {
-		onchange?.({ subjectIds: [], contentTypeIds: [] });
+		onchange?.({ subjectIds: [], contentTypeIds: [], mediaTypeIds: [], regionIds: [] });
 	}
 
-	let activeCount = $derived(subjectIds.length + contentTypeIds.length);
+	let activeCount = $derived(subjectIds.length + contentTypeIds.length + mediaTypeIds.length + regionIds.length);
 </script>
 
 <div class="relative">
@@ -112,7 +134,7 @@
 
 			<!-- Content type categories -->
 			{#if contentTypeCategories.length > 0}
-				<div>
+				<div class="mb-3">
 					<p class="text-xs font-medium text-muted-foreground mb-1.5">{t('category_tree.content_type')}</p>
 					<div class="flex flex-wrap gap-1.5">
 						{#each contentTypeCategories as cat (cat.id)}
@@ -120,6 +142,46 @@
 								onclick={() => toggleCategory('content_type', cat.id)}
 								class="rounded-full border px-2.5 py-0.5 text-xs transition-colors
 									{contentTypeIds.includes(cat.id)
+									? 'border-primary bg-primary text-primary-foreground'
+									: 'border-input bg-background hover:bg-accent'}"
+							>
+								{tCat(cat.id)}
+							</button>
+						{/each}
+					</div>
+				</div>
+			{/if}
+
+			<!-- Media type categories -->
+			{#if mediaTypeCategories.length > 0}
+				<div class="mb-3">
+					<p class="text-xs font-medium text-muted-foreground mb-1.5">{t('category_tree.media_type')}</p>
+					<div class="flex flex-wrap gap-1.5">
+						{#each mediaTypeCategories as cat (cat.id)}
+							<button
+								onclick={() => toggleCategory('media_type', cat.id)}
+								class="rounded-full border px-2.5 py-0.5 text-xs transition-colors
+									{mediaTypeIds.includes(cat.id)
+									? 'border-primary bg-primary text-primary-foreground'
+									: 'border-input bg-background hover:bg-accent'}"
+							>
+								{tCat(cat.id)}
+							</button>
+						{/each}
+					</div>
+				</div>
+			{/if}
+
+			<!-- Region categories -->
+			{#if regionCategories.length > 0}
+				<div>
+					<p class="text-xs font-medium text-muted-foreground mb-1.5">{t('category_tree.region')}</p>
+					<div class="flex flex-wrap gap-1.5">
+						{#each regionCategories as cat (cat.id)}
+							<button
+								onclick={() => toggleCategory('region', cat.id)}
+								class="rounded-full border px-2.5 py-0.5 text-xs transition-colors
+									{regionIds.includes(cat.id)
 									? 'border-primary bg-primary text-primary-foreground'
 									: 'border-input bg-background hover:bg-accent'}"
 							>
