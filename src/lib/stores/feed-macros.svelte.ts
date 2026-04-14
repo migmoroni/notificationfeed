@@ -12,6 +12,7 @@ import { feedEntityFilter } from './feed-entity-filter.svelte.js';
 import { consumer } from './consumer.svelte.js';
 import type { FeedMacro } from '$lib/domain/feed-macro/feed-macro.js';
 import type { CategoryTreeId } from '$lib/domain/category/category.js';
+import type { CategoryFilterMode } from '$lib/stores/category-tree.types.js';
 
 const TREE_IDS: CategoryTreeId[] = ['subject', 'content_type', 'media_type', 'region'];
 
@@ -35,7 +36,18 @@ function currentFilters() {
 		TREE_IDS.map((t) => [t, feedCategories.getSelectedIds(t)])
 	) as Record<CategoryTreeId, string[]>;
 
-	return { nodeIds: currentNodeIds(), categoryIdsByTree };
+	const categoryModesByTree = Object.fromEntries(
+		TREE_IDS.map((t) => {
+			const modes: Record<string, CategoryFilterMode> = {};
+			for (const id of feedCategories.getSelectedIds(t)) {
+				const m = feedCategories.getFilterMode(id, t);
+				if (m) modes[id] = m;
+			}
+			return [t, modes];
+		})
+	) as Record<CategoryTreeId, Record<string, CategoryFilterMode>>;
+
+	return { nodeIds: currentNodeIds(), categoryIdsByTree, categoryModesByTree };
 }
 
 export const feedMacros = {
@@ -58,14 +70,17 @@ export const feedMacros = {
 
 		if (id === ALL_MACROS_ID) {
 			const allNodeIds = new Set<string>();
-			const allCatIds: Record<CategoryTreeId, Set<string>> = Object.fromEntries(
-				TREE_IDS.map((t) => [t, new Set<string>()])
-			) as Record<CategoryTreeId, Set<string>>;
+			const allCatModes: Record<CategoryTreeId, Map<string, CategoryFilterMode>> = Object.fromEntries(
+				TREE_IDS.map((t) => [t, new Map<string, CategoryFilterMode>()])
+			) as Record<CategoryTreeId, Map<string, CategoryFilterMode>>;
 
 			for (const m of consumer.feedMacros) {
 				for (const v of m.filters.nodeIds) allNodeIds.add(v);
 				for (const t of TREE_IDS) {
-					for (const v of m.filters.categoryIdsByTree[t]) allCatIds[t].add(v);
+					for (const v of m.filters.categoryIdsByTree[t]) {
+						const mode = m.filters.categoryModesByTree?.[t]?.[v] ?? 'any';
+						allCatModes[t].set(v, mode);
+					}
 				}
 			}
 
@@ -74,7 +89,7 @@ export const feedMacros = {
 
 			feedCategories.clearAll();
 			for (const t of TREE_IDS) {
-				for (const v of allCatIds[t]) feedCategories.toggleCategory(v, t);
+				for (const [v, mode] of allCatModes[t]) feedCategories.selectCategory(v, t, mode);
 			}
 			return;
 		}
@@ -87,7 +102,10 @@ export const feedMacros = {
 
 		feedCategories.clearAll();
 		for (const t of TREE_IDS) {
-			for (const catId of macro.filters.categoryIdsByTree[t]) feedCategories.toggleCategory(catId, t);
+			for (const catId of macro.filters.categoryIdsByTree[t]) {
+				const mode = macro.filters.categoryModesByTree?.[t]?.[catId] ?? 'any';
+				feedCategories.selectCategory(catId, t, mode);
+			}
 		}
 	},
 
@@ -111,6 +129,16 @@ export const feedMacros = {
 		const currentCats = Object.fromEntries(
 			TREE_IDS.map((t) => [t, feedCategories.getSelectedIds(t).sort()])
 		);
+		const currentModes = Object.fromEntries(
+			TREE_IDS.map((t) => {
+				const modes: Record<string, CategoryFilterMode> = {};
+				for (const id of feedCategories.getSelectedIds(t)) {
+					const m = feedCategories.getFilterMode(id, t);
+					if (m) modes[id] = m;
+				}
+				return [t, modes];
+			})
+		);
 
 		const hasAnyFilter =
 			currentNodesSorted.length > 0 ||
@@ -125,10 +153,14 @@ export const feedMacros = {
 		const macroCats = Object.fromEntries(
 			TREE_IDS.map((t) => [t, [...macro.filters.categoryIdsByTree[t]].sort()])
 		);
+		const macroModes = Object.fromEntries(
+			TREE_IDS.map((t) => [t, macro.filters.categoryModesByTree?.[t] ?? {}])
+		);
 
 		return (
 			JSON.stringify(currentNodesSorted) === JSON.stringify([...macro.filters.nodeIds].sort()) &&
-			JSON.stringify(currentCats) === JSON.stringify(macroCats)
+			JSON.stringify(currentCats) === JSON.stringify(macroCats) &&
+			JSON.stringify(currentModes) === JSON.stringify(macroModes)
 		);
 	},
 

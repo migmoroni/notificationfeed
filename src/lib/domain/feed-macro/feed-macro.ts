@@ -5,12 +5,15 @@
  */
 
 import type { CategoryTreeId } from '$lib/domain/category/category.js';
+import type { CategoryFilterMode } from '$lib/stores/category-tree.types.js';
 
 export interface FeedMacroFilters {
 	/** Selected content node IDs (any role) */
 	nodeIds: string[];
 	/** Selected category IDs keyed by tree */
 	categoryIdsByTree: Record<CategoryTreeId, string[]>;
+	/** Filter mode per category ID per tree (backwards-compatible: defaults to 'any' when absent) */
+	categoryModesByTree?: Record<CategoryTreeId, Record<string, CategoryFilterMode>>;
 }
 
 export interface FeedMacro {
