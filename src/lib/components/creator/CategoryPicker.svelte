@@ -8,6 +8,7 @@
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import X from '@lucide/svelte/icons/x';
 	import { t } from '$lib/i18n/t.js';
+	import { tCat } from '$lib/i18n/category.js';
 
 	interface Props {
 		assignments: CategoryAssignment[];
@@ -20,10 +21,10 @@
 	let loading = $state(true);
 
 	const categoryRepo = createCategoryStore();
-	const TREES: { id: CategoryTreeId; label: string }[] = [
-		{ id: 'subject', label: 'Assunto' },
-		{ id: 'content_type', label: 'Formato' },
-		{ id: 'region', label: 'Região' }
+	const TREES: { id: CategoryTreeId; labelKey: string }[] = [
+		{ id: 'subject', labelKey: 'category_tree.subject' },
+		{ id: 'content_type', labelKey: 'category_tree.content_type' },
+		{ id: 'region', labelKey: 'category_tree.region' }
 	];
 
 	onMount(async () => {
@@ -58,7 +59,7 @@
 	}
 
 	function getCategoryLabel(id: string): string {
-		return categories.find((c) => c.id === id)?.label ?? id;
+		return tCat(id);
 	}
 </script>
 
@@ -73,9 +74,9 @@
 			{@const available = getTreeCategories(tree.id)}
 			<div class="space-y-1">
 				<span class="text-xs font-medium text-muted-foreground">
-					{tree.label} ({selected.length})
+					{t(tree.labelKey)} ({selected.length})
 					{#if selected.length > SUGGESTED_CATEGORIES_PER_TREE}
-						<span class="text-amber-500">— sugerido: {SUGGESTED_CATEGORIES_PER_TREE}</span>
+						<span class="text-amber-500">— {t('category_picker.suggested', { max: String(SUGGESTED_CATEGORIES_PER_TREE) })}</span>
 					{/if}
 				</span>
 
@@ -106,7 +107,7 @@
 								: 'hover:bg-accent hover:text-accent-foreground border-border'}"
 							onclick={() => toggleCategory(tree.id, cat.id)}
 						>
-							{cat.label}
+							{tCat(cat.id)}
 						</button>
 					{/each}
 				</div>

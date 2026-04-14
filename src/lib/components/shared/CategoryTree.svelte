@@ -5,6 +5,7 @@
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import X from '@lucide/svelte/icons/x';
 	import { t } from '$lib/i18n/t.js';
+	import { tCat } from '$lib/i18n/category.js';
 
 	interface Props {
 		treeId: CategoryTreeId;
@@ -67,7 +68,7 @@
 				<ChevronRight
 					class="size-4 shrink-0 transition-transform duration-200 {isOpen ? 'rotate-90' : ''}"
 				/>
-				<span class="truncate">{root.label}</span>
+				<span class="truncate">{tCat(root.id)}</span>
 				{#if children.length > 0}
 					<span class="ml-auto text-xs text-muted-foreground">{children.length}</span>
 				{/if}
@@ -84,7 +85,7 @@
 								? 'bg-accent text-accent-foreground font-medium'
 								: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
 						>
-							<span class="truncate">{child.label}</span>
+							<span class="truncate">{tCat(child.id)}</span>
 						</button>
 					{/each}
 				</div>

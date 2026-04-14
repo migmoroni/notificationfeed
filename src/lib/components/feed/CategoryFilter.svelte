@@ -6,6 +6,7 @@
 	import Filter from '@lucide/svelte/icons/filter';
 	import X from '@lucide/svelte/icons/x';
 	import { t } from '$lib/i18n/t.js';
+	import { tCat } from '$lib/i18n/category.js';
 
 	interface Props {
 		subjectIds?: string[];
@@ -65,7 +66,7 @@
 		class:text-primary={activeCount > 0}
 	>
 		<Filter class="size-3.5" />
-		Categorias
+		{t('category_filter.categories')}
 		{#if activeCount > 0}
 			<span class="inline-flex items-center justify-center size-4 rounded-full bg-primary text-primary-foreground text-[10px]">
 				{activeCount}
@@ -84,7 +85,7 @@
 				<span class="text-sm font-semibold">{t('feed.filter_by_category')}</span>
 				{#if activeCount > 0}
 					<button onclick={clearAll} class="text-xs text-muted-foreground hover:text-foreground">
-						Limpar
+						{t('category_filter.clear')}
 					</button>
 				{/if}
 			</div>
@@ -102,7 +103,7 @@
 									? 'border-primary bg-primary text-primary-foreground'
 									: 'border-input bg-background hover:bg-accent'}"
 							>
-								{cat.label}
+								{tCat(cat.id)}
 							</button>
 						{/each}
 					</div>
@@ -122,7 +123,7 @@
 									? 'border-primary bg-primary text-primary-foreground'
 									: 'border-input bg-background hover:bg-accent'}"
 							>
-								{cat.label}
+								{tCat(cat.id)}
 							</button>
 						{/each}
 					</div>

@@ -20,6 +20,7 @@
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import { t } from '$lib/i18n/t.js';
+	import { tCat } from '$lib/i18n/category.js';
 
 	let filter: PriorityFilterValue = $state('all');
 	let refreshing = $state(false);
@@ -309,7 +310,7 @@
 						onclick={() => feedCategories.toggleCategory(catId, 'subject')}
 						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
 					>
-						{cat.label}
+						{tCat(cat.id)}
 						<X class="size-3" />
 					</button>
 				{/if}
@@ -321,7 +322,7 @@
 						onclick={() => feedCategories.toggleCategory(catId, 'content_type')}
 						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
 					>
-						{cat.label}
+						{tCat(cat.id)}
 						<X class="size-3" />
 					</button>
 				{/if}
@@ -333,7 +334,7 @@
 						onclick={() => feedCategories.toggleCategory(catId, 'region')}
 						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
 					>
-						{cat.label}
+						{tCat(cat.id)}
 						<X class="size-3" />
 					</button>
 				{/if}

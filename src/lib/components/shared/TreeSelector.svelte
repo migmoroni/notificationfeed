@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { t } from '$lib/i18n/t.js';
+	import { tCat } from '$lib/i18n/category.js';
 	import type { CategoryTreeStore } from '$lib/stores/category-tree.types.js';
 	import type { Category, CategoryTreeId } from '$lib/domain/category/category.js';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
@@ -11,11 +12,11 @@
 
 	let { store }: Props = $props();
 
-	const trees: { id: CategoryTreeId; label: string }[] = [
-		{ id: 'subject', label: 'Assunto' },
-		{ id: 'content_type', label: 'Acessibilidade' },
-		{ id: 'media_type', label: 'Mídia' },
-		{ id: 'region', label: 'Região' }
+	const trees: { id: CategoryTreeId; labelKey: string }[] = [
+		{ id: 'subject', labelKey: 'category_tree.subject' },
+		{ id: 'content_type', labelKey: 'category_tree.content_type' },
+		{ id: 'media_type', labelKey: 'category_tree.media_type' },
+		{ id: 'region', labelKey: 'category_tree.region' }
 	];
 
 	let openTreeId = $state<CategoryTreeId | null>(null);
@@ -50,22 +51,22 @@
 
 <div class="relative" bind:this={containerEl}>
 	<div class="flex flex-col gap-0.5 px-1">
-		{#each trees as t (t.id)}
-			{@const selectedCount = store.getSelectedCount(t.id)}
+		{#each trees as tr (tr.id)}
+			{@const selectedCount = store.getSelectedCount(tr.id)}
 			<button
-				onclick={(e) => { e.stopPropagation(); toggleTree(t.id); }}
+				onclick={(e) => { e.stopPropagation(); toggleTree(tr.id); }}
 				class="flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-[13px] font-medium transition-colors text-left
-					{openTreeId === t.id
+					{openTreeId === tr.id
 						? 'bg-accent text-accent-foreground'
 						: selectedCount > 0
 							? 'text-foreground hover:bg-accent/50'
 							: 'text-muted-foreground hover:bg-accent/50'}"
 			>
-				<ChevronRight class="size-4 shrink-0 transition-transform duration-200 {openTreeId === t.id ? 'rotate-90' : ''}" />
-				<span class="truncate flex-1">{t.label}</span>
+				<ChevronRight class="size-4 shrink-0 transition-transform duration-200 {openTreeId === tr.id ? 'rotate-90' : ''}" />
+				<span class="truncate flex-1">{t(tr.labelKey)}</span>
 				{#if selectedCount > 0}
 					<button
-						onclick={(e) => { e.stopPropagation(); store.clearTree(t.id); }}
+						onclick={(e) => { e.stopPropagation(); store.clearTree(tr.id); }}
 						class="inline-flex items-center gap-1 rounded-full bg-accent px-1.5 py-0.5 text-[11px] text-muted-foreground hover:text-foreground hover:bg-destructive/10 transition-colors"
 					>
 						<X class="size-3" />
@@ -89,7 +90,7 @@
 		>
 			<div class="flex items-center justify-between mb-3 px-1">
 				<span class="text-sm font-medium text-foreground">
-					{trees.find((t) => t.id === activeTreeId)?.label}
+					{t(trees.find((tr) => tr.id === activeTreeId)?.labelKey ?? '')}
 				</span>
 				<button onclick={() => (openTreeId = null)} class="text-muted-foreground hover:text-foreground">
 					<X class="size-4" />
@@ -99,13 +100,13 @@
 				{@const children = store.getChildren(root.id)}
 				{#if children.length > 0}
 					<div class="mb-3">
-						<span class="px-1 text-xs font-medium text-muted-foreground">{root.label}</span>
+						<span class="px-1 text-xs font-medium text-muted-foreground">{tCat(root.id)}</span>
 						{#each children as child (child.id)}
 							{@const grandchildren = store.getChildren(child.id)}
 							{#if grandchildren.length > 0}
 								<!-- Mid-level with grandchildren -->
 								<div class="mt-2 mb-1">
-									<span class="px-1 text-[11px] font-medium text-muted-foreground/70">{child.label}</span>
+									<span class="px-1 text-[11px] font-medium text-muted-foreground/70">{tCat(child.id)}</span>
 									<div class="grid grid-cols-3 gap-1 mt-1">
 										{#each grandchildren as gc (gc.id)}
 											{@const gcSelected = store.isSelected(gc.id, activeTreeId)}
@@ -116,7 +117,7 @@
 														? 'bg-accent text-accent-foreground font-medium'
 														: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
 											>
-												{gc.label}
+												{tCat(gc.id)}
 											</button>
 										{/each}
 									</div>
@@ -136,7 +137,7 @@
 													? 'bg-accent text-accent-foreground font-medium'
 													: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
 										>
-											{child.label}
+											{tCat(child.id)}
 										</button>
 									{/each}
 								</div>
@@ -152,7 +153,7 @@
 								? 'bg-accent text-accent-foreground font-medium'
 								: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
 					>
-						<span class="truncate">{root.label}</span>
+						<span class="truncate">{tCat(root.id)}</span>
 					</button>
 				{/if}
 			{/each}

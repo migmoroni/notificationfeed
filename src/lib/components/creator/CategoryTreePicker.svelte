@@ -16,6 +16,7 @@
 	import Globe from '@lucide/svelte/icons/globe';
 	import Film from '@lucide/svelte/icons/film';
 	import { t } from '$lib/i18n/t.js';
+	import { tCat } from '$lib/i18n/category.js';
 
 	interface Props {
 		assignments: CategoryAssignment[];
@@ -32,11 +33,11 @@
 
 	const categoryRepo = createCategoryStore();
 
-	const TREES: { id: CategoryTreeId; label: string; description: string; icon: typeof BookOpen }[] = [
-		{ id: 'subject', label: 'Assunto', description: 'Sobre o que é este conteúdo?', icon: BookOpen },
-		{ id: 'content_type', label: 'Acessibilidade', description: 'Quais propriedades de acessibilidade?', icon: FileText },
-		{ id: 'media_type', label: 'Mídia', description: 'Qual o tipo de mídia principal?', icon: Film },
-		{ id: 'region', label: 'Região', description: 'De qual região geográfica?', icon: Globe }
+	const TREES: { id: CategoryTreeId; labelKey: string; descKey: string; icon: typeof BookOpen }[] = [
+		{ id: 'subject', labelKey: 'category_tree.subject', descKey: 'category_tree.subject_desc', icon: BookOpen },
+		{ id: 'content_type', labelKey: 'category_tree.content_type', descKey: 'category_tree.content_type_desc', icon: FileText },
+		{ id: 'media_type', labelKey: 'category_tree.media_type', descKey: 'category_tree.media_type_desc', icon: Film },
+		{ id: 'region', labelKey: 'category_tree.region', descKey: 'category_tree.region_desc', icon: Globe }
 	];
 
 	onMount(async () => {
@@ -133,7 +134,7 @@
 	}
 
 	function getCategoryLabel(categoryId: string): string {
-		return categories.find((c) => c.id === categoryId)?.label ?? categoryId;
+		return tCat(categoryId);
 	}
 
 	let totalSelected = $derived(
@@ -151,7 +152,7 @@
 		<Tag class="size-4 text-muted-foreground shrink-0" />
 		<span class="text-sm font-medium flex-1">{t('category_picker.categories')}</span>
 		{#if totalSelected > 0}
-			<Badge variant="secondary" class="text-xs">{totalSelected} selecionada{totalSelected !== 1 ? 's' : ''}</Badge>
+			<Badge variant="secondary" class="text-xs">{t('category_picker.selected_count', { count: String(totalSelected) })}</Badge>
 		{:else}
 			<span class="text-xs text-muted-foreground">{t('category_picker.none')}</span>
 		{/if}
@@ -165,7 +166,7 @@
 	{#if sectionOpen}
 		<div class="border-t px-3 pb-3 pt-2 space-y-1">
 			<p class="text-xs text-muted-foreground mb-3">
-				Classifique esta página para facilitar a descoberta. Selecione até {SUGGESTED_CATEGORIES_PER_TREE} por grupo.
+				{t('category_picker.classify_hint', { max: String(SUGGESTED_CATEGORIES_PER_TREE) })}
 			</p>
 
 			<!-- Selected chips summary -->
@@ -200,13 +201,13 @@
 						<div class="flex items-center gap-1.5 mb-1">
 							<svelte:component this={tree.icon} class="size-3.5 text-muted-foreground" />
 							<span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-								{tree.label}
+								{t(tree.labelKey)}
 							</span>
 							{#if selected.length > SUGGESTED_CATEGORIES_PER_TREE}
-								<span class="text-[10px] text-amber-500">máx. {SUGGESTED_CATEGORIES_PER_TREE}</span>
+								<span class="text-[10px] text-amber-500">{t('category_picker.max', { count: String(SUGGESTED_CATEGORIES_PER_TREE) })}</span>
 							{/if}
 							{#if inheritedCount > 0}
-								<span class="text-[10px] text-muted-foreground/60">+ {inheritedCount} herdada{inheritedCount !== 1 ? 's' : ''}</span>
+								<span class="text-[10px] text-muted-foreground/60">{t('category_picker.inherited_count', { count: String(inheritedCount) })}</span>
 							{/if}
 							{#if selected.length > 0}
 								<button
@@ -214,11 +215,11 @@
 									onclick={() => clearTree(tree.id)}
 									class="ml-auto text-[10px] text-muted-foreground hover:text-foreground transition-colors"
 								>
-									limpar
+									{t('category_picker.clear')}
 								</button>
 							{/if}
 						</div>
-						<p class="text-[11px] text-muted-foreground/70 mb-1.5 pl-5">{tree.description}</p>
+						<p class="text-[11px] text-muted-foreground/70 mb-1.5 pl-5">{t(tree.descKey)}</p>
 
 						{#each roots as root (root.id)}
 							{@const children = getChildren(root.id)}						{@const allLeaves = children.every((c) => getChildren(c.id).length === 0)}							{@const hasSelDesc = hasDescendantSelected(root.id, tree.id)}
@@ -232,7 +233,7 @@
 									<ChevronRight
 										class="size-3 shrink-0 transition-transform duration-200 {isOpen ? 'rotate-90' : ''}"
 									/>
-									<span class="truncate">{root.label}</span>
+									<span class="truncate">{tCat(root.id)}</span>
 									{#if hasSelDesc}
 										{@const count = countDescendantsSelected(root.id, tree.id)}
 										<Badge variant="secondary" class="ml-auto text-[10px] h-4 px-1.5">{count}</Badge>
@@ -298,9 +299,9 @@
 																	{:else}
 																		<div class="size-3.5 shrink-0 rounded border border-muted-foreground/30"></div>
 																	{/if}
-																	<span class="truncate">{gc.label}</span>
+																	<span class="truncate">{tCat(gc.id)}</span>
 																	{#if gcInherited && !gcSelected}
-																		<span class="ml-auto text-[10px] text-muted-foreground/40">herdada</span>
+																				<span class="ml-auto text-[10px] text-muted-foreground/40">{t('category_picker.inherited')}</span>
 																	{/if}
 																</button>
 															{/each}
@@ -333,9 +334,9 @@
 													{:else}
 														<div class="size-3.5 shrink-0 rounded border border-muted-foreground/30"></div>
 													{/if}
-													<span class="truncate">{child.label}</span>
+													<span class="truncate">{tCat(child.id)}</span>
 													{#if fromInherited && !ownSelected}
-														<span class="ml-auto text-[10px] text-muted-foreground/40">herdada</span>
+															<span class="ml-auto text-[10px] text-muted-foreground/40">{t('category_picker.inherited')}</span>
 													{/if}
 												</button>
 											{/if}
