@@ -7,11 +7,17 @@
  * - "content_type" (b): accessibility taxonomy (schema.org + W3C WAI)
  * - "media_type" (c): content media taxonomy (DCMI + schema.org)
  * - "region" (d): geographic taxonomy (UN M49 + ISO 3166-1)
+ * - "language" (e): language/locale taxonomy (BCP 47)
  *
  * IDs use a compact letter-based scheme (2-5 letters):
- *   1st: tree (a/b/c/d) · 2nd: root branch · 3rd: sub-branch or 'a' placeholder
+ *   1st: tree (a/b/c/d/e) · 2nd: root branch · 3rd: sub-branch or 'a' placeholder
  *   4th-5th: leaf index
  *   Each position uses a-z then A-Z (52 values per slot).
+ *
+ * Language tree (e) uses a sequential pair scheme:
+ *   2nd+3rd chars: language sequence (aa, ab, ac, …)
+ *   4th+5th chars: variant sequence within each language (aa, ab, ac, …)
+ *   Each leaf carries a `bcp47` code (e.g. "pt-BR").
  *
  * Only sublevels (depth >= 1) can be associated with entities.
  * Root levels are structural groupings only.
@@ -21,7 +27,7 @@
  */
 
 /** Identifies which tree a category belongs to */
-export type CategoryTreeId = 'subject' | 'content_type' | 'region' | 'media_type';
+export type CategoryTreeId = 'subject' | 'content_type' | 'region' | 'media_type' | 'language';
 
 export interface Category {
 	id: string;
@@ -41,7 +47,8 @@ export interface Category {
 	/** Sort order among siblings */
 	order: number;
 
-
+	/** BCP 47 language tag (only present for language tree leaves) */
+	bcp47?: string;
 }
 
 export type NewCategory = Omit<Category, 'id' | 'depth'>;

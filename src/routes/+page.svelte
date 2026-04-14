@@ -30,7 +30,8 @@
 		feedCategories.getSelectedIds('subject').length > 0 ||
 		feedCategories.getSelectedIds('content_type').length > 0 ||
 		feedCategories.getSelectedIds('media_type').length > 0 ||
-		feedCategories.getSelectedIds('region').length > 0
+		feedCategories.getSelectedIds('region').length > 0 ||
+		feedCategories.getSelectedIds('language').length > 0
 	);
 
 	// Tab: 'saved' or 'advanced'. Default to 'advanced' only if filters are active without a macro.
@@ -114,19 +115,22 @@
 	let selectedContentTypes = $derived(feedCategories.getSelectedIds('content_type'));
 	let selectedMediaTypes = $derived(feedCategories.getSelectedIds('media_type'));
 	let selectedRegions = $derived(feedCategories.getSelectedIds('region'));
+	let selectedLanguages = $derived(feedCategories.getSelectedIds('language'));
 
 	// Build anyIds / allIds for the FeedList filter
 	let anyIds = $derived({
 		subject: feedCategories.getAnyIds('subject'),
 		content_type: feedCategories.getAnyIds('content_type'),
 		media_type: feedCategories.getAnyIds('media_type'),
-		region: feedCategories.getAnyIds('region')
+		region: feedCategories.getAnyIds('region'),
+		language: feedCategories.getAnyIds('language')
 	});
 	let allIds = $derived({
 		subject: feedCategories.getAllIds('subject'),
 		content_type: feedCategories.getAllIds('content_type'),
 		media_type: feedCategories.getAllIds('media_type'),
-		region: feedCategories.getAllIds('region')
+		region: feedCategories.getAllIds('region'),
+		language: feedCategories.getAllIds('language')
 	});
 
 	let allowedNodeIds = $derived(feedEntityFilter.hasFilters ? [...feedEntityFilter.getAllowedFontNodeIds()] : []);
@@ -148,6 +152,7 @@
 		selectedContentTypes;
 		selectedMediaTypes;
 		selectedRegions;
+		selectedLanguages;
 		anyIds;
 		allIds;
 		feedEntityFilter.selectedCreatorIds;

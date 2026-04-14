@@ -11,7 +11,8 @@
 		feedEntityFilter.hasFilters ||
 		feedCategories.getSelectedCount('subject') > 0 ||
 		feedCategories.getSelectedCount('content_type') > 0 ||
-		feedCategories.getSelectedCount('region') > 0
+		feedCategories.getSelectedCount('region') > 0 ||
+		feedCategories.getSelectedCount('language') > 0
 	);
 </script>
 

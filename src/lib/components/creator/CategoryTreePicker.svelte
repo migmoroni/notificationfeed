@@ -15,6 +15,7 @@
 	import FileText from '@lucide/svelte/icons/file-text';
 	import Globe from '@lucide/svelte/icons/globe';
 	import Film from '@lucide/svelte/icons/film';
+	import Languages from '@lucide/svelte/icons/languages';
 	import { t } from '$lib/i18n/t.js';
 	import { tCat } from '$lib/i18n/category.js';
 
@@ -37,7 +38,8 @@
 		{ id: 'subject', labelKey: 'category_tree.subject', descKey: 'category_tree.subject_desc', icon: BookOpen },
 		{ id: 'content_type', labelKey: 'category_tree.content_type', descKey: 'category_tree.content_type_desc', icon: FileText },
 		{ id: 'media_type', labelKey: 'category_tree.media_type', descKey: 'category_tree.media_type_desc', icon: Film },
-		{ id: 'region', labelKey: 'category_tree.region', descKey: 'category_tree.region_desc', icon: Globe }
+		{ id: 'region', labelKey: 'category_tree.region', descKey: 'category_tree.region_desc', icon: Globe },
+		{ id: 'language', labelKey: 'category_tree.language', descKey: 'category_tree.language_desc', icon: Languages }
 	];
 
 	onMount(async () => {

@@ -14,18 +14,20 @@ import enSubject from './languages/category/en-US/subject.json';
 import enContentType from './languages/category/en-US/content-type.json';
 import enMediaType from './languages/category/en-US/media-type.json';
 import enRegion from './languages/category/en-US/region.json';
+import enLanguage from './languages/category/en-US/language.json';
 
 import ptSubject from './languages/category/pt-BR/subject.json';
 import ptContentType from './languages/category/pt-BR/content-type.json';
 import ptMediaType from './languages/category/pt-BR/media-type.json';
 import ptRegion from './languages/category/pt-BR/region.json';
+import ptLanguage from './languages/category/pt-BR/language.json';
 
 type CatDict = Record<string, string>;
 
 /** Merged per-language category dictionaries (all trees flattened). */
 const categoryLabels: Record<Language, CatDict> = {
-	'en-US': { ...enSubject, ...enContentType, ...enMediaType, ...enRegion },
-	'pt-BR': { ...ptSubject, ...ptContentType, ...ptMediaType, ...ptRegion }
+	'en-US': { ...enSubject, ...enContentType, ...enMediaType, ...enRegion, ...enLanguage },
+	'pt-BR': { ...ptSubject, ...ptContentType, ...ptMediaType, ...ptRegion, ...ptLanguage }
 };
 
 /**

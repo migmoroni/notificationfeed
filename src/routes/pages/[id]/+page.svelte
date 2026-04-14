@@ -64,7 +64,8 @@
 		subject: t('category_tree.subject'),
 		content_type: t('category_tree.content_type'),
 		media_type: t('category_tree.media_type'),
-		region: t('category_tree.region')
+		region: t('category_tree.region'),
+		language: t('category_tree.language')
 	};
 
 	/** Get external links from body (only creator/profile have them) */

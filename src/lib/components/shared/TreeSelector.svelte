@@ -16,7 +16,8 @@
 		{ id: 'subject', labelKey: 'category_tree.subject' },
 		{ id: 'content_type', labelKey: 'category_tree.content_type' },
 		{ id: 'media_type', labelKey: 'category_tree.media_type' },
-		{ id: 'region', labelKey: 'category_tree.region' }
+		{ id: 'region', labelKey: 'category_tree.region' },
+		{ id: 'language', labelKey: 'category_tree.language' }
 	];
 
 	let openTreeId = $state<CategoryTreeId | null>(null);

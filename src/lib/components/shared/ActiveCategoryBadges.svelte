@@ -23,7 +23,8 @@
 		{ treeId: 'subject' },
 		{ treeId: 'content_type' },
 		{ treeId: 'media_type' },
-		{ treeId: 'region' }
+		{ treeId: 'region' },
+		{ treeId: 'language' }
 	];
 
 	let hasAny = $derived(TREES.some((tr) => store.getSelectedCount(tr.treeId) > 0));

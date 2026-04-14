@@ -157,10 +157,10 @@ state.trees = allTrees;
 
 const allNodes = extractAllNodes(allTrees);
 
-const treeKeys = ['subject', 'content_type', 'media_type', 'region'] as const;
+const treeKeys = ['subject', 'content_type', 'media_type', 'region', 'language'] as const;
 
-const anyExpanded: Record<CategoryTreeId, Set<string>> = { subject: new Set(), content_type: new Set(), media_type: new Set(), region: new Set() };
-const allExpanded: Record<CategoryTreeId, Set<string>> = { subject: new Set(), content_type: new Set(), media_type: new Set(), region: new Set() };
+const anyExpanded: Record<CategoryTreeId, Set<string>> = { subject: new Set(), content_type: new Set(), media_type: new Set(), region: new Set(), language: new Set() };
+const allExpanded: Record<CategoryTreeId, Set<string>> = { subject: new Set(), content_type: new Set(), media_type: new Set(), region: new Set(), language: new Set() };
 
 for (const tk of treeKeys) {
 const anyIds = new Set<string>();

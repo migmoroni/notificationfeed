@@ -14,7 +14,7 @@ import type { FeedMacro } from '$lib/domain/feed-macro/feed-macro.js';
 import type { CategoryTreeId } from '$lib/domain/category/category.js';
 import type { CategoryFilterMode } from '$lib/stores/category-tree.types.js';
 
-const TREE_IDS: CategoryTreeId[] = ['subject', 'content_type', 'media_type', 'region'];
+const TREE_IDS: CategoryTreeId[] = ['subject', 'content_type', 'media_type', 'region', 'language'];
 
 export type { FeedMacro } from '$lib/domain/feed-macro/feed-macro.js';
 

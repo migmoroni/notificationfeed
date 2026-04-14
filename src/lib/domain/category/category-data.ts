@@ -27,6 +27,8 @@ export interface CategoryDataLeaf {
 	label: string[];
 	parentId: string;
 	order: number;
+	/** BCP 47 language tag (only for language tree leaves) */
+	bcp47?: string;
 }
 
 export type CategoryDataEntry = CategoryDataRoot | CategoryDataLeaf;
@@ -75,7 +77,7 @@ export function resolveEntry(
 	const label = isLeafEntry(entry)
 		? entry.label[entry.label.length - 1]
 		: entry.label;
-	return {
+	const seed: SeedCategory = {
 		id: entry.id,
 		label,
 		treeId,
@@ -83,13 +85,17 @@ export function resolveEntry(
 		depth,
 		order: entry.order
 	};
+	if (isLeafEntry(entry) && entry.bcp47) {
+		seed.bcp47 = entry.bcp47;
+	}
+	return seed;
 }
 
 /**
  * Derive depth from category ID length and tree structure.
  * - 2 chars → depth 0 (root)
  * - 3 chars → depth 1 (region sub-branch)
- * - 5 chars → depth 1 (2-level trees) or depth 2 (3-level trees like region)
+ * - 5 chars → depth 1 (2-level trees) or depth 2 (3-level trees like region/language)
  */
 export function deriveDepth(id: string, threeLevel: boolean): number {
 	switch (id.length) {

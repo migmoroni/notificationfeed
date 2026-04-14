@@ -10,6 +10,7 @@
 import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 import type { ContentTree, TreeNode } from '$lib/domain/content-tree/content-tree.js';
 import { isFontNode, getFontNodes, getNode } from '$lib/domain/content-tree/content-tree.js';
+import type { CategoryTreeId } from '$lib/domain/category/category.js';
 import { buildPriorityMapMultiTree } from '$lib/domain/shared/priority-resolver.js';
 import { sortByPriority, type SortedPost } from '$lib/domain/shared/feed-sorter.js';
 import { mergeAssignments } from '$lib/domain/shared/category-aggregation.js';
@@ -68,7 +69,7 @@ return sortByPriority(state.posts, priorityMap);
 // ── Category filtering helpers ─────────────────────────────────────────
 
 function nodeIdsMatchingCategories(
-treeId: 'subject' | 'content_type' | 'media_type' | 'region',
+treeId: CategoryTreeId,
 categoryIds: string[]
 ): Set<string> {
 if (categoryIds.length === 0) return new Set();
@@ -90,7 +91,7 @@ return matching;
 
 /** Returns node IDs that have ALL of the given categoryIds for a tree. */
 function nodeIdsMatchingAllCategories(
-treeId: 'subject' | 'content_type' | 'media_type' | 'region',
+treeId: CategoryTreeId,
 categoryIds: string[]
 ): Set<string> {
 if (categoryIds.length === 0) return new Set();
@@ -129,11 +130,11 @@ return undefined;
 },
 
 filteredByCategories(
-	anyIds: { subject: string[]; content_type: string[]; media_type: string[]; region: string[] },
-	allIds: { subject: string[]; content_type: string[]; media_type: string[]; region: string[] }
+	anyIds: { subject: string[]; content_type: string[]; media_type: string[]; region: string[]; language: string[] },
+	allIds: { subject: string[]; content_type: string[]; media_type: string[]; region: string[]; language: string[] }
 ): SortedPost<CanonicalPost>[] {
 let sorted = computePrioritized();
-const treeKeys = ['subject', 'content_type', 'media_type', 'region'] as const;
+const treeKeys = ['subject', 'content_type', 'media_type', 'region', 'language'] as const;
 
 for (const treeId of treeKeys) {
 const any = anyIds[treeId];

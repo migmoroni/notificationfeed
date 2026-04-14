@@ -19,13 +19,13 @@
 
 	interface Props {
 		filter?: PriorityFilterValue;
-		anyIds?: { subject: string[]; content_type: string[]; media_type: string[]; region: string[] };
-		allIds?: { subject: string[]; content_type: string[]; media_type: string[]; region: string[] };
+		anyIds?: { subject: string[]; content_type: string[]; media_type: string[]; region: string[]; language: string[] };
+		allIds?: { subject: string[]; content_type: string[]; media_type: string[]; region: string[]; language: string[] };
 		/** Allowed font node IDs (from entity filter). Empty = no filter. */
 		nodeIds?: string[];
 	}
 
-	const emptyTreeIds = () => ({ subject: [] as string[], content_type: [] as string[], media_type: [] as string[], region: [] as string[] });
+	const emptyTreeIds = () => ({ subject: [] as string[], content_type: [] as string[], media_type: [] as string[], region: [] as string[], language: [] as string[] });
 
 	let { filter = 'all', anyIds = emptyTreeIds(), allIds = emptyTreeIds(), nodeIds = [] }: Props = $props();
 
