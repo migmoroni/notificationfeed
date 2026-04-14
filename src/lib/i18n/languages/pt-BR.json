@@ -297,6 +297,8 @@
 	"category_picker.suggested": "sugerido: {max}",
 	"category_filter.categories": "Categorias",
 	"category_filter.clear": "Limpar",
+	"category_filter.mode_any": "Inclui qualquer",
+	"category_filter.mode_all": "Exige todos",
 
 	"preview.go_to_pages": "Ir para Pages →",
 	"preview.overview": "Visão Geral",

@@ -86,43 +86,32 @@
 	</div>
 
 	<!-- Active filter badges -->
-	{#if browse.getSelectedCount('subject') > 0 || browse.getSelectedCount('content_type') > 0 || browse.getSelectedCount('region') > 0}
+	{#if browse.getSelectedCount('subject') > 0 || browse.getSelectedCount('content_type') > 0 || browse.getSelectedCount('media_type') > 0 || browse.getSelectedCount('region') > 0}
+		{@const allTrees = [
+			{ treeId: 'subject' as const, ids: [...browse.modeByTree.subject.keys()] },
+			{ treeId: 'content_type' as const, ids: [...browse.modeByTree.content_type.keys()] },
+			{ treeId: 'media_type' as const, ids: [...browse.modeByTree.media_type.keys()] },
+			{ treeId: 'region' as const, ids: [...browse.modeByTree.region.keys()] }
+		]}
 		<div class="flex flex-wrap gap-1.5 mb-3">
-			{#each [...browse.selectedByTree.subject] as catId (catId)}
-				{@const cat = browse.categories.find((c) => c.id === catId)}
-				{#if cat}
-					<button
-						onclick={() => browse.toggleCategory(catId, 'subject')}
-						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
-					>
-						{tCat(cat.id)}
-						<X class="size-3" />
-					</button>
-				{/if}
-			{/each}
-			{#each [...browse.selectedByTree.content_type] as catId (catId)}
-				{@const cat = browse.categories.find((c) => c.id === catId)}
-				{#if cat}
-					<button
-						onclick={() => browse.toggleCategory(catId, 'content_type')}
-						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
-					>
-						{tCat(cat.id)}
-						<X class="size-3" />
-					</button>
-				{/if}
-			{/each}
-			{#each [...browse.selectedByTree.region] as catId (catId)}
-				{@const cat = browse.categories.find((c) => c.id === catId)}
-				{#if cat}
-					<button
-						onclick={() => browse.toggleCategory(catId, 'region')}
-						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
-					>
-						{tCat(cat.id)}
-						<X class="size-3" />
-					</button>
-				{/if}
+			{#each allTrees as { treeId, ids }}
+				{#each ids as catId (catId)}
+					{@const cat = browse.categories.find((c) => c.id === catId)}
+					{@const mode = browse.getFilterMode(catId, treeId)}
+					{#if cat}
+						<button
+							onclick={() => browse.toggleCategory(catId, treeId)}
+							class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors
+								{mode === 'all'
+									? 'bg-primary text-primary-foreground hover:bg-primary/80'
+									: 'bg-accent text-accent-foreground hover:bg-accent/80 ring-1 ring-accent-foreground/20'}"
+							title={mode === 'all' ? t('category_filter.mode_all') : t('category_filter.mode_any')}
+						>
+							{tCat(cat.id)}
+							<X class="size-3" />
+						</button>
+					{/if}
+				{/each}
 			{/each}
 			<button
 				onclick={() => browse.clearAllCategories()}

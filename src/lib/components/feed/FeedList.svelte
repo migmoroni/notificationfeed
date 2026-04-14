@@ -19,24 +19,27 @@
 
 	interface Props {
 		filter?: PriorityFilterValue;
-		subjectIds?: string[];
-		contentTypeIds?: string[];
-		mediaTypeIds?: string[];
-		regionIds?: string[];
+		anyIds?: { subject: string[]; content_type: string[]; media_type: string[]; region: string[] };
+		allIds?: { subject: string[]; content_type: string[]; media_type: string[]; region: string[] };
 		/** Allowed font node IDs (from entity filter). Empty = no filter. */
 		nodeIds?: string[];
 	}
 
-	let { filter = 'all', subjectIds = [], contentTypeIds = [], mediaTypeIds = [], regionIds = [], nodeIds = [] }: Props = $props();
+	const emptyTreeIds = () => ({ subject: [] as string[], content_type: [] as string[], media_type: [] as string[], region: [] as string[] });
+
+	let { filter = 'all', anyIds = emptyTreeIds(), allIds = emptyTreeIds(), nodeIds = [] }: Props = $props();
 
 	const PAGE_SIZE = 20;
 	let visibleCount = $state(PAGE_SIZE);
 	let sentinel: HTMLDivElement | undefined = $state();
 
+	// Whether any category filter is active
+	const hasAnyFilter = (ids: typeof anyIds) => Object.values(ids).some((a) => a.length > 0);
+
 	// Get base posts (with category filtering if applicable)
 	let basePosts = $derived(
-		(subjectIds.length > 0 || contentTypeIds.length > 0 || mediaTypeIds.length > 0 || regionIds.length > 0)
-			? feed.filteredByCategories(subjectIds, contentTypeIds, mediaTypeIds, regionIds)
+		(hasAnyFilter(anyIds) || hasAnyFilter(allIds))
+			? feed.filteredByCategories(anyIds, allIds)
 			: feed.prioritized
 	);
 

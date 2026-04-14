@@ -88,6 +88,27 @@ matching.add(fontNode.metadata.id);
 return matching;
 }
 
+/** Returns node IDs that have ALL of the given categoryIds for a tree. */
+function nodeIdsMatchingAllCategories(
+treeId: 'subject' | 'content_type' | 'media_type' | 'region',
+categoryIds: string[]
+): Set<string> {
+if (categoryIds.length === 0) return new Set();
+
+const matching = new Set<string>();
+
+for (const tree of state.trees) {
+for (const fontNode of getFontNodes(tree)) {
+const effective = fontNode.data.header.categoryAssignments;
+const assignment = effective.find((a) => a.treeId === treeId);
+if (assignment && categoryIds.every((cid) => assignment.categoryIds.includes(cid))) {
+matching.add(fontNode.metadata.id);
+}
+}
+}
+return matching;
+}
+
 // ── Exported accessor ──────────────────────────────────────────────────
 
 export const feed = {
@@ -107,27 +128,29 @@ if (node) return node;
 return undefined;
 },
 
-filteredByCategories(subjectIds: string[], contentTypeIds: string[], mediaTypeIds: string[] = [], regionIds: string[] = []): SortedPost<CanonicalPost>[] {
+filteredByCategories(
+	anyIds: { subject: string[]; content_type: string[]; media_type: string[]; region: string[] },
+	allIds: { subject: string[]; content_type: string[]; media_type: string[]; region: string[] }
+): SortedPost<CanonicalPost>[] {
 let sorted = computePrioritized();
+const treeKeys = ['subject', 'content_type', 'media_type', 'region'] as const;
 
-if (subjectIds.length > 0) {
-const allowed = nodeIdsMatchingCategories('subject', subjectIds);
-sorted = sorted.filter((sp) => allowed.has(sp.post.nodeId));
+for (const treeId of treeKeys) {
+const any = anyIds[treeId];
+const all = allIds[treeId];
+
+if (any.length > 0 && all.length > 0) {
+	// Both modes: must match ANY of the 'any' set AND ALL of the 'all' set
+	const anyAllowed = nodeIdsMatchingCategories(treeId, any);
+	const allAllowed = nodeIdsMatchingAllCategories(treeId, all);
+	sorted = sorted.filter((sp) => anyAllowed.has(sp.post.nodeId) && allAllowed.has(sp.post.nodeId));
+} else if (any.length > 0) {
+	const allowed = nodeIdsMatchingCategories(treeId, any);
+	sorted = sorted.filter((sp) => allowed.has(sp.post.nodeId));
+} else if (all.length > 0) {
+	const allowed = nodeIdsMatchingAllCategories(treeId, all);
+	sorted = sorted.filter((sp) => allowed.has(sp.post.nodeId));
 }
-
-if (contentTypeIds.length > 0) {
-const allowed = nodeIdsMatchingCategories('content_type', contentTypeIds);
-sorted = sorted.filter((sp) => allowed.has(sp.post.nodeId));
-}
-
-if (mediaTypeIds.length > 0) {
-const allowed = nodeIdsMatchingCategories('media_type', mediaTypeIds);
-sorted = sorted.filter((sp) => allowed.has(sp.post.nodeId));
-}
-
-if (regionIds.length > 0) {
-const allowed = nodeIdsMatchingCategories('region', regionIds);
-sorted = sorted.filter((sp) => allowed.has(sp.post.nodeId));
 }
 
 return sorted;

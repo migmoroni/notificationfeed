@@ -45,6 +45,25 @@
 			openTreeId = null;
 		}
 	}
+
+	/** CSS classes for a category button based on its filter mode state. */
+	function catButtonClass(categoryId: string, treeId: CategoryTreeId): string {
+		if (!store.supportsFilterMode || !store.getFilterMode) {
+			// No tri-state: simple selected/unselected
+			const selected = store.isSelected(categoryId, treeId);
+			return selected
+				? 'bg-accent text-accent-foreground font-medium'
+				: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground';
+		}
+		const mode = store.getFilterMode(categoryId, treeId);
+		if (mode === 'any') {
+			return 'bg-accent text-accent-foreground font-medium ring-1 ring-accent-foreground/20';
+		}
+		if (mode === 'all') {
+			return 'bg-primary text-primary-foreground font-medium';
+		}
+		return 'text-muted-foreground hover:bg-accent/50 hover:text-foreground';
+	}
 </script>
 
 <svelte:window onclick={handleClickOutside} />
@@ -88,7 +107,7 @@
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => { if (e.key === 'Escape') openTreeId = null; }}
 		>
-			<div class="flex items-center justify-between mb-3 px-1">
+			<div class="flex items-center justify-between mb-2 px-1">
 				<span class="text-sm font-medium text-foreground">
 					{t(trees.find((tr) => tr.id === activeTreeId)?.labelKey ?? '')}
 				</span>
@@ -96,6 +115,18 @@
 					<X class="size-4" />
 				</button>
 			</div>
+			{#if store.supportsFilterMode}
+				<div class="flex items-center gap-3 mb-3 px-1 text-[11px] text-muted-foreground">
+					<span class="inline-flex items-center gap-1.5">
+						<span class="inline-block size-3 rounded bg-accent ring-1 ring-accent-foreground/20"></span>
+						{t('category_filter.mode_any')}
+					</span>
+					<span class="inline-flex items-center gap-1.5">
+						<span class="inline-block size-3 rounded bg-primary"></span>
+						{t('category_filter.mode_all')}
+					</span>
+				</div>
+			{/if}
 			{#each roots as root (root.id)}
 				{@const children = store.getChildren(root.id)}
 				{#if children.length > 0}
@@ -109,13 +140,10 @@
 									<span class="px-1 text-[11px] font-medium text-muted-foreground/70">{tCat(child.id)}</span>
 									<div class="grid grid-cols-3 gap-1 mt-1">
 										{#each grandchildren as gc (gc.id)}
-											{@const gcSelected = store.isSelected(gc.id, activeTreeId)}
 											<button
 												onclick={() => handleToggle(gc.id, activeTreeId)}
 												class="rounded-md px-2.5 py-1.5 text-xs transition-colors text-left truncate
-													{gcSelected
-														? 'bg-accent text-accent-foreground font-medium'
-														: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
+													{catButtonClass(gc.id, activeTreeId)}"
 											>
 												{tCat(gc.id)}
 											</button>
@@ -129,13 +157,10 @@
 							{#if leafChildren.length > 0}
 								<div class="grid grid-cols-3 gap-1 mt-1">
 									{#each leafChildren as child (child.id)}
-										{@const selected = store.isSelected(child.id, activeTreeId)}
 										<button
 											onclick={() => handleToggle(child.id, activeTreeId)}
 											class="rounded-md px-2.5 py-1.5 text-xs transition-colors text-left truncate
-												{selected
-													? 'bg-accent text-accent-foreground font-medium'
-													: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
+												{catButtonClass(child.id, activeTreeId)}"
 										>
 											{tCat(child.id)}
 										</button>
@@ -145,13 +170,10 @@
 						{/each}
 					</div>
 				{:else}
-					{@const selected = store.isSelected(root.id, activeTreeId)}
 					<button
 						onclick={() => handleToggle(root.id, activeTreeId)}
 						class="flex w-full items-center rounded-md px-2.5 py-1.5 text-xs transition-colors text-left
-							{selected
-								? 'bg-accent text-accent-foreground font-medium'
-								: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
+							{catButtonClass(root.id, activeTreeId)}"
 					>
 						<span class="truncate">{tCat(root.id)}</span>
 					</button>

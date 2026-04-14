@@ -114,6 +114,21 @@
 	let selectedContentTypes = $derived(feedCategories.getSelectedIds('content_type'));
 	let selectedMediaTypes = $derived(feedCategories.getSelectedIds('media_type'));
 	let selectedRegions = $derived(feedCategories.getSelectedIds('region'));
+
+	// Build anyIds / allIds for the FeedList filter
+	let anyIds = $derived({
+		subject: feedCategories.getAnyIds('subject'),
+		content_type: feedCategories.getAnyIds('content_type'),
+		media_type: feedCategories.getAnyIds('media_type'),
+		region: feedCategories.getAnyIds('region')
+	});
+	let allIds = $derived({
+		subject: feedCategories.getAllIds('subject'),
+		content_type: feedCategories.getAllIds('content_type'),
+		media_type: feedCategories.getAllIds('media_type'),
+		region: feedCategories.getAllIds('region')
+	});
+
 	let allowedNodeIds = $derived(feedEntityFilter.hasFilters ? [...feedEntityFilter.getAllowedFontNodeIds()] : []);
 
 	onMount(async () => {
@@ -306,53 +321,30 @@
 		<PriorityFilter value={filter} onchange={(v) => (filter = v)} />
 
 		{#if feedCategories.getSelectedCount('subject') > 0 || feedCategories.getSelectedCount('content_type') > 0 || feedCategories.getSelectedCount('media_type') > 0 || feedCategories.getSelectedCount('region') > 0}
-			{#each selectedSubjects as catId (catId)}
-				{@const cat = feedCategories.categories.find((c) => c.id === catId)}
-				{#if cat}
-					<button
-						onclick={() => feedCategories.toggleCategory(catId, 'subject')}
-						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
-					>
-						{tCat(cat.id)}
-						<X class="size-3" />
-					</button>
-				{/if}
-			{/each}
-			{#each selectedContentTypes as catId (catId)}
-				{@const cat = feedCategories.categories.find((c) => c.id === catId)}
-				{#if cat}
-					<button
-						onclick={() => feedCategories.toggleCategory(catId, 'content_type')}
-						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
-					>
-						{tCat(cat.id)}
-						<X class="size-3" />
-					</button>
-				{/if}
-			{/each}
-			{#each selectedMediaTypes as catId (catId)}
-				{@const cat = feedCategories.categories.find((c) => c.id === catId)}
-				{#if cat}
-					<button
-						onclick={() => feedCategories.toggleCategory(catId, 'media_type')}
-						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
-					>
-						{tCat(cat.id)}
-						<X class="size-3" />
-					</button>
-				{/if}
-			{/each}
-			{#each selectedRegions as catId (catId)}
-				{@const cat = feedCategories.categories.find((c) => c.id === catId)}
-				{#if cat}
-					<button
-						onclick={() => feedCategories.toggleCategory(catId, 'region')}
-						class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent/80 transition-colors"
-					>
-						{tCat(cat.id)}
-						<X class="size-3" />
-					</button>
-				{/if}
+			{@const allTrees = [
+				{ treeId: 'subject' as const, ids: selectedSubjects },
+				{ treeId: 'content_type' as const, ids: selectedContentTypes },
+				{ treeId: 'media_type' as const, ids: selectedMediaTypes },
+				{ treeId: 'region' as const, ids: selectedRegions }
+			]}
+			{#each allTrees as { treeId, ids }}
+				{#each ids as catId (catId)}
+					{@const cat = feedCategories.categories.find((c) => c.id === catId)}
+					{@const mode = feedCategories.getFilterMode(catId, treeId)}
+					{#if cat}
+						<button
+							onclick={() => feedCategories.toggleCategory(catId, treeId)}
+							class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors
+								{mode === 'all'
+									? 'bg-primary text-primary-foreground hover:bg-primary/80'
+									: 'bg-accent text-accent-foreground hover:bg-accent/80 ring-1 ring-accent-foreground/20'}"
+							title={mode === 'all' ? t('category_filter.mode_all') : t('category_filter.mode_any')}
+						>
+							{tCat(cat.id)}
+							<X class="size-3" />
+						</button>
+					{/if}
+				{/each}
 			{/each}
 			<button
 				onclick={() => feedCategories.clearAll()}
@@ -366,7 +358,7 @@
 	<div class="flex-1 min-h-0 overflow-hidden">
 		<!-- Feed list -->
 		<div class="overflow-y-auto h-full pr-24 pb-24 pt-4">
-			<FeedList {filter} subjectIds={selectedSubjects} contentTypeIds={selectedContentTypes} mediaTypeIds={selectedMediaTypes} regionIds={selectedRegions} nodeIds={allowedNodeIds} />
+			<FeedList {filter} {anyIds} {allIds} nodeIds={allowedNodeIds} />
 		</div>
 	</div>
 </div>

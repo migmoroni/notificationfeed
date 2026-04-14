@@ -299,6 +299,8 @@
 	"category_picker.suggested": "suggested: {max}",
 	"category_filter.categories": "Categories",
 	"category_filter.clear": "Clear",
+	"category_filter.mode_any": "Includes any",
+	"category_filter.mode_all": "Requires all",
 
 	"preview.go_to_pages": "Go to Pages →",
 	"preview.overview": "Overview",
