@@ -16,19 +16,23 @@ O Notfeed roda a mesma base de código SvelteKit (SPA) em todas as plataformas. 
 - [ ] Web Push notifications (permissão + exibição)
 - [ ] Funciona offline com dados já ingeridos
 
-## Android (TWA)
+## Android (TWA + Tauri)
 
-**Artefato**: APK / AAB  
-**Build**: Bubblewrap (wrapping da PWA hospedada)  
+**Artefatos**: APK / AAB  
+**Build (TWA)**: Bubblewrap (wrapping da PWA hospedada)  
+**Build (Tauri)**: `tauri android build`  
 
 ### Funcionalidades
-- [ ] Carrega a PWA em Custom Tab (sem barra de endereço)
+- [ ] TWA: Carrega a PWA em Custom Tab (sem barra de endereço)
+- [ ] Tauri: Build nativo Android via Tauri mobile
 - [ ] Status bar com theme-color configurável
 - [ ] Deep links (ex: `notfeed://profile/123`)
 - [ ] Digital Asset Links para validação de domínio
+- [ ] Publicação na Google Play (TWA ou Tauri)
 
 ### Pré-requisitos
-- PWA publicada em domínio HTTPS com manifest válido
+- PWA publicada em domínio HTTPS com manifest válido (para TWA)
+- Android SDK + NDK (para Tauri mobile)
 - Conta Google Play para publicação
 
 ## Windows Desktop (Tauri)
@@ -44,8 +48,8 @@ O Notfeed roda a mesma base de código SvelteKit (SPA) em todas as plataformas. 
 
 ## Linux Desktop (Tauri)
 
-**Artefato**: `.AppImage`  
-**Build**: `tauri build --bundles appimage`  
+**Artefatos**: `.AppImage`, `.deb`, Flatpak  
+**Build**: `tauri build --bundles appimage,deb` + Flatpak manifest  
 
 ### Funcionalidades
 - [ ] Ícone de system tray com menu de contexto
@@ -60,6 +64,7 @@ O módulo `capabilities.ts` detecta em runtime qual plataforma está ativa:
 | Plataforma | Detecção |
 |---|---|
 | Tauri (desktop) | `'__TAURI_INTERNALS__' in window` |
+| Tauri (mobile) | `'__TAURI_INTERNALS__' in window` + user agent Android |
 | Android (TWA) | `display-mode: standalone` + user agent Android |
 | Web | Fallback padrão |
 

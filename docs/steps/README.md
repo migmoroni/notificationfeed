@@ -197,11 +197,24 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 
 > Segundo target de distribuição.
 
-- [ ] Tauri init + configuração (MSI + AppImage)
+- [ ] Tauri init + configuração
+- [ ] Bundles: MSI (Windows), AppImage + deb + Flatpak (Linux)
 - [ ] System tray com menu de contexto
 - [ ] Minimize-to-tray on close
 - [ ] Auto-updater
 - [ ] SQLite como alternativa a IndexedDB
+
+---
+
+## Fase 9.5 — Mobile (Tauri + TWA)
+
+> Terceiro target de distribuição.
+
+- [ ] TWA via Bubblewrap (wrapping da PWA hospedada)
+- [ ] Tauri mobile build para Android (APK/AAB)
+- [ ] Publicação na Google Play (TWA ou Tauri)
+- [ ] Digital Asset Links para validação de domínio
+- [ ] Deep links (`notfeed://`)
 
 ---
 
