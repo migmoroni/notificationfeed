@@ -2,69 +2,110 @@
 
 ## Definição
 
-Font (fonte de dados) é um canal técnico de distribuição vinculado a um Profile. Encapsula a configuração específica de um protocolo (Nostr, RSS ou Atom). Herda a Category do Profile pai.
+Font (fonte de dados) é um TreeNode com `role='font'` dentro de uma ContentTree. Encapsula a configuração técnica de um protocolo de ingestão (Nostr, RSS ou Atom). Herda categories do nó pai via propagação ascendente.
 
-## Propriedades
+## Estrutura
 
-| Campo | Tipo | Obrigatório | Descrição |
-|---|---|---|---|
-| `id` | string (UUID) | Sim (auto) | Identificador único |
-| `profileId` | string | Sim | Profile ao qual pertence |
-| `title` | string [1..100] | Sim | Nome de exibição da fonte |
-| `tags` | string[] | Não | Tags descritivas |
-| `avatar` | ImageAsset (WEBP, ≤512×512) | Não | Imagem de avatar |
-| `protocol` | `'nostr' \| 'rss' \| 'atom'` | Sim | Protocolo de ingestão |
-| `config` | object | Sim | Configuração específica do protocolo |
-| `defaultEnabled` | boolean | Sim | Estado padrão para novos consumers |
-| `createdAt` | Date | Sim (auto) | Data de criação |
-| `updatedAt` | Date | Sim (auto) | Última atualização |
-
-**Propriedade derivada:** `category` → herdada do Profile pai. Nunca armazenada na Font.
-
-## Configuração por protocolo
-
-### Nostr
-```json
-{
-  "relays": ["wss://relay.damus.io", "wss://nos.lol"],
-  "pubkey": "npub1...",
-  "kinds": [1]
+```typescript
+TreeNode {
+  role: 'font'
+  data: {
+    header: NodeHeader {
+      title: string                         // Nome da fonte [1..100]
+      subtitle?: string
+      summary?: string
+      coverMediaId?: string
+      coverEmoji?: string
+      bannerMediaId?: string
+      categoryAssignments: CategoryAssignment[]  // Geralmente vazio (herda do pai)
+    }
+    body: FontBody {
+      role: 'font'
+      protocol: FontProtocol                // 'nostr' | 'rss' | 'atom'
+      config: FontConfig                    // Config específica do protocolo
+      defaultEnabled: boolean               // Estado padrão para novos consumers
+    }
+  }
+  metadata: TreeNodeMetadata {
+    id: string
+    versionSchema: number
+    createdAt: Date
+    updatedAt: Date
+  }
 }
 ```
 
-### RSS
-```json
+## FontConfig por protocolo
+
+### Nostr (`FontNostrConfig`)
+```typescript
 {
-  "url": "https://example.com/feed.xml"
+  relays: string[]    // Ex: ["wss://relay.damus.io", "wss://nos.lol"]
+  pubkey: string      // Hex ou npub
+  kinds?: number[]    // Tipos de evento (default: [1])
 }
 ```
 
-### Atom
-```json
+### RSS (`FontRssConfig`)
+```typescript
 {
-  "url": "https://example.com/atom.xml"
+  url: string         // Ex: "https://example.com/feed.xml"
 }
 ```
+
+### Atom (`FontAtomConfig`)
+```typescript
+{
+  url: string         // Ex: "https://example.com/atom.xml"
+}
+```
+
+## ID composto
+
+O ID global de uma Font é `treeId:localUuid`:
+- `treeId` = ID da ContentTree que a contém
+- `localUuid` = chave no `nodes` Record da árvore
+
+## Categories
+
+- Fonts geralmente não definem `categoryAssignments` próprias no header
+- Categories efetivas são herdadas via `getEffectiveNodeCategories()` — propagação ascendente pela árvore (font → profile → root)
+- Filtros usam categories efetivas para match any/all
 
 ## Regras de negócio
 
-- Uma Font pertence a exatamente um Profile. Fonts órfãs são proibidas.
-- Herda Category do Profile — não possui Category própria.
-- Pode ser ativada/desativada pelo UserConsumer (via ConsumerState, sem excluir).
-- Deletar uma Font remove todos os posts ingeridos a partir dela.
+- Font é sempre um nó embarcado em uma ContentTree. Não existe como entidade independente.
+- Somente o creator dono da ContentTree pode editar.
 - Title deve ter entre 1 e 100 caracteres.
 - A URL de RSS/Atom deve ser válida.
 - O pubkey de Nostr deve ser um hexadecimal ou npub válido.
+- `defaultEnabled` determina o estado inicial para consumers que não têm overrides.
+- Consumer pode ativar/desativar via `NodeActivation.enabled`.
+- UI de "Seguir/Segue" (FollowButton) mapeia para `NodeActivation.enabled`.
+- Deletar uma Font remove o nó da árvore. Posts ingeridos associados ao nodeId composto são afetados.
+- Prioridade: font node → profile node → root node → 3 (default). `null` = herdar.
 
-## Política de imagens
+## Detecção de protocolo (import)
 
-- Formato oficial: WEBP. Todo upload (SVG, PNG, JPEG, GIF) é auto-convertido.
-- Avatar: máximo 512×512 px.
+Na importação por URL simples, o protocolo é detectado heuristicamente:
+- Presença de `'atom'`, `'.xml'`, `'/feed'`, `'rss'` na URL → inferência do tipo
+- Default: RSS
 
-## Funcionalidades (MVP)
+## Navegação
 
-- [ ] Listar fonts de um profile
-- [ ] Adicionar nova font (formulário dinâmico por protocolo)
-- [ ] Editar font
-- [ ] Deletar font (com confirmação)
-- [ ] Ativar/desativar font (consumer)
+| Contexto | URL |
+|---|---|
+| Browse | `/browse/font/{compositeId}` |
+| Favorites | `/favorites/font/{compositeId}` |
+| Preview | `/preview/font/{compositeId}` |
+
+## Funcionalidades
+
+- [x] Criar Font node em ContentTree (formulário dinâmico por protocolo)
+- [x] Editar Font (title, protocol, config, defaultEnabled)
+- [x] Deletar Font node
+- [x] Exibir Font em browse/favorites/preview
+- [x] Herança de categories via propagação ascendente
+- [x] Ativar/desativar (consumer, via NodeActivation)
+- [x] FollowButton (Segue/Seguir) com confirmação para unfollow
+- [x] Import por URL simples com detecção de protocolo

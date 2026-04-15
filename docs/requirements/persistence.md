@@ -7,75 +7,95 @@ Persistência local, sem dependência de backend remoto.
 | Plataforma | Engine | Motivo |
 |---|---|---|
 | Web / PWA / TWA | IndexedDB | API nativa do browser, suporta dados estruturados e índices |
-| Tauri (Windows/Linux) | SQLite | Acesso via plugin Tauri, melhor performance para volumes maiores |
+| Tauri (Windows/Linux) | SQLite (futuro) | Acesso via plugin Tauri; throw em runtime se detectar `'desktop'` (não implementado) |
 
-## Stores
+## Database
 
-### UserStore
-- CRUD de users.
-- Index: `role`.
+- **Nome**: `notfeed-v2`
+- **Versão**: `5`
+- **Migração**: Destrutiva — ao incrementar a versão, todos os stores são deletados e recriados com o schema atual. Sem lógica de migrations incrementais durante pré-lançamento.
 
-### CreatorPageStore
-- CRUD de creator pages.
-- Index: `ownerId`.
+## Stores (8 totais)
 
-### ProfileStore
-- CRUD completo de profiles.
-- Implementa `ProfileRepository` (contrato do domínio).
-- Indexes: `ownerId`, `creatorPageId`.
+### contentTrees
+- Árvores publicadas/importadas com nós embarcados.
+- keyPath: `metadata.id`
+- Index: `author` (campo `metadata.author`)
 
-### FontStore
-- CRUD de fonts com índice por `profileId`.
-- Implementa `FontRepository` (contrato do domínio).
+### contentMedias
+- Objetos de mídia externa associados a árvores publicadas.
+- keyPath: `metadata.id`
+- Index: `author`
 
-### CategoryStore
-- CRUD de categorias com árvore hierárquica.
-- Indexes: `parentId`, `treeId`.
+### editorTrees
+- Rascunhos do creator (árvores em edição).
+- keyPath: `metadata.id`
+- Index: `author`
 
-### ConsumerStateStore
-- Estado local do consumer por entidade (priority, favorite, favoriteTabIds).
-- keyPath: `entityId`.
-- Index: `entityType`.
+### editorMedias
+- Cópias de mídias do creator (rascunho).
+- keyPath: `metadata.id`
+- Index: `author`
 
-### PostStore
-- Armazenamento e consulta de posts canônicos.
-- Índices: `fontId`, `publishedAt`.
-- Operações: salvar batch, listar paginado, marcar como lido, deletar por `fontId`.
+### treePublications
+- Metadados de publicação (snapshot `TreeExport` por árvore).
+- keyPath: `treeId`
 
-### FavoriteTabStore
-- CRUD de tabs de favoritos.
-- Tab de sistema ⭐ "Todos" (não deletável).
+### users
+- Todos os usuários (consumer e creator).
+- keyPath: `id`
+- Index: `role`
 
-## Esquema IndexedDB
+### posts
+- Posts agrupados por node ID composto.
+- keyPath: `nodeId`
 
-- Database name: `notfeed`
-- Version: `1` (fixo até lançamento — ver ADR-004)
-- Object stores:
-  - `users` (keyPath: `id`, index: `role`)
-  - `creatorPages` (keyPath: `id`, index: `ownerId`)
-  - `profiles` (keyPath: `id`, indexes: `ownerId`, `creatorPageId`)
-  - `fonts` (keyPath: `id`, index: `profileId`)
-  - `categories` (keyPath: `id`, indexes: `parentId`, `treeId`)
-  - `consumerStates` (keyPath: `entityId`, index: `entityType`)
-  - `posts` (keyPath: `id`, indexes: `fontId`, `publishedAt`)
-  - `favoriteTabs` (keyPath: `id`)
-  - `feedMacros` (keyPath: `id`)
+### categories
+- Taxonomia oficial (seed).
+- keyPath: `id`
+- Indexes: `parentId`, `treeId`
 
-> **Pré-lançamento:** schema changes = delete DB + reload. Sem migrations, sem bumps de versão.
+## Abstração
+
+O módulo `db.ts` expõe uma interface `Database` com `TableOps` genérico por store:
+
+```typescript
+interface TableOps {
+  getAll<T>(): Promise<T[]>;
+  getById<T>(id: string): Promise<T | null>;
+  query<T>(index: string, value: unknown): Promise<T[]>;
+  put<T>(item: T): Promise<void>;
+  delete(id: string): Promise<void>;
+}
+```
+
+Detecção de plataforma: se `'desktop'`, lança erro (SQLite não implementado). Web usa IndexedDB.
+
+## Separação Creator / Consumer
+
+| Escopo | Store Trees | Store Medias | Descrição |
+|---|---|---|---|
+| Creator (rascunho) | `editorTrees` | `editorMedias` | Árvores em edição, não visíveis para consumers |
+| Publicado/Importado | `contentTrees` | `contentMedias` | Árvores publicadas pelo creator ou importadas pelo consumer |
+
+Publicar copia o `TreeExport` snapshot de `editorTrees` para `contentTrees`. `metadata.author` identifica o dono.
 
 ## Regras
 
-- A camada de persistência é acessada apenas via stores; nunca diretamente pela UI.
-- Schema versão `1` fixo até lançamento. Novas stores/indexes = delete DB + reload (sem migrations, sem bumps de versão).
-- O módulo `db.ts` abstrai a escolha entre IndexedDB e SQLite via detecção de plataforma.
+- A camada de persistência é acessada apenas via stores reativos; nunca diretamente pela UI.
 - Writes para IndexedDB devem usar `$state.snapshot()` para evitar "Proxy object could not be cloned" (ADR-019).
+- Soft-delete: usuários e árvores usam campo `removedAt` (mantidos no banco, filtrados na UI).
+- Migração destrutiva: incrementar versão do banco = perda de todos os dados locais. Aceitável em pré-lançamento.
 
-## Funcionalidades (MVP)
+## Funcionalidades
 
-- [x] Inicialização do banco IndexedDB com schema versionado
-- [x] ProfileStore: getAll, getById, create, update, delete
-- [x] FontStore: getAll, getByProfileId, getById, create, update, delete
-- [x] PostStore: savePosts, getPosts (paginado), markAsRead, deleteByFontId
-- [x] UserStore, CreatorPageStore, CategoryStore, ConsumerStateStore, FavoriteTabStore
-- [x] Migrações v1→v3→v4 (favoriteFolders→favoriteTabs, indexes stale)
+- [x] Inicialização do banco IndexedDB com schema versionado (v5)
+- [x] Migração destrutiva (delete + recreate stores)
+- [x] contentTrees / contentMedias: CRUD completo com index por author
+- [x] editorTrees / editorMedias: CRUD completo com index por author
+- [x] treePublications: save/get/delete por treeId
+- [x] users: CRUD com index por role
+- [x] posts: CRUD por nodeId
+- [x] categories: CRUD com indexes parentId e treeId
+- [x] Seed automático de categories (empty-check)
 - [ ] Stub para SQLite (Tauri) — implementação futura
