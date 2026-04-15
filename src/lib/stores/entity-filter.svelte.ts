@@ -386,17 +386,22 @@ next.add(pageId);
 selectedPageIds = next;
 },
 
-toggleFont(nodeId: string): void {
-const next = new Set(selectedFontIds);
-if (next.has(nodeId)) {
-next.delete(nodeId);
-} else {
-next.add(nodeId);
-}
-selectedFontIds = next;
-},
+		toggleFont(nodeId: string): void {
+			if (selectedFontIds.has(nodeId)) {
+				selectedFontIds = new Set();
+			} else {
+				selectedFontIds = new Set([nodeId]);
+				// Deselect pages that don't own this font
+				const fontTreeId = parseTreeId(nodeId);
+				const next = new Set<string>();
+				for (const pid of selectedPageIds) {
+					if (parseTreeId(pid) === fontTreeId) next.add(pid);
+				}
+				selectedPageIds = next;
+			}
+		},
 
-clearAll(): void {
+		clearAll(): void {
 selectedPageIds = new Set();
 selectedFontIds = new Set();
 },
