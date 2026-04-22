@@ -29,7 +29,7 @@ return { trees };
 getTrees() { return loadedTrees; }
 };
 
-export const previewEntityFilter = Object.assign(createEntityFilter(source, { singlePageSelect: true }), {
+export const previewEntityFilter = Object.assign(createEntityFilter(source, { singlePageSelect: true, singleFontSelect: true }), {
 /** Access loaded trees (available after loadNodes). */
 getTrees() { return loadedTrees; }
 });

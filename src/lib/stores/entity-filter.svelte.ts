@@ -41,12 +41,15 @@ getTrees(): ContentTree[];
 export interface EntityFilterOptions {
 	/** When true, only one page (tree) can be selected at a time. */
 	singlePageSelect?: boolean;
+	/** When true, only one font can be selected at a time. */
+	singleFontSelect?: boolean;
 }
 
 // ── Factory ────────────────────────────────────────────────────────────
 
 export function createEntityFilter(source: EntityFilterDataSource, options?: EntityFilterOptions): EntityFilterStore {
 const singlePageSelect = options?.singlePageSelect ?? false;
+const singleFontSelect = options?.singleFontSelect ?? false;
 let pageTypeFilter = $state<Set<PageType>>(new Set(ALL_PAGE_TYPES));
 let selectedPageIds = $state<Set<string>>(new Set());
 let selectedFontIds = $state<Set<string>>(new Set());
@@ -388,16 +391,28 @@ selectedPageIds = next;
 
 		toggleFont(nodeId: string): void {
 			if (selectedFontIds.has(nodeId)) {
-				selectedFontIds = new Set();
-			} else {
-				selectedFontIds = new Set([nodeId]);
-				// Deselect pages that don't own this font
-				const fontTreeId = parseTreeId(nodeId);
-				const next = new Set<string>();
-				for (const pid of selectedPageIds) {
-					if (parseTreeId(pid) === fontTreeId) next.add(pid);
+				if (singleFontSelect) {
+					selectedFontIds = new Set();
+				} else {
+					const next = new Set(selectedFontIds);
+					next.delete(nodeId);
+					selectedFontIds = next;
 				}
-				selectedPageIds = next;
+			} else {
+				if (singleFontSelect) {
+					selectedFontIds = new Set([nodeId]);
+					// Deselect pages that don't own this font
+					const fontTreeId = parseTreeId(nodeId);
+					const next = new Set<string>();
+					for (const pid of selectedPageIds) {
+						if (parseTreeId(pid) === fontTreeId) next.add(pid);
+					}
+					selectedPageIds = next;
+				} else {
+					const next = new Set(selectedFontIds);
+					next.add(nodeId);
+					selectedFontIds = next;
+				}
 			}
 		},
 

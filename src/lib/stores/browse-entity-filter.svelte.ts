@@ -23,4 +23,4 @@ return { trees };
 },
 getTrees() { return loadedTrees; },
 isNodeActivated: (nodeId) => consumer.isNodeActivated(nodeId)
-}, { singlePageSelect: true });
+}, { singlePageSelect: true, singleFontSelect: true });
