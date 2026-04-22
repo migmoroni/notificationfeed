@@ -39,7 +39,7 @@
 ## ADR-007: Dois papéis de usuário (Consumer / Creator)
 
 **Contexto**: O app atende dois perfis distintos — quem consome feeds e quem publica conteúdo.  
-**Decisão**: `UserConsumer` e `UserCreator` como entidades separadas, ambas estendendo `UserBase`. Consumer gerencia ativações, favoritos, macros e tags. Creator gerencia ContentTrees e ContentMedias.  
+**Decisão**: `UserConsumer` e `UserCreator` como entidades separadas, ambas estendendo `UserBase`. Consumer gerencia ativações, favoritos e macros. Creator gerencia ContentTrees e ContentMedias.  
 **Consequência**: Regras de negócio podem ser aplicadas por papel. Publicação Nostr restrita ao Creator.
 
 ## ADR-008: ContentTree como artefato publicável
@@ -76,7 +76,7 @@ Campos da `Category`: `id`, `label`, `treeId`, `parentId`, `depth`, `order`, e `
 ## ADR-012: NodeActivation para overrides locais do Consumer
 
 **Contexto**: Consumers precisam ativar/desativar nós individuais e organizar favoritos sem alterar os dados do Creator.  
-**Decisão**: `NodeActivation` — objeto embarcado em `UserConsumer.activateNodes[]` que registra overrides locais por nó. Campos: `nodeId` (composite `treeId:localUuid`), `priority` (PriorityLevel | null), `favorite`, `enabled`, `favoriteTabIds` (array many-to-many com FavoriteTabs), `tagIds`. `TreeActivation` em `activateTrees[]` registra inscrição em árvores inteiras.  
+**Decisão**: `NodeActivation` — objeto embarcado em `UserConsumer.activateNodes[]` que registra overrides locais por nó. Campos: `nodeId` (composite `treeId:localUuid`), `priority` (PriorityLevel | null), `favorite`, `enabled`, `favoriteTabIds` (array many-to-many com FavoriteTabs). `TreeActivation` em `activateTrees[]` registra inscrição em árvores inteiras.  
 **Consequência**: Dados do Creator ficam imutáveis. Toda personalização é armazenada como estado local do Consumer dentro do próprio registro do usuário.
 
 ## ADR-013: Layout adaptativo via store reativo (não CSS-only)

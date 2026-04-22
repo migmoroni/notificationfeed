@@ -3,7 +3,7 @@
 | Termo | Definição |
 |---|---|
 | **UserBase** | Interface base de usuário. Campos: `id`, `role`, `displayName`, `profileImage`, `profileEmoji`, `removedAt`, `language`, `createdAt`, `updatedAt`. |
-| **UserConsumer** | Conta local de consumo. Estende `UserBase` com `activateTrees` (inscrições em árvores), `activateNodes` (overrides por nó), `favoriteTabs`, `userTags`, `feedMacros`, `profileImage`, `profileEmoji`, `language`. Nunca publica conteúdo. |
+| **UserConsumer** | Conta local de consumo. Estende `UserBase` com `activateTrees` (inscrições em árvores), `activateNodes` (overrides por nó), `favoriteTabs`, `feedMacros`, `profileImage`, `profileEmoji`, `language`. Nunca publica conteúdo. |
 | **UserCreator** | Conta de criação. Estende `UserBase` com `ownedTreeIds[]` e `ownedMediaIds[]`. Gerencia ContentTrees e ContentMedias. |
 | **ContentTree** | Aggregate root central do domínio. Estrutura com nós embarcados (`nodes: Record<string, TreeNode>`), mapeamento de posição (`paths: TreePaths`), divisões visuais (`sections: TreeSection[]`), e metadados (`metadata: ContentTreeMetadata`). Substitui o antigo conceito de CreatorPage. |
 | **TreeNode** | Nó embarcado dentro de uma ContentTree. Contém `role` (NodeRole), `data.header` (NodeHeader) e `data.body` (NodeBody discriminado por role). Metadados em `metadata: TreeNodeMetadata`. |
@@ -13,7 +13,7 @@
 | **TreePaths** | Mapeamento de posição dos nós na árvore. `'/'` = root nodeId, `'*'` = nodeIds sem seção, `[sectionId]` = nodeIds na seção. |
 | **TreeSection** | Divisão visual de uma ContentTree. Campos: `id`, `order`, `symbol?`, `title`, `hideTitle`, `color`. |
 | **ContentTreeMetadata** | Metadados da árvore: `id`, `versionSchema`, `createdAt`, `updatedAt`, `author?`, `authorTreeId?`, `removedAt?`. |
-| **NodeActivation** | Objeto embarcado em `UserConsumer.activateNodes[]` que registra o estado local do consumer por nó. Campos: `nodeId` (composite), `priority`, `favorite`, `enabled`, `favoriteTabIds[]`, `tagIds[]`. Substitui o antigo ConsumerState. |
+| **NodeActivation** | Objeto embarcado em `UserConsumer.activateNodes[]` que registra o estado local do consumer por nó. Campos: `nodeId` (composite), `priority`, `favorite`, `enabled`, `favoriteTabIds[]`. Substitui o antigo ConsumerState. |
 | **TreeActivation** | Objeto em `UserConsumer.activateTrees[]` que registra inscrição em uma árvore inteira. Campos: `treeId`, `activatedAt`. |
 | **Category** | Sistema taxonômico hierárquico oficial. Cinco árvores: `subject` (tema), `content_type` (formato), `media_type` (mídia), `region` (geografia), `language` (idioma). Campos: `id`, `label`, `treeId`, `parentId`, `depth`, `order`, `bcp47?`. Distribuída com o app via seed. Apenas sublevels (depth ≥ 1) são associáveis a nós. |
 | **CategoryTreeId** | Identificador de árvore taxonômica: `'subject' \| 'content_type' \| 'region' \| 'media_type' \| 'language'`. |
@@ -22,7 +22,6 @@
 | **TreeModes** | `Record<CategoryTreeId, Map<string, CategoryFilterMode>>` — estado de filtro de categories por árvore, mapeando cada categoryId ao seu modo. |
 | **BCP 47** | Padrão de tags de idioma (ex: `en-US`, `pt-BR`). Usado no campo `bcp47` das categories da árvore `language`. |
 | **FavoriteTab** | Tab para organizar entidades favoritadas. Tab de sistema ⭐ "Todos" (`SYSTEM_FAVORITES_TAB_ID`, não deletável). Usuário pode criar tabs custom com emoji + título. Relação many-to-many com nós via `favoriteTabIds[]` no NodeActivation. Deletar uma tab remove a associação (não desfavorita). Embarcada em `UserConsumer.favoriteTabs[]`. |
-| **UserTag** | Tag pessoal do consumer para organização de nós. Campos: `id`, `name`, `createdAt`. Embarcada em `UserConsumer.userTags[]`. |
 | **FeedMacro** | Preset salvo de filtros do feed. Campos: `id`, `name`, `filters: FeedMacroFilters`. Embarcado em `UserConsumer.feedMacros[]`. |
 | **FeedMacroFilters** | Configuração de filtros de um macro. Campos: `nodeIds[]`, `categoryIdsByTree` (Record por tree), `categoryModesByTree?` (Record de categoryId → mode). |
 | **Font** | TreeNode com `role='font'`. Canal técnico de distribuição que encapsula a configuração de um protocolo (Nostr, RSS ou Atom). Body: `FontBody { protocol, config, defaultEnabled }`. |

@@ -27,9 +27,8 @@ Conta local de consumo. Nunca publica conteúdo.
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `activateTrees` | `TreeActivation[]` | Inscrições em árvores inteiras (`{ treeId, activatedAt }`) |
-| `activateNodes` | `NodeActivation[]` | Estado local por nó (priority, favorite, enabled, favoriteTabIds, tagIds) |
+| `activateNodes` | `NodeActivation[]` | Estado local por nó (priority, favorite, enabled, favoriteTabIds) |
 | `favoriteTabs` | `FavoriteTab[]` | Tabs de favoritos (sistema ⭐ + custom) |
-| `userTags` | `UserTag[]` | Tags pessoais para organização de nós |
 | `feedMacros` | `FeedMacro[]` | Presets salvos de filtros do feed |
 
 ### NodeActivation (por nó)
@@ -41,7 +40,6 @@ Conta local de consumo. Nunca publica conteúdo.
 | `favorite` | boolean | Se é favorito |
 | `enabled` | boolean | Se está ativo (inscrição/follow) |
 | `favoriteTabIds` | `string[]` | IDs de tabs às quais pertence (many-to-many) |
-| `tagIds` | `string[]` | IDs de tags pessoais aplicadas |
 
 ### TreeActivation
 
@@ -61,21 +59,12 @@ Conta local de consumo. Nunca publica conteúdo.
 | `isSystem` | boolean | Se é tab de sistema (não deletável) |
 | `createdAt` | Date | Data de criação |
 
-### UserTag
-
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | string | UUID |
-| `name` | string | Nome da tag |
-| `createdAt` | Date | Data de criação |
-
 ### Capacidades do Consumer
 
 - Inscrever-se em ContentTrees inteiras (via TreeActivation)
 - Ativar/desativar nós individuais (via NodeActivation.enabled)
 - Definir prioridade por nó com herança (font → profile → root → 3)
 - Favoritar nós e organizar em FavoriteTabs (many-to-many)
-- Criar e gerenciar UserTags para organização pessoal
 - Criar e aplicar FeedMacros (presets de filtro)
 - Importar ContentTrees (.notfeed.json) e URLs simples
 - Definir idioma preferido (i18n)
@@ -143,7 +132,6 @@ Conta de criação. Gerencia ContentTrees e ContentMedias.
 - [x] Persistência de último ativo em localStorage
 - [x] Idioma preferido (i18n)
 - [x] CRUD de FavoriteTabs (many-to-many)
-- [x] CRUD de UserTags
 - [x] CRUD de FeedMacros
-- [x] NodeActivation: priority, favorite, enabled, favoriteTabIds, tagIds
+- [x] NodeActivation: priority, favorite, enabled, favoriteTabIds
 - [x] TreeActivation: inscrição em árvores inteiras

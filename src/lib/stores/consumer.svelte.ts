@@ -7,7 +7,7 @@
  * Pattern: module-level $state + exported read-only accessor + init() lifecycle.
  */
 
-import type { UserConsumer, NodeActivation, FavoriteTab, UserTag } from '$lib/domain/user/user-consumer.js';
+import type { UserConsumer, NodeActivation, FavoriteTab } from '$lib/domain/user/user-consumer.js';
 import { SYSTEM_FAVORITES_TAB_ID } from '$lib/domain/user/user-consumer.js';
 import type { FeedMacro, FeedMacroFilters } from '$lib/domain/feed-macro/feed-macro.js';
 import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
@@ -45,7 +45,6 @@ export const consumer = {
 	get activateNodes() { return state.user?.activateNodes ?? []; },
 	get activationMap() { return state.activationMap; },
 	get favoriteTabs() { return state.user?.favoriteTabs ?? []; },
-	get userTags() { return state.user?.userTags ?? []; },
 	get loading() { return state.loading; },
 	get isReady() { return state.user !== null && !state.loading; },
 
@@ -214,63 +213,6 @@ export const consumer = {
 		const refreshed = await repo.getById(state.user.id);
 		if (refreshed) {
 			state.user = refreshed;
-			refreshActivationMap();
-		}
-	},
-
-	// ── User tag management ─────────────────────────────────────────
-
-	getNodeTagIds(nodeId: string): string[] {
-		return state.activationMap.get(nodeId)?.tagIds ?? [];
-	},
-
-	getNodeTagNames(nodeId: string): string[] {
-		const tagIds = this.getNodeTagIds(nodeId);
-		if (tagIds.length === 0) return [];
-		const tags = state.user?.userTags ?? [];
-		return tagIds
-			.map((id) => tags.find((t) => t.id === id)?.name)
-			.filter((n): n is string => n != null);
-	},
-
-	async createUserTag(name: string): Promise<UserTag> {
-		if (!state.user) throw new Error('No active user');
-
-		const tag = await repo.createUserTag(state.user.id, name);
-		state.user = { ...state.user, userTags: [...(state.user.userTags ?? []), tag] };
-		return tag;
-	},
-
-	async updateUserTag(tagId: string, name: string): Promise<void> {
-		if (!state.user) return;
-
-		const updated = await repo.updateUserTag(state.user.id, tagId, name);
-		state.user = {
-			...state.user,
-			userTags: (state.user.userTags ?? []).map((t) => (t.id === tagId ? updated : t))
-		};
-	},
-
-	async deleteUserTag(tagId: string): Promise<void> {
-		if (!state.user) return;
-
-		await repo.deleteUserTag(state.user.id, tagId);
-
-		const refreshed = await repo.getById(state.user.id);
-		if (refreshed) {
-			state.user = refreshed;
-			refreshActivationMap();
-		}
-	},
-
-	async updateNodeTagIds(nodeId: string, tagIds: string[]): Promise<void> {
-		if (!state.user) return;
-
-		await repo.updateNodeTagIds(state.user.id, nodeId, tagIds);
-
-		const activation = state.user.activateNodes.find((n) => n.nodeId === nodeId);
-		if (activation) {
-			activation.tagIds = tagIds;
 			refreshActivationMap();
 		}
 	},

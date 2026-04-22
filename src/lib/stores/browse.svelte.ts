@@ -16,7 +16,6 @@ import type { Category, CategoryTreeId } from '$lib/domain/category/category.js'
 import type { ContentTree, TreeNode } from '$lib/domain/content-tree/content-tree.js';
 import { createContentTreeStore } from '$lib/persistence/content-tree.store.js';
 import { getEffectiveNodeCategories } from '$lib/domain/shared/category-aggregation.js';
-import { consumer } from '$lib/stores/consumer.svelte.js';
 import { browseCategories } from '$lib/stores/browse-categories.svelte.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
@@ -81,11 +80,8 @@ return [...expandedIds].every((cid) => assignment.categoryIds.includes(cid));
 function nodeMatchesQuery(node: TreeNode, query: string): boolean {
 if (!query.trim()) return true;
 const h = node.data.header;
-const nodeId = node.metadata.id;
-const tagNames = consumer.getNodeTagNames(nodeId);
 return (
 matchesQuery(h.title, query) ||
-tagNames.some((t) => matchesQuery(t, query)) ||
 (h.subtitle ? matchesQuery(h.subtitle, query) : false) ||
 (h.summary ? matchesQuery(h.summary, query) : false)
 );

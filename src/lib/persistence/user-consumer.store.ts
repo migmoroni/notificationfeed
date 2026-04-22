@@ -10,8 +10,7 @@ import type {
 	UserConsumerRepository,
 	NewUserConsumer,
 	NodeActivation,
-	FavoriteTab,
-	UserTag
+	FavoriteTab
 } from '$lib/domain/user/user-consumer.js';
 import { SYSTEM_FAVORITES_TAB_ID } from '$lib/domain/user/user-consumer.js';
 import type { FeedMacro, FeedMacroFilters } from '$lib/domain/feed-macro/feed-macro.js';
@@ -59,7 +58,6 @@ export function createUserConsumerStore(): UserConsumerRepository {
 				activateTrees: [],
 				activateNodes: [],
 				favoriteTabs: [createSystemTab()],
-				userTags: [],
 				feedMacros: [],
 				createdAt: now,
 				updatedAt: now
@@ -116,8 +114,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 							priority: null,
 							favorite: false,
 							enabled: true,
-							favoriteTabIds: [],
-							tagIds: []
+							favoriteTabIds: []
 						});
 					}
 				}
@@ -128,8 +125,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 				priority: null,
 				favorite: false,
 				enabled: true,
-				favoriteTabIds: [],
-				tagIds: []
+				favoriteTabIds: []
 			};
 			user.activateNodes.push(activation);
 			user.updatedAt = new Date();
@@ -277,69 +273,6 @@ export function createUserConsumerStore(): UserConsumerRepository {
 				activation.favoriteTabIds = activation.favoriteTabIds.filter((id) => id !== tabId);
 			}
 
-			user.updatedAt = new Date();
-			await db.users.put(user);
-		},
-
-		// -- User tag management (embedded in user) --
-
-		async createUserTag(userId: string, name: string): Promise<UserTag> {
-			const db = await getDatabase();
-			const user = await db.users.getById<UserConsumer>(userId);
-			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
-
-			const normalized = name.trim().toLowerCase();
-			const exists = (user.userTags ?? []).some((t) => t.name === normalized);
-			if (exists) throw new Error(`Tag already exists: ${normalized}`);
-
-			const tag: UserTag = { id: uuidv7(), name: normalized, createdAt: new Date() };
-			user.userTags = [...(user.userTags ?? []), tag];
-			user.updatedAt = new Date();
-			await db.users.put(user);
-			return tag;
-		},
-
-		async updateUserTag(userId: string, tagId: string, name: string): Promise<UserTag> {
-			const db = await getDatabase();
-			const user = await db.users.getById<UserConsumer>(userId);
-			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
-
-			const tag = (user.userTags ?? []).find((t) => t.id === tagId);
-			if (!tag) throw new Error(`UserTag not found: ${tagId}`);
-
-			tag.name = name.trim().toLowerCase();
-			user.updatedAt = new Date();
-			await db.users.put(user);
-			return tag;
-		},
-
-		async deleteUserTag(userId: string, tagId: string): Promise<void> {
-			const db = await getDatabase();
-			const user = await db.users.getById<UserConsumer>(userId);
-			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
-
-			user.userTags = (user.userTags ?? []).filter((t) => t.id !== tagId);
-
-			// Clear tag references from node activations
-			for (const activation of user.activateNodes) {
-				if (activation.tagIds) {
-					activation.tagIds = activation.tagIds.filter((id) => id !== tagId);
-				}
-			}
-
-			user.updatedAt = new Date();
-			await db.users.put(user);
-		},
-
-		async updateNodeTagIds(userId: string, nodeId: string, tagIds: string[]): Promise<void> {
-			const db = await getDatabase();
-			const user = await db.users.getById<UserConsumer>(userId);
-			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
-
-			const activation = user.activateNodes.find((n) => n.nodeId === nodeId);
-			if (!activation) throw new Error(`Node not activated: ${nodeId}`);
-
-			activation.tagIds = tagIds;
 			user.updatedAt = new Date();
 			await db.users.put(user);
 		},

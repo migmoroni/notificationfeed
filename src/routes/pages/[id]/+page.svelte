@@ -23,7 +23,6 @@
 	import Globe from '@lucide/svelte/icons/globe';
 	import PenLine from '@lucide/svelte/icons/pen-line';
 	import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
-	import Tag from '@lucide/svelte/icons/tag';
 	import { t } from '$lib/i18n/t.js';
 	import { tCat } from '$lib/i18n/category.js';
 

@@ -34,7 +34,6 @@ import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavo
 import ConfirmUnfollowDialog from '$lib/components/shared/dialog/ConfirmUnfollowDialog.svelte';
 import ConfirmUnsubscribeDialog from '$lib/components/shared/dialog/ConfirmUnsubscribeDialog.svelte';
 import ConfirmUnpinDialog from '$lib/components/shared/dialog/ConfirmUnpinDialog.svelte';
-import NodeTagEditor from '$lib/components/shared/NodeTagEditor.svelte';
 
 interface Props {
 nodeId: string;
@@ -334,19 +333,6 @@ class="ml-auto text-xs font-medium px-3 py-1.5 rounded-md border transition-colo
 </button>
 {/if}
 </div>
-
-<!-- Tags (user-level, only when activated) -->
-{#if isActivated && node}
-{@const nid = node.metadata.id}
-<div class="mb-4">
-<NodeTagEditor
-assignedTagIds={consumer.getNodeTagIds(nid)}
-userTags={consumer.userTags}
-onassign={(tagIds) => consumer.updateNodeTagIds(nid, tagIds)}
-oncreate={(name) => consumer.createUserTag(name)}
-/>
-</div>
-{/if}
 
 <Separator class="my-4" />
 

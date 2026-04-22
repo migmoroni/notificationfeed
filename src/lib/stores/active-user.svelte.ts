@@ -151,7 +151,6 @@ export const activeUser = {
 			activateTrees: [],
 			activateNodes: [],
 			favoriteTabs: [],
-			userTags: [],
 			feedMacros: [],
 			createdAt: now,
 			updatedAt: now

@@ -36,7 +36,7 @@ Notfeed é um cliente de agregação de informação focado em feeds e notifica�
 
 ## Entidades do domínio
 
-- **UserConsumer** — conta local de consumo (ativações de árvores/nós, favoritos, macros, tags)
+- **UserConsumer** — conta local de consumo (ativações de árvores/nós, favoritos, macros)
 - **UserCreator** — conta de criação (gerencia ContentTrees e ContentMedias)
 - **ContentTree** — aggregate root: árvore com nós embarcados (TreeNode) de múltiplos papéis
 - **TreeNode** — nó embarcado: Profile, Font, Creator, Collection, ou Tree (link)

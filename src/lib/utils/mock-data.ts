@@ -205,7 +205,6 @@ language: 'en-US',
 activateTrees: [],
 activateNodes: [],
 favoriteTabs: [],
-userTags: [],
 feedMacros: [],
 createdAt: now,
 updatedAt: now
