@@ -19,6 +19,14 @@
 		browseEntityFilter.hasFilters ? [...browseEntityFilter.getAllowedFontNodeIds()] : []
 	);
 
+	// Browse is in "Library Search" mode when any library-tab or node filter is active;
+	// otherwise it's in "Global Search" mode (will include external sources in the future).
+	let isLibrarySearch = $derived(
+		browseEntityFilter.libraryTabFilter.size > 0 ||
+			browseEntityFilter.selectedPageIds.size > 0 ||
+			browseEntityFilter.selectedFontIds.size > 0
+	);
+
 	// Load all nodes when entity filter is active without category filters,
 	// or always ensure nodes are loaded for the default view.
 	$effect(() => {
@@ -105,9 +113,17 @@
 	</div>
 
 	<!-- Active filter badges (single-line, horizontally scrollable, reserved height) -->
-	<div class="mb-3 min-h-[28px] flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pr-24">
-		<ActiveLibraryTabBadges store={browseEntityFilter} />
-		<ActiveCategoryBadges store={browseCategories} />
+	<div class="mb-3 min-h-[28px] flex items-center gap-3 pr-24">
+		<span
+			class="shrink-0 text-xs font-medium uppercase tracking-wide
+				{isLibrarySearch ? 'text-primary' : 'text-muted-foreground'}"
+		>
+			{isLibrarySearch ? t('browse.library_search') : t('browse.global_search')}
+		</span>
+		<div class="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto whitespace-nowrap">
+			<ActiveLibraryTabBadges store={browseEntityFilter} />
+			<ActiveCategoryBadges store={browseCategories} />
+		</div>
 	</div>
 
 	<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? '' : 'md:grid-cols-[265px_1fr]'}">

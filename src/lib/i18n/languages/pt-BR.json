@@ -84,6 +84,8 @@
 	"active.activate": "Ativar",
 
 	"browse.add_content": "Adicione conteúdo ao seu catálogo",
+	"browse.global_search": "Busca global",
+	"browse.library_search": "Busca na biblioteca",
 	"browse.file_tab": "Arquivo .notfeed.json",
 	"browse.urls_tab": "URLs",
 	"browse.select_file": "Selecione um arquivo .notfeed.json",

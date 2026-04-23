@@ -84,6 +84,8 @@
 	"active.activate": "Activate",
 
 	"browse.add_content": "Add content to your catalog",
+	"browse.global_search": "Global search",
+	"browse.library_search": "Library search",
 	"browse.file_tab": ".notfeed.json file",
 	"browse.urls_tab": "URLs",
 	"browse.select_file": "Select a .notfeed.json file",
