@@ -62,7 +62,9 @@ let branchManual: Record<string, boolean> = $state({});
 
 function isBranchOpen(key: string): boolean {
 if (key in branchManual) return branchManual[key];
-return openPages[key] ?? false;
+if (openPages[key]) return true;
+// A selected page (even when nested under another page) auto-expands so its children are visible.
+return store.isPageSelected(key);
 }
 
 function toggleBranch(key: string) {
@@ -194,9 +196,9 @@ class="flex flex-1 min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-[13px]
 {/snippet}
 
 <!-- ═══ Main template ═══ -->
-<div class="flex flex-col gap-1 min-w-0 overflow-x-hidden">
-<!-- Page type filter — segmented row -->
-<div class="flex items-center gap-1 px-2 py-1">
+<div class="flex flex-col gap-1 min-w-0 min-h-0 h-full overflow-hidden">
+<!-- Page type filter — segmented row (sticky top) -->
+<div class="flex items-center gap-1 px-2 py-1 shrink-0">
 {#each (ALL_PAGE_TYPES) as pt (pt)}
 {@const isActive = store.pageTypeFilter.has(pt)}
 <button
@@ -222,7 +224,8 @@ aria-label={t('aria.clear_filter')}
 {/if}
 </div>
 
-<!-- Page list grouped by type -->
+<!-- Page list grouped by type (scrollable area) -->
+<div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
 {#if groupedPages.length > 0}
 <div class="flex flex-col gap-2 px-1">
 {#each groupedPages as group (group.type)}
@@ -256,4 +259,5 @@ Mais {group.pages.length - PAGE_LIMIT}
 {:else}
 <p class="px-3 py-4 text-xs text-muted-foreground text-center">{t('entity_filter.no_pages')}</p>
 {/if}
+</div>
 </div>

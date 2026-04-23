@@ -234,25 +234,10 @@ await source.load();
 },
 
 setPageTypeFilter(types: Set<PageType>): void {
-pageTypeFilter = new Set(types);
-// Deselect pages that no longer match the type filter
-const next = new Set(selectedPageIds);
-const nextFonts = new Set(selectedFontIds);
-for (const pid of next) {
-const role = pageRootRole(pid);
-if (role !== null && !types.has(role)) {
-next.delete(pid);
-// Also remove fonts from this page
-const treeId = parseTreeId(pid);
-for (const fid of fontIdsForTree(treeId)) {
-nextFonts.delete(fid);
-}
-}
-}
-selectedPageIds = next;
-selectedFontIds = nextFonts;
-},
-
+		pageTypeFilter = new Set(types);
+		// Changing the visible page-type filter must NOT drop current selections:
+		// the user may narrow the sidebar view without losing what they picked.
+	},
 togglePageType(type: PageType): void {
 const onlyThis = pageTypeFilter.size === 1 && pageTypeFilter.has(type);
 if (onlyThis) {
@@ -453,11 +438,18 @@ selectedPageIds = next;
 			} else {
 				if (singleFontSelect) {
 					selectedFontIds = new Set([nodeId]);
-					// Deselect pages that don't own this font
+					// Keep pages that own this font directly or are linked (via tree-links)
+					// to the tree that owns the font. Bidirectional: creators linking to the
+					// font's profile tree are preserved, just like profiles selecting their own font.
 					const fontTreeId = parseTreeId(nodeId);
 					const next = new Set<string>();
 					for (const pid of selectedPageIds) {
-						if (parseTreeId(pid) === fontTreeId) next.add(pid);
+						if (parseTreeId(pid) === fontTreeId) { next.add(pid); continue; }
+						let keep = false;
+						for (const relatedRootId of getRelatedPageIds(pid)) {
+							if (parseTreeId(relatedRootId) === fontTreeId) { keep = true; break; }
+						}
+						if (keep) next.add(pid);
 					}
 					selectedPageIds = next;
 				} else {

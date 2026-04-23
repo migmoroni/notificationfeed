@@ -19,8 +19,8 @@
 </script>
 
 <div class="flex flex-col h-full min-w-0 overflow-hidden">
-	<!-- Pages: scrollable area -->
-	<div class="flex-1 min-h-0 overflow-y-auto py-2">
+	<!-- Pages: the component itself handles its own sticky header and scrollable list -->
+	<div class="flex-1 min-h-0 py-2">
 		<EntityTreeFilter store={entityStore} />
 	</div>
 	<!-- Library tabs: fixed between pages and categories -->
