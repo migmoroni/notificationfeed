@@ -41,7 +41,7 @@
 			{@const mode = store.getFilterMode(catId, treeId)}
 			{#if cat}
 				<span
-					class="inline-flex items-center rounded-full text-xs font-medium transition-colors
+					class="inline-flex items-center rounded-full text-xs font-medium transition-colors shrink-0
 						{mode === 'all'
 							? 'bg-primary text-primary-foreground'
 							: 'bg-accent text-accent-foreground ring-1 ring-accent-foreground/20'}"
@@ -66,7 +66,7 @@
 	{/each}
 	<button
 		onclick={() => store.clearAll()}
-		class="text-xs text-muted-foreground hover:text-foreground transition-colors underline"
+		class="text-xs text-muted-foreground hover:text-foreground transition-colors underline shrink-0"
 	>
 		{t('btn.clear_all')}
 	</button>

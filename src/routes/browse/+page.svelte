@@ -10,6 +10,7 @@
 	import { SearchBar } from '$lib/components/browse/index.js';
 	import FilterSidebar from '$lib/components/shared/FilterSidebar.svelte';
 	import ActiveCategoryBadges from '$lib/components/shared/ActiveCategoryBadges.svelte';
+	import ActiveLibraryTabBadges from '$lib/components/shared/ActiveLibraryTabBadges.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import Upload from '@lucide/svelte/icons/upload';
 	import { t } from '$lib/i18n/t.js';
@@ -103,8 +104,9 @@
 		<SearchBar />
 	</div>
 
-	<!-- Active filter badges -->
-	<div class="flex flex-wrap gap-1.5 mb-3">
+	<!-- Active filter badges (single-line, horizontally scrollable, reserved height) -->
+	<div class="mb-3 min-h-[28px] flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pr-24">
+		<ActiveLibraryTabBadges store={browseEntityFilter} />
 		<ActiveCategoryBadges store={browseCategories} />
 	</div>
 

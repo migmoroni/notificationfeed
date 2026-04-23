@@ -11,6 +11,7 @@
 	import FeedMacros from '$lib/components/feed/FeedMacros.svelte';
 	import FilterSidebar from '$lib/components/shared/FilterSidebar.svelte';
 	import ActiveCategoryBadges from '$lib/components/shared/ActiveCategoryBadges.svelte';
+	import ActiveLibraryTabBadges from '$lib/components/shared/ActiveLibraryTabBadges.svelte';
 	import ConfirmDialog from '$lib/components/shared/dialog/ConfirmDialog.svelte';
 	import type { PriorityFilterValue } from '$lib/components/feed/index.js';
 	import { formatRelativeDate } from '$lib/utils/date.js';
@@ -324,10 +325,13 @@
 		</button>
 	</div>
 
-	<!-- Priority filter + active category badges -->
-	<div class="flex items-center gap-3 mb-4 flex-wrap">
+	<!-- Priority filter + active filter badges (single-line, horizontally scrollable, reserved height) -->
+	<div class="mb-4 flex items-center gap-3">
 		<PriorityFilter value={filter} onchange={(v) => (filter = v)} />
-		<ActiveCategoryBadges store={feedCategories} />
+		<div class="flex-1 min-w-0 min-h-[28px] flex items-center gap-1.5 overflow-x-auto whitespace-nowrap">
+			<ActiveLibraryTabBadges store={feedEntityFilter} />
+			<ActiveCategoryBadges store={feedCategories} />
+		</div>
 	</div>
 
 	<div class="flex-1 min-h-0 overflow-hidden">
