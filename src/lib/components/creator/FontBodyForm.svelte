@@ -139,7 +139,7 @@
 					<div class="flex flex-wrap gap-1">
 						{#each nostrRelays as relay}
 							<Badge variant="secondary" class="gap-1 pr-1">
-								<span class="max-w-[200px] truncate">{relay}</span>
+								<span class="max-w-50 truncate">{relay}</span>
 								<button
 									type="button"
 									class="ml-0.5 rounded-full hover:bg-muted-foreground/20 p-0.5"

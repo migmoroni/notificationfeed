@@ -109,7 +109,7 @@
 	{#if mode === 'image'}
 		<div class="flex items-center gap-4">
 			{#if previewUrl && !emoji}
-				<div class="w-[72px] h-[72px] rounded-lg overflow-hidden bg-muted border shrink-0">
+				<div class="w-18 h-18 rounded-lg overflow-hidden bg-muted border shrink-0">
 					<img src={previewUrl} alt="Avatar" class="w-full h-full object-cover" />
 				</div>
 				<div class="flex flex-col gap-1">
@@ -150,11 +150,11 @@
 	{:else}
 		<div class="flex items-center gap-4">
 			{#if emoji}
-				<div class="w-[72px] h-[72px] rounded-lg border bg-muted flex items-center justify-center text-4xl shrink-0">
+				<div class="w-18 h-18 rounded-lg border bg-muted flex items-center justify-center text-4xl shrink-0">
 					{emoji}
 				</div>
 			{:else}
-				<div class="w-[72px] h-[72px] rounded-lg border-2 border-dashed flex items-center justify-center text-muted-foreground shrink-0">
+				<div class="w-18 h-18 rounded-lg border-2 border-dashed flex items-center justify-center text-muted-foreground shrink-0">
 					<Smile class="size-6" />
 				</div>
 			{/if}

@@ -110,7 +110,7 @@
 	{#if layout.isExpanded}
 		<!-- EXPANDED: fixed sidebar + scrollable main content -->
 		<aside
-			class="flex flex-col w-[295px] shrink-0 border-r border-border bg-sidebar text-sidebar-foreground"
+			class="flex flex-col w-73.75 shrink-0 border-r border-border bg-sidebar text-sidebar-foreground"
 		>
 			<div class="p-4 border-b border-sidebar-border">
 				<span class="text-lg font-bold tracking-tight">Notfeed</span>

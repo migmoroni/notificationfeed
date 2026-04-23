@@ -107,7 +107,7 @@
 			>
 				<Icon class="size-4" />
 				{#if selectedCount > 0}
-					<span class="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[14px] h-[14px] px-1 rounded-full bg-primary text-primary-foreground text-[9px] font-semibold tabular-nums leading-none">
+					<span class="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-3.5 h-3.5 px-1 rounded-full bg-primary text-primary-foreground text-[9px] font-semibold tabular-nums leading-none">
 						{selectedCount}
 					</span>
 				{/if}
@@ -121,7 +121,7 @@
 		{@const activeTreeId = openTreeId}
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class="w-[640px] max-h-[70vh] overflow-y-auto rounded-lg border bg-background shadow-lg p-3 z-50"
+			class="w-160 max-h-[70vh] overflow-y-auto rounded-lg border bg-background shadow-lg p-3 z-50"
 			style={flyoutStyle}
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => { if (e.key === 'Escape' && openTreeId) sidebarFlyout.close(flyoutKey(openTreeId)); }}

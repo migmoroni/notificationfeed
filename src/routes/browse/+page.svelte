@@ -113,7 +113,7 @@
 	</div>
 
 	<!-- Active filter badges (single-line, horizontally scrollable, reserved height) -->
-	<div class="mb-3 min-h-[28px] flex items-center gap-3 pr-24">
+	<div class="mb-3 min-h-7 flex items-center gap-3 pr-24">
 		<span
 			class="shrink-0 text-xs font-medium uppercase tracking-wide
 				{isLibrarySearch ? 'text-primary' : 'text-muted-foreground'}"

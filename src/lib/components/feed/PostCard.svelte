@@ -64,7 +64,7 @@
 			title={fontTitle}
 		>
 			<span
-				class="absolute whitespace-nowrap text-[10px] font-semibold tracking-wide uppercase truncate max-w-[120px] {sortedPost.post.read ? 'text-muted-foreground' : 'text-primary-foreground'} group-hover/font:text-accent"
+				class="absolute whitespace-nowrap text-[10px] font-semibold tracking-wide uppercase truncate max-w-30 {sortedPost.post.read ? 'text-muted-foreground' : 'text-primary-foreground'} group-hover/font:text-accent"
 				style="writing-mode: vertical-rl; transform: rotate(180deg);"
 			>
 				{fontTitle}

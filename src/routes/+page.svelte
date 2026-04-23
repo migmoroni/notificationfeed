@@ -328,7 +328,7 @@
 	<!-- Priority filter + active filter badges (single-line, horizontally scrollable, reserved height) -->
 	<div class="mb-4 flex items-center gap-3">
 		<PriorityFilter value={filter} onchange={(v) => (filter = v)} />
-		<div class="flex-1 min-w-0 min-h-[28px] flex items-center gap-1.5 overflow-x-auto whitespace-nowrap">
+		<div class="flex-1 min-w-0 min-h-7 flex items-center gap-1.5 overflow-x-auto whitespace-nowrap">
 			<ActiveLibraryTabBadges store={feedEntityFilter} />
 			<ActiveCategoryBadges store={feedCategories} />
 		</div>
