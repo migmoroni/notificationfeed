@@ -96,6 +96,12 @@ export const consumer = {
 		}
 	},
 
+	/** Clear all in-memory consumer state (e.g. when switching away to a creator user). */
+	clear(): void {
+		state.user = null;
+		state.activationMap = new Map();
+	},
+
 	async activateNode(nodeId: string): Promise<void> {
 		if (!state.user) return;
 

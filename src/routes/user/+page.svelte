@@ -4,7 +4,7 @@ import { activeUser } from '$lib/stores/active-user.svelte.js';
 import { consumer } from '$lib/stores/consumer.svelte.js';
 import { creator } from '$lib/stores/creator.svelte.js';
 import { feed } from '$lib/stores/feed.svelte.js';
-import { feedMacros } from '$lib/stores/feed-macros.svelte.js';
+import { resetUserScopedState } from '$lib/stores/user-scope-reset.js';
 import { layout } from '$lib/stores/layout.svelte.js';
 import { processImage, createImagePreviewUrl } from '$lib/services/image.service.js';
 import { ACCEPTED_IMAGE_FORMATS } from '$lib/domain/shared/image-asset.js';
@@ -73,12 +73,13 @@ if (!name) return;
 if (createRole === 'consumer') {
 const user = await activeUser.createConsumer(name);
 activeUser.switchTo(user.id);
-feedMacros.reset();
+resetUserScopedState();
 await consumer.init(user.id);
 await feed.loadFeed();
 } else {
 const user = await activeUser.createCreator(name);
 activeUser.switchTo(user.id);
+resetUserScopedState();
 await creator.init(user);
 }
 showCreateDialog = false;
@@ -182,7 +183,7 @@ if (!deleteTargetUser) return;
 await activeUser.softDelete(deleteTargetUser.id);
 
 if (activeUser.current?.role === 'consumer') {
-feedMacros.reset();
+resetUserScopedState();
 await consumer.init(activeUser.current.id);
 await feed.loadFeed();
 }
@@ -205,7 +206,7 @@ await activeUser.restore(userId);
 
 async function switchUser(userId: string) {
 activeUser.switchTo(userId);
-feedMacros.reset();
+resetUserScopedState();
 
 const user = activeUser.allUsers.find(u => u.id === userId);
 if (user?.role === 'consumer') {

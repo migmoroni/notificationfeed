@@ -132,6 +132,13 @@ state.loading = false;
 }
 },
 
+	/** Clear all in-memory creator state (e.g. when switching away to a consumer user). */
+	clear(): void {
+		state.user = null;
+		state.trees = [];
+		state.medias = [];
+	},
+
 // ── Media CRUD ──────────────────────────────────────────────────
 
 async createMedia(file: File, slot: ImageSlot): Promise<ContentMedia> {
