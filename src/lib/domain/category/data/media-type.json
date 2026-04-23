@@ -21,7 +21,7 @@
 	{"id": "cbaad", "label": ["Infographic"], "parentId": "cb", "order": 3},
 	{"id": "cbaae", "label": ["Diagram / Chart"], "parentId": "cb", "order": 4},
 	{"id": "cbaaf", "label": ["Comic / Cartoon"], "parentId": "cb", "order": 5},
-	{"id": "cbabg", "label": ["Map"], "parentId": "cb", "order": 6},
+	{"id": "cbaag", "label": ["Map"], "parentId": "cb", "order": 6},
 	{"id": "cbaah", "label": ["Digital Art"], "parentId": "cb", "order": 7},
 	{"id": "cbaai", "label": ["Screenshot"], "parentId": "cb", "order": 8},
 	{"id": "cc", "label": "Video", "parentId": null, "order": 2},
