@@ -17,7 +17,10 @@ import ChevronRight from '@lucide/svelte/icons/chevron-right';
 import ChevronDown from '@lucide/svelte/icons/chevron-down';
 import MoreHorizontal from '@lucide/svelte/icons/more-horizontal';
 import X from '@lucide/svelte/icons/x';
+import Star from '@lucide/svelte/icons/star';
+import Minus from '@lucide/svelte/icons/minus';
 import Rss from '@lucide/svelte/icons/rss';
+import { consumer } from '$lib/stores/consumer.svelte.js';
 import Atom from '@lucide/svelte/icons/atom';
 import Zap from '@lucide/svelte/icons/zap';
 import User from '@lucide/svelte/icons/user';
@@ -115,6 +118,11 @@ class="ml-5 flex flex-1 min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-[
 : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
 >
 <svelte:component this={fontProtocolIcon(node)} class="size-4 shrink-0" />
+{#if consumer.getActivation(node.metadata.id)?.favorite}
+<Star class="size-3 text-amber-500 shrink-0" fill="currentColor" />
+{:else}
+<Minus class="size-3 text-muted-foreground/50 shrink-0" />
+{/if}
 <span class="truncate">{node.data.header.title}</span>
 </button>
 {/snippet}
@@ -155,6 +163,11 @@ class="flex flex-1 min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-[13px]
 : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
 >
 <PageIcon class="size-4 shrink-0" />
+{#if consumer.getActivation(page.id)?.favorite}
+<Star class="size-3 text-amber-500 shrink-0" fill="currentColor" />
+{:else}
+<Minus class="size-3 text-muted-foreground/50 shrink-0" />
+{/if}
 <span class="truncate">{page.title}</span>
 {#if childCount > 0}
 <span class="ml-auto text-xs tabular-nums text-muted-foreground shrink-0">{childCount}</span>

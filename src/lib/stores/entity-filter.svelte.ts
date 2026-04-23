@@ -24,6 +24,8 @@ getFontNodes,
 getNodeSection,
 parseTreeId
 } from '$lib/domain/content-tree/content-tree.js';
+import type { NodeActivation } from '$lib/domain/user/user-consumer.js';
+import { SYSTEM_ALL_LIBRARY_TAB_ID, SYSTEM_ONLY_FAVORITES_TAB_ID } from '$lib/domain/user/user-consumer.js';
 import type { EntityFilterStore, PageEntry, NodeEntry, PageType } from './entity-filter.types.js';
 import { ALL_PAGE_TYPES } from './entity-filter.types.js';
 
@@ -36,6 +38,8 @@ load(): Promise<{ trees: ContentTree[] }>;
 getTrees(): ContentTree[];
 	/** Optional: check if a node is activated by the consumer. When provided, inactive nodes are hidden. */
 	isNodeActivated?: (nodeId: string) => boolean;
+	/** Optional: access the consumer activation for a node (favorite + library tab memberships). */
+	getActivation?: (nodeId: string) => NodeActivation | undefined;
 }
 
 export interface EntityFilterOptions {
@@ -53,8 +57,59 @@ const singleFontSelect = options?.singleFontSelect ?? false;
 let pageTypeFilter = $state<Set<PageType>>(new Set(ALL_PAGE_TYPES));
 let selectedPageIds = $state<Set<string>>(new Set());
 let selectedFontIds = $state<Set<string>>(new Set());
+let libraryTabFilter = $state<Set<string>>(new Set());
 
 // ── Internal helpers ───────────────────────────────────────────────
+
+/**
+ * Returns true if a node's OWN activation matches the current library-tab filter.
+ * Empty filter = always true.
+ * "All Library" tab = any activation matches.
+ * "Only Favorites" tab = requires activation.favorite === true.
+ * Custom tabs = activation.libraryTabIds must intersect selection.
+ */
+function activationMatchesLibraryTabs(nodeId: string): boolean {
+	if (libraryTabFilter.size === 0) return true;
+	const activation = source.getActivation?.(nodeId);
+	if (!activation) return false;
+	if (libraryTabFilter.has(SYSTEM_ALL_LIBRARY_TAB_ID)) return true;
+	if (libraryTabFilter.has(SYSTEM_ONLY_FAVORITES_TAB_ID) && activation.favorite) return true;
+	for (const tabId of activation.libraryTabIds) {
+		if (libraryTabFilter.has(tabId)) return true;
+	}
+	return false;
+}
+
+/**
+ * Returns true if a node should pass the library-tab filter.
+ * Inheritance rules:
+ *   - Fonts inherit from their tree root page (if the page is in a selected tab,
+ *     all of its fonts match too).
+ *   - Pages match if their own activation matches OR if any font descendant matches.
+ */
+function nodeMatchesLibraryTabs(nodeId: string): boolean {
+	if (libraryTabFilter.size === 0) return true;
+	if (activationMatchesLibraryTabs(nodeId)) return true;
+	const treeId = parseTreeId(nodeId);
+	const tree = buildTreeMap().get(treeId);
+	if (!tree) return false;
+	const rootId = getRootNodeId(tree);
+	// Font → check parent page root
+	if (rootId !== nodeId && activationMatchesLibraryTabs(rootId)) return true;
+	// Page → check any font descendant
+	if (rootId === nodeId) {
+		for (const fn of getFontNodes(tree)) {
+			if (activationMatchesLibraryTabs(fn.metadata.id)) return true;
+		}
+	}
+	return false;
+}
+
+/** Combined visibility predicate: node must be activated AND match library-tab filter. */
+function isNodeVisible(nodeId: string): boolean {
+	if (source.isNodeActivated && !source.isNodeActivated(nodeId)) return false;
+	return nodeMatchesLibraryTabs(nodeId);
+}
 
 /** Build a map of treeId → ContentTree */
 function buildTreeMap(): Map<string, ContentTree> {
@@ -148,6 +203,7 @@ return {
 get pageTypeFilter() { return pageTypeFilter; },
 get selectedPageIds() { return selectedPageIds; },
 get selectedFontIds() { return selectedFontIds; },
+get libraryTabFilter() { return libraryTabFilter; },
 
 get selectedCreatorIds(): Set<string> {
 const ids = new Set<string>();
@@ -166,7 +222,7 @@ return ids;
 },
 
 get hasFilters(): boolean {
-return selectedPageIds.size > 0 || selectedFontIds.size > 0;
+return selectedPageIds.size > 0 || selectedFontIds.size > 0 || libraryTabFilter.size > 0;
 },
 
 get totalSelected(): number {
@@ -216,12 +272,10 @@ for (const tree of visiblePageTrees()) {
 const root = getRootNode(tree);
 if (!root) continue;
 				const rootId = getRootNodeId(tree);
-				if (source.isNodeActivated && !source.isNodeActivated(rootId)) continue;
+				if (!isNodeVisible(rootId)) continue;
 				const pt = rootPageType(tree);
 				if (!pt) continue;
-				const activeFontCount = source.isNodeActivated
-					? getFontNodes(tree).filter((n) => source.isNodeActivated!(n.metadata.id)).length
-					: getFontNodes(tree).length;
+				const activeFontCount = getFontNodes(tree).filter((n) => isNodeVisible(n.metadata.id)).length;
 				entries.push({
 					id: rootId,
 					treeId: tree.metadata.id,
@@ -237,7 +291,7 @@ if (!root) continue;
 if (pageTypeFilter.has('font')) {
 	for (const tree of pageTrees()) {
 		for (const fontNode of getFontNodes(tree)) {
-			if (source.isNodeActivated && !source.isNodeActivated(fontNode.metadata.id)) continue;
+				if (!isNodeVisible(fontNode.metadata.id)) continue;
 			entries.push({
 				id: fontNode.metadata.id,
 				treeId: tree.metadata.id,
@@ -261,7 +315,7 @@ const tree = treeMap.get(treeId);
 if (!tree) return [];
 
 return getFontNodes(tree)
-				.filter((node) => !source.isNodeActivated || source.isNodeActivated(node.metadata.id))
+				.filter((node) => isNodeVisible(node.metadata.id))
 .map((node) => ({
 node,
 section: getNodeSection(tree, node.metadata.id)
@@ -289,11 +343,9 @@ if (!linkedTree) continue;
 const root = getRootNode(linkedTree);
 if (!root) continue;
 				const linkedRootId = getRootNodeId(linkedTree);
-				if (source.isNodeActivated && !source.isNodeActivated(linkedRootId)) continue;
+				if (!isNodeVisible(linkedRootId)) continue;
 				const pt = rootPageType(linkedTree);
-				const activeFontCount = source.isNodeActivated
-					? getFontNodes(linkedTree).filter((n) => source.isNodeActivated!(n.metadata.id)).length
-					: getFontNodes(linkedTree).length;
+				const activeFontCount = getFontNodes(linkedTree).filter((n) => isNodeVisible(n.metadata.id)).length;
 				linked.push({
 					id: linkedRootId,
 					treeId: linkedTree.metadata.id,
@@ -419,12 +471,43 @@ selectedPageIds = next;
 		clearAll(): void {
 selectedPageIds = new Set();
 selectedFontIds = new Set();
+			libraryTabFilter = new Set();
 },
+
+		toggleLibraryTab(tabId: string): void {
+			const next = new Set(libraryTabFilter);
+			if (next.has(tabId)) next.delete(tabId);
+			else next.add(tabId);
+			libraryTabFilter = next;
+		},
+
+		setLibraryTabFilter(ids: Set<string>): void {
+			libraryTabFilter = new Set(ids);
+		},
+
+		clearLibraryTabFilter(): void {
+			libraryTabFilter = new Set();
+		},
+
+		matchesLibraryTabFilter(nodeId: string): boolean {
+			return nodeMatchesLibraryTabs(nodeId);
+		},
 
 getAllowedFontNodeIds(): Set<string> {
 if (!this.hasFilters) return new Set();
 
 const allowed = new Set<string>();
+
+// If only the library-tab filter is active (no pages/fonts selected explicitly),
+// allow every activated font node matching the selected tabs.
+if (selectedPageIds.size === 0 && selectedFontIds.size === 0 && libraryTabFilter.size > 0) {
+	for (const tree of pageTrees()) {
+		for (const fontNode of getFontNodes(tree)) {
+			if (isNodeVisible(fontNode.metadata.id)) allowed.add(fontNode.metadata.id);
+		}
+	}
+	return allowed;
+}
 
 // Collect fonts from selected pages
 for (const pageId of selectedPageIds) {

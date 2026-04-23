@@ -3,6 +3,7 @@
 	import { tCat } from '$lib/i18n/category.js';
 	import type { CategoryTreeStore } from '$lib/stores/category-tree.types.js';
 	import type { Category, CategoryTreeId } from '$lib/domain/category/category.js';
+	import { sidebarFlyout } from '$lib/stores/sidebar-flyout.svelte.js';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import X from '@lucide/svelte/icons/x';
 
@@ -20,21 +21,27 @@
 		{ id: 'language', labelKey: 'category_tree.language' }
 	];
 
-	let openTreeId = $state<CategoryTreeId | null>(null);
+	const flyoutKey = (id: CategoryTreeId) => `category-tree:${id}`;
+
+	let openTreeId = $derived.by<CategoryTreeId | null>(() => {
+		const key = sidebarFlyout.activeKey;
+		if (!key || !key.startsWith('category-tree:')) return null;
+		return key.slice('category-tree:'.length) as CategoryTreeId;
+	});
 	let containerEl: HTMLDivElement;
 	let flyoutStyle = $state('');
 
 	function toggleTree(id: CategoryTreeId) {
 		if (openTreeId === id) {
-			openTreeId = null;
+			sidebarFlyout.close(flyoutKey(id));
 			return;
 		}
-		openTreeId = id;
 		// Compute position from container
 		if (containerEl) {
 			const rect = containerEl.getBoundingClientRect();
 			flyoutStyle = `position:fixed; left:${rect.right + 8}px; bottom:${window.innerHeight - rect.bottom}px;`;
 		}
+		sidebarFlyout.open(flyoutKey(id));
 	}
 
 	function handleToggle(categoryId: string, treeId: CategoryTreeId) {
@@ -50,7 +57,7 @@
 
 	function handleClickOutside(e: MouseEvent) {
 		if (openTreeId && containerEl && !containerEl.contains(e.target as Node)) {
-			openTreeId = null;
+			sidebarFlyout.close(flyoutKey(openTreeId));
 		}
 	}
 
@@ -113,13 +120,13 @@
 			class="w-[640px] max-h-[70vh] overflow-y-auto rounded-lg border bg-background shadow-lg p-3 z-50"
 			style={flyoutStyle}
 			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => { if (e.key === 'Escape') openTreeId = null; }}
+			onkeydown={(e) => { if (e.key === 'Escape' && openTreeId) sidebarFlyout.close(flyoutKey(openTreeId)); }}
 		>
 			<div class="flex items-center justify-between mb-2 px-1">
 				<span class="text-sm font-medium text-foreground">
 					{t(trees.find((tr) => tr.id === activeTreeId)?.labelKey ?? '')}
 				</span>
-				<button onclick={() => (openTreeId = null)} class="text-muted-foreground hover:text-foreground">
+				<button onclick={() => openTreeId && sidebarFlyout.close(flyoutKey(openTreeId))} class="text-muted-foreground hover:text-foreground">
 					<X class="size-4" />
 				</button>
 			</div>

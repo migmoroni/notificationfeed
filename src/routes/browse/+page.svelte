@@ -36,9 +36,22 @@
 	// Filter browse nodes by the entity filter when active
 	let filteredNodes = $derived.by(() => {
 		if (!browseEntityFilter.hasFilters) return browse.nodes;
-		const fontSet = new Set(allowedFontNodeIds);
 		const selectedCreators = new Set(browseEntityFilter.selectedCreatorIds);
 		const selectedProfiles = new Set(browseEntityFilter.selectedProfileIds);
+		const selectedFonts = new Set(browseEntityFilter.selectedFontIds);
+		const hasExplicitSelection =
+			selectedCreators.size > 0 || selectedProfiles.size > 0 || selectedFonts.size > 0;
+		const pageTypes = browseEntityFilter.pageTypeFilter;
+		// Library-tab-only filter: show every activated node matching the tab,
+		// narrowed to the roles selected in the page-type segmented row.
+		if (!hasExplicitSelection) {
+			return browse.nodes.filter((n) => {
+				if (n.role === 'tree') return false;
+				if (!pageTypes.has(n.role as 'font' | 'profile' | 'creator' | 'collection')) return false;
+				return browseEntityFilter.matchesLibraryTabFilter(n.metadata.id);
+			});
+		}
+		const fontSet = new Set(allowedFontNodeIds);
 		return browse.nodes.filter((n) => {
 			switch (n.role) {
 				case 'font': return fontSet.has(n.metadata.id);

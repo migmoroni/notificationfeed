@@ -22,5 +22,6 @@ loadedTrees = trees;
 return { trees };
 },
 getTrees() { return loadedTrees; },
-isNodeActivated: (nodeId) => consumer.isNodeActivated(nodeId)
+isNodeActivated: (nodeId) => consumer.isNodeActivated(nodeId),
+getActivation: (nodeId) => consumer.getActivation(nodeId)
 }, { singlePageSelect: true, singleFontSelect: true });

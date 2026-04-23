@@ -158,6 +158,7 @@
 		feedEntityFilter.selectedCreatorIds;
 		feedEntityFilter.selectedProfileIds;
 		feedEntityFilter.selectedFontIds;
+		feedEntityFilter.libraryTabFilter;
 		if (!isEditing) {
 			feedMacros.clearActiveMacroIfChanged();
 		}

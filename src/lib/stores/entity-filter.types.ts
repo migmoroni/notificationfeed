@@ -49,6 +49,8 @@ export interface EntityFilterStore {
 	readonly selectedPageIds: Set<string>;
 	/** Node IDs of selected fonts (optional refinement within pages). */
 	readonly selectedFontIds: Set<string>;
+	/** Library tab IDs currently selected as filter (empty = no restriction). */
+	readonly libraryTabFilter: Set<string>;
 	readonly hasFilters: boolean;
 	readonly totalSelected: number;
 
@@ -73,6 +75,16 @@ export interface EntityFilterStore {
 	togglePage(pageId: string): void;
 	toggleFont(nodeId: string): void;
 	clearAll(): void;
+
+	/** Toggle a library tab in the filter selection (multi-select). */
+	toggleLibraryTab(tabId: string): void;
+	/** Replace the full library-tab filter selection. */
+	setLibraryTabFilter(ids: Set<string>): void;
+	/** Clear the library-tab filter (show all). */
+	clearLibraryTabFilter(): void;
+
+	/** True if a node passes the current library-tab filter (with page/font inheritance). Empty filter => true. */
+	matchesLibraryTabFilter(nodeId: string): boolean;
 
 	/**
 	 * Resolved set of font node IDs allowed by the current selection.

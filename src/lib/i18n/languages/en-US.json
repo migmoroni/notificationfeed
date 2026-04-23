@@ -219,6 +219,8 @@
 	"entity_filter.more": "More {count}",
 	"entity_filter.no_categories": "No categories.",
 
+	"library_tab_filter.title": "Library tabs",
+
 	"form.title": "Title",
 	"form.subtitle_placeholder": "Subtitle or tagline",
 	"form.description_placeholder": "Short description",

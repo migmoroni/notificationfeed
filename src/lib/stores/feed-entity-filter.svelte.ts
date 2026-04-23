@@ -13,5 +13,6 @@ async load() {
 return { trees: feed.trees };
 },
 getTrees() { return feed.trees; },
-isNodeActivated: (nodeId) => consumer.isNodeActivated(nodeId)
+isNodeActivated: (nodeId) => consumer.isNodeActivated(nodeId),
+getActivation: (nodeId) => consumer.getActivation(nodeId)
 });

@@ -219,6 +219,8 @@
 	"entity_filter.more": "Mais {count}",
 	"entity_filter.no_categories": "Nenhuma categoria.",
 
+	"library_tab_filter.title": "Abas da biblioteca",
+
 	"form.title": "Título",
 	"form.subtitle_placeholder": "Subtítulo ou tagline",
 	"form.description_placeholder": "Descrição breve",
