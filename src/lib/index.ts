@@ -2,8 +2,8 @@
 
 // Domain — User
 export type { UserBase, UserRole } from './domain/user/user.js';
-export type { UserConsumer, NewUserConsumer, TreeActivation, NodeActivation, FavoriteTab } from './domain/user/user-consumer.js';
-export { SYSTEM_FAVORITES_TAB_ID } from './domain/user/user-consumer.js';
+export type { UserConsumer, NewUserConsumer, TreeActivation, NodeActivation, LibraryTab } from './domain/user/user-consumer.js';
+export { SYSTEM_ALL_LIBRARY_TAB_ID, SYSTEM_ONLY_FAVORITES_TAB_ID, SYSTEM_LIBRARY_TABS } from './domain/user/user-consumer.js';
 export type { UserCreator, NewUserCreator } from './domain/user/user-creator.js';
 export type { PriorityLevel } from './domain/user/priority-level.js';
 
@@ -46,9 +46,9 @@ export { feed } from './stores/feed.svelte.js';
 // Stores — Browse
 export { browse } from './stores/browse.svelte.js';
 
-// Stores — Favorites
-export { favorites } from './stores/favorites.svelte.js';
-export type { FavoriteItem } from './stores/favorites.svelte.js';
+// Stores — Library
+export { library } from './stores/library.svelte.js';
+export type { LibraryItem } from './stores/library.svelte.js';
 
 // Normalization
 export type { CanonicalPost } from './normalization/canonical-post.js';

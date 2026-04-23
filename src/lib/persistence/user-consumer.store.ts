@@ -2,7 +2,7 @@
  * UserConsumer store — persistence for user consumers with tree/node activations.
  *
  * Replaces the old follows/consumerStates model with activateTrees/activateNodes.
- * FavoriteTabs are now embedded in the user record.
+ * LibraryTabs are now embedded in the user record.
  */
 
 import type {
@@ -10,9 +10,8 @@ import type {
 	UserConsumerRepository,
 	NewUserConsumer,
 	NodeActivation,
-	FavoriteTab
 } from '$lib/domain/user/user-consumer.js';
-import { SYSTEM_FAVORITES_TAB_ID } from '$lib/domain/user/user-consumer.js';
+import type { LibraryTab } from '$lib/domain/user/user-consumer.js';
 import type { FeedMacro, FeedMacroFilters } from '$lib/domain/feed-macro/feed-macro.js';
 import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
@@ -20,17 +19,6 @@ import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
 import { parseTreeId, getRootNodeId, getAllNodeIds } from '$lib/domain/content-tree/content-tree.js';
 import { getDatabase } from './db.js';
 import { getTreeByNodeId } from './content-tree.store.js';
-
-function createSystemTab(): FavoriteTab {
-	return {
-		id: SYSTEM_FAVORITES_TAB_ID,
-		title: 'Todos',
-		emoji: '⭐',
-		position: 0,
-		isSystem: true,
-		createdAt: new Date()
-	};
-}
 
 export function createUserConsumerStore(): UserConsumerRepository {
 	return {
@@ -57,7 +45,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 				language: 'en-US',
 				activateTrees: [],
 				activateNodes: [],
-				favoriteTabs: [createSystemTab()],
+				libraryTabs: [],
 				feedMacros: [],
 				createdAt: now,
 				updatedAt: now
@@ -114,7 +102,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 							priority: null,
 							favorite: false,
 							enabled: true,
-							favoriteTabIds: []
+							libraryTabIds: []
 						});
 					}
 				}
@@ -125,7 +113,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 				priority: null,
 				favorite: false,
 				enabled: true,
-				favoriteTabIds: []
+				libraryTabIds: []
 			};
 			user.activateNodes.push(activation);
 			user.updatedAt = new Date();
@@ -184,7 +172,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 
 			activation.favorite = favorite;
 			if (!favorite) {
-				activation.favoriteTabIds = [];
+				activation.libraryTabIds = [];
 			}
 			user.updatedAt = new Date();
 			await db.users.put(user);
@@ -203,7 +191,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 			await db.users.put(user);
 		},
 
-		async updateFavoriteTabIds(userId: string, nodeId: string, tabIds: string[]): Promise<void> {
+		async updateLibraryTabIds(userId: string, nodeId: string, tabIds: string[]): Promise<void> {
 			const db = await getDatabase();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
@@ -211,7 +199,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 			const activation = user.activateNodes.find((n) => n.nodeId === nodeId);
 			if (!activation) throw new Error(`Node not activated: ${nodeId}`);
 
-			activation.favoriteTabIds = tabIds;
+			activation.libraryTabIds = tabIds;
 			user.updatedAt = new Date();
 			await db.users.put(user);
 		},
@@ -220,19 +208,18 @@ export function createUserConsumerStore(): UserConsumerRepository {
 
 		async createTab(
 			userId: string,
-			tab: Omit<FavoriteTab, 'id' | 'isSystem' | 'createdAt'>
-		): Promise<FavoriteTab> {
+			tab: Omit<LibraryTab, 'id' | 'createdAt'>
+		): Promise<LibraryTab> {
 			const db = await getDatabase();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
-			const newTab: FavoriteTab = {
+			const newTab: LibraryTab = {
 				id: uuidv7(),
-				isSystem: false,
 				createdAt: new Date(),
 				...tab
 			};
-			user.favoriteTabs.push(newTab);
+			user.libraryTabs.push(newTab);
 			user.updatedAt = new Date();
 			await db.users.put(user);
 			return newTab;
@@ -241,15 +228,14 @@ export function createUserConsumerStore(): UserConsumerRepository {
 		async updateTab(
 			userId: string,
 			tabId: string,
-			data: Partial<Pick<FavoriteTab, 'title' | 'emoji' | 'position'>>
-		): Promise<FavoriteTab> {
+			data: Partial<Pick<LibraryTab, 'title' | 'emoji' | 'position'>>
+		): Promise<LibraryTab> {
 			const db = await getDatabase();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
-			const tab = user.favoriteTabs.find((t) => t.id === tabId);
-			if (!tab) throw new Error(`FavoriteTab not found: ${tabId}`);
-			if (tab.isSystem) throw new Error('Cannot edit system tab');
+			const tab = user.libraryTabs.find((t) => t.id === tabId);
+			if (!tab) throw new Error(`LibraryTab not found: ${tabId}`);
 
 			Object.assign(tab, data);
 			user.updatedAt = new Date();
@@ -262,15 +248,14 @@ export function createUserConsumerStore(): UserConsumerRepository {
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
-			const tab = user.favoriteTabs.find((t) => t.id === tabId);
+			const tab = user.libraryTabs.find((t) => t.id === tabId);
 			if (!tab) return;
-			if (tab.isSystem) throw new Error('Cannot delete system tab');
 
-			user.favoriteTabs = user.favoriteTabs.filter((t) => t.id !== tabId);
+			user.libraryTabs = user.libraryTabs.filter((t) => t.id !== tabId);
 
 			// Clear tab references from node activations
 			for (const activation of user.activateNodes) {
-				activation.favoriteTabIds = activation.favoriteTabIds.filter((id) => id !== tabId);
+				activation.libraryTabIds = activation.libraryTabIds.filter((id) => id !== tabId);
 			}
 
 			user.updatedAt = new Date();

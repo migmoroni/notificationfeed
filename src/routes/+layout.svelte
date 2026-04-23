@@ -15,7 +15,7 @@
 	import { t, initLanguage, setLanguage } from '$lib/i18n/index.js';
 	import Newspaper from '@lucide/svelte/icons/newspaper';
 	import Search from '@lucide/svelte/icons/search';
-	import Star from '@lucide/svelte/icons/star';
+	import LibraryBig from '@lucide/svelte/icons/library-big';
 	import CircleUser from '@lucide/svelte/icons/circle-user';
 	import FileStack from '@lucide/svelte/icons/file-stack';
 	import Eye from '@lucide/svelte/icons/eye';
@@ -27,7 +27,7 @@
 	const consumerNav = [
 		{ href: '/', labelKey: 'nav.feed', icon: Newspaper },
 		{ href: '/browse', labelKey: 'nav.browse', icon: Search },
-		{ href: '/favorites', labelKey: 'nav.favorites', icon: Star },
+		{ href: '/library', labelKey: 'nav.library', icon: LibraryBig },
 		{ href: '/user', labelKey: 'nav.user', icon: CircleUser }
 	] as const;
 

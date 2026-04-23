@@ -150,7 +150,7 @@ export const activeUser = {
 			language: DEFAULT_LANGUAGE,
 			activateTrees: [],
 			activateNodes: [],
-			favoriteTabs: [],
+			libraryTabs: [],
 			feedMacros: [],
 			createdAt: now,
 			updatedAt: now

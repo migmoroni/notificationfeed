@@ -2,13 +2,13 @@
  * Consumer Store — reactive state for the active UserConsumer.
  *
  * Replaces follows/ConsumerState with activateTrees/activateNodes.
- * FavoriteTabs are now embedded in the user record.
+ * LibraryTabs are now embedded in the user record.
  *
  * Pattern: module-level $state + exported read-only accessor + init() lifecycle.
  */
 
-import type { UserConsumer, NodeActivation, FavoriteTab } from '$lib/domain/user/user-consumer.js';
-import { SYSTEM_FAVORITES_TAB_ID } from '$lib/domain/user/user-consumer.js';
+import type { UserConsumer, NodeActivation, LibraryTab } from '$lib/domain/user/user-consumer.js';
+import { SYSTEM_ALL_LIBRARY_TAB_ID } from '$lib/domain/user/user-consumer.js';
 import type { FeedMacro, FeedMacroFilters } from '$lib/domain/feed-macro/feed-macro.js';
 import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
@@ -44,7 +44,7 @@ export const consumer = {
 	get activateTrees() { return state.user?.activateTrees ?? []; },
 	get activateNodes() { return state.user?.activateNodes ?? []; },
 	get activationMap() { return state.activationMap; },
-	get favoriteTabs() { return state.user?.favoriteTabs ?? []; },
+	get libraryTabs() { return state.user?.libraryTabs ?? []; },
 	get loading() { return state.loading; },
 	get isReady() { return state.user !== null && !state.loading; },
 
@@ -166,32 +166,32 @@ export const consumer = {
 		const activation = state.user.activateNodes.find((n) => n.nodeId === nodeId);
 		if (activation) {
 			activation.favorite = favorite;
-			if (!favorite) activation.favoriteTabIds = [];
+			if (!favorite) activation.libraryTabIds = [];
 			refreshActivationMap();
 		}
 	},
 
-	async updateFavoriteTabIds(nodeId: string, tabIds: string[]): Promise<void> {
+	async updateLibraryTabIds(nodeId: string, tabIds: string[]): Promise<void> {
 		if (!state.user) return;
 
-		await repo.updateFavoriteTabIds(state.user.id, nodeId, tabIds);
+		await repo.updateLibraryTabIds(state.user.id, nodeId, tabIds);
 
 		const activation = state.user.activateNodes.find((n) => n.nodeId === nodeId);
 		if (activation) {
-			activation.favoriteTabIds = tabIds;
+			activation.libraryTabIds = tabIds;
 			refreshActivationMap();
 		}
 	},
 
 	// ── Tab management ───────────────────────────────────────────────
 
-	async createTab(title: string, emoji: string): Promise<FavoriteTab> {
+	async createTab(title: string, emoji: string): Promise<LibraryTab> {
 		if (!state.user) throw new Error('No active user');
 
-		const maxPos = state.user.favoriteTabs.reduce((max, t) => Math.max(max, t.position), 0);
+		const maxPos = state.user.libraryTabs.reduce((max, t) => Math.max(max, t.position), 0);
 		const tab = await repo.createTab(state.user.id, { title, emoji, position: maxPos + 1 });
 
-		state.user = { ...state.user, favoriteTabs: [...state.user.favoriteTabs, tab] };
+		state.user = { ...state.user, libraryTabs: [...state.user.libraryTabs, tab] };
 		return tab;
 	},
 
@@ -201,7 +201,7 @@ export const consumer = {
 		const updated = await repo.updateTab(state.user.id, tabId, data);
 		state.user = {
 			...state.user,
-			favoriteTabs: state.user.favoriteTabs.map((t) => (t.id === tabId ? updated : t))
+			libraryTabs: state.user.libraryTabs.map((t) => (t.id === tabId ? updated : t))
 		};
 	},
 

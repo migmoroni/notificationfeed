@@ -54,14 +54,9 @@ Notfeed é um cliente de agregação de informação focado em feeds e notifica�
 | `/` | Feed — timeline unificada com filtros, macros, entity filter, category filter |
 | `/browse` | Browse — navegação por árvores com filtros de category e busca |
 | `/browse/import` | Import — upload de .notfeed.json ou URLs simples |
-| `/browse/creator/[id]` | Detalhe de nó creator |
-| `/browse/profile/[id]` | Detalhe de nó profile |
-| `/browse/font/[id]` | Detalhe de nó font |
 | `/browse/node/[id]` | Detalhe genérico de nó |
-| `/favorites` | Favoritos — tabs com nós favoritados |
-| `/favorites/creator/[id]` | _(espelha /browse)_ |
-| `/favorites/profile/[id]` | _(espelha /browse)_ |
-| `/favorites/font/[id]` | _(espelha /browse)_ |
+| `/library` | Library — nós ativados organizados em tabs |
+| `/library/node/[id]` | Detalhe genérico de nó |
 | `/user` | Configurações, CRUD de usuários, troca de identidade |
 
 ### Creator
@@ -70,17 +65,13 @@ Notfeed é um cliente de agregação de informação focado em feeds e notifica�
 | `/pages` | Lista de ContentTrees do creator |
 | `/pages/new` | Criar nova ContentTree |
 | `/pages/[id]` | Editar ContentTree (CRUD de nós, seções) |
-| `/profiles` | Lista de Profiles |
-| `/profiles/[id]` | Editar Profile |
-| `/profiles/[id]/fonts` | Lista de Fonts do Profile |
-| `/profiles/[id]/fonts/new` | Criar nova Font |
 | `/preview` | Preview de trees publicadas (visão geral + feed) |
-| `/preview/creator/[id]` | _(espelha /browse)_ |
+| `/preview/node/[id]` | Detalhe genérico de nó |
 
 ### Layout
 - **Desktop** (≥900px): sidebar 295px + main scrollável
 - **Mobile** (<900px): bottom nav 56px
-- **Consumer nav**: Feed, Browse, Favorites, User
+- **Consumer nav**: Feed, Browse, Library, User
 - **Creator nav**: Pages, Preview, User
 
 ## Escopo implementado
@@ -93,7 +84,7 @@ Notfeed é um cliente de agregação de informação focado em feeds e notifica�
 6. ✅ Import dual-mode (.notfeed.json + URLs simples)
 7. ✅ Ativação/desativação granular por nó (NodeActivation)
 8. ✅ Feed prioritizado (3 níveis com herança por árvore de nós)
-9. ✅ FavoriteTabs (many-to-many, tab sistema ⭐ + custom)
+9. ✅ FavoriteTabs (many-to-many, tab sistema ⭐ + custom) → renomeado para **LibraryTabs** (2 tabs sistema: 📚 All Library + ⭐ Only Favorites + custom)
 10. ✅ Feed Macros (presets salvos com categories + modos)
 11. ✅ Publish como snapshot versionado (TreePublication)
 12. ✅ Preview para creators (visão geral + feed)

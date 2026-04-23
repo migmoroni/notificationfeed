@@ -5,4 +5,4 @@
 	const nodeId = $derived(page.params.nodeId!);
 </script>
 
-<NodeDetailPage {nodeId} baseHref="/favorites" />
+<NodeDetailPage {nodeId} baseHref="/library" />

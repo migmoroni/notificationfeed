@@ -204,7 +204,7 @@ removedAt: null,
 language: 'en-US',
 activateTrees: [],
 activateNodes: [],
-favoriteTabs: [],
+libraryTabs: [],
 feedMacros: [],
 createdAt: now,
 updatedAt: now

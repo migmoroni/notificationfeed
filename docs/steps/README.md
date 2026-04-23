@@ -54,14 +54,14 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 
 ---
 
-## Fase 4 — Tela de Favoritos (`/favorites`) ✅
+## Fase 4 — Tela de Library (`/library`) ✅
 
-> Favoritos organizados em FavoriteTabs (many-to-many).
+> Library com LibraryTabs (organização de nós ativados, many-to-many).
 
-- [x] FavoriteTab model (tab sistema ⭐ "Todos" + tabs custom com emoji)
-- [x] NodeActivation com `favoriteTabIds[]` (many-to-many)
-- [x] Store reativo `favorites.svelte.ts`
-- [x] TabSidebar, TabDialog (create/edit/delete), FavoriteItemList
+- [x] LibraryTab model (2 tabs sistema: 📚 "All Library" + ⭐ "Only Favorites" + tabs custom com emoji)
+- [x] NodeActivation com `libraryTabIds[]` (many-to-many)
+- [x] Store reativo `library.svelte.ts`
+- [x] TabSidebar, TabDialog (create/edit/delete), LibraryItemList
 - [x] Seleção em lote (long-press), bulk assign/desfavoritar
 - [x] TabAssignmentDialog (tri-state checkboxes)
 
@@ -72,8 +72,8 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 > Shared components, centralização de prioridade, navegação unificada.
 
 - [x] Shared component layer: ConfirmDialog, ConfirmUnfavoriteDialog, TabDialog, PriorityButtons, PriorityBadge, FavoriteButton, priority.ts
-- [x] Navegação unificada Browse ↔ Favorites via `baseHref` (ADR-018)
-- [x] 5 sub-rotas de favoritos espelhando Browse
+- [x] Navegação unificada Browse ↔ Library via `baseHref` (ADR-018)
+- [x] Sub-rotas de library espelhando Browse
 - [x] `$state.snapshot()` para IndexedDB (ADR-019)
 - [x] Confirmação obrigatória para desfavoritar (ADR-020)
 
@@ -108,7 +108,7 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 - [x] Publish como snapshot versionado (TreePublication + TreeExport)
 - [x] Preview para creators (`/preview` com sub-rotas)
 - [x] Separação editorTrees / contentTrees no IndexedDB
-- [x] Remoção de `/library`, adição de `/preview` (ADR-027)
+- [x] Remoção de `/library` (creator placeholder), adição de `/preview`, `/library` agora é consumer (ADR-027)
 - [x] ADRs 024–028
 
 ---
@@ -240,4 +240,4 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 - [ ] Virtualização de listas longas
 - [ ] Acessibilidade (keyboard navigation, ARIA, focus management)
 - [ ] Animações de transição
-- [ ] Drag-and-drop para reordenar favoritos
+- [ ] Drag-and-drop para reordenar itens da library

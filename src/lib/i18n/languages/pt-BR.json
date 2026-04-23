@@ -3,7 +3,7 @@
 
 	"nav.feed": "Feed",
 	"nav.browse": "Browse",
-	"nav.favorites": "Favoritos",
+	"nav.library": "Biblioteca",
 	"nav.user": "User",
 	"nav.pages": "Pages",
 	"nav.preview": "Preview",
@@ -28,6 +28,7 @@
 	"title.import": "Importar",
 	"title.preview": "Preview",
 	"title.users": "Usuários",
+	"title.library": "Biblioteca",
 	"title.new_page": "Nova Page",
 
 	"page_title.feed": "Notfeed — Feed",
@@ -37,6 +38,7 @@
 	"page_title.preview": "Notfeed — Preview",
 	"page_title.new_page": "Notfeed — Nova Page",
 	"page_title.detail": "Notfeed — {title}",
+	"page_title.library": "Notfeed — Biblioteca",
 
 	"feed.filters_saved": "Filtros Salvos",
 	"feed.filters_advanced": "Filtros Avançados",
@@ -69,7 +71,7 @@
 	"aria.activate": "Ativar",
 	"aria.clear_filter": "Limpar filtro",
 	"aria.clear_search": "Limpar busca",
-	"aria.favorite_tabs": "Tabs de favoritos",
+	"aria.library_tabs": "Tabs da biblioteca",
 	"aria.create_new_tab": "Criar nova tab",
 	"aria.tab_options": "Opções da tab {title}",
 	"aria.open_post": "Abrir post: {title}",
@@ -172,13 +174,13 @@
 	"dialog.unpin.confirm": "Desafixar",
 
 	"dialog.tab.new_title": "Nova Tab",
-	"dialog.tab.new_description": "Crie uma tab para organizar seus favoritos.",
+	"dialog.tab.new_description": "Crie uma tab para organizar sua biblioteca.",
 	"dialog.tab.new_confirm": "Criar",
 	"dialog.tab.edit_title": "Editar Tab",
 	"dialog.tab.edit_description": "Edite o emoji e título da tab.",
 	"dialog.tab.edit_confirm": "Salvar",
 	"dialog.tab.delete_title": "Excluir Tab",
-	"dialog.tab.delete_description": "Excluir esta tab de favoritos? Os itens não serão removidos, apenas a organização será perdida.",
+	"dialog.tab.delete_description": "Excluir esta tab da biblioteca? Os itens não serão removidos, apenas a organização será perdida.",
 	"dialog.tab.delete_confirm": "Excluir",
 	"dialog.tab.default_name": "Estudos",
 	"dialog.tab.emoji_label": "Emoji",
@@ -241,7 +243,7 @@
 	"tree_editor.add_font": "Adicionar Font",
 	"tree_editor.add_tree_link": "Adicionar Tree Link",
 
-	"favorites.new_tab": "Nova tab",
+	"library.new_tab": "Nova tab",
 
 	"emoji.search_placeholder": "Search emoji...",
 	"emoji.not_found": "Nenhum emoji encontrado",
@@ -356,8 +358,9 @@
 	"tree_editor.choose_section_icon": "Escolher Ícone",
 	"tree_editor.choose_section_icon_description": "Selecione um emoji para a seção.",
 
-	"favorites.all": "Todos",
-	"favorites.organize_tabs": "Organizar em Tabs",
+	"library.all": "Toda Biblioteca",
+	"library.only_favorites": "Só Favoritos",
+	"library.organize_tabs": "Organizar em Tabs",
 
 	"copy_consumer.title": "Copiar do Consumer",
 	"copy_consumer.description": "Selecione profiles para copiar. Uma cópia independente será criada no espaço do creator.",

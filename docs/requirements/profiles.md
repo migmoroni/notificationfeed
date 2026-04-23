@@ -70,7 +70,7 @@ A posição do Profile dentro da ContentTree é determinada por `TreePaths`:
 | Contexto | URL |
 |---|---|
 | Browse | `/browse/profile/{compositeId}` |
-| Favorites | `/favorites/profile/{compositeId}` |
+| Library | `/library/profile/{compositeId}` |
 | Preview | `/preview/profile/{compositeId}` |
 
 ## Funcionalidades
@@ -78,7 +78,7 @@ A posição do Profile dentro da ContentTree é determinada por `TreePaths`:
 - [x] Criar Profile node em ContentTree
 - [x] Editar Profile (title, subtitle, summary, cover, banner, links, categories)
 - [x] Deletar Profile node
-- [x] Exibir Profile em browse/favorites/preview
+- [x] Exibir Profile em browse/library/preview
 - [x] CategoryAssignment com 5 trees
 - [x] Ativar/desativar (consumer, via NodeActivation)
 - [x] FollowButton (Segue/Seguir) com confirmação para unfollow

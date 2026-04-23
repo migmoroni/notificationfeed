@@ -27,8 +27,8 @@ Conta local de consumo. Nunca publica conteúdo.
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `activateTrees` | `TreeActivation[]` | Inscrições em árvores inteiras (`{ treeId, activatedAt }`) |
-| `activateNodes` | `NodeActivation[]` | Estado local por nó (priority, favorite, enabled, favoriteTabIds) |
-| `favoriteTabs` | `FavoriteTab[]` | Tabs de favoritos (sistema ⭐ + custom) |
+| `activateNodes` | `NodeActivation[]` | Estado local por nó (priority, favorite, enabled, libraryTabIds) |
+| `libraryTabs` | `LibraryTab[]` | Tabs custom criadas pelo usuário (tabs de sistema são constantes do app) |
 | `feedMacros` | `FeedMacro[]` | Presets salvos de filtros do feed |
 
 ### NodeActivation (por nó)
@@ -39,7 +39,7 @@ Conta local de consumo. Nunca publica conteúdo.
 | `priority` | `PriorityLevel \| null` | 1=alta, 2=média, 3=baixa, null=herdar |
 | `favorite` | boolean | Se é favorito |
 | `enabled` | boolean | Se está ativo (inscrição/follow) |
-| `favoriteTabIds` | `string[]` | IDs de tabs às quais pertence (many-to-many) |
+| `libraryTabIds` | `string[]` | IDs de tabs às quais pertence (many-to-many) |
 
 ### TreeActivation
 
@@ -48,23 +48,24 @@ Conta local de consumo. Nunca publica conteúdo.
 | `treeId` | string | ID da ContentTree inscrita |
 | `activatedAt` | Date | Quando foi inscrito |
 
-### FavoriteTab
+### LibraryTab
 
 | Campo | Tipo | Descrição |
 |---|---|---|
-| `id` | string | UUID (sistema: `SYSTEM_FAVORITES_TAB_ID`) |
+| `id` | string | UUID |
 | `title` | string | Nome da tab |
 | `emoji` | string | Emoji visual |
 | `position` | number | Ordem de exibição |
-| `isSystem` | boolean | Se é tab de sistema (não deletável) |
 | `createdAt` | Date | Data de criação |
+
+> **Nota**: Tabs de sistema (📚 "All Library", ⭐ "Only Favorites") são constantes do app (`SYSTEM_LIBRARY_TABS`), não persistidas no registro do usuário.
 
 ### Capacidades do Consumer
 
 - Inscrever-se em ContentTrees inteiras (via TreeActivation)
 - Ativar/desativar nós individuais (via NodeActivation.enabled)
 - Definir prioridade por nó com herança (font → profile → root → 3)
-- Favoritar nós e organizar em FavoriteTabs (many-to-many)
+- Favoritar nós e organizar em LibraryTabs (many-to-many)
 - Criar e aplicar FeedMacros (presets de filtro)
 - Importar ContentTrees (.notfeed.json) e URLs simples
 - Definir idioma preferido (i18n)
@@ -99,7 +100,7 @@ Conta de criação. Gerencia ContentTrees e ContentMedias.
 |---|---|
 | `init()` | Carrega usuários do IndexedDB, restaura último ativo |
 | `switchTo(userId)` | Troca identidade ativa, recarrega stores |
-| `createConsumer(name)` | Cria novo consumer com tab sistema ⭐ |
+| `createConsumer(name)` | Cria novo consumer (libraryTabs inicia vazio, tabs de sistema são constantes) |
 | `createCreator(name)` | Cria novo creator |
 | `softDelete(userId)` | Marca `removedAt` (mantém no banco) |
 | `restore(userId)` | Remove `removedAt` |
@@ -109,7 +110,7 @@ Conta de criação. Gerencia ContentTrees e ContentMedias.
 
 | Papel | Nav Items | Ícones |
 |---|---|---|
-| Consumer | Feed, Browse, Favorites, User | Newspaper, Search, Star, CircleUser |
+| Consumer | Feed, Browse, Library, User | Newspaper, Search, LibraryBig, CircleUser |
 | Creator | Pages, Preview, User | FileStack, Eye, CircleUser |
 
 ## Regras de negócio
@@ -119,19 +120,19 @@ Conta de criação. Gerencia ContentTrees e ContentMedias.
 - Soft-delete via `removedAt` (mantido no banco, filtrado na UI, restaurável).
 - Última identidade ativa é persistida em localStorage para restauração no boot.
 - Trocar de usuário recarrega todos os stores dependentes.
-- FavoriteTab ⭐ "Todos" (`SYSTEM_FAVORITES_TAB_ID`) é criada automaticamente e não pode ser deletada/renomeada.
+- Tabs de sistema (📚 "All Library", ⭐ "Only Favorites") são constantes do app (`SYSTEM_LIBRARY_TABS`), não armazenadas no usuário.
 - `PriorityLevel = 1 | 2 | 3`. `DEFAULT_PRIORITY = 3`.
 
 ## Funcionalidades
 
-- [x] Criar conta consumer (com tab sistema ⭐)
+- [x] Criar conta consumer (libraryTabs vazio — tabs de sistema são constantes)
 - [x] Criar conta creator
 - [x] Editar displayName, avatar (ImageAsset), emoji
 - [x] Soft-delete com restore
 - [x] Trocar entre contas ativas
 - [x] Persistência de último ativo em localStorage
 - [x] Idioma preferido (i18n)
-- [x] CRUD de FavoriteTabs (many-to-many)
+- [x] CRUD de LibraryTabs (many-to-many)
 - [x] CRUD de FeedMacros
-- [x] NodeActivation: priority, favorite, enabled, favoriteTabIds
+- [x] NodeActivation: priority, favorite, enabled, libraryTabIds
 - [x] TreeActivation: inscrição em árvores inteiras

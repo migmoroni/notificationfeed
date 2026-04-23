@@ -76,7 +76,7 @@ Campos da `Category`: `id`, `label`, `treeId`, `parentId`, `depth`, `order`, e `
 ## ADR-012: NodeActivation para overrides locais do Consumer
 
 **Contexto**: Consumers precisam ativar/desativar nós individuais e organizar favoritos sem alterar os dados do Creator.  
-**Decisão**: `NodeActivation` — objeto embarcado em `UserConsumer.activateNodes[]` que registra overrides locais por nó. Campos: `nodeId` (composite `treeId:localUuid`), `priority` (PriorityLevel | null), `favorite`, `enabled`, `favoriteTabIds` (array many-to-many com FavoriteTabs). `TreeActivation` em `activateTrees[]` registra inscrição em árvores inteiras.  
+**Decisão**: `NodeActivation` — objeto embarcado em `UserConsumer.activateNodes[]` que registra overrides locais por nó. Campos: `nodeId` (composite `treeId:localUuid`), `priority` (PriorityLevel | null), `favorite`, `enabled`, `libraryTabIds` (array many-to-many com LibraryTabs). `TreeActivation` em `activateTrees[]` registra inscrição em árvores inteiras.  
 **Consequência**: Dados do Creator ficam imutáveis. Toda personalização é armazenada como estado local do Consumer dentro do próprio registro do usuário.
 
 ## ADR-013: Layout adaptativo via store reativo (não CSS-only)
@@ -91,11 +91,11 @@ Campos da `Category`: `id`, `label`, `treeId`, `parentId`, `depth`, `order`, e `
 **Decisão**: `NodeActivation` ganha `priority: PriorityLevel | null` (1=alta, 2=média, 3=baixa) e `favorite: boolean`. Cadeia de herança: font node → profile node → root node → 3 (default). `null` = herdar. O feed agrupa por prioridade e ordena por data dentro de cada grupo.  
 **Consequência**: Posts de prioridade 1 sempre aparecem antes de prioridade 2, independente da data. Toda personalização é per-consumer, armazenada em `NodeActivation`.
 
-## ADR-015: FavoriteTabs para organização de favoritos
+## ADR-015: LibraryTabs para organização da biblioteca
 
-**Contexto**: Consumers precisam organizar entidades favoritadas em grupos nomeados.  
-**Decisão**: `FavoriteTab` com tab de sistema ⭐ "Todos" (`SYSTEM_FAVORITES_TAB_ID`, não deletável) + tabs criadas pelo usuário (emoji + título). Relação many-to-many: cada `NodeActivation` contém `favoriteTabIds[]` com IDs de tabs às quais pertence. Tabs embarcadas em `UserConsumer.favoriteTabs[]`.  
-**Consequência**: Favoritos ganham organização flexível. Deletar uma tab remove a associação (não desfavorita). Um item pode pertencer a múltiplas tabs simultaneamente.
+**Contexto**: Consumers precisam organizar entidades ativadas em grupos nomeados, com destaque para favoritos.  
+**Decisão**: Duas tabs de sistema definidas como constantes do app (`SYSTEM_LIBRARY_TABS`): 📚 "All Library" (mostra todos os nós ativados) e ⭐ "Only Favorites" (filtra `favorite === true`). Tabs de sistema **não são persistidas** no registro do usuário — são constantes da aplicação. `UserConsumer.libraryTabs[]` contém apenas tabs custom criadas pelo usuário (emoji + título). Relação many-to-many: cada `NodeActivation` contém `libraryTabIds[]` com IDs de tabs custom às quais pertence.  
+**Consequência**: A Library mostra todos os nós ativados com organização flexível. Deletar uma tab custom remove a associação (não desfavorita). Um item pode pertencer a múltiplas tabs simultaneamente.
 
 ## ADR-016: NodeRole como papéis dentro de ContentTree
 
@@ -122,13 +122,13 @@ Todos os nós compartilham `NodeHeader` (title, subtitle, summary, coverMediaId,
 - **FavoriteButton** — toggle star com sizes `sm`/`md`
 - **priority.ts** — single source of truth (`PRIORITY_LEVELS`, `PRIORITY_MAP`, `PRIORITY_INACTIVE_CLASS`)
 
-**Consequência**: Zero duplicação de config e markup de prioridade/favorito. Mudança visual/comportamental em um único lugar. Componentes de domínio (browse, feed, favorites) consomem shared/ ao invés de reimplementar.
+**Consequência**: Zero duplicação de config e markup de prioridade/favorito. Mudança visual/comportamental em um único lugar. Componentes de domínio (browse, library, feed) consomem shared/ ao invés de reimplementar.
 
-## ADR-018: Navegação unificada Browse ↔ Favorites via `baseHref`
+## ADR-018: Navegação unificada Browse ↔ Library via `baseHref`
 
-**Contexto**: As telas Browse e Favorites precisam navegar para as mesmas páginas de detalhe (Creator, Profile, Font) mas com contexto de retorno diferente (`/browse` vs `/favorites`).  
-**Decisão**: Componentes de página reutilizáveis recebem `backHref`, `backLabel`, e `baseHref` como props. O `baseHref` é usado para gerar links internos (ex: `${baseHref}/creator/${id}/profile/${pid}`). Rotas em `/favorites/...` espelham a árvore de `/browse/...`, passando `baseHref="/favorites"`.  
-**Consequência**: Uma única implementação de UI para cada entidade. Adicionar novos contextos de navegação (ex: `/settings/...`) requer apenas novas rotas thin-wrapper. FavoriteItemList gera hrefs com prefixo `/favorites/` automaticamente.
+**Contexto**: As telas Browse e Library precisam navegar para as mesmas páginas de detalhe (Creator, Profile, Font) mas com contexto de retorno diferente (`/browse` vs `/library`).  
+**Decisão**: Componentes de página reutilizáveis recebem `backHref`, `backLabel`, e `baseHref` como props. O `baseHref` é usado para gerar links internos (ex: `${baseHref}/creator/${id}/profile/${pid}`). Rotas em `/library/...` espelham a árvore de `/browse/...`, passando `baseHref="/library"`.  
+**Consequência**: Uma única implementação de UI para cada entidade. Adicionar novos contextos de navegação (ex: `/settings/...`) requer apenas novas rotas thin-wrapper. LibraryItemList gera hrefs com prefixo `/library/` automaticamente.
 
 ## ADR-019: `$state.snapshot()` obrigatório para IndexedDB
 
@@ -178,11 +178,11 @@ Todos os nós compartilham `NodeHeader` (title, subtitle, summary, coverMediaId,
 **Decisão**: Rota `/preview` exibe trees publicadas com duas tabs: "Visão Geral" (snapshot estático: bio, profiles, fonts como cards) e "Feed" (posts reais ingeridos das fonts da tree). O preview-feed store resolve fontIds a partir dos nodes da tree publicada e filtra posts do IndexedDB.  
 **Consequência**: Preview é read-only. Feed mostra dados reais (não simulados) — requer que as fonts tenham sido ingeridas. Se nenhuma tree está publicada, mostra empty state com link para `/pages`.
 
-## ADR-027: Remoção de /library, adição de /preview
+## ADR-027: Remoção de /library (creator placeholder), adição de /preview e /library (consumer)
 
-**Contexto**: A rota `/library` era um placeholder para gerenciamento de conteúdo do creator. Com o sistema de publish, a funcionalidade se dividiu: edição em `/pages` e visualização em `/preview`.  
-**Decisão**: Remover `/library` completamente. Nav do creator passa a ser: Pages (FileStack) → Preview (Eye) → User (CircleUser). `/pages` é o hub de CRUD, `/preview` mostra o resultado publicado.  
-**Consequência**: URLs de `/library` param de funcionar (breaking change aceitável pois era placeholder). A nav fica mais clara: criar vs ver o resultado.
+**Contexto**: A rota `/library` era um placeholder para gerenciamento de conteúdo do creator. Com o sistema de publish, a funcionalidade se dividiu: edição em `/pages` e visualização em `/preview`. Paralelamente, a tela de favoritos evoluiu para "Library" do consumer.  
+**Decisão**: Remover `/library` do creator completamente. Nav do creator passa a ser: Pages (FileStack) → Preview (Eye) → User (CircleUser). `/pages` é o hub de CRUD, `/preview` mostra o resultado publicado. `/library` agora é a tela do consumer que exibe todos os nós ativados com tabs de organização (All Library, Only Favorites, custom tabs).  
+**Consequência**: `/library` é exclusivo do consumer. Nav do consumer: Feed → Browse → Library → User.
 
 ## ADR-028: ContentTree como modelo de dados central
 

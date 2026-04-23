@@ -3,7 +3,7 @@
 | Termo | Definição |
 |---|---|
 | **UserBase** | Interface base de usuário. Campos: `id`, `role`, `displayName`, `profileImage`, `profileEmoji`, `removedAt`, `language`, `createdAt`, `updatedAt`. |
-| **UserConsumer** | Conta local de consumo. Estende `UserBase` com `activateTrees` (inscrições em árvores), `activateNodes` (overrides por nó), `favoriteTabs`, `feedMacros`, `profileImage`, `profileEmoji`, `language`. Nunca publica conteúdo. |
+| **UserConsumer** | Conta local de consumo. Estende `UserBase` com `activateTrees` (inscrições em árvores), `activateNodes` (overrides por nó), `libraryTabs`, `feedMacros`, `profileImage`, `profileEmoji`, `language`. Nunca publica conteúdo. |
 | **UserCreator** | Conta de criação. Estende `UserBase` com `ownedTreeIds[]` e `ownedMediaIds[]`. Gerencia ContentTrees e ContentMedias. |
 | **ContentTree** | Aggregate root central do domínio. Estrutura com nós embarcados (`nodes: Record<string, TreeNode>`), mapeamento de posição (`paths: TreePaths`), divisões visuais (`sections: TreeSection[]`), e metadados (`metadata: ContentTreeMetadata`). Substitui o antigo conceito de CreatorPage. |
 | **TreeNode** | Nó embarcado dentro de uma ContentTree. Contém `role` (NodeRole), `data.header` (NodeHeader) e `data.body` (NodeBody discriminado por role). Metadados em `metadata: TreeNodeMetadata`. |
@@ -13,7 +13,7 @@
 | **TreePaths** | Mapeamento de posição dos nós na árvore. `'/'` = root nodeId, `'*'` = nodeIds sem seção, `[sectionId]` = nodeIds na seção. |
 | **TreeSection** | Divisão visual de uma ContentTree. Campos: `id`, `order`, `symbol?`, `title`, `hideTitle`, `color`. |
 | **ContentTreeMetadata** | Metadados da árvore: `id`, `versionSchema`, `createdAt`, `updatedAt`, `author?`, `authorTreeId?`, `removedAt?`. |
-| **NodeActivation** | Objeto embarcado em `UserConsumer.activateNodes[]` que registra o estado local do consumer por nó. Campos: `nodeId` (composite), `priority`, `favorite`, `enabled`, `favoriteTabIds[]`. Substitui o antigo ConsumerState. |
+| **NodeActivation** | Objeto embarcado em `UserConsumer.activateNodes[]` que registra o estado local do consumer por nó. Campos: `nodeId` (composite), `priority`, `favorite`, `enabled`, `libraryTabIds[]`. Substitui o antigo ConsumerState. |
 | **TreeActivation** | Objeto em `UserConsumer.activateTrees[]` que registra inscrição em uma árvore inteira. Campos: `treeId`, `activatedAt`. |
 | **Category** | Sistema taxonômico hierárquico oficial. Cinco árvores: `subject` (tema), `content_type` (formato), `media_type` (mídia), `region` (geografia), `language` (idioma). Campos: `id`, `label`, `treeId`, `parentId`, `depth`, `order`, `bcp47?`. Distribuída com o app via seed. Apenas sublevels (depth ≥ 1) são associáveis a nós. |
 | **CategoryTreeId** | Identificador de árvore taxonômica: `'subject' \| 'content_type' \| 'region' \| 'media_type' \| 'language'`. |
@@ -21,7 +21,7 @@
 | **CategoryFilterMode** | Modo de filtro por category: `'any'` (OR — match qualquer selecionada) ou `'all'` (AND — match todas selecionadas). |
 | **TreeModes** | `Record<CategoryTreeId, Map<string, CategoryFilterMode>>` — estado de filtro de categories por árvore, mapeando cada categoryId ao seu modo. |
 | **BCP 47** | Padrão de tags de idioma (ex: `en-US`, `pt-BR`). Usado no campo `bcp47` das categories da árvore `language`. |
-| **FavoriteTab** | Tab para organizar entidades favoritadas. Tab de sistema ⭐ "Todos" (`SYSTEM_FAVORITES_TAB_ID`, não deletável). Usuário pode criar tabs custom com emoji + título. Relação many-to-many com nós via `favoriteTabIds[]` no NodeActivation. Deletar uma tab remove a associação (não desfavorita). Embarcada em `UserConsumer.favoriteTabs[]`. |
+| **LibraryTab** | Tab custom criada pelo usuário para organizar entidades na biblioteca. Campos: `id`, `title`, `emoji`, `position`, `createdAt`. Embarcada em `UserConsumer.libraryTabs[]`. Tabs de sistema (📚 "All Library", ⭐ "Only Favorites") são constantes do app (`SYSTEM_LIBRARY_TABS`), não persistidas no usuário. Relação many-to-many com nós via `libraryTabIds[]` no NodeActivation. |
 | **FeedMacro** | Preset salvo de filtros do feed. Campos: `id`, `name`, `filters: FeedMacroFilters`. Embarcado em `UserConsumer.feedMacros[]`. |
 | **FeedMacroFilters** | Configuração de filtros de um macro. Campos: `nodeIds[]`, `categoryIdsByTree` (Record por tree), `categoryModesByTree?` (Record de categoryId → mode). |
 | **Font** | TreeNode com `role='font'`. Canal técnico de distribuição que encapsula a configuração de um protocolo (Nostr, RSS ou Atom). Body: `FontBody { protocol, config, defaultEnabled }`. |
@@ -57,7 +57,7 @@
 | **FavoriteButton** | Componente shared com toggle star. Tamanhos: `sm` (size-6, cards) e `md` (size-5, pages). |
 | **ConfirmDialog** | Componente base genérico para confirmações. Aceita `icon` snippet, `title`, `description`, `confirmVariant`. Wrappers especializados herdam dele. |
 | **TabDialog** | Componente unificado para CRUD de tabs. 3 modes: `create` (FolderPlus), `edit` (FolderPen), `delete` (Bookmark+Trash2). Cada modo com ícone, título e comportamento únicos. |
-| **baseHref** | Prop de componentes de página que define o prefixo de URL para links internos. Permite reutilizar o mesmo componente em `/browse` e `/favorites`. |
+| **baseHref** | Prop de componentes de página que define o prefixo de URL para links internos. Permite reutilizar o mesmo componente em `/browse` e `/library`. |
 | **SubscribeButton** | Componente shared para toggle de inscrição em nós creator. UI: "Inscrito" (verde, UserCheck) / "Inscrever-se" (muted, UserPlus). Mapeia para `NodeActivation.enabled`. |
 | **FollowButton** | Componente shared para toggle de seguir nós profile/font. UI: "Segue" (azul, Eye) / "Seguir" (muted, EyeOff). Mapeia para `NodeActivation.enabled`. |
 | **ConfirmUnsubscribeDialog** | Dialog de confirmação para cancelar inscrição. Usa UserMinus + variante destrutiva. |

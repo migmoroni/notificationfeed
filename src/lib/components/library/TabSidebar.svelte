@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { t } from '$lib/i18n/t.js';
-	import { favorites } from '$lib/stores/favorites.svelte.js';
+	import { library, ALL_LIBRARY_ID, ONLY_FAVORITES_ID } from '$lib/stores/library.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
-	import { ALL_FAVORITES_ID } from '$lib/stores/favorites.svelte.js';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Ellipsis from '@lucide/svelte/icons/ellipsis';
 	import Pencil from '@lucide/svelte/icons/pencil';
@@ -16,7 +15,7 @@
 	let openMenuId = $state<string | null>(null);
 
 	function handleTabClick(tabId: string) {
-		favorites.setActiveTab(tabId);
+		library.setActiveTab(tabId);
 	}
 
 	function handleCreateTab() {
@@ -24,7 +23,7 @@
 	}
 
 	async function handleCreateConfirm(title: string, emoji: string) {
-		await favorites.createTab(title, emoji);
+		await library.createTab(title, emoji);
 		showCreateDialog = false;
 	}
 
@@ -35,7 +34,7 @@
 
 	async function handleEditConfirm(title: string, emoji: string) {
 		if (editingTab) {
-			await favorites.updateTab(editingTab.id, { title, emoji });
+			await library.updateTab(editingTab.id, { title, emoji });
 			editingTab = null;
 		}
 	}
@@ -48,7 +47,7 @@
 
 	async function confirmDeleteTab() {
 		if (deletingTabId) {
-			await favorites.deleteTab(deletingTabId);
+			await library.deleteTab(deletingTabId);
 			deletingTabId = null;
 		}
 		showDeleteConfirm = false;
@@ -72,35 +71,51 @@
 
 <nav
 	class="flex gap-1 {layout.isExpanded ? 'flex-col' : 'flex-row overflow-x-auto pb-2'}"
-	aria-label={t('aria.favorite_tabs')}
+	aria-label={t('aria.library_tabs')}
 >
-	<!-- System tab: all_favorites -->
+	<!-- System tab: All Library -->
 	<button
-		onclick={() => handleTabClick(ALL_FAVORITES_ID)}
+		onclick={() => handleTabClick(ALL_LIBRARY_ID)}
 		class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors shrink-0
-			{favorites.activeTabId === ALL_FAVORITES_ID
+			{library.activeTabId === ALL_LIBRARY_ID
 			? 'bg-accent text-accent-foreground'
 			: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
-		aria-current={favorites.activeTabId === ALL_FAVORITES_ID ? 'true' : undefined}
+		aria-current={library.activeTabId === ALL_LIBRARY_ID ? 'true' : undefined}
+	>
+		<span class="text-base">📚</span>
+		{#if layout.isExpanded}
+			<span class="truncate">{t('library.all')}</span>
+			<span class="ml-auto text-xs text-muted-foreground">{library.count}</span>
+		{/if}
+	</button>
+
+	<!-- System tab: Only Favorites -->
+	<button
+		onclick={() => handleTabClick(ONLY_FAVORITES_ID)}
+		class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors shrink-0
+			{library.activeTabId === ONLY_FAVORITES_ID
+			? 'bg-accent text-accent-foreground'
+			: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
+		aria-current={library.activeTabId === ONLY_FAVORITES_ID ? 'true' : undefined}
 	>
 		<span class="text-base">⭐</span>
 		{#if layout.isExpanded}
-			<span class="truncate">{t('favorites.all')}</span>
-			<span class="ml-auto text-xs text-muted-foreground">{favorites.count}</span>
+			<span class="truncate">{t('library.only_favorites')}</span>
+			<span class="ml-auto text-xs text-muted-foreground">{library.itemsByTab.get(ONLY_FAVORITES_ID)?.length ?? 0}</span>
 		{/if}
 	</button>
 
 	<!-- Custom tabs -->
-	{#each favorites.customTabs as tab (tab.id)}
-		{@const itemCount = favorites.itemsByTab.get(tab.id)?.length ?? 0}
+	{#each library.customTabs as tab (tab.id)}
+		{@const itemCount = library.itemsByTab.get(tab.id)?.length ?? 0}
 		<div class="relative shrink-0">
 			<button
 				onclick={() => handleTabClick(tab.id)}
 				class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors
-					{favorites.activeTabId === tab.id
+					{library.activeTabId === tab.id
 					? 'bg-accent text-accent-foreground'
 					: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
-				aria-current={favorites.activeTabId === tab.id ? 'true' : undefined}
+				aria-current={library.activeTabId === tab.id ? 'true' : undefined}
 			>
 				<span class="text-base">{tab.emoji}</span>
 				{#if layout.isExpanded}
@@ -113,7 +128,7 @@
 				<button
 					onclick={(e) => toggleMenu(tab.id, e)}
 					class="absolute right-0 top-0 flex items-center justify-center size-7 rounded text-muted-foreground hover:text-foreground opacity-0 hover:opacity-100 focus:opacity-100 transition-opacity
-						{favorites.activeTabId === tab.id ? 'opacity-100' : ''}"
+						{library.activeTabId === tab.id ? 'opacity-100' : ''}"
 					aria-label={t('aria.tab_options', { title: tab.title })}
 				>
 					<Ellipsis class="size-3.5" />
@@ -149,7 +164,7 @@
 	>
 		<Plus class="size-4" />
 		{#if layout.isExpanded}
-			<span>{t('favorites.new_tab')}</span>
+			<span>{t('library.new_tab')}</span>
 		{/if}
 	</button>
 </nav>

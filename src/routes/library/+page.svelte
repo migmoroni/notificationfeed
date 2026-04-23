@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { favorites } from '$lib/stores/favorites.svelte.js';
+	import { library } from '$lib/stores/library.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { sidebarSlot } from '$lib/stores/sidebar-slot.svelte.js';
 	import {
 		TabSidebar,
 		SelectionBar,
 		TabAssignmentDialog
-	} from '$lib/components/favorites/index.js';
-	import FavoriteItemList from '$lib/components/favorites/FavoriteItemList.svelte';
+	} from '$lib/components/library/index.js';
+	import LibraryItemList from '$lib/components/library/LibraryItemList.svelte';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
 import { t } from '$lib/i18n/t.js';
 
@@ -16,7 +16,7 @@ import { t } from '$lib/i18n/t.js';
 	let showRemoveConfirm = $state(false);
 
 	onMount(async () => {
-		await favorites.loadFavorites();
+		await library.loadLibrary();
 		sidebarSlot.set(sidebarContent);
 	});
 
@@ -25,8 +25,8 @@ import { t } from '$lib/i18n/t.js';
 	});
 
 	async function handleConfirmRemove() {
-		const ids = [...favorites.selectedItemIds];
-		await favorites.removeFavorites(ids);
+		const ids = [...library.selectedItemIds];
+		await library.removeFavorites(ids);
 		showRemoveConfirm = false;
 	}
 </script>
@@ -38,12 +38,12 @@ import { t } from '$lib/i18n/t.js';
 {/snippet}
 
 <svelte:head>
-	<title>{t('page_title.favorites')}</title>
+	<title>{t('page_title.library')}</title>
 </svelte:head>
 
 <div class="mx-auto w-full h-full flex flex-col overflow-hidden py-4 px-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
 	<div class="mb-4">
-		<h1 class="text-xl font-bold mb-3">{t('title.favorites')}</h1>
+		<h1 class="text-xl font-bold mb-3">{t('title.library')}</h1>
 	</div>
 
 	<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? '' : 'lg:grid-cols-[295px_1fr]'}">
@@ -54,8 +54,8 @@ import { t } from '$lib/i18n/t.js';
 		{/if}
 
 		<!-- Main: filtered items -->
-		<div class="overflow-y-auto pr-24 pb-24 pt-4 {favorites.isSelecting ? 'pb-20' : ''}">
-			<FavoriteItemList items={favorites.filteredItems} loading={favorites.loading} />
+		<div class="overflow-y-auto pr-24 pb-24 pt-4 {library.isSelecting ? 'pb-20' : ''}">
+			<LibraryItemList items={library.filteredItems} loading={library.loading} />
 		</div>
 	</div>
 </div>
@@ -68,13 +68,13 @@ import { t } from '$lib/i18n/t.js';
 
 <!-- Tab assignment dialog -->
 {#if showAssignment}
-	<TabAssignmentDialog onclose={() => { favorites.clearSelection(); showAssignment = false; }} />
+	<TabAssignmentDialog onclose={() => { library.clearSelection(); showAssignment = false; }} />
 {/if}
 
 <!-- Remove confirm dialog -->
 <ConfirmUnfavoriteDialog
 	bind:open={showRemoveConfirm}
-	count={favorites.selectedCount}
+	count={library.selectedCount}
 	onconfirm={handleConfirmRemove}
 	oncancel={() => (showRemoveConfirm = false)}
 />

@@ -1,19 +1,20 @@
 <!--
-  FavoriteItemList — displays favorited TreeNodes with tab grouping.
+  LibraryItemList — displays activated TreeNodes with tab grouping.
 
-  Uses FavoriteItem type (activation + TreeNode instead of ConsumerState + entity union).
+  Uses LibraryItem type (activation + TreeNode).
+  Shows all activated nodes in "All Library" tab, filtered by favorite in "Only Favorites" tab.
 -->
 <script lang="ts">
-	import type { FavoriteItem } from '$lib/stores/favorites.svelte.js';
+	import type { LibraryItem } from '$lib/stores/library.svelte.js';
 	import type { TreeNode } from '$lib/domain/content-tree/content-tree.js';
-	import { favorites } from '$lib/stores/favorites.svelte.js';
+	import { library } from '$lib/stores/library.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import EntityCard from '$lib/components/shared/entity/EntityCard.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import Check from '@lucide/svelte/icons/check';
 
 	interface Props {
-		items: FavoriteItem[];
+		items: LibraryItem[];
 		loading?: boolean;
 	}
 
@@ -30,17 +31,17 @@
 		return { creators, profiles, fonts };
 	});
 
-	function itemHref(item: FavoriteItem): string {
+	function itemHref(item: LibraryItem): string {
 		if (!item.node) return '#';
-		return `/favorites/node/${item.node.metadata.id}`;
+		return `/library/node/${item.node.metadata.id}`;
 	}
 
 	function handlePointerDown(nodeId: string) {
 		longPressFired = false;
 		longPressTimer = setTimeout(() => {
 			longPressFired = true;
-			if (!favorites.isSelecting) {
-				favorites.toggleItemSelection(nodeId);
+			if (!library.isSelecting) {
+				library.toggleItemSelection(nodeId);
 			}
 			longPressTimer = null;
 		}, 500);
@@ -60,15 +61,15 @@
 			longPressFired = false;
 			return;
 		}
-		if (favorites.isSelecting) {
+		if (library.isSelecting) {
 			e.preventDefault();
 			e.stopPropagation();
-			favorites.toggleItemSelection(nodeId);
+			library.toggleItemSelection(nodeId);
 		}
 	}
 </script>
 
-{#snippet groupSection(label: string, groupItems: FavoriteItem[])}
+{#snippet groupSection(label: string, groupItems: LibraryItem[])}
 	{#if groupItems.length > 0}
 		<div>
 			<h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
@@ -77,16 +78,16 @@
 			<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
 				{#each groupItems as item (item.activation.nodeId)}
 					{@const nodeId = item.activation.nodeId}
-					{@const isSelected = favorites.selectedItemIds.has(nodeId)}
+					{@const isSelected = library.selectedItemIds.has(nodeId)}
 					<!-- svelte-ignore a11y_no_static_element_interactions, a11y_click_events_have_key_events -->
 					<div
-						class="relative {favorites.isSelecting ? 'cursor-pointer' : ''}"
+						class="relative {library.isSelecting ? 'cursor-pointer' : ''}"
 						onpointerdown={() => handlePointerDown(nodeId)}
 						onpointerup={handlePointerUp}
 						onpointerleave={handlePointerUp}
 						onclick={(e) => handleCardClick(nodeId, e)}
 					>
-						{#if favorites.isSelecting}
+						{#if library.isSelecting}
 							<div
 								class="absolute left-0 top-0 bottom-0 w-8 z-10 flex items-center justify-center rounded-l-lg
 									{isSelected ? 'bg-accent' : 'bg-muted/50'}"
@@ -98,11 +99,11 @@
 								{/if}
 							</div>
 						{/if}
-						<div class={favorites.isSelecting ? 'pl-8' : ''}>
+						<div class={library.isSelecting ? 'pl-8' : ''}>
 							{#if item.node}
 								<EntityCard
 									node={item.node}
-									href={favorites.isSelecting ? null : itemHref(item)}
+									href={library.isSelecting ? null : itemHref(item)}
 								/>
 							{/if}
 						</div>
@@ -122,7 +123,7 @@
 {:else if items.length === 0}
 	<div class="flex flex-col items-center justify-center py-12 text-center">
 		<p class="text-sm text-muted-foreground">
-			Nenhum favorito ainda. Favorite itens na tela Browse.
+			Nenhum item na biblioteca ainda. Ative itens na tela Browse.
 		</p>
 	</div>
 {:else}

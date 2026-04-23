@@ -95,16 +95,16 @@ Na importação por URL simples, o protocolo é detectado heuristicamente:
 
 | Contexto | URL |
 |---|---|
-| Browse | `/browse/font/{compositeId}` |
-| Favorites | `/favorites/font/{compositeId}` |
-| Preview | `/preview/font/{compositeId}` |
+| Browse | `/browse/node/{compositeId}` |
+| Library | `/library/node/{compositeId}` |
+| Preview | `/preview/node/{compositeId}` |
 
 ## Funcionalidades
 
 - [x] Criar Font node em ContentTree (formulário dinâmico por protocolo)
 - [x] Editar Font (title, protocol, config, defaultEnabled)
 - [x] Deletar Font node
-- [x] Exibir Font em browse/favorites/preview
+- [x] Exibir Font em browse/library/preview
 - [x] Herança de categories via propagação ascendente
 - [x] Ativar/desativar (consumer, via NodeActivation)
 - [x] FollowButton (Segue/Seguir) com confirmação para unfollow
