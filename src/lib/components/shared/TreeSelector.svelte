@@ -4,8 +4,13 @@
 	import type { CategoryTreeStore } from '$lib/stores/category-tree.types.js';
 	import type { Category, CategoryTreeId } from '$lib/domain/category/category.js';
 	import { sidebarFlyout } from '$lib/stores/sidebar-flyout.svelte.js';
-	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import X from '@lucide/svelte/icons/x';
+	import BookOpen from '@lucide/svelte/icons/book-open';
+	import Accessibility from '@lucide/svelte/icons/accessibility';
+	import Film from '@lucide/svelte/icons/film';
+	import Globe from '@lucide/svelte/icons/globe';
+	import Languages from '@lucide/svelte/icons/languages';
+	import type { Component } from 'svelte';
 
 	interface Props {
 		store: CategoryTreeStore;
@@ -13,12 +18,12 @@
 
 	let { store }: Props = $props();
 
-	const trees: { id: CategoryTreeId; labelKey: string }[] = [
-		{ id: 'subject', labelKey: 'category_tree.subject' },
-		{ id: 'content_type', labelKey: 'category_tree.content_type' },
-		{ id: 'media_type', labelKey: 'category_tree.media_type' },
-		{ id: 'region', labelKey: 'category_tree.region' },
-		{ id: 'language', labelKey: 'category_tree.language' }
+	const trees: { id: CategoryTreeId; labelKey: string; icon: Component }[] = [
+		{ id: 'subject', labelKey: 'category_tree.subject', icon: BookOpen },
+		{ id: 'content_type', labelKey: 'category_tree.content_type', icon: Accessibility },
+		{ id: 'media_type', labelKey: 'category_tree.media_type', icon: Film },
+		{ id: 'region', labelKey: 'category_tree.region', icon: Globe },
+		{ id: 'language', labelKey: 'category_tree.language', icon: Languages }
 	];
 
 	const flyoutKey = (id: CategoryTreeId) => `category-tree:${id}`;
@@ -84,28 +89,27 @@
 <svelte:window onclick={handleClickOutside} />
 
 <div class="relative" bind:this={containerEl}>
-	<div class="flex flex-col gap-0.5 px-1">
+	<div class="flex items-center gap-1 px-2">
 		{#each trees as tr (tr.id)}
 			{@const selectedCount = store.getSelectedCount(tr.id)}
+			{@const isOpen = openTreeId === tr.id}
+			{@const Icon = tr.icon}
 			<button
 				onclick={(e) => { e.stopPropagation(); toggleTree(tr.id); }}
-				class="flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-[13px] font-medium transition-colors text-left
-					{openTreeId === tr.id
+				class="relative flex-1 flex items-center justify-center rounded-md p-2 transition-colors
+					{isOpen
 						? 'bg-accent text-accent-foreground'
 						: selectedCount > 0
-							? 'text-foreground hover:bg-accent/50'
-							: 'text-muted-foreground hover:bg-accent/50'}"
+							? 'text-foreground bg-accent/40 hover:bg-accent/60'
+							: 'text-muted-foreground hover:bg-accent/40 hover:text-foreground'}"
+				title={t(tr.labelKey)}
+				aria-label={t(tr.labelKey)}
 			>
-				<ChevronRight class="size-4 shrink-0 transition-transform duration-200 {openTreeId === tr.id ? 'rotate-90' : ''}" />
-				<span class="truncate flex-1">{t(tr.labelKey)}</span>
+				<Icon class="size-4" />
 				{#if selectedCount > 0}
-					<button
-						onclick={(e) => { e.stopPropagation(); store.clearTree(tr.id); }}
-						class="inline-flex items-center gap-1 rounded-full bg-accent px-1.5 py-0.5 text-[11px] text-muted-foreground hover:text-foreground hover:bg-destructive/10 transition-colors"
-					>
-						<X class="size-3" />
+					<span class="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[14px] h-[14px] px-1 rounded-full bg-primary text-primary-foreground text-[9px] font-semibold tabular-nums leading-none">
 						{selectedCount}
-					</button>
+					</span>
 				{/if}
 			</button>
 		{/each}
