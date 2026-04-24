@@ -23,9 +23,10 @@
 	const categoryRepo = createCategoryStore();
 	const TREES: { id: CategoryTreeId; labelKey: string }[] = [
 		{ id: 'subject', labelKey: 'category_tree.subject' },
-		{ id: 'content_type', labelKey: 'category_tree.content_type' },
-		{ id: 'media_type', labelKey: 'category_tree.media_type' },
-		{ id: 'region', labelKey: 'category_tree.region' }
+		{ id: 'content', labelKey: 'category_tree.content' },
+		{ id: 'media', labelKey: 'category_tree.media' },
+		{ id: 'region', labelKey: 'category_tree.region' },
+		{ id: 'language', labelKey: 'category_tree.language' }
 	];
 
 	onMount(async () => {

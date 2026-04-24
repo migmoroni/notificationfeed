@@ -240,12 +240,12 @@ categoryAssignments: [
 
 [PT.fontRss1]: makeNode(PT.fontRss1, 'font', {
 title: 'Hacker News RSS',
-categoryAssignments: [{ treeId: 'content_type', categoryIds: ['baaac'] }]
+categoryAssignments: [{ treeId: 'content', categoryIds: ['baaac'] }]
 }, { role: 'font', protocol: 'rss', config: { url: 'https://hnrss.org/frontpage' }, defaultEnabled: true }),
 
 [PT.fontAtom1]: makeNode(PT.fontAtom1, 'font', {
 title: 'Svelte Blog (Atom)',
-categoryAssignments: [{ treeId: 'content_type', categoryIds: ['baaac'] }]
+categoryAssignments: [{ treeId: 'content', categoryIds: ['baaac'] }]
 }, { role: 'font', protocol: 'atom', config: { url: 'https://svelte.dev/blog/rss.xml' }, defaultEnabled: true }),
 
 [PT.fontNostr1]: makeNode(PT.fontNostr1, 'font', {
@@ -264,13 +264,13 @@ IDS.treeProfileSecurity,
 title: 'Security & Privacy',
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['anaak'] },
-{ treeId: 'content_type', categoryIds: ['baaac', 'baaad'] }
+{ treeId: 'content', categoryIds: ['baaac', 'baaad'] }
 ]
 }, { role: 'profile', links: [] }),
 
 [PS.fontRss3]: makeNode(PS.fontRss3, 'font', {
 title: 'Krebs on Security',
-categoryAssignments: [{ treeId: 'content_type', categoryIds: ['baaac'] }]
+categoryAssignments: [{ treeId: 'content', categoryIds: ['baaac'] }]
 }, { role: 'font', protocol: 'rss', config: { url: 'https://krebsonsecurity.com/feed/' }, defaultEnabled: true }),
 },
 { '/': PS.root, '*': [PS.fontRss3] },
@@ -285,7 +285,7 @@ IDS.treeProfileNews,
 title: 'News Sources',
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['alaae'] },
-{ treeId: 'content_type', categoryIds: ['baaac'] }
+{ treeId: 'content', categoryIds: ['baaac'] }
 ]
 }, { role: 'profile', links: [] }),
 
@@ -305,7 +305,7 @@ IDS.treeProfileScience,
 title: 'Science & Health',
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['an', 'ah'] },
-{ treeId: 'content_type', categoryIds: ['baaac'] }
+{ treeId: 'content', categoryIds: ['baaac'] }
 ]
 }, { role: 'profile', links: [] }),
 
@@ -325,7 +325,7 @@ IDS.treeProfileFrontend,
 title: 'Frontend Sources',
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['anaaa'] },
-{ treeId: 'content_type', categoryIds: ['baaac'] }
+{ treeId: 'content', categoryIds: ['baaac'] }
 ]
 }, { role: 'profile', links: [] }),
 
@@ -403,7 +403,7 @@ title: 'NewsDaily',
 summary: 'Daily news from around the world',
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['alaae'] },
-{ treeId: 'content_type', categoryIds: ['baaac'] }
+{ treeId: 'content', categoryIds: ['baaac'] }
 ]
 }, { role: 'creator', links: [] }),
 

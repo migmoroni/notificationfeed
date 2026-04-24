@@ -10,18 +10,18 @@
 
 	interface Props {
 		subjectIds?: string[];
-		contentTypeIds?: string[];
-		mediaTypeIds?: string[];
+		contentIds?: string[];
+		mediaIds?: string[];
 		regionIds?: string[];
 		languageIds?: string[];
-		onchange?: (filters: { subjectIds: string[]; contentTypeIds: string[]; mediaTypeIds: string[]; regionIds: string[]; languageIds: string[] }) => void;
+		onchange?: (filters: { subjectIds: string[]; contentIds: string[]; mediaIds: string[]; regionIds: string[]; languageIds: string[] }) => void;
 	}
 
-	let { subjectIds = [], contentTypeIds = [], mediaTypeIds = [], regionIds = [], languageIds = [], onchange }: Props = $props();
+	let { subjectIds = [], contentIds = [], mediaIds = [], regionIds = [], languageIds = [], onchange }: Props = $props();
 
 	let subjectCategories: Category[] = $state([]);
-	let contentTypeCategories: Category[] = $state([]);
-	let mediaTypeCategories: Category[] = $state([]);
+	let contentCategories: Category[] = $state([]);
+	let mediaCategories: Category[] = $state([]);
 	let regionCategories: Category[] = $state([]);
 	let languageCategories: Category[] = $state([]);
 	let showPanel = $state(false);
@@ -29,24 +29,24 @@
 	const categoryRepo = createCategoryStore();
 
 	onMount(async () => {
-		const [subjects, contentTypes, mediaTypes, regions, languages] = await Promise.all([
+		const [subjects, contents, medias, regions, languages] = await Promise.all([
 			categoryRepo.getSublevels('subject'),
-			categoryRepo.getSublevels('content_type'),
-			categoryRepo.getSublevels('media_type'),
+			categoryRepo.getSublevels('content'),
+			categoryRepo.getSublevels('media'),
 			categoryRepo.getSublevels('region'),
 			categoryRepo.getSublevels('language')
 		]);
 		subjectCategories = subjects.sort((a, b) => a.order - b.order);
-		contentTypeCategories = contentTypes.sort((a, b) => a.order - b.order);
-		mediaTypeCategories = mediaTypes.sort((a, b) => a.order - b.order);
+		contentCategories = contents.sort((a, b) => a.order - b.order);
+		mediaCategories = medias.sort((a, b) => a.order - b.order);
 		regionCategories = regions.sort((a, b) => a.order - b.order);
 		languageCategories = languages.sort((a, b) => a.order - b.order);
 	});
 
 	function toggleCategory(treeId: CategoryTreeId, catId: string) {
 		let newSubjects = [...subjectIds];
-		let newContentTypes = [...contentTypeIds];
-		let newMediaTypes = [...mediaTypeIds];
+		let newContents = [...contentIds];
+		let newMedias = [...mediaIds];
 		let newRegions = [...regionIds];
 		let newLanguages = [...languageIds];
 
@@ -56,17 +56,17 @@
 			} else {
 				newSubjects = [...newSubjects, catId];
 			}
-		} else if (treeId === 'content_type') {
-			if (newContentTypes.includes(catId)) {
-				newContentTypes = newContentTypes.filter((id) => id !== catId);
+		} else if (treeId === 'content') {
+			if (newContents.includes(catId)) {
+				newContents = newContents.filter((id) => id !== catId);
 			} else {
-				newContentTypes = [...newContentTypes, catId];
+				newContents = [...newContents, catId];
 			}
-		} else if (treeId === 'media_type') {
-			if (newMediaTypes.includes(catId)) {
-				newMediaTypes = newMediaTypes.filter((id) => id !== catId);
+		} else if (treeId === 'media') {
+			if (newMedias.includes(catId)) {
+				newMedias = newMedias.filter((id) => id !== catId);
 			} else {
-				newMediaTypes = [...newMediaTypes, catId];
+				newMedias = [...newMedias, catId];
 			}
 		} else if (treeId === 'region') {
 			if (newRegions.includes(catId)) {
@@ -82,14 +82,14 @@
 			}
 		}
 
-		onchange?.({ subjectIds: newSubjects, contentTypeIds: newContentTypes, mediaTypeIds: newMediaTypes, regionIds: newRegions, languageIds: newLanguages });
+		onchange?.({ subjectIds: newSubjects, contentIds: newContents, mediaIds: newMedias, regionIds: newRegions, languageIds: newLanguages });
 	}
 
 	function clearAll() {
-		onchange?.({ subjectIds: [], contentTypeIds: [], mediaTypeIds: [], regionIds: [], languageIds: [] });
+		onchange?.({ subjectIds: [], contentIds: [], mediaIds: [], regionIds: [], languageIds: [] });
 	}
 
-	let activeCount = $derived(subjectIds.length + contentTypeIds.length + mediaTypeIds.length + regionIds.length + languageIds.length);
+	let activeCount = $derived(subjectIds.length + contentIds.length + mediaIds.length + regionIds.length + languageIds.length);
 </script>
 
 <div class="relative">
@@ -144,15 +144,15 @@
 			{/if}
 
 			<!-- Content type categories -->
-			{#if contentTypeCategories.length > 0}
+			{#if contentCategories.length > 0}
 				<div class="mb-3">
-					<p class="text-xs font-medium text-muted-foreground mb-1.5">{t('category_tree.content_type')}</p>
+					<p class="text-xs font-medium text-muted-foreground mb-1.5">{t('category_tree.content')}</p>
 					<div class="flex flex-wrap gap-1.5">
-						{#each contentTypeCategories as cat (cat.id)}
+						{#each contentCategories as cat (cat.id)}
 							<button
-								onclick={() => toggleCategory('content_type', cat.id)}
+								onclick={() => toggleCategory('content', cat.id)}
 								class="rounded-full border px-2.5 py-0.5 text-xs transition-colors
-									{contentTypeIds.includes(cat.id)
+									{contentIds.includes(cat.id)
 									? 'border-primary bg-primary text-primary-foreground'
 									: 'border-input bg-background hover:bg-accent'}"
 							>
@@ -164,15 +164,15 @@
 			{/if}
 
 			<!-- Media type categories -->
-			{#if mediaTypeCategories.length > 0}
+			{#if mediaCategories.length > 0}
 				<div class="mb-3">
-					<p class="text-xs font-medium text-muted-foreground mb-1.5">{t('category_tree.media_type')}</p>
+					<p class="text-xs font-medium text-muted-foreground mb-1.5">{t('category_tree.media')}</p>
 					<div class="flex flex-wrap gap-1.5">
-						{#each mediaTypeCategories as cat (cat.id)}
+						{#each mediaCategories as cat (cat.id)}
 							<button
-								onclick={() => toggleCategory('media_type', cat.id)}
+								onclick={() => toggleCategory('media', cat.id)}
 								class="rounded-full border px-2.5 py-0.5 text-xs transition-colors
-									{mediaTypeIds.includes(cat.id)
+									{mediaIds.includes(cat.id)
 									? 'border-primary bg-primary text-primary-foreground'
 									: 'border-input bg-background hover:bg-accent'}"
 							>

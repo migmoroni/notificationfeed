@@ -10,8 +10,8 @@
 import type { SeedCategory } from './category-seed.js';
 import type { CategoryDataEntry } from './category-data.js';
 import { resolveEntry, deriveDepth } from './category-data.js';
-import data from './data/media-type.json';
+import data from './data/media.json';
 
-export const mediaTypeSeed: SeedCategory[] = (data as CategoryDataEntry[]).map((e) =>
-resolveEntry(e, 'media_type', deriveDepth(e.id, false))
+export const mediaSeed: SeedCategory[] = (data as CategoryDataEntry[]).map((e) =>
+resolveEntry(e, 'media', deriveDepth(e.id, false))
 );

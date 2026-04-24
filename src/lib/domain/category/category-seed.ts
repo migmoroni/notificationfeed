@@ -8,16 +8,16 @@
  *
  * Each tree lives in its own file to keep things manageable:
  *   seed-subject.ts      — IPTC NewsCodes Media Topics (17 topics)
- *   seed-content-type.ts — accessibility taxonomy (schema.org + W3C WAI)
- *   seed-media-type.ts   — content media taxonomy (DCMI + schema.org)
+ *   seed-content.ts — accessibility taxonomy (schema.org + W3C WAI)
+ *   seed-media.ts   — content media taxonomy (DCMI + schema.org)
  *   seed-region.ts       — geographic taxonomy
  *   seed-language.ts     — language/locale taxonomy (BCP 47)
  */
 
 import type { Category } from './category.js';
 import { subjectSeed } from './seed-subject.js';
-import { contentTypeSeed } from './seed-content-type.js';
-import { mediaTypeSeed } from './seed-media-type.js';
+import { contentSeed } from './seed-content.js';
+import { mediaSeed } from './seed-media.js';
 import { regionSeed } from './seed-region.js';
 import { languageSeed } from './seed-language.js';
 
@@ -25,8 +25,8 @@ export type SeedCategory = Category;
 
 export const CATEGORY_SEED: SeedCategory[] = [
 	...subjectSeed,
-	...contentTypeSeed,
-	...mediaTypeSeed,
+	...contentSeed,
+	...mediaSeed,
 	...regionSeed,
 	...languageSeed,
 ];

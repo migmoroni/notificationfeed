@@ -19,10 +19,10 @@ import { createCategoryStore } from '$lib/persistence/category.store.js';
 export type TreeModes = Record<CategoryTreeId, Map<string, CategoryFilterMode>>;
 
 export function emptyTreeModes(): TreeModes {
-	return { subject: new Map(), content_type: new Map(), media_type: new Map(), region: new Map(), language: new Map() };
+	return { subject: new Map(), content: new Map(), media: new Map(), region: new Map(), language: new Map() };
 }
 
-const TREE_IDS: readonly CategoryTreeId[] = ['subject', 'content_type', 'media_type', 'region', 'language'];
+const TREE_IDS: readonly CategoryTreeId[] = ['subject', 'content', 'media', 'region', 'language'];
 
 // ── Return type ────────────────────────────────────────────────────────
 

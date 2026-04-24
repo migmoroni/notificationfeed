@@ -61,8 +61,8 @@
 
 	const TREE_LABELS: Record<string, string> = {
 		subject: t('category_tree.subject'),
-		content_type: t('category_tree.content_type'),
-		media_type: t('category_tree.media_type'),
+		content: t('category_tree.content'),
+		media: t('category_tree.media'),
 		region: t('category_tree.region'),
 		language: t('category_tree.language')
 	};

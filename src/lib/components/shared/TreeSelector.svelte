@@ -20,8 +20,8 @@
 
 	const trees: { id: CategoryTreeId; labelKey: string; icon: Component }[] = [
 		{ id: 'subject', labelKey: 'category_tree.subject', icon: BookOpen },
-		{ id: 'content_type', labelKey: 'category_tree.content_type', icon: Accessibility },
-		{ id: 'media_type', labelKey: 'category_tree.media_type', icon: Film },
+		{ id: 'content', labelKey: 'category_tree.content', icon: Accessibility },
+		{ id: 'media', labelKey: 'category_tree.media', icon: Film },
 		{ id: 'region', labelKey: 'category_tree.region', icon: Globe },
 		{ id: 'language', labelKey: 'category_tree.language', icon: Languages }
 	];

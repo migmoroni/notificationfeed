@@ -10,7 +10,8 @@
 	let hasAnyFilter = $derived(
 		feedEntityFilter.hasFilters ||
 		feedCategories.getSelectedCount('subject') > 0 ||
-		feedCategories.getSelectedCount('content_type') > 0 ||
+		feedCategories.getSelectedCount('content') > 0 ||
+		feedCategories.getSelectedCount('media') > 0 ||
 		feedCategories.getSelectedCount('region') > 0 ||
 		feedCategories.getSelectedCount('language') > 0
 	);

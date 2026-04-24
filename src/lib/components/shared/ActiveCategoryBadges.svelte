@@ -21,8 +21,8 @@
 
 	const TREES: { treeId: CategoryTreeId }[] = [
 		{ treeId: 'subject' },
-		{ treeId: 'content_type' },
-		{ treeId: 'media_type' },
+		{ treeId: 'content' },
+		{ treeId: 'media' },
 		{ treeId: 'region' },
 		{ treeId: 'language' }
 	];

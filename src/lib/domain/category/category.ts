@@ -4,8 +4,8 @@
  * All categories are system-defined (shipped with the app via seed).
  * Multiple independent trees coexist, identified by `treeId`:
  * - "subject" (a): IPTC NewsCodes topic taxonomy
- * - "content_type" (b): accessibility taxonomy (schema.org + W3C WAI)
- * - "media_type" (c): content media taxonomy (DCMI + schema.org)
+ * - "content" (b): accessibility taxonomy (schema.org + W3C WAI)
+ * - "media" (c): content media taxonomy (DCMI + schema.org)
  * - "region" (d): geographic taxonomy (UN M49 + ISO 3166-1)
  * - "language" (e): language/locale taxonomy (BCP 47)
  *
@@ -27,7 +27,7 @@
  */
 
 /** Identifies which tree a category belongs to */
-export type CategoryTreeId = 'subject' | 'content_type' | 'region' | 'media_type' | 'language';
+export type CategoryTreeId = 'subject' | 'content' | 'region' | 'media' | 'language';
 
 export interface Category {
 	id: string;

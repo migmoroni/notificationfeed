@@ -36,8 +36,8 @@
 
 	const TREES: { id: CategoryTreeId; labelKey: string; descKey: string; icon: typeof BookOpen }[] = [
 		{ id: 'subject', labelKey: 'category_tree.subject', descKey: 'category_tree.subject_desc', icon: BookOpen },
-		{ id: 'content_type', labelKey: 'category_tree.content_type', descKey: 'category_tree.content_type_desc', icon: FileText },
-		{ id: 'media_type', labelKey: 'category_tree.media_type', descKey: 'category_tree.media_type_desc', icon: Film },
+		{ id: 'content', labelKey: 'category_tree.content', descKey: 'category_tree.content_desc', icon: FileText },
+		{ id: 'media', labelKey: 'category_tree.media', descKey: 'category_tree.media_desc', icon: Film },
 		{ id: 'region', labelKey: 'category_tree.region', descKey: 'category_tree.region_desc', icon: Globe },
 		{ id: 'language', labelKey: 'category_tree.language', descKey: 'category_tree.language_desc', icon: Languages }
 	];

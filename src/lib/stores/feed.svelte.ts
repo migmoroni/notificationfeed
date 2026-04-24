@@ -130,11 +130,11 @@ return undefined;
 },
 
 filteredByCategories(
-	anyIds: { subject: string[]; content_type: string[]; media_type: string[]; region: string[]; language: string[] },
-	allIds: { subject: string[]; content_type: string[]; media_type: string[]; region: string[]; language: string[] }
+	anyIds: { subject: string[]; content: string[]; media: string[]; region: string[]; language: string[] },
+	allIds: { subject: string[]; content: string[]; media: string[]; region: string[]; language: string[] }
 ): SortedPost<CanonicalPost>[] {
 let sorted = computePrioritized();
-const treeKeys = ['subject', 'content_type', 'media_type', 'region', 'language'] as const;
+const treeKeys = ['subject', 'content', 'media', 'region', 'language'] as const;
 
 for (const treeId of treeKeys) {
 const any = anyIds[treeId];

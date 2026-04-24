@@ -1,7 +1,7 @@
 /**
  * Browse Store — reactive state for category-based navigation.
  *
- * Supports simultaneous filtering by category trees (subject + content_type + region)
+ * Supports simultaneous filtering by category trees (subject + content + region)
  * with multi-select within each tree. Text search combined with category filters.
  *
  * Category state is managed by browseCategories (CategoryFilterInstance).
@@ -153,10 +153,10 @@ state.trees = allTrees;
 
 const allNodes = extractAllNodes(allTrees);
 
-const treeKeys = ['subject', 'content_type', 'media_type', 'region', 'language'] as const;
+const treeKeys = ['subject', 'content', 'media', 'region', 'language'] as const;
 
-const anyExpanded: Record<CategoryTreeId, Set<string>> = { subject: new Set(), content_type: new Set(), media_type: new Set(), region: new Set(), language: new Set() };
-const allExpanded: Record<CategoryTreeId, Set<string>> = { subject: new Set(), content_type: new Set(), media_type: new Set(), region: new Set(), language: new Set() };
+const anyExpanded: Record<CategoryTreeId, Set<string>> = { subject: new Set(), content: new Set(), media: new Set(), region: new Set(), language: new Set() };
+const allExpanded: Record<CategoryTreeId, Set<string>> = { subject: new Set(), content: new Set(), media: new Set(), region: new Set(), language: new Set() };
 
 for (const tk of treeKeys) {
 const anyIds = new Set<string>();

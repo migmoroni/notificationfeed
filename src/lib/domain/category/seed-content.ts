@@ -8,8 +8,8 @@
 import type { SeedCategory } from './category-seed.js';
 import type { CategoryDataEntry } from './category-data.js';
 import { resolveEntry, deriveDepth } from './category-data.js';
-import data from './data/content-type.json';
+import data from './data/content.json';
 
-export const contentTypeSeed: SeedCategory[] = (data as CategoryDataEntry[]).map((e) =>
-resolveEntry(e, 'content_type', deriveDepth(e.id, false))
+export const contentSeed: SeedCategory[] = (data as CategoryDataEntry[]).map((e) =>
+resolveEntry(e, 'content', deriveDepth(e.id, false))
 );
