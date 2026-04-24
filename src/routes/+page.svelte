@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount, onDestroy, untrack } from 'svelte';
 	import { feed } from '$lib/stores/feed.svelte.js';
 	import { feedCategories } from '$lib/stores/feed-categories.svelte.js';
 	import { feedEntityFilter } from '$lib/stores/feed-entity-filter.svelte.js';
@@ -37,7 +37,7 @@
 
 	// Tab: 'saved' or 'advanced'. Default to 'advanced' only if filters are active without a macro.
 	let activeTab: 'saved' | 'advanced' = $state(
-		hasAdvancedFilters && !feedMacros.activeMacroId ? 'advanced' : 'saved'
+		untrack(() => (hasAdvancedFilters && !feedMacros.activeMacroId ? 'advanced' : 'saved'))
 	);
 
 	// Save new macro UI
@@ -253,7 +253,7 @@
 							placeholder={t('feed.macro_name_placeholder')}
 							class="flex-1 h-7 rounded-md border border-input bg-background px-2 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
 							onkeydown={(e) => e.key === 'Enter' && handleSaveMacro()}
-							autofocus
+							{@attach (el: HTMLInputElement) => el.focus()}
 						/>
 						<button
 							onclick={handleSaveMacro}

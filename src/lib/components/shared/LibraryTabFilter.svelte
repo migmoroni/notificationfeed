@@ -51,8 +51,7 @@
 
 <div class="relative" bind:this={containerEl}>
 	<div class="flex flex-col gap-0.5 px-1">
-		<button
-			onclick={(e) => { e.stopPropagation(); togglePanel(); }}
+		<div
 			class="flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-[13px] font-medium transition-colors text-left
 				{open
 					? 'bg-accent text-accent-foreground'
@@ -60,10 +59,17 @@
 						? 'text-foreground hover:bg-accent/50'
 						: 'text-muted-foreground hover:bg-accent/50'}"
 		>
-			<ChevronRight class="size-4 shrink-0 transition-transform duration-200 {open ? 'rotate-90' : ''}" />
-			<span class="truncate flex-1">{t('library_tab_filter.title')}</span>
+			<button
+				type="button"
+				onclick={(e) => { e.stopPropagation(); togglePanel(); }}
+				class="flex items-center gap-2 flex-1 min-w-0 text-left bg-transparent"
+			>
+				<ChevronRight class="size-4 shrink-0 transition-transform duration-200 {open ? 'rotate-90' : ''}" />
+				<span class="truncate flex-1">{t('library_tab_filter.title')}</span>
+			</button>
 			{#if selectedCount > 0}
 				<button
+					type="button"
 					onclick={(e) => { e.stopPropagation(); store.clearLibraryTabFilter(); }}
 					class="inline-flex items-center gap-1 rounded-full bg-accent px-1.5 py-0.5 text-[11px] text-muted-foreground hover:text-foreground hover:bg-destructive/10 transition-colors"
 				>
@@ -71,7 +77,7 @@
 					{selectedCount}
 				</button>
 			{/if}
-		</button>
+		</div>
 	</div>
 
 	{#if open}

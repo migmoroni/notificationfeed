@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import type { FontBody, FontProtocol, FontConfig, FontNostrConfig, FontRssConfig, FontAtomConfig } from '$lib/domain/content-tree/content-tree.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
@@ -18,15 +19,15 @@
 	let { body, onchange }: Props = $props();
 
 	// Local mutable state mirroring body fields
-	let protocol = $state<FontProtocol>(body.protocol);
-	let defaultEnabled = $state(body.defaultEnabled);
+	let protocol = $state<FontProtocol>(untrack(() => body.protocol));
+	let defaultEnabled = $state(untrack(() => body.defaultEnabled));
 
 	// Protocol-specific fields
-	let rssUrl = $state((body.config as FontRssConfig).url ?? '');
-	let atomUrl = $state((body.config as FontAtomConfig).url ?? '');
-	let nostrPubkey = $state((body.config as FontNostrConfig).pubkey ?? '');
-	let nostrRelays = $state<string[]>((body.config as FontNostrConfig).relays ?? []);
-	let nostrKinds = $state<number[]>((body.config as FontNostrConfig).kinds ?? []);
+	let rssUrl = $state(untrack(() => (body.config as FontRssConfig).url ?? ''));
+	let atomUrl = $state(untrack(() => (body.config as FontAtomConfig).url ?? ''));
+	let nostrPubkey = $state(untrack(() => (body.config as FontNostrConfig).pubkey ?? ''));
+	let nostrRelays = $state<string[]>(untrack(() => (body.config as FontNostrConfig).relays ?? []));
+	let nostrKinds = $state<number[]>(untrack(() => (body.config as FontNostrConfig).kinds ?? []));
 	let newRelay = $state('');
 
 	function buildConfig(): FontConfig {

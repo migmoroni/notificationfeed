@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import type { CreatorBody, ExternalLink } from '$lib/domain/content-tree/content-tree.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -14,7 +15,7 @@
 
 	let { body, onchange }: Props = $props();
 
-	let links = $state<ExternalLink[]>(body.links ?? []);
+	let links = $state<ExternalLink[]>(untrack(() => body.links ?? []));
 
 	function addLink() {
 		links = [...links, { title: '', url: '' }];

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { creator } from '$lib/stores/creator.svelte.js';
 	import { getMediaPreviewUrl } from '$lib/services/media.service.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -21,15 +22,15 @@
 	let { mediaId, emoji, onchange }: Props = $props();
 
 	type AvatarMode = 'image' | 'emoji';
-	let mode = $state<AvatarMode>(emoji ? 'emoji' : 'image');
+	let mode = $state<AvatarMode>(untrack(() => (emoji ? 'emoji' : 'image')));
 	let showEmojiDialog = $state(false);
-	let pendingEmoji = $state(emoji ?? '');
+	let pendingEmoji = $state(untrack(() => emoji ?? ''));
 	let showRemoveDialog = $state(false);
 	let showMediaPicker = $state(false);
 
 	let loading = $state(false);
 	let error = $state<string | null>(null);
-	let fileInput: HTMLInputElement;
+	let fileInput = $state<HTMLInputElement>();
 
 	let media = $derived(mediaId ? creator.getMediaById(mediaId) : null);
 	let previewUrl = $derived(media ? getMediaPreviewUrl(media) : null);
@@ -125,7 +126,7 @@
 					type="button"
 					class="flex flex-col items-center justify-center gap-1 w-18 h-18 border-2 border-dashed rounded-lg cursor-pointer text-muted-foreground hover:border-primary hover:text-primary transition-colors shrink-0"
 					disabled={loading}
-					onclick={() => fileInput.click()}
+					onclick={() => fileInput?.click()}
 				>
 					{#if loading}
 						<span class="text-[10px] animate-pulse">…</span>

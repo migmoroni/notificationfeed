@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import type {
 		NodeRole,
 		NodeHeader,
@@ -52,10 +53,12 @@
 
 	// Initialize header with defaults or from initial prop
 	let header = $state<NodeHeader>(
-		initialHeader ?? {
-			title: '',
-			categoryAssignments: []
-		}
+		untrack(() =>
+			initialHeader ?? {
+				title: '',
+				categoryAssignments: []
+			}
+		)
 	);
 
 	// Initialize body based on role
@@ -74,7 +77,7 @@
 		}
 	}
 
-	let body = $state<NodeBody>(initialBody ?? defaultBody(role));
+	let body = $state<NodeBody>(untrack(() => initialBody ?? defaultBody(role)));
 
 	let isValid = $derived.by(() => {
 		if (!header.title.trim()) return false;

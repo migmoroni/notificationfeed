@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import type { ContentMedia } from '$lib/domain/content-media/content-media.js';
 	import { creator } from '$lib/stores/creator.svelte.js';
 	import { getMediaPreviewUrl } from '$lib/services/media.service.js';
@@ -18,7 +19,7 @@
 
 	let { open = $bindable(), selectedId, onselect, oncancel }: Props = $props();
 
-	let picked = $state<string | undefined>(selectedId);
+	let picked = $state<string | undefined>(untrack(() => selectedId));
 
 	let allMedias = $derived(creator.medias.filter((m) => m.mimeType.startsWith('image/')));
 
