@@ -369,6 +369,12 @@
 	"library.organize_tabs_empty": "Nenhuma tab personalizada. Crie uma primeiro.",
 	"library.organize_tabs_search_placeholder": "Buscar tabs...",
 	"library.organize_tabs_no_results": "Nenhuma tab encontrada.",
+	"library.home": "Início",
+	"library.search_placeholder": "Buscar nesta tab...",
+	"library.search_tabs_placeholder": "Buscar tabs...",
+	"library.home_empty": "Nenhuma tab ainda. Crie uma para começar.",
+	"library.home_no_results": "Nenhuma tab corresponde à busca.",
+	"aria.library_home": "Página inicial da biblioteca",
 
 	"copy_consumer.title": "Copiar do Consumer",
 	"copy_consumer.description": "Selecione profiles para copiar. Uma cópia independente será criada no espaço do creator.",

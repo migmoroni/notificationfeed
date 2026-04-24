@@ -1,19 +1,23 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { library } from '$lib/stores/library.svelte.js';
+	import { library, LIBRARY_HOME_ID } from '$lib/stores/library.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { sidebarSlot } from '$lib/stores/sidebar-slot.svelte.js';
 	import {
 		TabSidebar,
 		SelectionBar,
-		TabAssignmentDialog
+		TabAssignmentDialog,
+		LibraryHome,
+		LibrarySearchBar
 	} from '$lib/components/library/index.js';
 	import LibraryItemList from '$lib/components/library/LibraryItemList.svelte';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
-import { t } from '$lib/i18n/t.js';
+	import { t } from '$lib/i18n/t.js';
 
 	let showAssignment = $state(false);
 	let showRemoveConfirm = $state(false);
+
+	let isHome = $derived(library.activeTabId === LIBRARY_HOME_ID);
 
 	onMount(async () => {
 		await library.loadLibrary();
@@ -53,9 +57,19 @@ import { t } from '$lib/i18n/t.js';
 		</aside>
 		{/if}
 
-		<!-- Main: filtered items -->
+		<!-- Main: filtered items or home grid -->
 		<div class="overflow-y-auto pr-24 pb-24 pt-4 {library.isSelecting ? 'pb-20' : ''}">
-			<LibraryItemList items={library.filteredItems} loading={library.loading} />
+			{#if isHome}
+				<LibraryHome />
+			{:else}
+				<div class="mb-4">
+					<LibrarySearchBar
+						value={library.searchQuery}
+						onchange={(v) => library.setSearchQuery(v)}
+					/>
+				</div>
+				<LibraryItemList items={library.filteredItems} loading={library.loading} />
+			{/if}
 		</div>
 	</div>
 </div>

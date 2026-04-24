@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { t } from '$lib/i18n/t.js';
-	import { library, ALL_LIBRARY_ID, ONLY_FAVORITES_ID } from '$lib/stores/library.svelte.js';
+	import { library, ALL_LIBRARY_ID, ONLY_FAVORITES_ID, LIBRARY_HOME_ID } from '$lib/stores/library.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import Plus from '@lucide/svelte/icons/plus';
+	import Home from '@lucide/svelte/icons/home';
 	import Ellipsis from '@lucide/svelte/icons/ellipsis';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
@@ -73,7 +74,23 @@
 	class="flex gap-1 {layout.isExpanded ? 'flex-col' : 'flex-row overflow-x-auto pb-2'}"
 	aria-label={t('aria.library_tabs')}
 >
-	<!-- Add tab button (always first) -->
+	<!-- Home (initial page — not a tab) -->
+	<button
+		onclick={() => handleTabClick(LIBRARY_HOME_ID)}
+		class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors shrink-0
+			{library.activeTabId === LIBRARY_HOME_ID
+			? 'bg-accent text-accent-foreground'
+			: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
+		aria-current={library.activeTabId === LIBRARY_HOME_ID ? 'true' : undefined}
+		aria-label={t('aria.library_home')}
+	>
+		<Home class="size-4" />
+		{#if layout.isExpanded}
+			<span class="truncate">{t('library.home')}</span>
+		{/if}
+	</button>
+
+	<!-- Add tab button -->
 	<button
 		onclick={handleCreateTab}
 		class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors shrink-0"

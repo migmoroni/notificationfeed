@@ -31,6 +31,9 @@ tabIds: string[];
 export { SYSTEM_ALL_LIBRARY_TAB_ID as ALL_LIBRARY_ID };
 export { SYSTEM_ONLY_FAVORITES_TAB_ID as ONLY_FAVORITES_ID };
 
+/** Virtual "Home" pseudo-tab ID — shows a grid of all tabs, not persisted, not a LibraryTab. */
+export const LIBRARY_HOME_ID = '__library_home__';
+
 // ── Internal reactive state ────────────────────────────────────────────
 
 interface LibraryStoreState {
@@ -38,13 +41,15 @@ items: LibraryItem[];
 activeTabId: string;
 selectedItemIds: Set<string>;
 loading: boolean;
+searchQuery: string;
 }
 
 let state = $state<LibraryStoreState>({
 items: [],
-activeTabId: SYSTEM_ALL_LIBRARY_TAB_ID,
+activeTabId: LIBRARY_HOME_ID,
 selectedItemIds: new Set(),
-loading: false
+loading: false,
+searchQuery: ''
 });
 
 const treeRepo = createContentTreeStore();
@@ -60,6 +65,7 @@ get items() { return state.items; },
 get activeTabId() { return state.activeTabId; },
 get selectedItemIds() { return state.selectedItemIds; },
 get loading() { return state.loading; },
+get searchQuery() { return state.searchQuery; },
 get count() { return state.items.length; },
 get isSelecting() { return state.selectedItemIds.size > 0; },
 get selectedCount() { return state.selectedItemIds.size; },
@@ -70,11 +76,17 @@ get customTabs(): LibraryTab[] {
 },
 
 get filteredItems(): LibraryItem[] {
-	if (state.activeTabId === SYSTEM_ALL_LIBRARY_TAB_ID) return state.items;
-	if (state.activeTabId === SYSTEM_ONLY_FAVORITES_TAB_ID) {
-		return state.items.filter((i) => i.activation.favorite);
+	let items: LibraryItem[];
+	if (state.activeTabId === LIBRARY_HOME_ID || state.activeTabId === SYSTEM_ALL_LIBRARY_TAB_ID) {
+		items = state.items;
+	} else if (state.activeTabId === SYSTEM_ONLY_FAVORITES_TAB_ID) {
+		items = state.items.filter((i) => i.activation.favorite);
+	} else {
+		items = state.items.filter((i) => i.tabIds.includes(state.activeTabId));
 	}
-	return state.items.filter((i) => i.tabIds.includes(state.activeTabId));
+	const q = state.searchQuery.trim().toLowerCase();
+	if (!q) return items;
+	return items.filter((i) => (i.node?.data.header.title ?? '').toLowerCase().includes(q));
 },
 
 get itemsByTab(): Map<string, LibraryItem[]> {
@@ -173,7 +185,7 @@ async deleteTab(tabId: string): Promise<void> {
 	if (changed) state.items = [...state.items];
 
 	if (state.activeTabId === tabId) {
-		state.activeTabId = SYSTEM_ALL_LIBRARY_TAB_ID;
+		state.activeTabId = LIBRARY_HOME_ID;
 	}
 },
 
@@ -204,6 +216,11 @@ async removeItemsFromTab(nodeIds: string[], tabId: string): Promise<void> {
 setActiveTab(tabId: string): void {
 	state.activeTabId = tabId;
 	state.selectedItemIds = new Set();
+	state.searchQuery = '';
+},
+
+setSearchQuery(q: string): void {
+	state.searchQuery = q;
 },
 
 toggleItemSelection(nodeId: string): void {
