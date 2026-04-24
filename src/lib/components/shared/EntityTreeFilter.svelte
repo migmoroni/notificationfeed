@@ -112,6 +112,7 @@ return pageTypeIcons[pt];
 {#snippet fontNode(entry: NodeEntry)}
 {@const node = entry.node}
 {@const isSelected = store.isFontSelected(node.metadata.id)}
+{@const FontIcon = fontProtocolIcon(node)}
 <button
 onclick={() => store.toggleFont(node.metadata.id)}
 class="ml-5 flex flex-1 min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-[13px] transition-colors text-left
@@ -119,7 +120,7 @@ class="ml-5 flex flex-1 min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-[
 ? 'bg-accent text-accent-foreground font-medium'
 : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
 >
-<svelte:component this={fontProtocolIcon(node)} class="size-4 shrink-0" />
+<FontIcon class="size-4 shrink-0" />
 {#if consumer.getActivation(node.metadata.id)?.favorite}
 <Star class="size-3 text-amber-500 shrink-0" fill="currentColor" />
 {:else}
@@ -201,6 +202,7 @@ class="flex flex-1 min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-[13px]
 <div class="flex items-center gap-1 px-2 py-1 shrink-0">
 {#each (ALL_PAGE_TYPES) as pt (pt)}
 {@const isActive = store.pageTypeFilter.has(pt)}
+{@const TypeIcon = pageTypeIcons[pt]}
 <button
 onclick={() => store.togglePageType(pt)}
 class="flex-1 flex items-center justify-center rounded-md p-2 transition-colors
@@ -210,7 +212,7 @@ class="flex-1 flex items-center justify-center rounded-md p-2 transition-colors
 title={t(pageTypeKeys[pt].labelKey)}
 aria-label={t(pageTypeKeys[pt].labelKey)}
 >
-<svelte:component this={pageTypeIcons[pt]} class="size-4" />
+<TypeIcon class="size-4" />
 </button>
 {/each}
 {#if totalSelected > 0}

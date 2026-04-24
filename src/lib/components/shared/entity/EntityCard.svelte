@@ -125,9 +125,11 @@
 		{:else}
 			<div class="flex items-center justify-center w-32 shrink-0 rounded-l-lg bg-muted text-muted-foreground">
 				{#if protocolIcon}
-					<svelte:component this={protocolIcon} class="size-5" />
+					{@const ProtocolIcon = protocolIcon}
+					<ProtocolIcon class="size-5" />
 				{:else}
-					<svelte:component this={meta.icon} class="size-5" />
+					{@const MetaIcon = meta.icon}
+					<MetaIcon class="size-5" />
 				{/if}
 			</div>
 		{/if}

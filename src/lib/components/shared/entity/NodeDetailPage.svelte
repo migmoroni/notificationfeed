@@ -295,8 +295,9 @@ class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text
 {avatarEmoji}
 </div>
 {:else if meta}
+{@const MetaIcon = meta.icon}
 <div class="size-20 shrink-0 flex items-center justify-center rounded-lg bg-muted text-muted-foreground">
-<svelte:component this={meta.icon} class="size-8" />
+<MetaIcon class="size-8" />
 </div>
 {/if}
 
@@ -378,7 +379,8 @@ href="{baseHref}/node/{child.metadata.id}"
 class="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors"
 >
 {#if childMeta}
-<svelte:component this={childMeta.icon} class="size-5 text-muted-foreground shrink-0" />
+{@const ChildIcon = childMeta.icon}
+<ChildIcon class="size-5 text-muted-foreground shrink-0" />
 {/if}
 <div class="flex-1 min-w-0">
 <p class="text-sm font-medium truncate">{child.data.header.title}</p>

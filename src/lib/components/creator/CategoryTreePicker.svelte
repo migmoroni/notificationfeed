@@ -199,9 +199,10 @@
 					{@const roots = getRootCategories(tree.id)}
 					{@const inheritedCount = getInheritedIds(tree.id).filter((id) => !selected.includes(id)).length}
 
+					{@const TreeIcon = tree.icon}
 					<div class="py-2">
 						<div class="flex items-center gap-1.5 mb-1">
-							<svelte:component this={tree.icon} class="size-3.5 text-muted-foreground" />
+							<TreeIcon class="size-3.5 text-muted-foreground" />
 							<span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 								{t(tree.labelKey)}
 							</span>
