@@ -3,14 +3,18 @@
 	import { library } from '$lib/stores/library.svelte.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { Input } from '$lib/components/ui/input/index.js';
 	import Check from '@lucide/svelte/icons/check';
 	import Minus from '@lucide/svelte/icons/minus';
+	import Search from '@lucide/svelte/icons/search';
 
 	interface Props {
 		onclose: () => void;
 	}
 
 	let { onclose }: Props = $props();
+
+	let search = $state('');
 
 	// For each custom tab, compute whether all/some/none of the selected items belong to it
 	let tabStates = $derived.by(() => {
@@ -23,6 +27,12 @@
 			const someIn = inTab.length > 0 && inTab.length < selectedItems.length;
 			return { tab, allIn, someIn };
 		});
+	});
+
+	let filteredTabStates = $derived.by(() => {
+		const q = search.trim().toLowerCase();
+		if (!q) return tabStates;
+		return tabStates.filter(({ tab }) => tab.title.toLowerCase().includes(q));
 	});
 
 	async function handleToggleTab(tabId: string, currentlyAllIn: boolean) {
@@ -39,24 +49,39 @@
 </script>
 
 <Dialog.Root open={true} onOpenChange={(open) => { if (!open) onclose(); }}>
-	<Dialog.Content class="sm:max-w-sm">
+	<Dialog.Content class="sm:max-w-fit">
 		<Dialog.Header>
 			<Dialog.Title>{t('library.organize_tabs')}</Dialog.Title>
 			<Dialog.Description>
-				Selecione as tabs para os {library.selectedCount} item(s) selecionado(s).
+				{t('library.organize_tabs_description', { count: library.selectedCount })}
 			</Dialog.Description>
 		</Dialog.Header>
 
-		<div class="flex flex-col gap-1 py-4">
+		<div class="pt-2">
+			<div class="relative">
+				<Search class="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+				<Input
+					bind:value={search}
+					placeholder={t('library.organize_tabs_search_placeholder')}
+					class="h-8 text-xs pl-7"
+				/>
+			</div>
+		</div>
+
+		<div class="grid grid-cols-2 gap-1 py-4 w-lg h-72 overflow-y-auto pr-1 content-start">
 			{#if tabStates.length === 0}
-				<p class="text-sm text-muted-foreground py-4 text-center">
-					Nenhuma tab personalizada. Crie uma primeiro.
+				<p class="col-span-2 text-sm text-muted-foreground py-4 text-center">
+					{t('library.organize_tabs_empty')}
+				</p>
+			{:else if filteredTabStates.length === 0}
+				<p class="col-span-2 text-sm text-muted-foreground py-4 text-center">
+					{t('library.organize_tabs_no_results')}
 				</p>
 			{:else}
-				{#each tabStates as { tab, allIn, someIn } (tab.id)}
+				{#each filteredTabStates as { tab, allIn, someIn } (tab.id)}
 					<button
 						onclick={() => handleToggleTab(tab.id, allIn)}
-						class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+						class="flex w-full min-w-0 items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
 					>
 						<!-- Checkbox state -->
 						<div

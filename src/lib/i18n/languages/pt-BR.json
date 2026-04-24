@@ -365,6 +365,10 @@
 	"library.all": "Toda Biblioteca",
 	"library.only_favorites": "Só Favoritos",
 	"library.organize_tabs": "Organizar em Tabs",
+	"library.organize_tabs_description": "Selecione as tabs para os {count} item(s) selecionado(s).",
+	"library.organize_tabs_empty": "Nenhuma tab personalizada. Crie uma primeiro.",
+	"library.organize_tabs_search_placeholder": "Buscar tabs...",
+	"library.organize_tabs_no_results": "Nenhuma tab encontrada.",
 
 	"copy_consumer.title": "Copiar do Consumer",
 	"copy_consumer.description": "Selecione profiles para copiar. Uma cópia independente será criada no espaço do creator.",

@@ -365,6 +365,10 @@
 	"library.all": "All Library",
 	"library.only_favorites": "Only Favorites",
 	"library.organize_tabs": "Organize in Tabs",
+	"library.organize_tabs_description": "Select tabs for the {count} selected item(s).",
+	"library.organize_tabs_empty": "No custom tabs. Create one first.",
+	"library.organize_tabs_search_placeholder": "Search tabs...",
+	"library.organize_tabs_no_results": "No tabs found.",
 
 	"copy_consumer.title": "Copy from Consumer",
 	"copy_consumer.description": "Select profiles to copy. An independent copy will be created in the creator's space.",
