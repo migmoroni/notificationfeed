@@ -73,6 +73,18 @@
 	class="flex gap-1 {layout.isExpanded ? 'flex-col' : 'flex-row overflow-x-auto pb-2'}"
 	aria-label={t('aria.library_tabs')}
 >
+	<!-- Add tab button (always first) -->
+	<button
+		onclick={handleCreateTab}
+		class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors shrink-0"
+		aria-label={t('aria.create_new_tab')}
+	>
+		<Plus class="size-4" />
+		{#if layout.isExpanded}
+			<span>{t('library.new_tab')}</span>
+		{/if}
+	</button>
+
 	<!-- System tab: All Library -->
 	<button
 		onclick={() => handleTabClick(ALL_LIBRARY_ID)}
@@ -155,18 +167,6 @@
 			{/if}
 		</div>
 	{/each}
-
-	<!-- Add tab button -->
-	<button
-		onclick={handleCreateTab}
-		class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors shrink-0"
-		aria-label={t('aria.create_new_tab')}
-	>
-		<Plus class="size-4" />
-		{#if layout.isExpanded}
-			<span>{t('library.new_tab')}</span>
-		{/if}
-	</button>
 </nav>
 
 <!-- Create dialog -->
