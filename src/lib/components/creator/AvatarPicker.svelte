@@ -123,7 +123,7 @@
 			{:else}
 				<button
 					type="button"
-					class="flex flex-col items-center justify-center gap-1 w-[72px] h-[72px] border-2 border-dashed rounded-lg cursor-pointer text-muted-foreground hover:border-primary hover:text-primary transition-colors shrink-0"
+					class="flex flex-col items-center justify-center gap-1 w-18 h-18 border-2 border-dashed rounded-lg cursor-pointer text-muted-foreground hover:border-primary hover:text-primary transition-colors shrink-0"
 					disabled={loading}
 					onclick={() => fileInput.click()}
 				>
