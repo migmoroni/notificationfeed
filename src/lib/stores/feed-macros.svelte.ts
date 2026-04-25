@@ -10,6 +10,7 @@
 import { feedCategories } from './feed-categories.svelte.js';
 import { feedEntityFilter } from './feed-entity-filter.svelte.js';
 import { consumer } from './consumer.svelte.js';
+import { activityService } from '$lib/services/activity.service.js';
 import type { FeedMacro } from '$lib/domain/feed-macro/feed-macro.js';
 import type { CategoryTreeId } from '$lib/domain/category/category.js';
 import type { CategoryFilterMode } from '$lib/stores/category-tree.types.js';
@@ -67,6 +68,13 @@ export const feedMacros = {
 			feedCategories.clearAll();
 			return;
 		}
+
+		void activityService.record({
+			type: 'open',
+			targetType: 'feedmacro',
+			targetId: id,
+			context: 'feed'
+		});
 
 		if (id === ALL_MACROS_ID) {
 			const allNodeIds = new Set<string>();

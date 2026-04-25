@@ -19,6 +19,7 @@ import type { NodeActivation, LibraryTab } from '$lib/domain/user/user-consumer.
 import { SYSTEM_ALL_LIBRARY_TAB_ID, SYSTEM_ONLY_FAVORITES_TAB_ID, SYSTEM_LIBRARY_TABS } from '$lib/domain/user/user-consumer.js';
 import { createContentTreeStore } from '$lib/persistence/content-tree.store.js';
 import { consumer } from './consumer.svelte.js';
+import { activityService } from '$lib/services/activity.service.js';
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -217,6 +218,14 @@ setActiveTab(tabId: string): void {
 	state.activeTabId = tabId;
 	state.selectedItemIds = new Set();
 	state.searchQuery = '';
+	if (tabId !== LIBRARY_HOME_ID) {
+		void activityService.record({
+			type: 'open',
+			targetType: 'librarytab',
+			targetId: tabId,
+			context: 'library'
+		});
+	}
 },
 
 setSearchQuery(q: string): void {

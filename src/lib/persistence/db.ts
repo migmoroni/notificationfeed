@@ -21,6 +21,7 @@ treePublications: TableOps;
 users: TableOps;
 posts: TableOps;
 categories: TableOps;
+	activityData: TableOps;
 }
 
 export interface TableOps {
@@ -48,62 +49,66 @@ return db;
 
 async function initIndexedDB(): Promise<Database> {
 return new Promise((resolve, reject) => {
-const request = indexedDB.open('notfeed-v2', 5);
+const request = indexedDB.open('notfeed-v2', 7);
 
-request.onupgradeneeded = (event) => {
-const idb = request.result;
-const oldVersion = (event as IDBVersionChangeEvent).oldVersion;
+		request.onupgradeneeded = (event) => {
+			const idb = request.result;
+			const oldVersion = (event as IDBVersionChangeEvent).oldVersion;
 
-// Destructive: delete all existing stores and recreate
-if (oldVersion < 5) {
-for (const name of idb.objectStoreNames) {
-idb.deleteObjectStore(name);
-}
+			// Destructive: delete all existing stores and recreate
+			if (oldVersion < 7) {
+				for (const name of idb.objectStoreNames) {
+					idb.deleteObjectStore(name);
+				}
 
-// Content trees (with embedded nodes) — consumer/read
-const treeStore = idb.createObjectStore('contentTrees', { keyPath: 'metadata.id' });
-treeStore.createIndex('author', 'metadata.author', { unique: false });
+				// Content trees (with embedded nodes) — consumer/read
+				const treeStore = idb.createObjectStore('contentTrees', { keyPath: 'metadata.id' });
+				treeStore.createIndex('author', 'metadata.author', { unique: false });
 
-// Content medias — consumer/read
-const mediaStore = idb.createObjectStore('contentMedias', { keyPath: 'metadata.id' });
-mediaStore.createIndex('author', 'metadata.author', { unique: false });
+				// Content medias — consumer/read
+				const mediaStore = idb.createObjectStore('contentMedias', { keyPath: 'metadata.id' });
+				mediaStore.createIndex('author', 'metadata.author', { unique: false });
 
-// Editor trees — creator/edit
-const editorTreeStore = idb.createObjectStore('editorTrees', { keyPath: 'metadata.id' });
-editorTreeStore.createIndex('author', 'metadata.author', { unique: false });
+				// Editor trees — creator/edit
+				const editorTreeStore = idb.createObjectStore('editorTrees', { keyPath: 'metadata.id' });
+				editorTreeStore.createIndex('author', 'metadata.author', { unique: false });
 
-// Editor medias — creator/edit
-const editorMediaStore = idb.createObjectStore('editorMedias', { keyPath: 'metadata.id' });
-editorMediaStore.createIndex('author', 'metadata.author', { unique: false });
+				// Editor medias — creator/edit
+				const editorMediaStore = idb.createObjectStore('editorMedias', { keyPath: 'metadata.id' });
+				editorMediaStore.createIndex('author', 'metadata.author', { unique: false });
 
-// Tree publications
-idb.createObjectStore('treePublications', { keyPath: 'treeId' });
+				// Tree publications
+				idb.createObjectStore('treePublications', { keyPath: 'treeId' });
 
-// Users
-const userStore = idb.createObjectStore('users', { keyPath: 'id' });
-userStore.createIndex('role', 'role', { unique: false });
+				// Users
+				const userStore = idb.createObjectStore('users', { keyPath: 'id' });
+				userStore.createIndex('role', 'role', { unique: false });
 
-// Posts (grouped by composite nodeId = treeId:localUuid)
-idb.createObjectStore('posts', { keyPath: 'nodeId' });
+				// Posts (grouped by composite nodeId = treeId:localUuid)
+				idb.createObjectStore('posts', { keyPath: 'nodeId' });
 
-// Categories
-const catStore = idb.createObjectStore('categories', { keyPath: 'id' });
-catStore.createIndex('parentId', 'parentId', { unique: false });
-catStore.createIndex('treeId', 'treeId', { unique: false });
-}
-};
+				// Categories
+				const catStore = idb.createObjectStore('categories', { keyPath: 'id' });
+				catStore.createIndex('parentId', 'parentId', { unique: false });
+				catStore.createIndex('treeId', 'treeId', { unique: false });
 
-request.onsuccess = () => {
-const idb = request.result;
-resolve({
-contentTrees: createIndexedDBTable(idb, 'contentTrees'),
-contentMedias: createIndexedDBTable(idb, 'contentMedias'),
-editorTrees: createIndexedDBTable(idb, 'editorTrees'),
-editorMedias: createIndexedDBTable(idb, 'editorMedias'),
-treePublications: createIndexedDBTable(idb, 'treePublications'),
-users: createIndexedDBTable(idb, 'users'),
-posts: createIndexedDBTable(idb, 'posts'),
-categories: createIndexedDBTable(idb, 'categories')
+				// Per-user activity log (kept outside the user record to keep users lean)
+				idb.createObjectStore('activityData', { keyPath: 'userId' });
+			}
+		};
+
+		request.onsuccess = () => {
+			const idb = request.result;
+			resolve({
+				contentTrees: createIndexedDBTable(idb, 'contentTrees'),
+				contentMedias: createIndexedDBTable(idb, 'contentMedias'),
+				editorTrees: createIndexedDBTable(idb, 'editorTrees'),
+				editorMedias: createIndexedDBTable(idb, 'editorMedias'),
+				treePublications: createIndexedDBTable(idb, 'treePublications'),
+				users: createIndexedDBTable(idb, 'users'),
+				posts: createIndexedDBTable(idb, 'posts'),
+				categories: createIndexedDBTable(idb, 'categories'),
+				activityData: createIndexedDBTable(idb, 'activityData')
 });
 };
 
