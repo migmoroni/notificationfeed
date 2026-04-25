@@ -9,6 +9,31 @@ import type { ImageAsset } from '../shared/image-asset.js';
 
 export type UserRole = 'consumer' | 'creator';
 
+/**
+ * Per-user app settings.
+ *
+ * Controls UI behavior and opt-in subsystems. Persisted in the user record
+ * (NOT in localStorage), so it travels with the user identity and can differ
+ * per user on the same device.
+ */
+export interface UserSettings {
+	/** Preferred UI language (e.g. 'en-US', 'pt-BR'). */
+	language: string;
+	/** Activity tracking subsystem. */
+	activity: {
+		/** When false, `activityService.record` is a no-op. */
+		enabled: boolean;
+	};
+}
+
+/** Factory used on user creation to seed default settings. */
+export function createUserSettings(language = 'en-US'): UserSettings {
+	return {
+		language,
+		activity: { enabled: true }
+	};
+}
+
 export interface UserBase {
 	id: string;
 	role: UserRole;
@@ -25,8 +50,8 @@ export interface UserBase {
 	/** Soft-delete flag. Removed users are hidden but kept in DB. */
 	removedAt: Date | null;
 
-	/** Preferred UI language (e.g. 'en-US', 'pt-BR'). */
-	language: string;
+	/** Per-user app settings (language, activity, …). */
+	settingsUser: UserSettings;
 
 	createdAt: Date;
 	updatedAt: Date;

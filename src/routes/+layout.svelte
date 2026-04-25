@@ -60,9 +60,9 @@
 			await activeUser.init();
 
 			// Initialize i18n language from user preference
-			const detectedLang = initLanguage(activeUser.current?.language);
+			const detectedLang = initLanguage(activeUser.current?.settingsUser.language);
 			// Persist detected language if user has none saved
-			if (activeUser.current && !activeUser.current.language) {
+			if (activeUser.current && !activeUser.current.settingsUser.language) {
 				await activeUser.setLanguage(activeUser.current.id, detectedLang);
 			}
 

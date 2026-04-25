@@ -26,6 +26,7 @@ TreeSection,
 import { generateNodeId } from '$lib/domain/content-tree/content-tree.js';
 import type { UserConsumer, TreeActivation, NodeActivation } from '$lib/domain/user/user-consumer.js';
 import type { UserCreator } from '$lib/domain/user/user-creator.js';
+import { createUserSettings } from '$lib/domain/user/user.js';
 import type { TreePublication } from '$lib/domain/tree-export/tree-publication.js';
 import { getDatabase } from '$lib/persistence/db.js';
 import { savePosts } from '$lib/persistence/post.store.js';
@@ -201,7 +202,7 @@ displayName: 'Dev User',
 profileImage: null,
 profileEmoji: null,
 removedAt: null,
-language: 'en-US',
+settingsUser: createUserSettings('en-US'),
 activateTrees: [],
 activateNodes: [],
 libraryTabs: [],
@@ -218,7 +219,7 @@ displayName: 'Creator Dev',
 profileImage: null,
 profileEmoji: null,
 removedAt: null,
-language: 'en-US',
+settingsUser: createUserSettings('en-US'),
 ownedTreeIds: [IDS.treeProfileFrontend, IDS.treeProfileNewsDraft, IDS.treeCreatorPublished, IDS.treeCreatorDraft],
 ownedMediaIds: [],
 createdAt: now,

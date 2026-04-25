@@ -35,7 +35,7 @@ export function resetUserScopedState(): void {
 	feedMacros.reset();
 
 	// Library tab selection + multi-select
-	library.setActiveTab(ALL_LIBRARY_ID);
+	library.setActiveTab(ALL_LIBRARY_ID, { silent: true });
 	library.clearSelection();
 
 	// Any open sidebar flyout belongs to the previous user's context

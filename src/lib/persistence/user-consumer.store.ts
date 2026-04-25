@@ -15,6 +15,7 @@ import type { LibraryTab } from '$lib/domain/user/user-consumer.js';
 import type { FeedMacro, FeedMacroFilters } from '$lib/domain/feed-macro/feed-macro.js';
 import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
+import { createUserSettings } from '$lib/domain/user/user.js';
 import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
 import { parseTreeId, getRootNodeId, getAllNodeIds } from '$lib/domain/content-tree/content-tree.js';
 import { getDatabase } from './db.js';
@@ -42,7 +43,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 				profileImage: null,
 				profileEmoji: null,
 				removedAt: null,
-				language: 'en-US',
+				settingsUser: createUserSettings(),
 				activateTrees: [],
 				activateNodes: [],
 				libraryTabs: [],

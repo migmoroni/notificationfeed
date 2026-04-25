@@ -485,6 +485,16 @@ onchange={(e) => handleLanguageChange((e.target as HTMLSelectElement).value as L
 {/each}
 </select>
 </div>
+
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm font-medium">{t('user.activity')}</p>
+<p class="text-xs text-muted-foreground">{t('user.activity_hint')}</p>
+</div>
+<Button variant="outline" size="sm" href="/user/settings/activity">
+{t('user.activity_manage')}
+</Button>
+</div>
 </div>
 </section>
 </div>

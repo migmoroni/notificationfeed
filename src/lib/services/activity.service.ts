@@ -11,6 +11,7 @@
  */
 
 import { activeUser } from '$lib/stores/active-user.svelte.js';
+import { activitySettings } from '$lib/stores/activity-settings.svelte.js';
 import { createActivityStore } from '$lib/persistence/activity.store.js';
 import type {
 	ActivityEvent,
@@ -36,6 +37,8 @@ export const activityService = {
 	 * dedup. No-op (returns `null`) when no user is loaded.
 	 */
 	async record(input: RecordInput): Promise<number | null> {
+		if (!activitySettings.enabled) return null;
+
 		const userId = activeUser.current?.id;
 		if (!userId) return null;
 

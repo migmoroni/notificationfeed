@@ -4,6 +4,7 @@
 
 import type { UserCreatorRepository } from '$lib/domain/user/user-creator.js';
 import type { UserCreator, NewUserCreator } from '$lib/domain/user/user-creator.js';
+import { createUserSettings } from '$lib/domain/user/user.js';
 import { getDatabase } from './db.js';
 
 export function createUserCreatorStore(): UserCreatorRepository {
@@ -35,10 +36,10 @@ export function createUserCreatorStore(): UserCreatorRepository {
 				id: crypto.randomUUID(),
 				role: 'creator',
 				displayName: data.displayName,
-				language: 'en-US',
 				profileImage: null,
 				profileEmoji: null,
 				removedAt: null,
+				settingsUser: createUserSettings(),
 				ownedTreeIds: [],
 				ownedMediaIds: [],
 				createdAt: now,

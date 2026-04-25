@@ -12,6 +12,7 @@ import type { UserBase, UserRole } from '$lib/domain/user/user.js';
 import type { UserConsumer } from '$lib/domain/user/user-consumer.js';
 import type { UserCreator } from '$lib/domain/user/user-creator.js';
 import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
+import { createUserSettings } from '$lib/domain/user/user.js';
 import { getDatabase } from '$lib/persistence/db.js';
 import { DEFAULT_LANGUAGE } from '$lib/i18n/types.js';
 import { setLanguage, initLanguage } from '$lib/i18n/store.svelte.js';
@@ -119,7 +120,7 @@ export const activeUser = {
 		if (user) {
 			state.current = user;
 			saveActiveUserId(user.id);
-			initLanguage(user.language);
+			initLanguage(user.settingsUser.language);
 		}
 	},
 
@@ -147,7 +148,7 @@ export const activeUser = {
 			profileImage: null,
 			profileEmoji: null,
 			removedAt: null,
-			language: DEFAULT_LANGUAGE,
+			settingsUser: createUserSettings(DEFAULT_LANGUAGE),
 			activateTrees: [],
 			activateNodes: [],
 			libraryTabs: [],
@@ -172,7 +173,7 @@ export const activeUser = {
 			profileImage: null,
 			profileEmoji: null,
 			removedAt: null,
-			language: DEFAULT_LANGUAGE,
+			settingsUser: createUserSettings(DEFAULT_LANGUAGE),
 			ownedTreeIds: [],
 			ownedMediaIds: [],
 			createdAt: now,
@@ -272,7 +273,34 @@ export const activeUser = {
 		const user = state.allUsers.find(u => u.id === userId);
 		if (!user) return;
 
-		const updated = { ...user, language, updatedAt: new Date() };
+		const updated: UserBase = {
+			...user,
+			settingsUser: { ...user.settingsUser, language },
+			updatedAt: new Date()
+		};
+		await persistUser(updated);
+
+		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		if (state.current?.id === userId) {
+			state.current = updated;
+		}
+	},
+
+	/**
+	 * Toggle the activity tracking subsystem for a user.
+	 */
+	async setActivityEnabled(userId: string, enabled: boolean): Promise<void> {
+		const user = state.allUsers.find(u => u.id === userId);
+		if (!user) return;
+
+		const updated: UserBase = {
+			...user,
+			settingsUser: {
+				...user.settingsUser,
+				activity: { ...user.settingsUser.activity, enabled }
+			},
+			updatedAt: new Date()
+		};
 		await persistUser(updated);
 
 		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);

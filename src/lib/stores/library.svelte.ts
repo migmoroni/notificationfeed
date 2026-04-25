@@ -214,11 +214,11 @@ async removeItemsFromTab(nodeIds: string[], tabId: string): Promise<void> {
 
 // ── Selection ────────────────────────────────────────────────────
 
-setActiveTab(tabId: string): void {
+setActiveTab(tabId: string, options?: { silent?: boolean }): void {
 	state.activeTabId = tabId;
 	state.selectedItemIds = new Set();
 	state.searchQuery = '';
-	if (tabId !== LIBRARY_HOME_ID) {
+	if (!options?.silent && tabId !== LIBRARY_HOME_ID) {
 		void activityService.record({
 			type: 'open',
 			targetType: 'librarytab',

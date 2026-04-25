@@ -14,6 +14,7 @@
 import type { PriorityLevel } from './priority-level.js';
 import type { FeedMacro, FeedMacroFilters } from '../feed-macro/feed-macro.js';
 import type { ImageAsset } from '../shared/image-asset.js';
+import type { UserBase } from './user.js';
 
 // ---------------------------------------------------------------------------
 // Tree activation
@@ -100,22 +101,8 @@ export const SYSTEM_LIBRARY_TABS: ReadonlyArray<Readonly<LibraryTab & { isSystem
 // UserConsumer
 // ---------------------------------------------------------------------------
 
-export interface UserConsumer {
-	id: string;
+export interface UserConsumer extends UserBase {
 	role: 'consumer';
-	displayName: string;
-
-	/** Profile image (avatar slot, WEBP base64). Null = default icon. Mutually exclusive with profileEmoji. */
-	profileImage: ImageAsset | null;
-
-	/** Profile emoji (alternative to image). Mutually exclusive with profileImage. */
-	profileEmoji: string | null;
-
-	/** Soft-delete flag. Removed users are hidden but kept in DB. */
-	removedAt: Date | null;
-
-	/** Preferred UI language (e.g. 'en-US', 'pt-BR'). */
-	language: string;
 
 	/** Trees the user has subscribed to */
 	activateTrees: TreeActivation[];
@@ -128,9 +115,6 @@ export interface UserConsumer {
 
 	/** Saved feed filter presets */
 	feedMacros: FeedMacro[];
-
-	createdAt: Date;
-	updatedAt: Date;
 }
 
 export type NewUserConsumer = Pick<UserConsumer, 'displayName'>;
