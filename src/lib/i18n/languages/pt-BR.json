@@ -57,8 +57,9 @@
 	"feed.empty_add_sources": "Adicione fontes para começar a receber conteúdo.",
 	"feed.priority_all": "Todos",
 	"feed.priority_high": "Alta",
-	"feed.priority_medium": "Média",
-	"feed.priority_low": "Baixa",
+	"feed.priority_medium": "Padrão",
+	"feed.priority_default": "Padrão",
+	"feed.priority_low": "Padrão",
 
 	"aria.update_feed": "Atualizar feed",
 	"aria.remove_from_favorites": "Remover dos favoritos",

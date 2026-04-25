@@ -19,7 +19,7 @@ import Rss from '@lucide/svelte/icons/rss';
 import { t } from '$lib/i18n/t.js';
 
 function toSortedPost(post: CanonicalPost): SortedPost<CanonicalPost> {
-return { post, priority: 3 };
+return { post, priority: 'default' };
 }
 
 let loading = $state(true);

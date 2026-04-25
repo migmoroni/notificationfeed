@@ -10,9 +10,7 @@
 import type { UserConsumer, NodeActivation, LibraryTab } from '$lib/domain/user/user-consumer.js';
 import { SYSTEM_ALL_LIBRARY_TAB_ID } from '$lib/domain/user/user-consumer.js';
 import type { FeedMacro, FeedMacroFilters } from '$lib/domain/feed-macro/feed-macro.js';
-import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
-import { buildNodeActivationMap } from '$lib/domain/shared/priority-resolver.js';
 import { createUserConsumerStore } from '$lib/persistence/user-consumer.store.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
@@ -34,7 +32,9 @@ const repo = createUserConsumerStore();
 // ── Helpers ────────────────────────────────────────────────────────────
 
 function refreshActivationMap(): void {
-	state.activationMap = buildNodeActivationMap(state.user?.activateNodes ?? []);
+	const map = new Map<string, NodeActivation>();
+	for (const a of state.user?.activateNodes ?? []) map.set(a.nodeId, a);
+	state.activationMap = map;
 }
 
 // ── Exported accessor ──────────────────────────────────────────────────
@@ -146,20 +146,6 @@ export const consumer = {
 		if (!state.user) return;
 		if (state.activationMap.has(nodeId)) return;
 		await this.activateNode(nodeId);
-	},
-
-	async setPriority(nodeId: string, level: PriorityLevel | null): Promise<void> {
-		if (!state.user) return;
-
-		await this.ensureNodeActivated(nodeId);
-		await repo.setPriority(state.user.id, nodeId, level);
-
-		// Optimistic update
-		const activation = state.user.activateNodes.find((n) => n.nodeId === nodeId);
-		if (activation) {
-			activation.priority = level;
-			refreshActivationMap();
-		}
 	},
 
 	async setFavorite(nodeId: string, favorite: boolean): Promise<void> {

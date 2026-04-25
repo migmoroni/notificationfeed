@@ -10,6 +10,7 @@
 	import type { SortedPost } from '$lib/domain/shared/feed-sorter.js';
 	import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 	import { feed } from '$lib/stores/feed.svelte.js';
+	import { feedEntityFilter } from '$lib/stores/feed-entity-filter.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { t } from '$lib/i18n/t.js';
 	import { PRIORITY_LEVELS } from '$lib/components/shared/priority/priority.js';
@@ -39,8 +40,8 @@
 	// Get base posts (with category filtering if applicable)
 	let basePosts = $derived(
 		(hasAnyFilter(anyIds) || hasAnyFilter(allIds))
-			? feed.filteredByCategories(anyIds, allIds)
-			: feed.prioritized
+			? feed.filteredByCategories(anyIds, allIds, feedEntityFilter.effectivePriorityByNodeId)
+			: feed.prioritized(feedEntityFilter.effectivePriorityByNodeId)
 	);
 
 	// Apply entity (node) filter

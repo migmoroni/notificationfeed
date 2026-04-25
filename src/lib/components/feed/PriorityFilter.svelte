@@ -19,15 +19,14 @@
 	]);
 
 	function handleChange(newValue: string) {
-		const parsed = newValue === 'all' ? 'all' : (Number(newValue) as PriorityLevel);
-		onchange(parsed);
+		onchange(newValue as PriorityFilterValue);
 	}
 </script>
 
-<Tabs.Root value={String(value)} onValueChange={handleChange}>
+<Tabs.Root value={value} onValueChange={handleChange}>
 	<Tabs.List class="h-9">
 		{#each options as opt}
-			<Tabs.Trigger value={String(opt.value)} class="text-xs px-3">
+			<Tabs.Trigger value={opt.value} class="text-xs px-3">
 				{opt.label}
 			</Tabs.Trigger>
 		{/each}

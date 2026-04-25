@@ -13,15 +13,16 @@
 	interface Props {
 		entityStore: EntityFilterStore;
 		categoryStore: CategoryTreeStore;
+		showPriorityToggle?: boolean;
 	}
 
-	let { entityStore, categoryStore }: Props = $props();
+	let { entityStore, categoryStore, showPriorityToggle = false }: Props = $props();
 </script>
 
 <div class="flex flex-col h-full min-w-0 overflow-hidden">
 	<!-- Pages: the component itself handles its own sticky header and scrollable list -->
 	<div class="flex-1 min-h-0 py-2">
-		<EntityTreeFilter store={entityStore} />
+		<EntityTreeFilter store={entityStore} {showPriorityToggle} />
 	</div>
 	<!-- Library tabs: fixed between pages and categories -->
 	<div class="border-t border-border py-2 shrink-0">

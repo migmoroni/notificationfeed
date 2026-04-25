@@ -11,7 +11,6 @@
  *   - When a tree is activated, its root node is auto-activated
  */
 
-import type { PriorityLevel } from './priority-level.js';
 import type { FeedMacro, FeedMacroFilters } from '../feed-macro/feed-macro.js';
 import type { ImageAsset } from '../shared/image-asset.js';
 import type { UserBase } from './user.js';
@@ -35,12 +34,6 @@ export interface NodeActivation {
 	 * References a TreeNode embedded in a ContentTree.
 	 */
 	nodeId: string;
-
-	/**
-	 * Priority override. null = inherit from parent in tree.
-	 * Inheritance chain: fontNode → root → 3 (default)
-	 */
-	priority: PriorityLevel | null;
 
 	/** Whether this node is marked as favorite */
 	favorite: boolean;
@@ -135,7 +128,6 @@ export interface UserConsumerRepository {
 	deactivateNode(userId: string, nodeId: string): Promise<void>;
 
 	/** Per-node state */
-	setPriority(userId: string, nodeId: string, priority: PriorityLevel | null): Promise<void>;
 	setFavorite(userId: string, nodeId: string, favorite: boolean): Promise<void>;
 	setEnabled(userId: string, nodeId: string, enabled: boolean): Promise<void>;
 	updateLibraryTabIds(userId: string, nodeId: string, tabIds: string[]): Promise<void>;

@@ -1,12 +1,13 @@
 /**
- * Feed Sorter — sorts posts by priority group using node-based priorities.
+ * Feed Sorter — sorts posts using a per-macro priority map.
  *
- * Algorithm unchanged from v1:
- * 1. Group posts by their node's effective priority (1, 2, 3)
- * 2. Within each group, sort by publishedAt descending (newest first)
- * 3. Concatenate: all priority-1 posts, then priority-2, then priority-3
+ * Priority is no longer a global per-node property. The active FeedMacro
+ * supplies a sparse `Record<nodeId, 'high'>` map; nodes absent from the map
+ * are treated as `'default'`.
  *
- * Only change: uses nodeId (was fontId) for priority lookup.
+ * Algorithm:
+ *   1. `'high'` posts come first, sorted by publishedAt desc.
+ *   2. `'default'` posts follow, sorted by publishedAt desc.
  */
 
 import type { PriorityLevel } from '../user/priority-level.js';
@@ -21,30 +22,33 @@ export interface SortedPost<T extends CanonicalPostLike = CanonicalPostLike> {
 	priority: PriorityLevel;
 }
 
+/** Empty priority map shared across consumers that have no active macro. */
+export const EMPTY_PRIORITY_MAP: Record<string, 'high'> = Object.freeze({});
+
 /**
- * Sort posts by the priority-then-date algorithm.
+ * Sort posts: high group first (newest→oldest), then default group (newest→oldest).
  *
- * @param posts - All posts to sort
- * @param priorityMap - Map of nodeId → effective priority level
- * @returns Posts sorted: priority 1 first (newest→oldest), then 2, then 3
+ * @param posts - all posts to sort
+ * @param priorityByNodeId - sparse map: only `'high'` entries; absence ⇒ default
  */
 export function sortByPriority<T extends CanonicalPostLike>(
 	posts: T[],
-	priorityMap: Map<string, PriorityLevel>
+	priorityByNodeId: Record<string, 'high'>
 ): SortedPost<T>[] {
-	const buckets: [SortedPost<T>[], SortedPost<T>[], SortedPost<T>[]] = [[], [], []];
+	const high: SortedPost<T>[] = [];
+	const def: SortedPost<T>[] = [];
 
 	for (const post of posts) {
-		const priority = priorityMap.get(post.nodeId) ?? 3;
-		buckets[priority - 1].push({ post, priority });
+		const isHigh = priorityByNodeId[post.nodeId] === 'high';
+		if (isHigh) high.push({ post, priority: 'high' });
+		else def.push({ post, priority: 'default' });
 	}
 
 	const byDateDesc = (a: SortedPost<T>, b: SortedPost<T>) =>
 		new Date(b.post.publishedAt).getTime() - new Date(a.post.publishedAt).getTime();
 
-	buckets[0].sort(byDateDesc);
-	buckets[1].sort(byDateDesc);
-	buckets[2].sort(byDateDesc);
+	high.sort(byDateDesc);
+	def.sort(byDateDesc);
 
-	return [...buckets[0], ...buckets[1], ...buckets[2]];
+	return [...high, ...def];
 }

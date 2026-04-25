@@ -23,23 +23,16 @@ export interface PriorityConfig {
 
 export const PRIORITY_LEVELS: PriorityConfig[] = [
 	{
-		level: 1,
+		level: 'high',
 		labelKey: 'feed.priority_high',
 		nameKey: 'feed.priority_high',
 		badgeVariant: 'destructive',
 		activeClass: 'bg-destructive text-destructive-foreground border-destructive'
 	},
 	{
-		level: 2,
-		labelKey: 'feed.priority_medium',
-		nameKey: 'feed.priority_medium',
-		badgeVariant: 'secondary',
-		activeClass: 'bg-secondary text-secondary-foreground border-secondary'
-	},
-	{
-		level: 3,
-		labelKey: 'feed.priority_low',
-		nameKey: 'feed.priority_low',
+		level: 'default',
+		labelKey: 'feed.priority_default',
+		nameKey: 'feed.priority_default',
 		badgeVariant: 'outline',
 		activeClass: 'bg-accent text-accent-foreground border-accent'
 	}

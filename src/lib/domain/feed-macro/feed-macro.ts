@@ -14,6 +14,12 @@ export interface FeedMacroFilters {
 	categoryIdsByTree: Record<CategoryTreeId, string[]>;
 	/** Filter mode per category ID per tree (backwards-compatible: defaults to 'any' when absent) */
 	categoryModesByTree?: Record<CategoryTreeId, Record<string, CategoryFilterMode>>;
+	/**
+	 * Per-node priority within this macro. Sparse: only `'high'` entries are
+	 * stored — absence means `'default'`. Different macros can assign
+	 * different priorities to the same node.
+	 */
+	priorityByNodeId?: Record<string, 'high'>;
 }
 
 export interface FeedMacro {

@@ -9,7 +9,6 @@
 	import { isFontNode } from '$lib/domain/content-tree/content-tree.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
-	import PriorityBadge from '$lib/components/shared/priority/PriorityBadge.svelte';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
 	import Globe from '@lucide/svelte/icons/globe';
 	import User from '@lucide/svelte/icons/user';
@@ -47,7 +46,6 @@
 	let meta = $derived(roleMeta[node.role] ?? { label: node.role, activeLabel: 'Seguindo', inactiveLabel: 'Seguir', icon: Globe });
 	let activation = $derived(consumer.getActivation(node.metadata.id));
 	let isActivated = $derived(!!activation);
-	let currentPriority = $derived(activation?.priority ?? null);
 	let isFavorite = $derived(activation?.favorite ?? false);
 	let isEnabled = $derived(activation?.enabled ?? true);
 	let isActive = $derived(node.role === 'font' ? (isActivated && isEnabled) : isActivated);
@@ -150,10 +148,6 @@
 
 			<!-- Actions row -->
 			<div class="flex items-center gap-2 mt-auto pt-2">
-				{#if currentPriority}
-					<PriorityBadge level={currentPriority} />
-				{/if}
-
 				<FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
 
 				<div class="ml-auto">

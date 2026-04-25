@@ -29,9 +29,11 @@ import FolderOpen from '@lucide/svelte/icons/folder-open';
 
 interface Props {
 store: EntityFilterStore;
+/** When true, show a per-row priority toggle (default ⇆ high). */
+showPriorityToggle?: boolean;
 }
 
-let { store }: Props = $props();
+let { store, showPriorityToggle = false }: Props = $props();
 
 // Page type icons
 const pageTypeIcons: Record<PageType, typeof FileText> = {
@@ -113,9 +115,28 @@ return pageTypeIcons[pt];
 {@const node = entry.node}
 {@const isSelected = store.isFontSelected(node.metadata.id)}
 {@const FontIcon = fontProtocolIcon(node)}
+{@const isHigh = store.getNodePriority(node.metadata.id) === 'high'}
+{@const isInherited = store.isHighInherited(node.metadata.id)}
+<div class="ml-5 flex items-center gap-1 min-w-0">
+{#if showPriorityToggle}
+<button
+type="button"
+disabled={isInherited}
+onclick={(e) => { e.stopPropagation(); store.toggleNodePriority(node.metadata.id); }}
+class="shrink-0 size-3.5 rounded-full transition-colors
+{isHigh
+? 'bg-red-500 border border-red-500'
+: isInherited
+? 'bg-transparent border-2 border-red-500 cursor-not-allowed'
+: 'bg-transparent border border-muted-foreground/40 hover:border-foreground'}"
+aria-label={isHigh || isInherited ? t('feed.priority_high') : t('feed.priority_default')}
+aria-pressed={isHigh || isInherited}
+title={isHigh || isInherited ? t('feed.priority_high') : t('feed.priority_default')}
+></button>
+{/if}
 <button
 onclick={() => store.toggleFont(node.metadata.id)}
-class="ml-5 flex flex-1 min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-[13px] transition-colors text-left
+class="flex flex-1 min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-[13px] transition-colors text-left
 {isSelected
 ? 'bg-accent text-accent-foreground font-medium'
 : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
@@ -128,6 +149,7 @@ class="ml-5 flex flex-1 min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-[
 {/if}
 <span class="truncate">{node.data.header.title}</span>
 </button>
+</div>
 {/snippet}
 
 <!-- ═══ Page node snippet ═══ -->
@@ -140,6 +162,8 @@ class="ml-5 flex flex-1 min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-[
 {@const hasChildren = pageFonts.length > 0 || linkedPages.length > 0}
 {@const childCount = pageFonts.length > 0 ? pageFonts.length : linkedPages.length}
 {@const PageIcon = pageTypeIcon(page.pageType)}
+{@const isHighPage = store.getNodePriority(page.id) === 'high'}
+{@const isInheritedPage = store.isHighInherited(page.id)}
 
 <Collapsible.Root open={isOpen}>
 <div class="flex items-center min-w-0">
@@ -157,6 +181,22 @@ class="flex items-center justify-center size-6 shrink-0 rounded text-muted-foreg
 </button>
 {:else}
 <div class="size-6 shrink-0"></div>
+{/if}
+{#if showPriorityToggle}
+<button
+type="button"
+disabled={isInheritedPage}
+onclick={(e) => { e.stopPropagation(); store.toggleNodePriority(page.id); }}
+class="shrink-0 size-3.5 rounded-full transition-colors mr-1
+{isHighPage
+? 'bg-red-500 border border-red-500'
+: isInheritedPage
+? 'bg-transparent border-2 border-red-500 cursor-not-allowed'
+: 'bg-transparent border border-muted-foreground/40 hover:border-foreground'}"
+aria-label={isHighPage || isInheritedPage ? t('feed.priority_high') : t('feed.priority_default')}
+aria-pressed={isHighPage || isInheritedPage}
+title={isHighPage || isInheritedPage ? t('feed.priority_high') : t('feed.priority_default')}
+></button>
 {/if}
 <button
 onclick={() => store.togglePage(page.id)}

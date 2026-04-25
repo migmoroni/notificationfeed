@@ -48,7 +48,9 @@ function currentFilters() {
 		})
 	) as Record<CategoryTreeId, Record<string, CategoryFilterMode>>;
 
-	return { nodeIds: currentNodeIds(), categoryIdsByTree, categoryModesByTree };
+	const priorityByNodeId: Record<string, 'high'> = { ...feedEntityFilter.priorityByNodeId };
+
+	return { nodeIds: currentNodeIds(), categoryIdsByTree, categoryModesByTree, priorityByNodeId };
 }
 
 export const feedMacros = {
@@ -81,6 +83,7 @@ export const feedMacros = {
 			const allCatModes: Record<CategoryTreeId, Map<string, CategoryFilterMode>> = Object.fromEntries(
 				TREE_IDS.map((t) => [t, new Map<string, CategoryFilterMode>()])
 			) as Record<CategoryTreeId, Map<string, CategoryFilterMode>>;
+			const allPriorities: Record<string, 'high'> = {};
 
 			for (const m of consumer.feedMacros) {
 				for (const v of m.filters.nodeIds) allNodeIds.add(v);
@@ -90,10 +93,16 @@ export const feedMacros = {
 						allCatModes[t].set(v, mode);
 					}
 				}
+				if (m.filters.priorityByNodeId) {
+					for (const [nid, p] of Object.entries(m.filters.priorityByNodeId)) {
+						allPriorities[nid] = p;
+					}
+				}
 			}
 
 			feedEntityFilter.clearAll();
 			applyNodeIds(allNodeIds);
+			feedEntityFilter.setPriorityByNodeId(allPriorities);
 
 			feedCategories.clearAll();
 			for (const t of TREE_IDS) {
@@ -107,6 +116,7 @@ export const feedMacros = {
 
 		feedEntityFilter.clearAll();
 		applyNodeIds(new Set(macro.filters.nodeIds));
+		feedEntityFilter.setPriorityByNodeId(macro.filters.priorityByNodeId ?? {});
 
 		feedCategories.clearAll();
 		for (const t of TREE_IDS) {
@@ -147,10 +157,12 @@ export const feedMacros = {
 				return [t, modes];
 			})
 		);
+		const currentPriorities = sortRecord(feedEntityFilter.priorityByNodeId);
 
 		const hasAnyFilter =
 			currentNodesSorted.length > 0 ||
-			TREE_IDS.some((t) => currentCats[t].length > 0);
+			TREE_IDS.some((t) => currentCats[t].length > 0) ||
+			Object.keys(currentPriorities).length > 0;
 
 		if (!activeMacroId) return !hasAnyFilter;
 		if (activeMacroId === ALL_MACROS_ID) return true;
@@ -164,11 +176,13 @@ export const feedMacros = {
 		const macroModes = Object.fromEntries(
 			TREE_IDS.map((t) => [t, macro.filters.categoryModesByTree?.[t] ?? {}])
 		);
+		const macroPriorities = sortRecord(macro.filters.priorityByNodeId ?? {});
 
 		return (
 			JSON.stringify(currentNodesSorted) === JSON.stringify([...macro.filters.nodeIds].sort()) &&
 			JSON.stringify(currentCats) === JSON.stringify(macroCats) &&
-			JSON.stringify(currentModes) === JSON.stringify(macroModes)
+			JSON.stringify(currentModes) === JSON.stringify(macroModes) &&
+			JSON.stringify(currentPriorities) === JSON.stringify(macroPriorities)
 		);
 	},
 
@@ -185,6 +199,13 @@ export const feedMacros = {
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────
+
+/** Returns a new record with keys sorted alphabetically (for stable JSON compare). */
+function sortRecord<V>(rec: Record<string, V>): Record<string, V> {
+	const out: Record<string, V> = {};
+	for (const k of Object.keys(rec).sort()) out[k] = rec[k];
+	return out;
+}
 
 /**
  * Apply a set of saved nodeIds to the entity filter by detecting each node's

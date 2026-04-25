@@ -13,7 +13,6 @@ import type {
 } from '$lib/domain/user/user-consumer.js';
 import type { LibraryTab } from '$lib/domain/user/user-consumer.js';
 import type { FeedMacro, FeedMacroFilters } from '$lib/domain/feed-macro/feed-macro.js';
-import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
 import { createUserSettings } from '$lib/domain/user/user.js';
 import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
@@ -100,7 +99,6 @@ export function createUserConsumerStore(): UserConsumerRepository {
 					if (!user.activateNodes.some((n) => n.nodeId === rootNodeId)) {
 						user.activateNodes.push({
 							nodeId: rootNodeId,
-							priority: null,
 							favorite: false,
 							enabled: true,
 							libraryTabIds: []
@@ -111,7 +109,6 @@ export function createUserConsumerStore(): UserConsumerRepository {
 
 			const activation: NodeActivation = {
 				nodeId,
-				priority: null,
 				favorite: false,
 				enabled: true,
 				libraryTabIds: []
@@ -146,19 +143,6 @@ export function createUserConsumerStore(): UserConsumerRepository {
 				user.activateNodes = user.activateNodes.filter((n) => n.nodeId !== nodeId);
 			}
 
-			user.updatedAt = new Date();
-			await db.users.put(user);
-		},
-
-		async setPriority(userId: string, nodeId: string, priority: PriorityLevel | null): Promise<void> {
-			const db = await getDatabase();
-			const user = await db.users.getById<UserConsumer>(userId);
-			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
-
-			const activation = user.activateNodes.find((n) => n.nodeId === nodeId);
-			if (!activation) throw new Error(`Node not activated: ${nodeId}`);
-
-			activation.priority = priority;
 			user.updatedAt = new Date();
 			await db.users.put(user);
 		},

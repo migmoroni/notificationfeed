@@ -1,14 +1,14 @@
 /**
- * PriorityLevel — shared priority type used across the consumer layer.
+ * PriorityLevel — per-node priority within a FeedMacro.
  *
- * Extracted to its own module to avoid circular dependencies
- * after ConsumerState was replaced by NodeActivation.
+ * Priority is no longer a global per-node property. It is set inside the
+ * advanced-filter composer of each FeedMacro, so the same node can have
+ * different priorities in different macros.
  *
- *   1 = alta  — posts appear first in the feed
- *   2 = média
- *   3 = baixa — global default when no node in the chain defines one
+ *   'default' — appears in the regular position of the feed (newest first)
+ *   'high'    — promoted to the top of the feed when this macro is active
  */
 
-export type PriorityLevel = 1 | 2 | 3;
+export type PriorityLevel = 'default' | 'high';
 
-export const DEFAULT_PRIORITY: PriorityLevel = 3;
+export const DEFAULT_PRIORITY: PriorityLevel = 'default';

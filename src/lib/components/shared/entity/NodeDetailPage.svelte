@@ -19,10 +19,8 @@ import { getMediaPreviewUrl } from '$lib/services/media.service.js';
 import { createContentMediaStore } from '$lib/persistence/content-media.store.js';
 import { sortByPriority, type SortedPost } from '$lib/domain/shared/feed-sorter.js';
 import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
-import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 import PostCard from '$lib/components/feed/PostCard.svelte';
 import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
-import PriorityButtons from '$lib/components/shared/priority/PriorityButtons.svelte';
 import { Badge } from '$lib/components/ui/badge/index.js';
 import { Separator } from '$lib/components/ui/separator/index.js';
 import ArrowLeft from '@lucide/svelte/icons/arrow-left';
@@ -68,7 +66,6 @@ tree: { label: 'Tree Link', icon: Link }
 let meta = $derived(node ? roleMeta[node.role] ?? { label: node.role, icon: Globe } : null);
 let activation = $derived(node ? consumer.getActivation(node.metadata.id) : null);
 let isActivated = $derived(!!activation);
-let currentPriority = $derived(activation?.priority ?? null);
 let isFavorite = $derived(activation?.favorite ?? false);
 let isEnabled = $derived(activation?.enabled ?? true);
 
@@ -162,24 +159,19 @@ async function loadNode(id: string) {
 			}
 			childNodes = children;
 
-			// Load posts from all fonts in this profile
+			// Load posts from all fonts in this profile (sorted by date only)
 			const allPosts: CanonicalPost[] = [];
-			const priorityMap = new Map<string, PriorityLevel>();
 			for (const child of children) {
 				const fontPosts = await getPosts({ nodeId: child.metadata.id });
 				allPosts.push(...fontPosts);
-				const act = consumer.getActivation(child.metadata.id);
-				priorityMap.set(child.metadata.id, act?.priority ?? 3);
 			}
-			posts = sortByPriority(allPosts, priorityMap);
+			posts = sortByPriority(allPosts, {});
 		}
 
 		// For font nodes, load posts
 		if (isFontNode(loaded)) {
 			const allPosts = await getPosts({ nodeId: loaded.metadata.id });
-			const priorityMap = new Map<string, PriorityLevel>();
-			priorityMap.set(loaded.metadata.id, currentPriority ?? 3);
-			posts = sortByPriority(allPosts, priorityMap);
+			posts = sortByPriority(allPosts, {});
 		}
 	} finally {
 		loading = false;
@@ -190,11 +182,6 @@ $effect(() => {
 	const id = nodeId; // track the prop
 	untrack(() => { loadNode(id); });
 });
-
-async function handlePriorityChange(level: PriorityLevel | null) {
-if (!node) return;
-await consumer.setPriority(node.metadata.id, level);
-}
 
 async function handleFavorite() {
 if (!node) return;
@@ -321,7 +308,6 @@ class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text
 
 <!-- Actions -->
 <div class="flex items-center gap-3 mb-4 p-2 rounded-lg border">
-<PriorityButtons current={currentPriority} size="md" onchange={handlePriorityChange} />
 <FavoriteButton favorite={isFavorite} onclick={handleFavorite} />
 {#if actionMeta}
 {@const isActive = node.role === 'font' ? (isActivated && isEnabled) : isActivated}

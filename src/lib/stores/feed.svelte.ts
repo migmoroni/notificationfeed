@@ -9,10 +9,9 @@
 
 import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 import type { ContentTree, TreeNode } from '$lib/domain/content-tree/content-tree.js';
-import { isFontNode, getFontNodes, getNode } from '$lib/domain/content-tree/content-tree.js';
+import { getFontNodes, getNode } from '$lib/domain/content-tree/content-tree.js';
 import type { CategoryTreeId } from '$lib/domain/category/category.js';
-import { buildPriorityMapMultiTree } from '$lib/domain/shared/priority-resolver.js';
-import { sortByPriority, type SortedPost } from '$lib/domain/shared/feed-sorter.js';
+import { sortByPriority, EMPTY_PRIORITY_MAP, type SortedPost } from '$lib/domain/shared/feed-sorter.js';
 import { mergeAssignments } from '$lib/domain/shared/category-aggregation.js';
 import { getPosts, markAsRead as persistMarkRead } from '$lib/persistence/post.store.js';
 import { createContentTreeStore } from '$lib/persistence/content-tree.store.js';
@@ -38,32 +37,14 @@ const treeRepo = createContentTreeStore();
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
-/** Collect all font nodes from all loaded trees */
-function getAllFontNodes(): TreeNode[] {
-const fonts: TreeNode[] = [];
-for (const tree of state.trees) {
-fonts.push(...getFontNodes(tree));
-}
-return fonts;
-}
-
-function getFontNodeIds(): string[] {
-return getAllFontNodes().map((n) => n.metadata.id);
-}
 
 // ── Priority pipeline ──────────────────────────────────────────────────
 
-function computePrioritized(): SortedPost<CanonicalPost>[] {
-if (state.posts.length === 0) return [];
-
-const fontNodeIds = getFontNodeIds();
-const priorityMap = buildPriorityMapMultiTree(
-fontNodeIds,
-state.trees,
-consumer.activationMap
-);
-
-return sortByPriority(state.posts, priorityMap);
+function computePrioritized(
+	priorityByNodeId: Record<string, 'high'>
+): SortedPost<CanonicalPost>[] {
+	if (state.posts.length === 0) return [];
+	return sortByPriority(state.posts, priorityByNodeId);
 }
 
 // ── Category filtering helpers ─────────────────────────────────────────
@@ -117,7 +98,11 @@ get posts() { return state.posts; },
 get trees() { return state.trees; },
 get loading() { return state.loading; },
 get lastRefresh() { return state.lastRefresh; },
-get prioritized(): SortedPost<CanonicalPost>[] { return computePrioritized(); },
+
+/** Sort all posts using a priority map (sparse: nodeId -> 'high'). */
+prioritized(priorityByNodeId: Record<string, 'high'> = EMPTY_PRIORITY_MAP): SortedPost<CanonicalPost>[] {
+	return computePrioritized(priorityByNodeId);
+},
 get count() { return state.posts.length; },
 
 /** Get a TreeNode by its composite nodeId from loaded trees */
@@ -131,9 +116,10 @@ return undefined;
 
 filteredByCategories(
 	anyIds: { subject: string[]; content: string[]; media: string[]; region: string[]; language: string[] },
-	allIds: { subject: string[]; content: string[]; media: string[]; region: string[]; language: string[] }
+	allIds: { subject: string[]; content: string[]; media: string[]; region: string[]; language: string[] },
+	priorityByNodeId: Record<string, 'high'> = EMPTY_PRIORITY_MAP
 ): SortedPost<CanonicalPost>[] {
-let sorted = computePrioritized();
+let sorted = computePrioritized(priorityByNodeId);
 const treeKeys = ['subject', 'content', 'media', 'region', 'language'] as const;
 
 for (const treeId of treeKeys) {

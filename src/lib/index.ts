@@ -25,8 +25,7 @@ export { SUGGESTED_CATEGORIES_PER_TREE, validateAssignments } from './domain/sha
 export type { ImageAsset, ImageSlot, AcceptedImageFormat } from './domain/shared/image-asset.js';
 
 // Domain — Services
-export { buildNodeActivationMap, resolveEffectivePriority, buildPriorityMap, buildPriorityMapMultiTree } from './domain/shared/priority-resolver.js';
-export { sortByPriority } from './domain/shared/feed-sorter.js';
+export { sortByPriority, EMPTY_PRIORITY_MAP } from './domain/shared/feed-sorter.js';
 export type { SortedPost } from './domain/shared/feed-sorter.js';
 
 // Layout

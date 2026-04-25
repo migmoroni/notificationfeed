@@ -76,6 +76,26 @@ export interface EntityFilterStore {
 	toggleFont(nodeId: string): void;
 	clearAll(): void;
 
+	// ── Per-node priority (scoped to the active feed-macro draft) ────
+
+	/** Sparse priority map: nodeId → 'high'. Absence ⇒ 'default'. */
+	readonly priorityByNodeId: Record<string, 'high'>;
+	/**
+	 * Same as `priorityByNodeId` plus inherited 'high' for fonts whose
+	 * page-root ancestor is flagged. Use this when reading at feed-sort time.
+	 */
+	readonly effectivePriorityByNodeId: Record<string, 'high'>;
+	/** Returns 'high' if node has its own 'high' flag, otherwise 'default'. */
+	getNodePriority(nodeId: string): 'default' | 'high';
+	/** Returns true when a node inherits 'high' from a page-root ancestor. */
+	isHighInherited(nodeId: string): boolean;
+	/** Toggle node between 'default' and 'high'. No-op for inherited highs. */
+	toggleNodePriority(nodeId: string): void;
+	/** Replace the entire priority map (used when applying a saved macro). */
+	setPriorityByNodeId(map: Record<string, 'high'>): void;
+	/** Clear the priority map. */
+	clearPriorities(): void;
+
 	/** Toggle a library tab in the filter selection (multi-select). */
 	toggleLibraryTab(tabId: string): void;
 	/** Replace the full library-tab filter selection. */

@@ -57,8 +57,9 @@
 	"feed.empty_add_sources": "Add sources to start receiving content.",
 	"feed.priority_all": "All",
 	"feed.priority_high": "High",
-	"feed.priority_medium": "Medium",
-	"feed.priority_low": "Low",
+	"feed.priority_medium": "Default",
+	"feed.priority_default": "Default",
+	"feed.priority_low": "Default",
 
 	"aria.update_feed": "Update feed",
 	"aria.remove_from_favorites": "Remove from favorites",

@@ -294,7 +294,7 @@
 			{#if activeTab === 'saved'}
 				<FeedMacros />
 			{:else}
-				<FilterSidebar entityStore={feedEntityFilter} categoryStore={feedCategories} />
+				<FilterSidebar entityStore={feedEntityFilter} categoryStore={feedCategories} showPriorityToggle />
 			{/if}
 		</div>
 	</div>
