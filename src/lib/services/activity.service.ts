@@ -1,20 +1,23 @@
 /**
  * Activity Service — single write-point for user activity events.
  *
- * Records `"open"` events into the active user's activity log, which lives
- * in its own IndexedDB store (`activityData`) keyed by `userId`. No other
- * part of the app is allowed to append to activity data — everything must
- * go through `activityService.record(...)`.
+ * Records events into the active user's activity log, which lives in its own
+ * IndexedDB store (`activityData`) keyed by `userId`. No other part of the
+ * app is allowed to append to activity data — everything must go through
+ * `activityService.record(...)`.
+ *
+ * Sequential per-user ids and near-duplicate suppression are handled by the
+ * underlying `activityRepository`.
  */
 
 import { activeUser } from '$lib/stores/active-user.svelte.js';
 import { createActivityStore } from '$lib/persistence/activity.store.js';
-import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
 import type {
 	ActivityEvent,
 	ActivityEventType,
 	ActivityTargetType,
-	ActivityContext
+	ActivityContext,
+	NewActivityEvent
 } from '$lib/domain/user/activity.js';
 
 export interface RecordInput {
@@ -29,14 +32,14 @@ const repo = createActivityStore();
 export const activityService = {
 	/**
 	 * Record an activity event for the currently-active user.
-	 * No-op if no user is loaded.
+	 * Returns the assigned id, or `null` when the event was suppressed by
+	 * dedup. No-op (returns `null`) when no user is loaded.
 	 */
-	async record(input: RecordInput): Promise<void> {
+	async record(input: RecordInput): Promise<number | null> {
 		const userId = activeUser.current?.id;
-		if (!userId) return;
+		if (!userId) return null;
 
-		const event: ActivityEvent = {
-			id: uuidv7(),
+		const event: NewActivityEvent = {
 			type: input.type,
 			targetType: input.targetType,
 			targetId: input.targetId,
@@ -44,7 +47,7 @@ export const activityService = {
 			createdAt: new Date()
 		};
 
-		await repo.appendEvent(userId, event);
+		return repo.appendEvent(userId, event);
 	},
 
 	/** Read-only snapshot of events for the active user. */
