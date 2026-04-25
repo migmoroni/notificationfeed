@@ -212,6 +212,16 @@ if (node && isFontNode(node)) return 'font';
 return rootPageType(tree);
 }
 
+/** Drop own 'high' entries for the given node IDs (used when a node is deselected). */
+function pruneOwnPriorities(removed: Iterable<string>): void {
+	let mutated = false;
+	const next = { ...priorityByNodeId };
+	for (const id of removed) {
+		if (id in next) { delete next[id]; mutated = true; }
+	}
+	if (mutated) priorityByNodeId = next;
+}
+
 // ── Store implementation ─────────────────────────────────────────
 
 return {
@@ -384,11 +394,13 @@ togglePage(pageId: string): void {
 					next.delete(pageId);
 					// Remove fonts from deselected page
 					const nextFonts = new Set(selectedFontIds);
+					const removedFonts: string[] = [];
 					for (const fid of fontIdsForTree(parseTreeId(pageId))) {
-						nextFonts.delete(fid);
+						if (nextFonts.delete(fid)) removedFonts.push(fid);
 					}
 					selectedPageIds = next;
 					selectedFontIds = nextFonts;
+					pruneOwnPriorities([pageId, ...removedFonts]);
 				} else {
 					// Select new page; keep currently selected pages that are related to it
 					const related = getRelatedPageIds(pageId);
@@ -405,8 +417,12 @@ togglePage(pageId: string): void {
 							}
 						}
 					}
+					// Pages dropped from selectedPageIds and fonts dropped from selectedFontIds
+					const droppedPages = [...selectedPageIds].filter((p) => !next.has(p));
+					const droppedFonts = [...selectedFontIds].filter((f) => !nextFonts.has(f));
 					selectedPageIds = next;
 					selectedFontIds = nextFonts;
+					pruneOwnPriorities([...droppedPages, ...droppedFonts]);
 				}
 				return;
 			}
@@ -416,8 +432,9 @@ next.delete(pageId);
 // Cascade: deselect fonts within this page
 const treeId = parseTreeId(pageId);
 const nextFonts = new Set(selectedFontIds);
+const removedIds: string[] = [pageId];
 for (const fid of fontIdsForTree(treeId)) {
-nextFonts.delete(fid);
+if (nextFonts.delete(fid)) removedIds.push(fid);
 }
 // Cascade: deselect linked pages (and their fonts) for creator/collection trees
 const treeMap = buildTreeMap();
@@ -428,13 +445,16 @@ if (!isTreeLinkNode(treeNode)) continue;
 const linkedTree = treeMap.get(treeNode.data.body.instanceTreeId);
 if (!linkedTree) continue;
 const linkedRootId = getRootNodeId(linkedTree);
-next.delete(linkedRootId);
+if (next.delete(linkedRootId)) removedIds.push(linkedRootId);
 for (const fid of fontIdsForTree(linkedTree.metadata.id)) {
-nextFonts.delete(fid);
+if (nextFonts.delete(fid)) removedIds.push(fid);
 }
 }
 }
 selectedFontIds = nextFonts;
+selectedPageIds = next;
+pruneOwnPriorities(removedIds);
+return;
 } else {
 next.add(pageId);
 }
@@ -444,14 +464,18 @@ selectedPageIds = next;
 		toggleFont(nodeId: string): void {
 			if (selectedFontIds.has(nodeId)) {
 				if (singleFontSelect) {
+					const dropped = [...selectedFontIds];
 					selectedFontIds = new Set();
+					pruneOwnPriorities(dropped);
 				} else {
 					const next = new Set(selectedFontIds);
 					next.delete(nodeId);
 					selectedFontIds = next;
+					pruneOwnPriorities([nodeId]);
 				}
 			} else {
 				if (singleFontSelect) {
+					const droppedFonts = [...selectedFontIds].filter((f) => f !== nodeId);
 					selectedFontIds = new Set([nodeId]);
 					// Keep pages that own this font directly or are linked (via tree-links)
 					// to the tree that owns the font. Bidirectional: creators linking to the
@@ -466,7 +490,9 @@ selectedPageIds = next;
 						}
 						if (keep) next.add(pid);
 					}
+					const droppedPages = [...selectedPageIds].filter((p) => !next.has(p));
 					selectedPageIds = next;
+					pruneOwnPriorities([...droppedFonts, ...droppedPages]);
 				} else {
 					const next = new Set(selectedFontIds);
 					next.add(nodeId);
