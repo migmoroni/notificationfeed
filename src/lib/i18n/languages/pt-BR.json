@@ -333,6 +333,7 @@
   "library.search_tabs_placeholder": "Buscar tabs...",
   "library.home_empty": "Nenhuma tab ainda. Crie uma para começar.",
   "library.home_no_results": "Nenhuma tab corresponde à busca.",
+  "library.empty": "Nenhum item na biblioteca ainda. Ative itens na tela Browse.",
   "aria.library_home": "Página inicial da biblioteca",
   "copy_consumer.title": "Copiar do Consumer",
   "copy_consumer.description": "Selecione profiles para copiar. Uma cópia independente será criada no espaço do creator.",
@@ -352,8 +353,9 @@
   "avatar_picker.choose_emoji_description": "Selecione um emoji para usar como avatar.",
   "node_detail.loading": "Carregando…",
   "node_detail.not_found": "Node não encontrado.",
-  "node_detail.profiles_section": "Profiles ({count})",
-  "node_detail.fonts_section": "Fonts ({count})",
+  "node_detail.collection_section": "Coleções ({count})",
+  "node_detail.profiles_section": "Perfis ({count})",
+  "node_detail.fonts_section": "Fontes ({count})",
   "node_detail.posts_section": "Posts ({count})",
   "action.subscribe": "Inscrever",
   "action.subscribed": "Inscrito",
@@ -361,5 +363,8 @@
   "action.following": "Seguindo",
   "action.pin": "Fixar",
   "action.pinned": "Fixado",
+  "action.unfavorite": "Desfavoritar",
+  "action.favorite": "Favoritar",
+  "action.organize": "Organizar",
   "entity_list.select_category": "Selecione uma categoria para ver conteúdo."
 }

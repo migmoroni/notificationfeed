@@ -50,7 +50,7 @@
 		{#if collections.length > 0}
 			<div>
 				<h3 class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
-					Collections ({collections.length})
+					{t('node_detail.collection_section', { count: collections.length })}
 				</h3>
 				<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
 					{#each collections as node (node.metadata.id)}
@@ -67,7 +67,7 @@
 		{#if profiles.length > 0}
 			<div>
 				<h3 class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
-					Profiles ({profiles.length})
+					{t('node_detail.profiles_section', { count: profiles.length })}
 				</h3>
 				<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
 					{#each profiles as node (node.metadata.id)}
@@ -84,7 +84,7 @@
 		{#if fonts.length > 0}
 			<div>
 				<h3 class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
-					Fonts ({fonts.length})
+					{t('node_detail.fonts_section', { count: fonts.length })}
 				</h3>
 				<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
 					{#each fonts as node (node.metadata.id)}

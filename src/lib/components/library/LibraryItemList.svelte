@@ -9,6 +9,7 @@
 	import type { TreeNode } from '$lib/domain/content-tree/content-tree.js';
 	import { library } from '$lib/stores/library.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
+	import { t } from '$lib/i18n/t.js';
 	import EntityCard from '$lib/components/shared/entity/EntityCard.svelte';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import Check from '@lucide/svelte/icons/check';
@@ -123,19 +124,19 @@
 {:else if items.length === 0}
 	<div class="flex flex-col items-center justify-center py-12 text-center">
 		<p class="text-sm text-muted-foreground">
-			Nenhum item na biblioteca ainda. Ative itens na tela Browse.
+			{t('library.empty')}
 		</p>
 	</div>
 {:else}
 	<div class="flex flex-col gap-4">
-		{@render groupSection('Collections', grouped.collections)}
+		{@render groupSection(t('entity.collection_plural'), grouped.collections)}
 		{#if grouped.collections.length > 0 && (grouped.profiles.length > 0 || grouped.fonts.length > 0)}
 			<Separator />
 		{/if}
-		{@render groupSection('Profiles', grouped.profiles)}
+		{@render groupSection(t('entity.profile_plural'), grouped.profiles)}
 		{#if grouped.profiles.length > 0 && grouped.fonts.length > 0}
 			<Separator />
 		{/if}
-		{@render groupSection('Fonts', grouped.fonts)}
+		{@render groupSection(t('entity.font_plural'), grouped.fonts)}
 	</div>
 {/if}

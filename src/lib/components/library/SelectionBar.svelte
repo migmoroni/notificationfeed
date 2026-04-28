@@ -4,6 +4,7 @@
 	import Tags from '@lucide/svelte/icons/tags';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import X from '@lucide/svelte/icons/x';
+	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
 		onopenAssignment: () => void;
@@ -23,11 +24,11 @@
 			<div class="flex items-center gap-2">
 				<Button variant="outline" size="sm" onclick={onopenAssignment}>
 					<Tags class="size-4 mr-1.5" />
-					Organizar
+					{t('action.organize')}
 				</Button>
 				<Button variant="destructive" size="sm" onclick={onopenRemoveConfirm}>
 					<Trash2 class="size-4 mr-1.5" />
-					Desfavoritar
+					{t('action.unfavorite')}
 				</Button>
 				<Button variant="ghost" size="sm" onclick={() => library.clearSelection()}>
 					<X class="size-4" />

@@ -170,14 +170,14 @@
 							class="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
 						>
 							<Pencil class="size-3.5" />
-							Editar
+							{t('btn.edit')}
 						</button>
 						<button
 							onclick={() => handleDeleteTab(tab.id)}
 							class="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
 						>
 							<Trash2 class="size-3.5" />
-							Excluir
+							{t('btn.delete')}
 						</button>
 					</div>
 				{/if}

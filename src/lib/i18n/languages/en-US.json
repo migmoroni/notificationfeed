@@ -333,6 +333,7 @@
   "library.search_tabs_placeholder": "Search tabs...",
   "library.home_empty": "No tabs yet. Create one to get started.",
   "library.home_no_results": "No tabs match your search.",
+  "library.empty": "No items in your library yet. Activate items in the Browse tab.",
   "aria.library_home": "Library home",
   "copy_consumer.title": "Copy from Consumer",
   "copy_consumer.description": "Select profiles to copy. An independent copy will be created in the creator's space.",
@@ -352,6 +353,7 @@
   "avatar_picker.choose_emoji_description": "Select an emoji to use as avatar.",
   "node_detail.loading": "Loading…",
   "node_detail.not_found": "Node not found.",
+  "node_detail.collection_section": "Collections ({count})",
   "node_detail.profiles_section": "Profiles ({count})",
   "node_detail.fonts_section": "Fonts ({count})",
   "node_detail.posts_section": "Posts ({count})",
@@ -361,5 +363,8 @@
   "action.following": "Following",
   "action.pin": "Pin",
   "action.pinned": "Pinned",
+  "action.unfavorite": "Unfavorite",
+  "action.favorite": "Favorite",
+  "action.organize": "Organize",
   "entity_list.select_category": "Select a category to see content."
 }
