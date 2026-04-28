@@ -77,7 +77,7 @@ mediaIds.push(media.metadata.id);
 await treeRepo.put(treeExport.tree);
 
 const nodeCount = Object.keys(treeExport.tree.nodes).length;
-const rootNode = Object.values(treeExport.tree.nodes).find((n) => n.role === 'creator' || n.role === 'profile');
+	const rootNode = Object.values(treeExport.tree.nodes).find((n) => n.role === 'collection' || n.role === 'profile');
 const title = rootNode?.data.header.title ?? t('import.without_title');
 
 return {

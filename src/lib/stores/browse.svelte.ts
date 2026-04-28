@@ -111,21 +111,21 @@ return browseCategories.hasFilters || state.searchQuery.trim().length > 0;
 },
 
 /** Nodes grouped by role for display */
-get nodesByRole(): { creators: TreeNode[]; profiles: TreeNode[]; fonts: TreeNode[] } {
-const creators: TreeNode[] = [];
-const profiles: TreeNode[] = [];
-const fonts: TreeNode[] = [];
-for (const n of state.nodes) {
-switch (n.role) {
-case 'creator': creators.push(n); break;
-case 'profile': profiles.push(n); break;
-case 'font': fonts.push(n); break;
-}
-}
-return { creators, profiles, fonts };
-},
+		get nodesByRole(): { collections: TreeNode[]; profiles: TreeNode[]; fonts: TreeNode[] } {
+			const collections: TreeNode[] = [];
+			const profiles: TreeNode[] = [];
+			const fonts: TreeNode[] = [];
+			for (const n of state.nodes) {
+				switch (n.role) {
+					case 'collection': collections.push(n); break;
+					case 'profile': profiles.push(n); break;
+					case 'font': fonts.push(n); break;
+				}
+			}
+			return { collections, profiles, fonts };
+		},
 
-// ── Actions ──────────────────────────────────────────────────────
+		// ── Actions ──────────────────────────────────────────────────────
 
 async setSearchQuery(query: string): Promise<void> {
 state.searchQuery = query;

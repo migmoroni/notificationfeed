@@ -4,7 +4,7 @@
 		NodeRole,
 		NodeHeader,
 		NodeBody,
-		CreatorBody,
+		CollectionBody,
 		ProfileBody,
 		FontBody,
 		TreeLinkBody,
@@ -13,7 +13,7 @@
 	import type { CategoryAssignment } from '$lib/domain/shared/category-assignment.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import NodeHeaderForm from './NodeHeaderForm.svelte';
-	import CreatorBodyForm from './CreatorBodyForm.svelte';
+	import CollectionBodyForm from './CollectionBodyForm.svelte';
 	import ProfileBodyForm from './ProfileBodyForm.svelte';
 	import FontBodyForm from './FontBodyForm.svelte';
 	import TreeLinkBodyForm from './TreeLinkBodyForm.svelte';
@@ -64,14 +64,12 @@
 	// Initialize body based on role
 	function defaultBody(r: NodeRole): NodeBody {
 		switch (r) {
-			case 'creator':
-				return { role: 'creator', links: [] };
 			case 'profile':
 				return { role: 'profile', links: [] };
 			case 'font':
 				return { role: 'font', protocol: 'rss', config: { url: '' }, defaultEnabled: true };
 			case 'collection':
-				return { role: 'collection' };
+				return { role: 'collection', links: [] };
 			case 'tree':
 				return { role: 'tree', instanceTreeId: '' };
 		}
@@ -108,7 +106,6 @@
 	}
 
 	const roleLabels: Record<NodeRole, { create: string; save: string }> = {
-		creator: { create: t('node_form.create_creator'), save: t('btn.save') },
 		profile: { create: t('node_form.create_profile'), save: t('btn.save') },
 		font: { create: t('node_form.create_font'), save: t('btn.save') },
 		collection: { create: t('node_form.create_collection'), save: t('btn.save') },
@@ -122,9 +119,9 @@
 		onchange={(h) => (header = h)}
 	/>
 
-	{#if body.role === 'creator'}
-		<CreatorBodyForm
-			body={body as CreatorBody}
+	{#if body.role === 'collection'}
+		<CollectionBodyForm
+			body={body as CollectionBody}
 			onchange={(b) => (body = b)}
 		/>
 	{:else if body.role === 'profile'}

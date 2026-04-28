@@ -156,7 +156,7 @@
 		selectedLanguages;
 		anyIds;
 		allIds;
-		feedEntityFilter.selectedCreatorIds;
+		feedEntityFilter.selectedCollectionIds;
 		feedEntityFilter.selectedProfileIds;
 		feedEntityFilter.selectedFontIds;
 		feedEntityFilter.libraryTabFilter;

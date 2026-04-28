@@ -50,7 +50,7 @@ onDestroy(() => {
 });
 
 // Group nodes by role
-let creatorNodes = $derived(allNodes.filter((n) => n.role === 'creator'));
+let collectionNodes = $derived(allNodes.filter((n) => n.role === 'collection'));
 let profileNodes = $derived(allNodes.filter((n) => n.role === 'profile'));
 let fontNodes = $derived(allNodes.filter((n) => n.role === 'font'));
 
@@ -65,7 +65,7 @@ let filteredNodes = $derived.by(() => {
 	});
 });
 
-let filteredCreators = $derived(filteredNodes.filter((n) => n.role === 'creator'));
+let filteredCollections = $derived(filteredNodes.filter((n) => n.role === 'collection'));
 let filteredProfiles = $derived(filteredNodes.filter((n) => n.role === 'profile'));
 let filteredFonts = $derived(filteredNodes.filter((n) => n.role === 'font'));
 
@@ -137,20 +137,20 @@ return `/preview/node/${node.metadata.id}`;
 </div>
 {:else}
 <div class="flex flex-col gap-4">
-{#if filteredCreators.length > 0}
+{#if filteredCollections.length > 0}
 <div>
 <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
-Creators ({filteredCreators.length})
+Collections ({filteredCollections.length})
 </h3>
 <div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
-{#each filteredCreators as node (node.metadata.id)}
+{#each filteredCollections as node (node.metadata.id)}
 <EntityCard {node} href={nodeHref(node)} />
 {/each}
 </div>
 </div>
 {/if}
 
-{#if filteredCreators.length > 0 && (filteredProfiles.length > 0 || filteredFonts.length > 0)}
+{#if filteredCollections.length > 0 && (filteredProfiles.length > 0 || filteredFonts.length > 0)}
 <Separator />
 {/if}
 

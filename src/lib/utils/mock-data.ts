@@ -358,7 +358,7 @@ categoryAssignments: [
 IDS.creator
 );
 
-// ── Creator Trees (root=creator + tree-link nodes) ──────────────
+// ── Collection Trees (root=collection + tree-link nodes) ──────────────
 
 const techSourcesSectionId = 'sec-tech';
 const securitySectionId = 'sec-security';
@@ -366,11 +366,11 @@ const securitySectionId = 'sec-security';
 const treeTechBlog = makeTree(
 IDS.treeTechBlog,
 {
-[TB.root]: makeNode(TB.root, 'creator', {
+[TB.root]: makeNode(TB.root, 'collection', {
 title: 'TechBlog',
 summary: 'A curated collection of technology feeds',
 categoryAssignments: [{ treeId: 'subject', categoryIds: ['anaaa'] }]
-}, { role: 'creator', links: [] }),
+}, { role: 'collection', links: [] }),
 
 [TB.linkTech]: makeNode(TB.linkTech, 'tree', {
 title: 'Tech Sources',
@@ -399,14 +399,14 @@ const scienceSectionId = 'sec-science';
 const treeNewsDaily = makeTree(
 IDS.treeNewsDaily,
 {
-[ND.root]: makeNode(ND.root, 'creator', {
+[ND.root]: makeNode(ND.root, 'collection', {
 title: 'NewsDaily',
 summary: 'Daily news from around the world',
 categoryAssignments: [
 { treeId: 'subject', categoryIds: ['alaae'] },
 { treeId: 'content', categoryIds: ['baaac'] }
 ]
-}, { role: 'creator', links: [] }),
+}, { role: 'collection', links: [] }),
 
 [ND.linkNews]: makeNode(ND.linkNews, 'tree', {
 title: 'News Sources',
@@ -434,10 +434,10 @@ const frontendSectionId = 'sec-frontend';
 const treeCreatorPublished = makeTree(
 IDS.treeCreatorPublished,
 {
-[CP.root]: makeNode(CP.root, 'creator', {
+[CP.root]: makeNode(CP.root, 'collection', {
 title: 'Dev Curations',
 summary: 'Hand-picked development feeds',
-}, { role: 'creator', links: [] }),
+}, { role: 'collection', links: [] }),
 
 [CP.linkFrontend]: makeNode(CP.linkFrontend, 'tree', {
 title: 'Frontend Sources',
@@ -457,10 +457,10 @@ IDS.creator
 const treeCreatorDraft = makeTree(
 IDS.treeCreatorDraft,
 {
-[CD.root]: makeNode(CD.root, 'creator', {
+[CD.root]: makeNode(CD.root, 'collection', {
 title: 'News Experiment',
 summary: 'Testing news aggregation',
-}, { role: 'creator', links: [] }),
+}, { role: 'collection', links: [] }),
 
 [CD.linkNews]: makeNode(CD.linkNews, 'tree', {
 title: 'News Draft Profile',

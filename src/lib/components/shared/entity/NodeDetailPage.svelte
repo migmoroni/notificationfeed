@@ -2,14 +2,14 @@
   NodeDetailPage — node detail view.
 
   Loads a TreeNode by its composite ID from the containing ContentTree.
-  Displays header, body, actions. For creator/profile shows child nodes,
+  Displays header, body, actions. For collection/profile shows child nodes,
   for font shows posts feed.
 -->
 <script lang="ts">
 import { t } from '$lib/i18n/t.js';
 import { untrack } from 'svelte';
 import type { TreeNode } from '$lib/domain/content-tree/content-tree.js';
-import { isFontNode, isProfileNode, isCreatorNode, isTreeLinkNode, isCollectionNode, parseTreeId } from '$lib/domain/content-tree/content-tree.js';
+	import { isFontNode, isProfileNode, isTreeLinkNode, isCollectionNode, parseTreeId } from '$lib/domain/content-tree/content-tree.js';
 import type { ContentTree, TreeLinkBody } from '$lib/domain/content-tree/content-tree.js';
 import { consumer } from '$lib/stores/consumer.svelte.js';
 import { layout } from '$lib/stores/layout.svelte.js';
@@ -57,9 +57,9 @@ const treeRepo = createContentTreeStore();
 const mediaRepo = createContentMediaStore();
 
 const roleMeta: Record<string, { label: string; icon: typeof Globe }> = {
-creator: { label: 'Creator', icon: Globe },
-profile: { label: 'Profile', icon: User },
-font: { label: 'Font', icon: Rss },
+		profile: { label: t('entity.profile'), icon: User },
+		font: { label: t('entity.font'), icon: Rss },
+		collection: { label: t('entity.collection'), icon: Globe },
 tree: { label: 'Tree Link', icon: Link }
 };
 
@@ -76,27 +76,22 @@ inactiveLabel: string;
 activeClass: string;
 inactiveClass: string;
 }> = {
-creator: {
-activeLabel: 'Fixado',
-inactiveLabel: 'Fixar',
-activeClass: 'bg-blue-600 text-white hover:bg-blue-700',
-inactiveClass: 'border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950'
-},
-profile: {
-activeLabel: 'Inscrito',
-inactiveLabel: 'Inscrever',
-activeClass: 'bg-violet-600 text-white hover:bg-violet-700',
-inactiveClass: 'border-violet-600 text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-950'
-},
+
 font: {
-activeLabel: 'Seguindo',
-inactiveLabel: 'Seguir',
+activeLabel: t('action.following'),
+inactiveLabel: t('action.follow'),
 activeClass: 'bg-emerald-600 text-white hover:bg-emerald-700',
 inactiveClass: 'border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950'
 },
+profile: {
+activeLabel: t('action.subscribed'),
+inactiveLabel: t('action.subscribe'),
+activeClass: 'bg-sky-600 text-white hover:bg-sky-700',
+inactiveClass: 'border-sky-600 text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950'
+},
 collection: {
-activeLabel: 'Fixado',
-inactiveLabel: 'Fixar',
+activeLabel: t('action.pinned'),
+inactiveLabel: t('action.pin'),
 activeClass: 'bg-amber-600 text-white hover:bg-amber-700',
 inactiveClass: 'border-amber-600 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950'
 }
@@ -135,8 +130,8 @@ async function loadNode(id: string) {
 			if (media) bannerUrl = getMediaPreviewUrl(media);
 		}
 
-		// For creator/collection nodes, resolve tree-link nodes to linked profile trees
-		if (isCreatorNode(loaded) || isCollectionNode(loaded)) {
+			// For collection nodes, resolve tree-link nodes to linked profile trees
+			if (isCollectionNode(loaded)) {
 			const links: typeof linkedProfiles = [];
 			for (const [nid, treeNode] of Object.entries(tree.nodes)) {
 				if (nid === id) continue;
@@ -211,7 +206,7 @@ await consumer.toggleNodeEnabled(node.metadata.id);
 } else {
 await consumer.activateNode(node.metadata.id);
 }
-} else if (node.role === 'creator' || node.role === 'collection') {
+		} else if (node.role === 'collection') {
 if (isActivated) {
 showUnsaveConfirm = true;
 return;
@@ -327,7 +322,7 @@ class="ml-auto text-xs font-medium px-3 py-1.5 rounded-md border transition-colo
 		{#if linkedProfiles.length > 0}
 		<section class="mb-6">
 			<h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-				Profiles ({linkedProfiles.length})
+				{t('node_detail.profiles_section', { count: linkedProfiles.length })}
 			</h2>
 			<div class="flex flex-col gap-2">
 				{#each linkedProfiles as lp (lp.tree.metadata.id)}
@@ -355,7 +350,7 @@ class="ml-auto text-xs font-medium px-3 py-1.5 rounded-md border transition-colo
 		{#if childNodes.length > 0}
 		<section class="mb-6">
 			<h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-				Fonts ({childNodes.length})
+				{t('node_detail.fonts_section', { count: childNodes.length })}
 </h2>
 <div class="flex flex-col gap-2">
 {#each childNodes as child (child.metadata.id)}
@@ -385,7 +380,7 @@ class="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transiti
 {#if posts.length > 0}
 <section>
 <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-Posts ({posts.length})
+{t('node_detail.posts_section', { count: posts.length })}
 </h2>
 <div class="flex flex-col gap-2">
 {#each posts as sortedPost (sortedPost.post.id)}

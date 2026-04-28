@@ -12,8 +12,7 @@
  *
  * The root node (at path "/") defines the tree's identity:
  *   - role=profile    → editorial page containing fonts
- *   - role=creator    → aggregator page containing tree-link nodes
- *   - role=collection → generic aggregator containing tree-link nodes
+ *   - role=collection → generic aggregator containing tree-link nodes (recursive)
  */
 
 import type { CategoryAssignment } from '../shared/category-assignment.js';
@@ -22,7 +21,7 @@ import type { CategoryAssignment } from '../shared/category-assignment.js';
 // Node Roles
 // ---------------------------------------------------------------------------
 
-export type NodeRole = 'profile' | 'font' | 'creator' | 'collection' | 'tree';
+export type NodeRole = 'profile' | 'font' | 'collection' | 'tree';
 
 // ---------------------------------------------------------------------------
 // Node Header (shared across all roles)
@@ -69,12 +68,6 @@ export interface ExternalLink {
 	url: string;
 }
 
-/** Body for role = 'creator' — user's aggregator page */
-export interface CreatorBody {
-role: 'creator';
-links: ExternalLink[];
-}
-
 /** Body for role = 'profile' — editorial page with fonts */
 export interface ProfileBody {
 role: 'profile';
@@ -98,9 +91,10 @@ instanceTreeId: string;
 /** Body for role = 'collection' — generic aggregator page */
 export interface CollectionBody {
 role: 'collection';
+links: ExternalLink[];
 }
 
-export type NodeBody = CreatorBody | ProfileBody | FontBody | TreeLinkBody | CollectionBody;
+export type NodeBody = ProfileBody | FontBody | TreeLinkBody | CollectionBody;
 
 // ---------------------------------------------------------------------------
 // TreeNode — embedded in ContentTree.nodes
@@ -162,7 +156,7 @@ versionSchema: number;
 createdAt: Date;
 updatedAt: Date;
 author?: string;
-/** ID of a creator-type tree used to sign this tree's nodes */
+/** ID of a collection-type tree used to sign/attribute this tree's nodes */
 authorTreeId?: string;
 /** When set, the tree is soft-deleted (hidden from UI). ISO date string YYYY-MM-DD. */
 removedAt?: string;
@@ -195,10 +189,6 @@ delete(id: string): Promise<void>;
 // ---------------------------------------------------------------------------
 // Type guards
 // ---------------------------------------------------------------------------
-
-export function isCreatorNode(node: TreeNode): node is TreeNode & { data: { body: CreatorBody } } {
-return node.role === 'creator';
-}
 
 export function isProfileNode(node: TreeNode): node is TreeNode & { data: { body: ProfileBody } } {
 return node.role === 'profile';

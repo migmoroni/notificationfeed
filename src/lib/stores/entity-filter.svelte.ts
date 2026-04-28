@@ -6,7 +6,7 @@
  * so the same code powers Feed, Browse and Preview filters.
  *
  * New model: flat page-based filtering.
- *   Page = any tree whose root is creator, profile, or collection.
+ *   Page = any tree whose root is profile or collection.
  *   Users choose which page types to display, then select pages and
  *   optionally narrow to specific fonts within them.
  */
@@ -15,7 +15,6 @@ import type { ContentTree, TreeSection, TreeNode } from '$lib/domain/content-tre
 import {
 getRootNode,
 getRootNodeId,
-isCreatorNode,
 isProfileNode,
 isCollectionNode,
 isTreeLinkNode,
@@ -117,17 +116,16 @@ function buildTreeMap(): Map<string, ContentTree> {
 return new Map(source.getTrees().map((t) => [t.metadata.id, t]));
 }
 
-/** Root role → PageType mapping (only the 3 page roles) */
+/** Root role → PageType mapping (only the 2 page roles) */
 function rootPageType(tree: ContentTree): PageType | null {
 const root = getRootNode(tree);
 if (!root) return null;
-if (root.role === 'creator') return 'creator';
 if (root.role === 'profile') return 'profile';
 if (root.role === 'collection') return 'collection';
 return null;
 }
 
-/** All trees that qualify as pages (root = creator | profile | collection) */
+/** All trees that qualify as pages (root = profile | collection) */
 function pageTrees(): ContentTree[] {
 return source.getTrees().filter((t) => rootPageType(t) !== null);
 }
@@ -230,10 +228,10 @@ get selectedPageIds() { return selectedPageIds; },
 get selectedFontIds() { return selectedFontIds; },
 get libraryTabFilter() { return libraryTabFilter; },
 
-get selectedCreatorIds(): Set<string> {
-const ids = new Set<string>();
-for (const pid of selectedPageIds) {
-if (pageRootRole(pid) === 'creator') ids.add(pid);
+get selectedCollectionIds(): Set<string> {
+			const ids = new Set<string>();
+			for (const pid of selectedPageIds) {
+				if (pageRootRole(pid) === 'collection') ids.add(pid);
 }
 return ids;
 },
@@ -277,7 +275,7 @@ this.setPageTypeFilter(new Set([type]));
 getPages(): PageEntry[] {
 const entries: PageEntry[] = [];
 
-// Tree-based pages (creator, profile, collection)
+// Tree-based pages (profile, collection)
 for (const tree of visiblePageTrees()) {
 const root = getRootNode(tree);
 if (!root) continue;
@@ -436,7 +434,7 @@ const removedIds: string[] = [pageId];
 for (const fid of fontIdsForTree(treeId)) {
 if (nextFonts.delete(fid)) removedIds.push(fid);
 }
-// Cascade: deselect linked pages (and their fonts) for creator/collection trees
+// Cascade: deselect linked pages (and their fonts) for collection trees
 const treeMap = buildTreeMap();
 const tree = treeMap.get(treeId);
 if (tree) {
@@ -478,7 +476,7 @@ selectedPageIds = next;
 					const droppedFonts = [...selectedFontIds].filter((f) => f !== nodeId);
 					selectedFontIds = new Set([nodeId]);
 					// Keep pages that own this font directly or are linked (via tree-links)
-					// to the tree that owns the font. Bidirectional: creators linking to the
+					// to the tree that owns the font. Bidirectional: collections linking to the
 					// font's profile tree are preserved, just like profiles selecting their own font.
 					const fontTreeId = parseTreeId(nodeId);
 					const next = new Set<string>();
@@ -516,7 +514,7 @@ selectedFontIds = new Set();
 		 * Effective priority map: own 'high' entries plus inherited 'high' for
 		 * descendants. Inheritance rules:
 		 *   - profile high → all its fonts.
-		 *   - creator/collection high → all linked profile pages AND all fonts of those profiles.
+		 *   - collection high → all linked profile pages AND all fonts of those profiles.
 		 * Used at feed-sort time so a "high" flag propagates downward.
 		 */
 		get effectivePriorityByNodeId(): Record<string, 'high'> {
@@ -533,13 +531,13 @@ selectedFontIds = new Set();
 				const role = pageRootRole(id);
 				if (role === 'profile') {
 					propagateProfileFonts(id);
-				} else if (role === 'creator' || role === 'collection') {
+				} else if (role === 'collection') {
 					// Linked profiles + their fonts
 					for (const linkedPageId of getForwardLinkedPageIds(id)) {
 						out[linkedPageId] = 'high';
 						propagateProfileFonts(linkedPageId);
 					}
-					// Also include fonts directly inside the creator/collection tree (rare but possible)
+					// Also include fonts directly inside the collection tree (rare but possible)
 					propagateProfileFonts(id);
 				}
 			}
@@ -552,7 +550,7 @@ selectedFontIds = new Set();
 
 		/**
 		 * True when a node does NOT have its own 'high' but inherits 'high' from
-		 * an ancestor: its tree-root profile, or a creator/collection that links
+		 * an ancestor: its tree-root profile, or a collection that links
 		 * to its profile (for both fonts and linked profile pages).
 		 */
 		isHighInherited(nodeId: string): boolean {
@@ -566,13 +564,13 @@ selectedFontIds = new Set();
 			// Font: its own profile root is high
 			if (rootId !== nodeId && priorityByNodeId[rootId] === 'high') return true;
 
-			// Find any creator/collection that links to this profile and is high.
-			// `nodeId` could itself be a profile root (linked from a creator/collection)
-			// or a font (whose tree-root profile is linked from a creator/collection).
+			// Find any collection that links to this profile and is high.
+			// `nodeId` could itself be a profile root (linked from a collection)
+			// or a font (whose tree-root profile is linked from a collection).
 			const profileRoot = rootId; // the profile that owns this font, or the page itself
 			for (const ownerId of Object.keys(priorityByNodeId)) {
 				const role = pageRootRole(ownerId);
-				if (role !== 'creator' && role !== 'collection') continue;
+				if (role !== 'collection') continue;
 				if (getForwardLinkedPageIds(ownerId).has(profileRoot)) return true;
 			}
 			return false;
@@ -593,7 +591,7 @@ selectedFontIds = new Set();
 
 			// Auto-select the node if not already selected, so the priority has effect.
 			const role = pageRootRole(nodeId);
-			if (role === 'creator' || role === 'profile' || role === 'collection') {
+			if (role === 'profile' || role === 'collection') {
 				if (!selectedPageIds.has(nodeId)) this.togglePage(nodeId);
 			} else {
 				// Font (or font-type page): both route through selectedFontIds.
@@ -648,8 +646,8 @@ if (selectedPageIds.size === 0 && selectedFontIds.size === 0 && libraryTabFilter
 for (const pageId of selectedPageIds) {
 	const role = pageRootRole(pageId);
 
-	// Creator/collection: expand to linked profiles, with optional profile narrowing.
-	if (role === 'creator' || role === 'collection') {
+	// Collection: expand to linked profiles, with optional profile narrowing.
+	if (role === 'collection') {
 		const linked = getForwardLinkedPageIds(pageId);
 		// If any linked profile is itself selected, narrow to those.
 		const explicitlySelected = [...linked].filter((pid) => selectedPageIds.has(pid));
@@ -667,7 +665,7 @@ for (const pageId of selectedPageIds) {
 			}
 		}
 
-		// Also include fonts directly inside the creator/collection tree (rare).
+		// Also include fonts directly inside the collection tree (rare).
 		for (const fid of fontIdsForTree(parseTreeId(pageId))) allowed.add(fid);
 		continue;
 	}

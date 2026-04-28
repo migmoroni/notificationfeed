@@ -8,19 +8,13 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import Users from '@lucide/svelte/icons/users';
 	import Newspaper from '@lucide/svelte/icons/newspaper';
 	import Library from '@lucide/svelte/icons/library';
 	import { t } from '$lib/i18n/t.js';
 
-	type RootRole = 'creator' | 'profile' | 'collection';
+	type RootRole = 'profile' | 'collection';
 
 	const rootRoleOptions = $derived([{
-		value: 'creator' as RootRole,
-		label: t('role.creator'),
-		description: t('role.creator_description'),
-		icon: Users
-	}, {
 		value: 'profile' as RootRole,
 		label: t('role.profile'),
 		description: t('role.profile_description'),
@@ -32,7 +26,7 @@
 		icon: Library
 	}]);
 
-	let selectedRole = $state<RootRole>('creator');
+	let selectedRole = $state<RootRole>('collection');
 	let title = $state('');
 	let saving = $state(false);
 	let error = $state('');

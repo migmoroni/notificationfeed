@@ -45,7 +45,7 @@
 ## ADR-008: ContentTree como artefato publicável
 
 **Contexto**: Um Creator precisa de uma unidade editorial que agrupe Profiles e Fonts e possa ser publicada ou compartilhada offline.  
-**Decisão**: `ContentTree` — estrutura com nós embarcados (`TreeNode`) de múltiplos papéis (`NodeRole`: profile, font, creator, collection, tree). Cada tree possui `nodes` (Record), `paths` (mapeamento de seções), `sections` (divisões visuais), e `metadata` (id, author, timestamps, removedAt). IDs compostos `treeId:localUuid` garantem unicidade global.  
+**Decisão**: `ContentTree` — estrutura com nós embarcados (`TreeNode`) de múltiplos papéis (`NodeRole`: profile, font, collection, tree). Cada tree possui `nodes` (Record), `paths` (mapeamento de seções), `sections` (divisões visuais), e `metadata` (id, author, timestamps, removedAt). IDs compostos `treeId:localUuid` garantem unicidade global.  
 **Consequência**: ContentTrees são a unidade de follow para Consumers e de publicação para Creators. Export/import offline via `.notfeed.json` contendo `TreeExport`.
 
 ## ADR-009: Taxonomia oficial com cinco árvores
@@ -100,10 +100,10 @@ Campos da `Category`: `id`, `label`, `treeId`, `parentId`, `depth`, `order`, e `
 ## ADR-016: NodeRole como papéis dentro de ContentTree
 
 **Contexto**: Uma ContentTree precisa de nós com papéis distintos — perfis editoriais, fontes de dados, coleções, links entre árvores.  
-**Decisão**: `NodeRole = 'profile' | 'font' | 'creator' | 'collection' | 'tree'`. Cada papel tem um `NodeBody` discriminado:
+**Decisão**: `NodeRole = 'profile' | 'font' | 'collection' | 'tree'`. Cada papel tem um `NodeBody` discriminado:
 - **profile** — `ProfileBody { links: ExternalLink[] }`
 - **font** — `FontBody { protocol: FontProtocol; config: FontConfig; defaultEnabled: boolean }`
-- **creator** — `CreatorBody { links: ExternalLink[] }`
+- **collection** — `CollectionBody { links: ExternalLink[] }`
 - **collection** — `CollectionBody {}`
 - **tree** — `TreeLinkBody { instanceTreeId: string }`
 
@@ -217,5 +217,5 @@ IDs de nós são compostos: `treeId:localUuid` para unicidade global. Utilitári
 ## ADR-032: Entity Filter centralizado
 
 **Contexto**: Múltiplas telas (feed, browse) precisam filtrar por entidades (pages, profiles, fonts) com seleção em dois níveis: árvore → nó.  
-**Decisão**: Factory `createEntityFilter(source, options?)` cria instâncias isoladas. `EntityFilterPageType = 'font' | 'profile' | 'creator' | 'collection'`. Seleção em dois níveis: page (root da tree) → font (refinamento opcional). Suporte a tree-links (nós com `role='tree'` que referenciam outra árvore).  
+**Decisão**: Factory `createEntityFilter(source, options?)` cria instâncias isoladas. `EntityFilterPageType = 'font' | 'profile' | 'collection'`. Seleção em dois níveis: page (root da tree) → font (refinamento opcional). Suporte a tree-links (nós com `role='tree'` que referenciam outra árvore).  
 **Consequência**: Uma única implementação serve feed e browse. Cada tela instancia seu próprio entity filter. Seleção propaga corretamente pela hierarquia da ContentTree.

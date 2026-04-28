@@ -1,7 +1,7 @@
 // Creator components
 export { default as MediaUpload } from './MediaUpload.svelte';
 export { default as NodeHeaderForm } from './NodeHeaderForm.svelte';
-export { default as CreatorBodyForm } from './CreatorBodyForm.svelte';
+export { default as CollectionBodyForm } from './CollectionBodyForm.svelte';
 export { default as ProfileBodyForm } from './ProfileBodyForm.svelte';
 export { default as FontBodyForm } from './FontBodyForm.svelte';
 export { default as TreeLinkBodyForm } from './TreeLinkBodyForm.svelte';

@@ -50,15 +50,15 @@ let tree = $derived(creator.allTrees.find((t) => t.metadata.id === treeId)!);
 
 /** Root role determines what children this tree can have */
 let rootRole = $derived.by(() => {
-if (!tree) return 'creator' as NodeRole;
+if (!tree) return 'collection' as NodeRole;
 const root = domainGetRootNode(tree);
-return root?.role ?? 'creator';
+return root?.role ?? 'collection';
 });
 
 /**
  * Available trees for tree-link nodes:
- * - creator root → profile trees
- * - collection root → profile + creator trees
+ * - profile root → profile trees
+ * - collection root → profile + collection trees
  * Excludes the current tree and trees already linked.
  */
 let availableTreesForLink = $derived.by(() => {
@@ -68,7 +68,7 @@ Object.values(tree.nodes)
 .filter((n) => n.role === 'tree')
 .map((n) => (n.data.body as TreeLinkBody).instanceTreeId)
 );
-const allowedRoles: NodeRole[] = rootRole === 'collection' ? ['profile', 'creator'] : ['profile'];
+		const allowedRoles: NodeRole[] = rootRole === 'collection' ? ['profile', 'collection'] : ['profile'];
 return creator.trees.filter((t) => {
 if (t.metadata.id === treeId) return false;
 if (linkedTreeIds.has(t.metadata.id)) return false;
@@ -122,7 +122,7 @@ function treeLinksInPath(pathKey: string): { nodeId: string; node: TreeNode }[] 
 return nodesInPath(pathKey).filter((e) => e.node.role === 'tree');
 }
 
-/** All tree-link nodes across all paths (for creator/collection root) */
+/** All tree-link nodes across all paths (for collection root) */
 let allTreeLinks = $derived.by(() => {
 if (!tree) return [];
 const result: { nodeId: string; node: TreeNode; pathKey: string }[] = [];
@@ -164,21 +164,20 @@ return root?.data.header.title ?? node.data.header.title;
 /** The child role name for display depending on root role */
 let childLabel = $derived(
 rootRole === 'profile' ? t('entity.fonts') :
-rootRole === 'creator' ? t('entity.links') :
-rootRole === 'collection' ? t('entity.links') : t('entity.items')
-);
+		rootRole === 'collection' ? t('entity.links') : t('entity.items')
+	);
 
-/** What items count to show in the header */
-let childCount = $derived(
-rootRole === 'profile' ? allFonts.length :
-(rootRole === 'creator' || rootRole === 'collection') ? allTreeLinks.length :
-allProfiles.length
-);
+	/** What items count to show in the header */
+	let childCount = $derived(
+		rootRole === 'profile' ? allFonts.length :
+		rootRole === 'collection' ? allTreeLinks.length :
+		allProfiles.length
+	);
 
-// ─── UI state ────────────────────────────────────────────────────
+	// ─── UI state ────────────────────────────────────────────────────
 
-let showAddProfile = $state(false);
-let showAddChild = $state(false);
+	let showAddProfile = $state(false);
+	let showAddChild = $state(false);
 let addToSectionId = $state<string | null>(null);
 let editingNodeId = $state<string | null>(null);
 let addFontToPath = $state<string | null>(null);
@@ -336,7 +335,7 @@ saving = false;
 }
 }
 
-/** Add a tree-link child (for creator/collection roots) */
+/** Add a tree-link child (for collection roots) */
 async function handleAddTreeLink(data: { header: NodeHeader; body: NodeBody }) {
 saving = true;
 try {
@@ -652,7 +651,7 @@ oncancel={() => (editingNodeId = null)}
 <FolderPlus class="size-4 mr-1" />
 {t('tree_editor.section_button')}
 </Button>
-{#if rootRole === 'creator' || rootRole === 'collection'}
+{#if rootRole === 'collection'}
 <Button variant="outline" size="sm" onclick={() => { showAddChild = true; addToSectionId = null; }}>
 <Plus class="size-4 mr-1" />
 Link
@@ -717,7 +716,7 @@ onclick={() => (newSectionColor = c)}
 <!-- Add child form (role-aware) -->
 {#if showAddChild}
 <div class="border rounded-lg p-4 bg-muted/30">
-{#if rootRole === 'creator' || rootRole === 'collection'}
+{#if rootRole === 'collection'}
 <NodeForm
 mode="create"
 role="tree"
@@ -755,7 +754,7 @@ oncancel={() => (showAddProfile = false)}
 <p class="text-sm text-muted-foreground text-center py-4">
 {#if rootRole === 'profile'}
 {t('tree_editor.no_fonts')}
-{:else if rootRole === 'creator' || rootRole === 'collection'}
+{:else if rootRole === 'collection'}
 {t('tree_editor.no_links')}
 {:else}
 {t('tree_editor.no_profiles')}
@@ -767,7 +766,7 @@ oncancel={() => (showAddProfile = false)}
 {#each tree.sections as section (section.id)}
 {@const sectionItems = rootRole === 'profile'
 ? allFonts.filter((f) => f.pathKey === section.id)
-: rootRole === 'creator' || rootRole === 'collection'
+: rootRole === 'collection'
 ? allTreeLinks.filter((l) => l.pathKey === section.id)
 : allProfiles.filter((p) => p.pathKey === section.id)}
 
@@ -813,7 +812,7 @@ addToSectionId = section.id;
 {#each sectionItems as entry (entry.nodeId)}
 {@render fontCard(entry)}
 {/each}
-{:else if rootRole === 'creator' || rootRole === 'collection'}
+{:else if rootRole === 'collection'}
 {#each sectionItems as entry (entry.nodeId)}
 {@render treeLinkCard(entry)}
 {/each}
@@ -856,7 +855,7 @@ oncancel={() => { addToSectionId = null; }}
 {@render fontCard(entry)}
 {/each}
 {/if}
-{:else if rootRole === 'creator' || rootRole === 'collection'}
+{:else if rootRole === 'collection'}
 {@const unsectioned = allTreeLinks.filter((l) => l.pathKey === '*')}
 {#if unsectioned.length > 0}
 {#if tree.sections.length > 0}

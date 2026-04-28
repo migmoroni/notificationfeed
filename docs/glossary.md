@@ -7,9 +7,9 @@
 | **UserCreator** | Conta de criação. Estende `UserBase` com `ownedTreeIds[]` e `ownedMediaIds[]`. Gerencia ContentTrees e ContentMedias. |
 | **ContentTree** | Aggregate root central do domínio. Estrutura com nós embarcados (`nodes: Record<string, TreeNode>`), mapeamento de posição (`paths: TreePaths`), divisões visuais (`sections: TreeSection[]`), e metadados (`metadata: ContentTreeMetadata`). Substitui o antigo conceito de CreatorPage. |
 | **TreeNode** | Nó embarcado dentro de uma ContentTree. Contém `role` (NodeRole), `data.header` (NodeHeader) e `data.body` (NodeBody discriminado por role). Metadados em `metadata: TreeNodeMetadata`. |
-| **NodeRole** | Papel de um TreeNode: `'profile'` (identidade editorial), `'font'` (fonte de dados), `'creator'` (página agregadora), `'collection'` (coleção genérica), `'tree'` (cross-link para outra árvore). |
+| **NodeRole** | Papel de um TreeNode: `'profile'` (identidade editorial), `'font'` (fonte de dados), `'collection'` (coleção genérica/agregadora), `'tree'` (cross-link para outra árvore). |
 | **NodeHeader** | Cabeçalho compartilhado por todos os nós. Campos: `title`, `subtitle?`, `summary?`, `coverMediaId?`, `coverEmoji?`, `bannerMediaId?`, `categoryAssignments[]`. |
-| **NodeBody** | Union discriminada pelo `role`. Variantes: `ProfileBody` (links), `FontBody` (protocol, config, defaultEnabled), `CreatorBody` (links), `CollectionBody` (vazio), `TreeLinkBody` (instanceTreeId). |
+| **NodeBody** | Union discriminada pelo `role`. Variantes: `ProfileBody` (links), `FontBody` (protocol, config, defaultEnabled), `CollectionBody` (links), `TreeLinkBody` (instanceTreeId). |
 | **TreePaths** | Mapeamento de posição dos nós na árvore. `'/'` = root nodeId, `'*'` = nodeIds sem seção, `[sectionId]` = nodeIds na seção. |
 | **TreeSection** | Divisão visual de uma ContentTree. Campos: `id`, `order`, `symbol?`, `title`, `hideTitle`, `color`. |
 | **ContentTreeMetadata** | Metadados da árvore: `id`, `versionSchema`, `createdAt`, `updatedAt`, `author?`, `authorTreeId?`, `removedAt?`. |
@@ -28,7 +28,7 @@
 | **FontProtocol** | Protocolo de uma font: `'nostr' \| 'rss' \| 'atom'`. |
 | **FontConfig** | Union de configuração por protocolo: `FontNostrConfig { relays[], pubkey, kinds? }`, `FontRssConfig { url }`, `FontAtomConfig { url }`. |
 | **Profile** | TreeNode com `role='profile'`. Identidade temática/editorial que agrupa Fonts. Body: `ProfileBody { links: ExternalLink[] }`. Categories via `NodeHeader.categoryAssignments`. |
-| **ExternalLink** | Value object `{ title, url }` usado em ProfileBody e CreatorBody. |
+| **ExternalLink** | Value object `{ title, url }` usado em ProfileBody e CollectionBody. |
 | **TreeExport** | Snapshot JSON autocontido de uma ContentTree. Campos: `exportId`, `version`, `exportedAt`, `creatorDisplayName`, `tree: ContentTree`, `medias: ContentMedia[]`. Formato do `.notfeed.json`. |
 | **TreePublication** | Metadado de publicação persistido. Campos: `treeId`, `version`, `snapshot: TreeExport`, `publishedAt`. Store dedicado `treePublications`. |
 | **ContentMedia** | Objeto de mídia externo associado a uma árvore. Persistido em `contentMedias` / `editorMedias`. |
@@ -42,7 +42,7 @@
 | **Language** | Tipo i18n: `'en-US' \| 'pt-BR'`. Define o idioma da interface. Store reativo `i18n/store.svelte.ts` com `$state` module-level. `DEFAULT_LANGUAGE = 'en-US'`. |
 | **t()** | Função de tradução. Busca chave no dicionário do idioma ativo com suporte a interpolação `{varName}`. Reativa automaticamente via runes do Svelte 5. |
 | **tCat()** | Função de tradução para labels de categories. Usa arquivos JSON separados por árvore e idioma (ex: `i18n/languages/category/en-US/subject.json`). |
-| **EntityFilter** | Filtro centralizado de entidades. Factory `createEntityFilter(source, options?)`. Seleção em dois níveis: page (root) → font (refinamento). `EntityFilterPageType = 'font' \| 'profile' \| 'creator' \| 'collection'`. |
+| **EntityFilter** | Filtro centralizado de entidades. Factory `createEntityFilter(source, options?)`. Seleção em dois níveis: page (root) → font (refinamento). `EntityFilterPageType = 'font' \| 'profile' \| 'collection'`. |
 | **PWA** | Progressive Web App — site instalável com suporte offline via Service Worker. |
 | **TWA** | Trusted Web Activity — wrapper Android que exibe uma PWA em tela cheia sem barra de endereço. |
 | **Tauri** | Framework para criar aplicações desktop nativas usando web technologies + Rust. |

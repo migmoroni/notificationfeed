@@ -7,6 +7,7 @@
 <script lang="ts">
 	import type { TreeNode } from '$lib/domain/content-tree/content-tree.js';
 	import { isFontNode } from '$lib/domain/content-tree/content-tree.js';
+	import { t } from '$lib/i18n/t.js';
 	import { consumer } from '$lib/stores/consumer.svelte.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
@@ -37,13 +38,12 @@
 	let showUnsaveConfirm = $state(false);
 
 	const roleMeta: Record<string, { label: string; activeLabel: string; inactiveLabel: string; icon: typeof Globe }> = {
-		creator: { label: 'Creator', activeLabel: 'Fixado', inactiveLabel: 'Fixar', icon: Globe },
-		profile: { label: 'Profile', activeLabel: 'Inscrito', inactiveLabel: 'Inscrever', icon: User },
-		font: { label: 'Font', activeLabel: 'Seguindo', inactiveLabel: 'Seguir', icon: Rss },
-		collection: { label: 'Collection', activeLabel: 'Fixado', inactiveLabel: 'Fixar', icon: Globe }
+		profile: { label: t('entity.profile'), activeLabel: t('action.subscribed'), inactiveLabel: t('action.subscribe'), icon: User },
+		font: { label: t('entity.font'), activeLabel: t('action.following'), inactiveLabel: t('action.follow'), icon: Rss },
+		collection: { label: t('entity.collection'), activeLabel: t('action.pinned'), inactiveLabel: t('action.pin'), icon: Globe }
 	};
 
-	let meta = $derived(roleMeta[node.role] ?? { label: node.role, activeLabel: 'Seguindo', inactiveLabel: 'Seguir', icon: Globe });
+	let meta = $derived(roleMeta[node.role] ?? { label: node.role, activeLabel: t('action.following'), inactiveLabel: t('action.follow'), icon: Globe });
 	let activation = $derived(consumer.getActivation(node.metadata.id));
 	let isActivated = $derived(!!activation);
 	let isFavorite = $derived(activation?.favorite ?? false);

@@ -49,14 +49,14 @@ return db;
 
 async function initIndexedDB(): Promise<Database> {
 return new Promise((resolve, reject) => {
-const request = indexedDB.open('notfeed-v2', 10);
+const request = indexedDB.open('notfeed-v2', 11);
 
 		request.onupgradeneeded = (event) => {
 			const idb = request.result;
 			const oldVersion = (event as IDBVersionChangeEvent).oldVersion;
 
 			// Destructive: delete all existing stores and recreate
-			if (oldVersion < 10) {
+			if (oldVersion < 11) {
 				for (const name of idb.objectStoreNames) {
 					idb.deleteObjectStore(name);
 				}

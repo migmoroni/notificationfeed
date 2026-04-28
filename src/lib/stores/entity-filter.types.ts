@@ -1,7 +1,7 @@
 /**
  * EntityFilterStore — shared interface for page-based node filters.
  *
- * "Pages" are trees whose root node is a creator, profile, or collection.
+ * "Pages" are trees whose root node is a profile or collection.
  * Users can filter which page types to display, then select individual
  * pages and optionally narrow to specific fonts within them.
  *
@@ -14,9 +14,9 @@ import type { TreeSection } from '$lib/domain/content-tree/content-tree.js';
 // ── Page types available for filtering ─────────────────────────────────
 
 /** Node roles available for filtering. */
-export type PageType = 'font' | 'profile' | 'creator' | 'collection';
+export type PageType = 'font' | 'profile' | 'collection';
 
-export const ALL_PAGE_TYPES: readonly PageType[] = ['font', 'profile', 'creator', 'collection'] as const;
+export const ALL_PAGE_TYPES: readonly PageType[] = ['font', 'profile', 'collection'] as const;
 
 // ── View models ────────────────────────────────────────────────────────
 
@@ -28,7 +28,7 @@ export interface PageEntry {
 	title: string;
 	coverMediaId: string | null;
 	coverEmoji: string | null;
-	/** Root node role (creator, profile, or collection) */
+	/** Root node role (profile or collection) */
 	pageType: PageType;
 	/** Number of font nodes in this tree */
 	fontCount: number;
@@ -65,7 +65,7 @@ export interface EntityFilterStore {
 	getPages(): PageEntry[];
 	/** Get font nodes within a page's tree. */
 	getFonts(pageId: string): NodeEntry[];
-	/** Get linked profile/collection pages within a creator/collection tree. */
+	/** Get linked profile/collection pages within a collection tree. */
 	getLinkedPages(pageId: string): PageEntry[];
 	getSections(treeId: string): TreeSection[];
 
@@ -114,8 +114,8 @@ export interface EntityFilterStore {
 
 	// ── Compat accessors (derived from selectedPageIds) ──────────────
 
-	/** Page IDs where root role = 'creator'. Subset of selectedPageIds. */
-	readonly selectedCreatorIds: Set<string>;
+	/** Page IDs where root role = 'collection'. Subset of selectedPageIds. */
+	readonly selectedCollectionIds: Set<string>;
 	/** Page IDs where root role = 'profile'. Subset of selectedPageIds. */
 	readonly selectedProfileIds: Set<string>;
 }

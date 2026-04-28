@@ -327,8 +327,8 @@ categoryAssignments: []
 },
 body: rootRole === 'profile'
 ? { role: 'profile', links: [] }
-: rootRole === 'creator'
-? { role: 'creator', links: [] }
+: rootRole === 'collection'
+? { role: 'collection', links: [] }
 : { role: rootRole } as NodeBody
 },
 metadata: {
@@ -585,11 +585,11 @@ return Object.values(tree.nodes).filter(
 ).length;
 },
 
-/** Get all creator-type trees owned by this user (for author signing selection) */
-getCreatorTrees(): ContentTree[] {
-return state.trees.filter((t) => {
-const root = domainGetRootNode(t);
-return root?.role === 'creator';
+/** Get all collection-type trees owned by this user (for author signing selection) */
+		getCollectionTrees(): ContentTree[] {
+			return state.trees.filter((t) => {
+				const root = domainGetRootNode(t);
+				return root?.role === 'collection';
 });
 },
 

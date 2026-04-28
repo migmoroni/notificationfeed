@@ -8,7 +8,7 @@ export type { UserCreator, NewUserCreator } from './domain/user/user-creator.js'
 export type { PriorityLevel } from './domain/user/priority-level.js';
 
 // Domain — Content Model
-export type { TreeNode, NodeHeader, NodeBody, NodeRole, CreatorBody, ProfileBody, FontBody, ContentTree, TreeSection, TreePaths } from './domain/content-tree/content-tree.js';
+export type { TreeNode, NodeHeader, NodeBody, NodeRole, CollectionBody, ProfileBody, FontBody, ContentTree, TreeSection, TreePaths } from './domain/content-tree/content-tree.js';
 export type { ContentMedia } from './domain/content-media/content-media.js';
 export type { TreeExport } from './domain/tree-export/tree-export.js';
 export type { TreePublication } from './domain/tree-export/tree-publication.js';

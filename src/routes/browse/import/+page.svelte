@@ -181,7 +181,7 @@
 			{#if parsedExport}
 				<!-- Preview -->
 				{@const treeNodes = Object.values(parsedExport.tree.nodes)}
-				{@const rootNodeEntry = treeNodes.find((n) => n.role === 'creator')}
+				{@const rootNodeEntry = treeNodes.find((n) => n.role === 'collection')}
 				<div class="rounded-lg border bg-card p-4 space-y-2">
 					<h3 class="font-semibold">{rootNodeEntry?.data.header.title ?? t('import.without_title')}</h3>
 					{#if rootNodeEntry?.data.header.subtitle}

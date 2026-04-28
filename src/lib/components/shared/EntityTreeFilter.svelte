@@ -39,20 +39,17 @@ let { store, showPriorityToggle = false }: Props = $props();
 const pageTypeIcons: Record<PageType, typeof FileText> = {
 font: Rss,
 profile: User,
-creator: FileText,
-collection: FolderOpen
-};
+		collection: FolderOpen
+	};
 
-// Page type i18n keys
-const pageTypeKeys: Record<PageType, { labelKey: string; pluralKey: string }> = {
-font: { labelKey: 'entity.font', pluralKey: 'entity.font_plural' },
-profile: { labelKey: 'entity.profile', pluralKey: 'entity.profile_plural' },
-creator: { labelKey: 'entity.creator', pluralKey: 'entity.creator_plural' },
-collection: { labelKey: 'entity.collection', pluralKey: 'entity.collection_plural' }
-};
+	// Page type i18n keys
+	const pageTypeKeys: Record<PageType, { labelKey: string; pluralKey: string }> = {
+		font: { labelKey: 'entity.font', pluralKey: 'entity.font_plural' },
+		profile: { labelKey: 'entity.profile', pluralKey: 'entity.profile_plural' },
+		collection: { labelKey: 'entity.collection', pluralKey: 'entity.collection_plural' }
+	};
 
-// Auto-open pages that have active selections
-let openPages: Record<string, boolean> = $derived.by(() => {
+	let openPages: Record<string, boolean> = $derived.by(() => {
 const result: Record<string, boolean> = {};
 for (const page of store.getPages()) {
 if (store.isPageSelected(page.id)) result[page.id] = true;

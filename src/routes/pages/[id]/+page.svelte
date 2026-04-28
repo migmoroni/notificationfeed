@@ -8,7 +8,7 @@
 	import { NodeForm, TreeEditor, PublishButton, ExportButton, CopyFromConsumerDialog } from '$lib/components/creator/index.js';
 	import { getMediaPreviewUrl } from '$lib/services/media.service.js';
 	import { getRootNode as domainGetRootNode } from '$lib/domain/content-tree/content-tree.js';
-	import type { CreatorBody, ProfileBody, ExternalLink } from '$lib/domain/content-tree/content-tree.js';
+	import type { CollectionBody, ProfileBody, ExternalLink } from '$lib/domain/content-tree/content-tree.js';
 	import type { Category } from '$lib/domain/category/category.js';
 	import { createCategoryStore } from '$lib/persistence/category.store.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -32,7 +32,7 @@
 	let isRemoved = $derived(!!tree?.metadata.removedAt);
 
 	// Author signing
-	let creatorTrees = $derived(creator.getCreatorTrees());
+	let authorCandidateTrees = $derived(creator.getCollectionTrees());
 	let currentAuthorTreeId = $derived(tree?.metadata.authorTreeId ?? '');
 
 	async function handleAuthorChange(e: Event) {
@@ -67,11 +67,11 @@
 		language: t('category_tree.language')
 	};
 
-	/** Get external links from body (only creator/profile have them) */
+	/** Get external links from body (only collection/profile have them) */
 	let bodyLinks = $derived.by((): ExternalLink[] => {
 		const body = rootNode?.data.body;
 		if (!body) return [];
-		if (body.role === 'creator' || body.role === 'profile') return (body as CreatorBody | ProfileBody).links ?? [];
+		if (body.role === 'collection' || body.role === 'profile') return (body as CollectionBody | ProfileBody).links ?? [];
 		return [];
 	});
 
@@ -160,7 +160,7 @@
 				<div class="border rounded-lg p-4 bg-muted/30">
 					<NodeForm
 						mode="edit"
-						role={rootNode?.role ?? 'creator'}
+						role={rootNode?.role ?? 'collection'}
 						isRoot={true}
 						initialHeader={rootNode?.data.header}
 						initialBody={rootNode?.data.body}
@@ -270,7 +270,7 @@
 					onchange={handleAuthorChange}
 				>
 					<option value="">{t('pages.no_subscription')}</option>
-					{#each creatorTrees as ct}
+					{#each authorCandidateTrees as ct}
 						{@const ctRoot = domainGetRootNode(ct)}
 						{#if ct.metadata.id !== treeId}
 							<option value={ct.metadata.id}>{ctRoot?.data.header.title ?? ct.metadata.id}</option>

@@ -18,7 +18,7 @@
 
 	let { nodes, loading, baseHref = '/browse' }: Props = $props();
 
-	let creators = $derived(nodes.filter((n) => n.role === 'creator'));
+	let collections = $derived(nodes.filter((n) => n.role === 'collection'));
 	let profiles = $derived(nodes.filter((n) => n.role === 'profile'));
 	let fonts = $derived(nodes.filter((n) => n.role === 'font'));
 
@@ -47,20 +47,20 @@
 	</div>
 {:else}
 	<div class="flex flex-col gap-4">
-		{#if creators.length > 0}
+		{#if collections.length > 0}
 			<div>
 				<h3 class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
-					Creators ({creators.length})
+					Collections ({collections.length})
 				</h3>
 				<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}">
-					{#each creators as node (node.metadata.id)}
+					{#each collections as node (node.metadata.id)}
 						<EntityCard {node} href={nodeHref(node)} />
 					{/each}
 				</div>
 			</div>
 		{/if}
 
-		{#if creators.length > 0 && profiles.length > 0}
+		{#if collections.length > 0 && profiles.length > 0}
 			<Separator />
 		{/if}
 
@@ -77,7 +77,7 @@
 			</div>
 		{/if}
 
-		{#if (creators.length > 0 || profiles.length > 0) && fonts.length > 0}
+		{#if (collections.length > 0 || profiles.length > 0) && fonts.length > 0}
 			<Separator />
 		{/if}
 

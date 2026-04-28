@@ -25,10 +25,10 @@
 
 	// Group items by node role
 	let grouped = $derived.by(() => {
-		const creators = items.filter((i) => i.node?.role === 'creator' && i.node);
+		const collections = items.filter((i) => i.node?.role === 'collection' && i.node);
 		const profiles = items.filter((i) => i.node?.role === 'profile' && i.node);
 		const fonts = items.filter((i) => i.node?.role === 'font' && i.node);
-		return { creators, profiles, fonts };
+		return { collections, profiles, fonts };
 	});
 
 	function itemHref(item: LibraryItem): string {
@@ -128,8 +128,8 @@
 	</div>
 {:else}
 	<div class="flex flex-col gap-4">
-		{@render groupSection('Creators', grouped.creators)}
-		{#if grouped.creators.length > 0 && (grouped.profiles.length > 0 || grouped.fonts.length > 0)}
+		{@render groupSection('Collections', grouped.collections)}
+		{#if grouped.collections.length > 0 && (grouped.profiles.length > 0 || grouped.fonts.length > 0)}
 			<Separator />
 		{/if}
 		{@render groupSection('Profiles', grouped.profiles)}

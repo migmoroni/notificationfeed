@@ -10,15 +10,13 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import Check from '@lucide/svelte/icons/check';
 	import PenLine from '@lucide/svelte/icons/pen-line';
-	import Users from '@lucide/svelte/icons/users';
 	import Newspaper from '@lucide/svelte/icons/newspaper';
 	import Library from '@lucide/svelte/icons/library';
 	import Archive from '@lucide/svelte/icons/archive';
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
 	import { t } from '$lib/i18n/t.js';
 
-	const roleMeta: Record<string, { label: string; icon: typeof Users }> = {
-		creator: { label: 'Creator', icon: Users },
+	const roleMeta: Record<string, { label: string; icon: typeof Newspaper }> = {
 		profile: { label: 'Profile', icon: Newspaper },
 		collection: { label: 'Collection', icon: Library },
 	};
@@ -137,7 +135,7 @@
 							</div>
 						</Card.Header>
 						<Card.Footer class="pt-0 gap-2">
-							{@const meta = roleMeta[rootNode?.role ?? 'creator'] ?? roleMeta.creator}
+							{@const meta = roleMeta[rootNode?.role ?? 'collection'] ?? roleMeta.collection}
 							{@const RoleIcon = meta.icon}
 							<Badge variant="outline" class="gap-1 text-xs">
 								<RoleIcon class="size-3" />
@@ -149,7 +147,7 @@
 									Removida em {tree.metadata.removedAt}
 								</Badge>
 							{/if}
-							{#if rootNode?.role === 'creator'}
+							{#if rootNode?.role === 'collection'}
 								<span class="text-xs text-muted-foreground">
 									{profileCount} profile{profileCount !== 1 ? 's' : ''}
 								</span>
