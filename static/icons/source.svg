@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+	<rect width="512" height="512" rx="96" fill="#0a0a0a" />
+	<g transform="translate(256 256)" fill="none" stroke="#fafafa" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
+		<!-- Stylized "N" with a feed dot -->
+		<path d="M -110 110 L -110 -110 L 110 110 L 110 -110" />
+		<circle cx="-110" cy="-110" r="22" fill="#fafafa" stroke="none" />
+	</g>
+</svg>

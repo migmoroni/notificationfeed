@@ -11,7 +11,8 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test": "vitest",
-		"test:run": "vitest run"
+		"test:run": "vitest run",
+		"icons:gen": "node scripts/generate-icons.mjs"
 	},
 	"devDependencies": {
 		"@internationalized/date": "^3.11.0",

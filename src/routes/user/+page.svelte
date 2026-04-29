@@ -14,6 +14,7 @@ import type { UserConsumer } from '$lib/domain/user/user-consumer.js';
 import type { UserCreator } from '$lib/domain/user/user-creator.js';
 import EmojiPicker from '$lib/components/shared/EmojiPicker.svelte';
 import ConfirmRemoveUserDialog from '$lib/components/shared/dialog/ConfirmRemoveUserDialog.svelte';
+import InstallButton from '$lib/components/shared/InstallButton.svelte';
 import { Badge } from '$lib/components/ui/badge/index.js';
 import { Button } from '$lib/components/ui/button/index.js';
 import { Input } from '$lib/components/ui/input/index.js';
@@ -495,6 +496,8 @@ onchange={(e) => handleLanguageChange((e.target as HTMLSelectElement).value as L
 {t('user.activity_manage')}
 </Button>
 </div>
+
+<InstallButton />
 </div>
 </section>
 </div>

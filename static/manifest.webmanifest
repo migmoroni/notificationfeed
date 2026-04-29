@@ -1,12 +1,14 @@
 {
 	"name": "Notfeed",
 	"short_name": "Notfeed",
-	"description": "Information aggregation client for feeds and notifications — Nostr, RSS, Atom",
+	"description": "Information aggregation client for feeds — Nostr, RSS, Atom",
 	"start_url": "/",
+	"scope": "/",
 	"display": "standalone",
 	"background_color": "#0a0a0a",
 	"theme_color": "#0a0a0a",
 	"orientation": "portrait-primary",
+	"categories": ["news", "social"],
 	"icons": [
 		{
 			"src": "/icons/icon-192.png",
@@ -24,6 +26,5 @@
 			"type": "image/png",
 			"purpose": "maskable"
 		}
-	],
-	"categories": ["news", "social"]
+	]
 }

@@ -366,5 +366,7 @@
   "action.unfavorite": "Desfavoritar",
   "action.favorite": "Favoritar",
   "action.organize": "Organizar",
-  "entity_list.select_category": "Selecione uma categoria para ver conteúdo."
+  "entity_list.select_category": "Selecione uma categoria para ver conteúdo.",
+  "pwa.install_button": "Instalar app",
+  "pwa.install_description": "Instale o Notfeed para acesso offline."
 }

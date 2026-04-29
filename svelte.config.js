@@ -5,7 +5,12 @@ const config = {
 	kit: {
 		adapter: adapter({
 			fallback: 'index.html'
-		})
+		}),
+		// Manual SW registration: gated by capabilities.platform in $lib/platform/web/sw-register.ts
+		// (skipped under Tauri).
+		serviceWorker: {
+			register: false
+		}
 	}
 };
 

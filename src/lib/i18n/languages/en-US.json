@@ -366,5 +366,7 @@
   "action.unfavorite": "Unfavorite",
   "action.favorite": "Favorite",
   "action.organize": "Organize",
-  "entity_list.select_category": "Select a category to see content."
+  "entity_list.select_category": "Select a category to see content.",
+  "pwa.install_button": "Install app",
+  "pwa.install_description": "Install Notfeed for offline access."
 }

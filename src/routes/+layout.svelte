@@ -13,6 +13,9 @@
 	import { sidebarSlot } from '$lib/stores/sidebar-slot.svelte.js';
 	import { createImagePreviewUrl } from '$lib/services/image.service.js';
 	import { t, initLanguage, setLanguage } from '$lib/i18n/index.js';
+	import { getCapabilities } from '$lib/platform/capabilities.js';
+	import { registerPwa } from '$lib/platform/web/sw-register.js';
+	import { setupInstallPrompt } from '$lib/platform/web/install-prompt.svelte.js';
 	import Newspaper from '@lucide/svelte/icons/newspaper';
 	import Search from '@lucide/svelte/icons/search';
 	import LibraryBig from '@lucide/svelte/icons/library-big';
@@ -52,6 +55,15 @@
 
 	onMount(() => {
 		const layoutCleanup = initLayout();
+
+		// PWA boot: only on non-desktop platforms (skipped under Tauri).
+		const caps = getCapabilities();
+		if (caps.platform !== 'desktop') {
+			setupInstallPrompt();
+			if (caps.hasServiceWorker) {
+				void registerPwa();
+			}
+		}
 
 		// Initialize data stores (seed categories → active user → role-specific stores → mock → feed)
 		// Must complete before child routes read from IndexedDB.
