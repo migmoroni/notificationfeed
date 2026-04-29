@@ -65,4 +65,10 @@
 | **activeUser** | Store reativo (`active-user.svelte.ts`) que gerencia identidade ativa (consumer ou creator). Controla nav condicional. API: `init()`, `switchTo()`, `createConsumer()`, `createCreator()`. Suporta soft-delete/restore. |
 | **ImportService** | Serviço (`import.service.ts`) para importar conteúdo. Dois modos: `importTreeExport()` (arquivo .notfeed.json completo) e `importSimpleUrls()` (URLs avulsas → ContentTree com profile + font nodes). |
 | **Composite Node ID** | Formato `treeId:localUuid` que garante unicidade global de nós. Parseado via `parseTreeId()`. |
-| **uuidv7** | Gerador de UUID v7 ordenado por timestamp. Usado para IDs de entidades e nós. |
+| **uuidv7** | Gerador de UUID v7 ordenado por timestamp. Usado para IDs de entidades e nós. || **StorageBackend** | Interface da camada de persistência em `$lib/persistence/backends/storage-backend.ts`. Define o conjunto fixo de stores (`contentTrees`, `contentMedias`, `editorTrees`, `editorMedias`, `treePublications`, `users`, `posts`, `categories`, `activityData`) e a API de cada store via `StoreOps`. Implementada por `IndexedDBBackend` (ativa) e `SqliteBackend` (stub para Plano C). |
+| **IndexedDBBackend** | Implementação ativa de `StorageBackend` em `indexeddb.backend.ts`. Usa o DB `notfeed-v2`. Cobre web, PWA, Android TWA e Tauri AppImage Linux. |
+| **SqliteBackend** | Stub de `StorageBackend` em `sqlite.backend.ts`. Será preenchido no Plano C usando `tauri-plugin-sql` para os bundles Tauri nativos (deb/rpm/msi/dmg/android). Lança erro útil até lá. |
+| **Capability.platform** | Runtime ativo: `'web' \| 'android' \| 'desktop'`. Detectado via `__TAURI_INTERNALS__` (desktop) ou display-mode standalone + UA Android (TWA). |
+| **Capability.storageBackend** | Backend de armazenamento ativo: `'indexeddb' \| 'sqlite'`. Lido de `import.meta.env.VITE_STORAGE_BACKEND` (default `'indexeddb'`). |
+| **Capability.hasBackgroundSync** | Indica se o navegador suporta a Background Sync API (`'sync' in ServiceWorkerRegistration.prototype`). Usada pelo Plano B para reagendar ingestão ao reconectar. |
+| **Capability.hasPeriodicSync** | Indica se o navegador suporta Periodic Background Sync (`'periodicSync' in ServiceWorkerRegistration.prototype`). Usada pelo Plano B para tick de ingestão recorrente em PWA instalada. |

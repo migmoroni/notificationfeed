@@ -219,3 +219,12 @@ IDs de nós são compostos: `treeId:localUuid` para unicidade global. Utilitári
 **Contexto**: Múltiplas telas (feed, browse) precisam filtrar por entidades (pages, profiles, fonts) com seleção em dois níveis: árvore → nó.  
 **Decisão**: Factory `createEntityFilter(source, options?)` cria instâncias isoladas. `EntityFilterPageType = 'font' | 'profile' | 'collection'`. Seleção em dois níveis: page (root da tree) → font (refinamento opcional). Suporte a tree-links (nós com `role='tree'` que referenciam outra árvore).  
 **Consequência**: Uma única implementação serve feed e browse. Cada tela instancia seu próprio entity filter. Seleção propaga corretamente pela hierarquia da ContentTree.
+
+## ADR-033: Multi-target platform strategy (Plano AA)
+
+**Contexto**: O app deve rodar em vários alvos com requisitos de armazenamento distintos. Web/PWA usam IndexedDB (sandbox do browser); Tauri AppImage (Linux portável) também usa IndexedDB porque o webview embarca o mesmo sandbox. Já bundles nativos completos (deb/rpm/msi/dmg/android) farão sentido com SQLite via `tauri-plugin-sql` para integração ao FS do SO.  
+**Decisão**: Manter um único frontend SvelteKit e expor a escolha de backend de armazenamento como uma capability (`storageBackend: 'indexeddb' | 'sqlite'`), lida de `import.meta.env.VITE_STORAGE_BACKEND` (default `'indexeddb'`). A camada de persistência é abstraída atrás de uma interface `StorageBackend` em `$lib/persistence/backends/storage-backend.ts`, com duas implementações: `IndexedDBBackend` (ativa) e `SqliteBackend` (stub para Plano C). O factory `getStorageBackend()` em `db.ts` seleciona em runtime e cacheia. As stores de domínio consomem a interface, não a implementação.  
+**Consequência**: Adicionar SQLite no Plano C é mecânico (preencher o stub) sem tocar nas stores. As capabilities `platform`, `hasBackgroundSync` e `hasPeriodicSync` foram adicionadas ao mesmo objeto para informar UI/SW sobre features disponíveis. O alias `getDatabase()` foi mantido para back-compat. A versão atual do IndexedDB (`notfeed-v2` v11) não muda; bumps ficam para o Plano B.
+
+**Nota (supply-chain)**: rejeitamos `@vite-pwa/sveltekit` durante a fase AA6 por arrastar deps transitivas com avisos de segurança (e.g. `glob<11`, `source-map`, etc.) e oferecer ganho marginal sobre a infraestrutura nativa de SW do SvelteKit. O Plano AB usará `src/service-worker.ts` + Workbox direto (`workbox-precaching`, `workbox-routing`, `workbox-window`). Ver futuro ADR-034.
+

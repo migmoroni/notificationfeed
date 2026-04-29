@@ -22,7 +22,7 @@ export async function setupTray(): Promise<void> {
 				id: 'quit',
 				text: 'Quit',
 				action: async () => {
-					const { exit } = await import('@tauri-apps/api/process');
+					const { exit } = await import('@tauri-apps/plugin-process');
 					await exit(0);
 				}
 			}
