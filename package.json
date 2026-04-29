@@ -12,7 +12,11 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test": "vitest",
 		"test:run": "vitest run",
-		"icons:gen": "node scripts/generate-icons.mjs"
+		"icons:gen": "node scripts/generate-icons.mjs",
+		"tauri": "tauri",
+		"tauri:dev": "tauri dev",
+		"tauri:build": "tauri build",
+		"tauri:appimage": "tauri build --bundles appimage"
 	},
 	"devDependencies": {
 		"@internationalized/date": "^3.11.0",

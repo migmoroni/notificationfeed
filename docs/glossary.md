@@ -79,3 +79,8 @@
 | **Install prompt (A2HS)** | Evento `beforeinstallprompt` disparado pelo browser quando o app é instalável. Capturado em `install-prompt.svelte.ts`; UI exposta via `InstallButton.svelte`. |
 | **Periodic Background Sync** | API de browser que permite ao SW rodar handlers periódicos (`periodicsync` event) mesmo com o app fechado, em PWAs instaladas. Em Notfeed: tag `notfeed-periodic-fetch`, intervalo mínimo 15min, registrada em `sw-register.ts` quando permission concedida. |
 | **Background Sync** | API de browser que permite ao SW reagir à reconexão de rede via evento `sync`. Em Notfeed: tag `notfeed-fetch`, registrada quando o `online` event dispara. |
+| **Tauri** | Framework Rust + WebView para empacotar apps web como executáveis nativos. Em Notfeed: Tauri 2.x via `src-tauri/`, com `frontendDist: "../build"`, plugins `tauri-plugin-http` e `tauri-plugin-shell`. |
+| **AppImage** | Formato de empacotamento Linux portátil (single-file executável). Em Notfeed: bundle padrão produzido por `npm run tauri:appimage`. Requer `libfuse2` no host. |
+| **`tauri-plugin-http`** | Plugin Tauri que expõe `fetch` sem restrições de CORS (chamadas saem do processo Rust, não do WebView). Em Notfeed: usado para buscar feeds de servidores que não enviam CORS headers, evitando proxy. |
+| **`tauri-plugin-shell`** | Plugin Tauri para abrir URLs e arquivos externos via aplicativo padrão do SO. Em Notfeed: registrado no `lib.rs` para que cliques em links externos abram no browser do usuário. |
+| **Cargo features (`backend-indexeddb` / `backend-sqlite`)** | Features definidas em `src-tauri/Cargo.toml`. `default = ["backend-indexeddb"]` (no-op no Rust, semântico). `backend-sqlite` é opcional e ativa `tauri-plugin-sql` — reservado para Plano C. |

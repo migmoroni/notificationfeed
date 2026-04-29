@@ -33,9 +33,16 @@ npm run preview   # serve com SW ativo em http://localhost:4173
 
 Em produção, o app é instalável como PWA: o navegador detecta `manifest.webmanifest` + service worker e oferece "Instalar app" (ou via menu do Chrome/Edge). Após instalado, navega offline (assets pré-cacheados; SPA fallback servido pelo SW).
 
-### Tauri (planejado, Plano AC)
+### Tauri (Linux AppImage)
 
-Bundle Linux AppImage será adicionado em `src-tauri/`. Veja [`docs/build-targets.md`](docs/build-targets.md) para a matriz completa de alvos.
+Pré-requisitos: Rust stable + pacotes `-dev` do sistema (veja [`docs/build-targets.md`](docs/build-targets.md)).
+
+```sh
+npm run tauri:dev          # janela nativa em modo dev (HMR)
+npm run tauri:appimage     # produz src-tauri/target/release/bundle/appimage/Notfeed_<version>_amd64.AppImage
+```
+
+Em runtime Tauri, o service worker **não** é registrado (gating por `capabilities.platform === 'desktop'` em `+layout.svelte`); IndexedDB é usado para persistência. SQLite via `tauri-plugin-sql` está reservado para Plano C.
 
 ## Documentação
 

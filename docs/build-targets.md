@@ -9,7 +9,7 @@ Este documento descreve os alvos de build do Notfeed, suas características e co
 | **web (dev)** | `npm run dev` | servidor Vite local (`http://localhost:5173`) | IndexedDB | não emitido em dev | ativo |
 | **web (build)** | `npm run build` | `build/` (estáticos `adapter-static`) com `service-worker.js` | IndexedDB | sim — SW nativo do SvelteKit + Workbox precaching | ativo |
 | **PWA instalável** | `npm run build` + `npm run preview` | `build/` servido sobre HTTPS, com `manifest.webmanifest` + SW | IndexedDB | sim — SW nativo do SvelteKit (`src/service-worker.ts`) + Workbox precaching | ativo |
-| **Tauri Linux AppImage** | `npm run tauri:appimage` | `src-tauri/target/release/bundle/appimage/Notfeed_<version>_amd64.AppImage` | IndexedDB | **não** (gating por `capabilities.platform === 'desktop'` em `+layout.svelte`) | _planejado (Plano AC)_ |
+| **Tauri Linux AppImage** | `npm run tauri:appimage` | `src-tauri/target/release/bundle/appimage/Notfeed_<version>_amd64.AppImage` | IndexedDB | **não** (gating por `capabilities.platform === 'desktop'` em `+layout.svelte`) | ativo |
 
 ## Future targets (Plano C)
 
@@ -31,11 +31,30 @@ A escolha entre IndexedDB e SQLite é feita em build-time pela env `VITE_STORAGE
 
 ### Tauri AppImage (Linux x86_64)
 
-A serem detalhados pelo Plano AC. Em geral:
+**Rust toolchain**: instalar via [rustup](https://rustup.rs/) e selecionar stable: `rustup default stable`.
 
-- Rust toolchain estável (`rustup default stable`)
-- `webkit2gtk-4.1`, `libgtk-3-dev`, `librsvg2-dev`, `libayatana-appindicator3-dev`, `libssl-dev`
-- `libfuse2` (para executar a AppImage produzida)
+**Pacotes de sistema (Ubuntu/Debian)**:
+
+```sh
+sudo apt install -y \
+  pkg-config \
+  libwebkit2gtk-4.1-dev \
+  libgtk-3-dev \
+  librsvg2-dev \
+  libayatana-appindicator3-dev \
+  libssl-dev \
+  libfuse2
+```
+
+- `pkg-config`, `libwebkit2gtk-4.1-dev`, `libgtk-3-dev`, `librsvg2-dev`, `libayatana-appindicator3-dev`, `libssl-dev` — necessários em **build time** para compilar `webkit2gtk-sys`, `glib-sys`, `gtk-sys`, etc.
+- `libfuse2` — necessário em **run time** para executar a AppImage produzida.
+
+**Cargo features** (em `src-tauri/Cargo.toml`):
+
+- `default = ["backend-indexeddb"]` — build padrão; sem `tauri-plugin-sql`.
+- `backend-sqlite` — habilita `tauri-plugin-sql` (Plano C). Build com `cargo build --no-default-features --features backend-sqlite` em `src-tauri/`.
+
+**Saída**: `src-tauri/target/release/bundle/appimage/Notfeed_0.1.0_amd64.AppImage`. Marque executável (`chmod +x`) e rode.
 
 ### Future native bundles (Plano C)
 
