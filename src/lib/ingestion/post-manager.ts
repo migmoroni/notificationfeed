@@ -24,9 +24,10 @@
  *  - The smallest candidate wins, so an eager user's settings never
  *    slow other users down and a lazy user's settings only impact
  *    themselves.
- *  - On error: optional exponential backoff
- *    `min(interval * multiplier^min(failures, maxSteps), maxBackoffMs)`
- *    with jitter. Disabled → next try at the regular interval.
+ *  - On error: exponential backoff (system-level, see
+ *    `back-settings.ts`):
+ *    `min(interval * multiplier^min(failures, maxSteps), maxMs)` with
+ *    jitter. Disabled there → next try at the regular interval.
  */
 
 import type { TreeNode, FontBody, FontRssConfig, FontAtomConfig, FontNostrConfig } from '$lib/domain/content-tree/content-tree.js';
@@ -35,6 +36,7 @@ import type { UserConsumer } from '$lib/domain/user/user-consumer.js';
 import type { FetcherState } from '$lib/domain/ingestion/fetcher-state.js';
 import { emptyFetcherState } from '$lib/domain/ingestion/fetcher-state.js';
 import type { IngestionSettings, ProxyConfig } from '$lib/domain/ingestion/ingestion-settings.js';
+import { INGESTION_BACKOFF } from '$lib/config/back-settings.js';
 import { savePostsForUser, type IngestedPost } from '$lib/persistence/post.store.js';
 import { getFetcherState, putFetcherState } from '$lib/persistence/fetcher-state.store.js';
 import { getStorageBackend } from '$lib/persistence/db.js';
@@ -281,7 +283,7 @@ async function processFont(
 		return totalInserted;
 	} catch {
 		const failures = prev.consecutiveFailures + 1;
-		const cfg = pickBackoffConfig(ctx, entry);
+		const cfg = INGESTION_BACKOFF;
 		let backoff: number;
 		if (!cfg.enabled || cfg.multiplier <= 1) {
 			backoff = interval;
@@ -298,47 +300,6 @@ async function processFont(
 		await putFetcherState(next);
 		return 'failed';
 	}
-}
-
-interface BackoffConfig {
-	enabled: boolean;
-	multiplier: number;
-	maxSteps: number;
-	maxMs: number;
-}
-
-/**
- * Resolve the backoff configuration to use for a given font.
- *
- * Active foreground user wins (their settings drive the cadence the
- * user is most likely to notice). Otherwise we fall back to the most
- * patient interested user — using a low cap from a non-foreground user
- * to suppress retries everyone else still wants would be unfair.
- */
-function pickBackoffConfig(ctx: TickContext, entry: FontEntry): BackoffConfig {
-	// Active user wins; otherwise fall back to the most patient setting
-	// (largest cap), so a single user with a low cap can't suppress
-	// retries on behalf of users that would still want to keep trying.
-	const fromActive = ctx.activeUserId ? entry.settingsByUser.get(ctx.activeUserId) : undefined;
-	const settings = fromActive ?? pickFallbackBackoffSettings(entry);
-	if (!settings) {
-		return { enabled: true, multiplier: 2, maxSteps: 6, maxMs: 24 * 60 * 60_000 };
-	}
-	return {
-		enabled: settings.backoffEnabled,
-		multiplier: Math.max(1, settings.backoffMultiplier),
-		maxSteps: Math.max(0, settings.maxBackoffSteps),
-		maxMs: Math.max(0, settings.maxBackoffMs)
-	};
-}
-
-/** Pick the interested user with the highest `maxBackoffSteps`. */
-function pickFallbackBackoffSettings(entry: FontEntry): IngestionSettings | undefined {
-	let pick: IngestionSettings | undefined;
-	for (const s of entry.settingsByUser.values()) {
-		if (!pick || s.maxBackoffSteps > pick.maxBackoffSteps) pick = s;
-	}
-	return pick;
 }
 
 /**

@@ -34,35 +34,6 @@
 	let idle2IntMin = $derived(Math.round(settings.idleTier2IntervalMs / MIN_MS));
 	let idle2MaxHours = $derived(Math.round(settings.idleTier2MaxIdleMs / HOUR_MS));
 	let idle3IntHours = $derived(Math.round(settings.idleTier3IntervalMs / HOUR_MS));
-	let maxBackoffHours = $derived(Math.max(1, Math.round(settings.maxBackoffMs / HOUR_MS)));
-
-	/**
-	 * Live preview of the backoff progression. Shows how the active
-	 * interval (5 min default) grows with each consecutive failure,
-	 * up to the user's chosen ceiling.
-	 */
-	let backoffPreview = $derived.by(() => {
-		const baseMs = settings.activeFontIntervalMs;
-		const mult = Math.max(1, settings.backoffMultiplier);
-		const steps = Math.max(0, settings.maxBackoffSteps);
-		const cap = Math.max(0, settings.maxBackoffMs);
-		const failsToShow = Math.min(steps + 1, 6);
-		const parts: string[] = [];
-		for (let f = 1; f <= failsToShow; f++) {
-			const exp = Math.min(f, steps);
-			const raw = baseMs * Math.pow(mult, exp);
-			const clamped = Math.min(raw, cap);
-			parts.push(`#${f}: ${formatDuration(clamped)}`);
-		}
-		return parts.join('  ·  ');
-	});
-
-	function formatDuration(ms: number): string {
-		if (ms < MIN_MS) return `${Math.round(ms / SEC_MS)}s`;
-		if (ms < HOUR_MS) return `${Math.round(ms / MIN_MS)}min`;
-		const hours = ms / HOUR_MS;
-		return hours >= 24 ? `${(hours / 24).toFixed(1)}d` : `${hours.toFixed(1)}h`;
-	}
 
 	async function persist(next: IngestionSettings): Promise<void> {
 		settings = next;
@@ -97,9 +68,6 @@
 	}
 	function setIdle3IntervalHours(v: number) {
 		update('idleTier3IntervalMs', Math.max(1, v) * HOUR_MS);
-	}
-	function setMaxBackoffHours(v: number) {
-		update('maxBackoffMs', Math.max(1, v) * HOUR_MS);
 	}
 
 	function addProxy() {
@@ -277,84 +245,6 @@
 		</div>
 
 		<p class="text-xs text-muted-foreground">{t('ingestion_settings.tier_table_footnote')}</p>
-	</section>
-
-	<Separator class="my-6" />
-
-	<section class="space-y-3">
-		<h2 class="text-sm font-semibold">{t('ingestion_settings.backoff')}</h2>
-		<p class="text-xs text-muted-foreground">{t('ingestion_settings.backoff_hint')}</p>
-
-		<div class="flex items-center justify-between gap-4">
-			<div class="space-y-0.5">
-				<Label for="backoff-enabled">{t('ingestion_settings.backoff_enabled')}</Label>
-				<p class="text-xs text-muted-foreground">{t('ingestion_settings.backoff_enabled_hint')}</p>
-			</div>
-			<Switch
-				id="backoff-enabled"
-				checked={settings.backoffEnabled}
-				onCheckedChange={(v) => update('backoffEnabled', v)}
-			/>
-		</div>
-
-		{#if settings.backoffEnabled}
-			<div class="grid grid-cols-[1fr_auto] gap-2 items-center pt-1">
-				<div class="space-y-0.5">
-					<Label for="backoff-mult">{t('ingestion_settings.backoff_multiplier')}</Label>
-					<p class="text-xs text-muted-foreground">{t('ingestion_settings.backoff_multiplier_hint')}</p>
-				</div>
-				<Input
-					id="backoff-mult"
-					type="number"
-					min="1"
-					max="10"
-					step="0.1"
-					class="w-24"
-					value={settings.backoffMultiplier}
-					onchange={(e) =>
-						update(
-							'backoffMultiplier',
-							Math.max(1, Math.min(10, Number((e.target as HTMLInputElement).value)))
-						)}
-				/>
-
-				<div class="space-y-0.5">
-					<Label for="backoff-steps">{t('ingestion_settings.backoff_steps')}</Label>
-					<p class="text-xs text-muted-foreground">{t('ingestion_settings.backoff_steps_hint')}</p>
-				</div>
-				<Input
-					id="backoff-steps"
-					type="number"
-					min="0"
-					max="20"
-					class="w-24"
-					value={settings.maxBackoffSteps}
-					onchange={(e) =>
-						update(
-							'maxBackoffSteps',
-							Math.max(0, Math.min(20, Number((e.target as HTMLInputElement).value)))
-						)}
-				/>
-
-				<div class="space-y-0.5">
-					<Label for="backoff-max">{t('ingestion_settings.backoff_max')}</Label>
-					<p class="text-xs text-muted-foreground">{t('ingestion_settings.backoff_max_hint')}</p>
-				</div>
-				<Input
-					id="backoff-max"
-					type="number"
-					min="1"
-					class="w-24"
-					value={maxBackoffHours}
-					onchange={(e) => setMaxBackoffHours(Number((e.target as HTMLInputElement).value))}
-				/>
-			</div>
-
-			<div class="rounded-md border border-dashed border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-				<div class="font-medium text-foreground mb-1">{t('ingestion_settings.backoff_preview_title')}</div>
-				<div class="font-mono">{backoffPreview}</div>
-			</div>
-		{/if}
 	</section>
 
 	<Separator class="my-6" />

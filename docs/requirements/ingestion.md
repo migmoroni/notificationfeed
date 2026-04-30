@@ -80,18 +80,16 @@ Embarcada em `UserSettings.ingestion` — cada usuário ajusta independentemente
 
 Todos os 5 limiares (`idleTier{1,2,3}IntervalMs`, `idleTier{1,2}MaxIdleMs`) são editáveis em `/user/settings/ingestion`.
 
-### Backoff em falha
+### Backoff em falha (system-level)
 
-Configurável via 4 campos:
+A política de backoff afeta uma `FetcherState` compartilhada por todos os usuários da fonte e não cabe ao usuário final ajustar. Os parâmetros vivem em `src/lib/config/back-settings.ts` (constante `INGESTION_BACKOFF`), local com sintaxe simples para o desenvolvedor revisar/ajustar:
 
-- `backoffEnabled: boolean` — se `false`, sempre tenta no intervalo normal.
-- `backoffMultiplier: number` (default `2`, range 1–10, step 0.1).
-- `maxBackoffSteps: number` (default `6`, range 0–20) — quantas falhas consecutivas saturam o multiplicador.
-- `maxBackoffMs: number` (default `24h`) — teto absoluto.
+- `enabled: boolean` — mestre. `false` desativa backoff (sempre intervalo normal).
+- `multiplier: number` — fator de crescimento (default `2`).
+- `maxSteps: number` — teto do expoente (default `6`).
+- `maxMs: number` — teto absoluto (default `24h`).
 
-Fórmula: `min(intervalo * multiplier^min(failures, maxSteps), maxBackoffMs)`.
-
-A página de settings exibe **preview ao vivo** das primeiras N falhas (ex.: `#1: 10min · #2: 20min · #3: 40min ...`).
+Fórmula: `min(intervalo * multiplier^min(failures, maxSteps), maxMs)` + jitter.
 
 ### Retenção (órfãos)
 
@@ -148,7 +146,7 @@ interface FetcherState {
 - [x] PostManager isomórfico (foreground + SW)
 - [x] Scheduler com tick configurável
 - [x] Conditional GET (ETag / Last-Modified)
-- [x] Backoff exponencial configurável (4 fields) com preview
+- [x] Backoff exponencial system-level em `back-settings.ts` (config do dev)
 - [x] Tiers de ociosidade configuráveis (5 fields)
 - [x] HTTP adapter por plataforma (web proxy / Tauri http)
 - [x] Normalizadores RSS / Atom / Nostr (puros, sem userId)

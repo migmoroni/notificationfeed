@@ -65,33 +65,6 @@ export interface IngestionSettings {
 	 */
 	refreshOnActivate: boolean;
 
-	/**
-	 * Whether to apply exponential backoff after a fetch fails.
-	 * When disabled, the next attempt happens at the regular interval
-	 * regardless of consecutive failures.
-	 */
-	backoffEnabled: boolean;
-	/**
-	 * Multiplier used for the exponential progression. With multiplier=2
-	 * a font's interval doubles after each consecutive failure (until
-	 * `maxBackoffSteps` or `maxBackoffMs` caps the result).
-	 * Use 1 for a constant-interval retry, 2 for classic doubling, 3 for
-	 * faster give-up.
-	 */
-	backoffMultiplier: number;
-	/**
-	 * Cap on how many consecutive failures count toward the exponent.
-	 * The delay formula is
-	 * `interval * backoffMultiplier^min(failures, maxBackoffSteps)`.
-	 */
-	maxBackoffSteps: number;
-	/**
-	 * Absolute ceiling (ms) on the computed backoff delay. The final
-	 * delay is `min(formula, maxBackoffMs)`. Prevents the doubling
-	 * progression from sleeping for absurd amounts of time.
-	 */
-	maxBackoffMs: number;
-
 	/** Posts older than this in active sources auto-move to trash (days). */
 	trashAgeActiveDays: number;
 	/**
@@ -129,10 +102,6 @@ export function createIngestionSettings(): IngestionSettings {
 		idleTier3IntervalMs: 24 * 60 * 60_000,
 		backfillOnActivate: true,
 		refreshOnActivate: true,
-		backoffEnabled: true,
-		backoffMultiplier: 2,
-		maxBackoffSteps: 6,
-		maxBackoffMs: 24 * 60 * 60_000,
 		trashAgeActiveDays: 180,
 		trashAgeOrphanDays: 30,
 		purgeAfterTrashDays: 30,
