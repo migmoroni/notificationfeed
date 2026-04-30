@@ -26,6 +26,7 @@ import Zap from '@lucide/svelte/icons/zap';
 import User from '@lucide/svelte/icons/user';
 import FileText from '@lucide/svelte/icons/file-text';
 import FolderOpen from '@lucide/svelte/icons/folder-open';
+import { UI_LIMITS } from '$lib/config/back-settings.js';
 
 interface Props {
 store: EntityFilterStore;
@@ -73,7 +74,7 @@ branchManual[key] = !isBranchOpen(key);
 let pages = $derived(store.getPages());
 let isFocused = $derived(store.pageTypeFilter.size === 1);
 let expandedGroups = $state<Set<PageType>>(new Set());
-const PAGE_LIMIT = 5;
+const PAGE_LIMIT = UI_LIMITS.entityFilterPageLimit;
 
 let groupedPages = $derived.by(() => {
 	const groups: { type: PageType; label: string; pages: PageEntry[] }[] = [];

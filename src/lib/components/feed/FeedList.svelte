@@ -12,6 +12,7 @@
 	import { feedEntityFilter } from '$lib/stores/feed-entity-filter.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { t } from '$lib/i18n/t.js';
+	import { UI_LIMITS } from '$lib/config/back-settings.js';
 	import { PRIORITY_LEVELS } from '$lib/components/shared/priority/priority.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import PostCard from './PostCard.svelte';
@@ -29,7 +30,7 @@
 
 	let { filter = 'all', anyIds = emptyTreeIds(), allIds = emptyTreeIds(), nodeIds = [] }: Props = $props();
 
-	const PAGE_SIZE = 20;
+	const PAGE_SIZE = UI_LIMITS.feedPageSize;
 	let visibleCount = $state(PAGE_SIZE);
 	let sentinel: HTMLDivElement | undefined = $state();
 

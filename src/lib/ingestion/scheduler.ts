@@ -9,9 +9,10 @@
 import { getCapabilities } from '$lib/platform/capabilities.js';
 import { createPostManager } from './post-manager.js';
 import { activeUser } from '$lib/stores/active-user.svelte.js';
+import { INGESTION_SCHEDULER } from '$lib/config/back-settings.js';
 
-const DEFAULT_TICK_INTERVAL_MS = 30_000;
-const MIN_TICK_INTERVAL_MS = 5_000;
+const DEFAULT_TICK_INTERVAL_MS = INGESTION_SCHEDULER.defaultTickIntervalMs;
+const MIN_TICK_INTERVAL_MS = INGESTION_SCHEDULER.minTickMs;
 
 let interval: ReturnType<typeof setInterval> | null = null;
 let currentTickMs = DEFAULT_TICK_INTERVAL_MS;

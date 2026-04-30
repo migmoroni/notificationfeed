@@ -5,12 +5,14 @@
  * The original format is not preserved in storage.
  */
 
+import { IMAGE_LIMITS } from '$lib/config/back-settings.js';
+
 export type ImageSlot = 'avatar' | 'banner';
 
 /** Maximum dimensions by slot */
 export const IMAGE_MAX_DIMENSIONS: Record<ImageSlot, { width: number; height: number }> = {
-	avatar: { width: 512, height: 512 },
-	banner: { width: 1600, height: 600 }
+	avatar: { width: IMAGE_LIMITS.avatarMaxWidth, height: IMAGE_LIMITS.avatarMaxHeight },
+	banner: { width: IMAGE_LIMITS.bannerMaxWidth, height: IMAGE_LIMITS.bannerMaxHeight }
 };
 
 /** Formats accepted on input (converted to WEBP) */

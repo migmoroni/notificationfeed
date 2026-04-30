@@ -14,6 +14,7 @@ import type { FontNostrConfig } from '$lib/domain/content-tree/content-tree.js';
 import type { FetcherState } from '$lib/domain/ingestion/fetcher-state.js';
 import type { IngestedPost } from '$lib/persistence/post.store.js';
 import { normalizeNostrEvent } from '$lib/normalization/nostr.normalizer.js';
+import { INGESTION_FETCH } from '$lib/config/back-settings.js';
 
 export interface NostrEvent {
 	id: string;
@@ -25,9 +26,9 @@ export interface NostrEvent {
 	sig: string;
 }
 
-const DEFAULT_KINDS = [1, 30023];
-const DEFAULT_LIMIT = 200;
-const DEFAULT_TIMEOUT_MS = 8000;
+const DEFAULT_KINDS = INGESTION_FETCH.nostrDefaultKinds;
+const DEFAULT_LIMIT = INGESTION_FETCH.nostrPostsPerFetch;
+const DEFAULT_TIMEOUT_MS = INGESTION_FETCH.nostrEoseTimeoutMs;
 
 export interface FetchResult {
 	posts: IngestedPost[];

@@ -9,6 +9,7 @@
 
 import type { ImageAsset, ImageSlot, AcceptedImageFormat } from '$lib/domain/shared/image-asset.js';
 import { IMAGE_MAX_DIMENSIONS, ACCEPTED_IMAGE_FORMATS } from '$lib/domain/shared/image-asset.js';
+import { IMAGE_LIMITS } from '$lib/config/back-settings.js';
 
 /**
  * Process an uploaded image file into an ImageAsset.
@@ -45,7 +46,7 @@ export async function processImage(file: File, slot: ImageSlot): Promise<ImageAs
 
 	ctx.drawImage(img, 0, 0, width, height);
 
-	const dataUrl = canvas.toDataURL('image/webp', 0.85);
+	const dataUrl = canvas.toDataURL('image/webp', IMAGE_LIMITS.webpQuality);
 	const base64 = dataUrl.split(',')[1];
 
 	return {

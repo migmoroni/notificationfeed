@@ -11,6 +11,7 @@
  */
 
 import type { Category, CategoryTreeId } from '$lib/domain/category/category.js';
+import { PERSISTENCE } from '$lib/config/back-settings.js';
 
 export interface CategoryAssignment {
 	treeId: CategoryTreeId;
@@ -18,7 +19,7 @@ export interface CategoryAssignment {
 }
 
 /** Suggested (not enforced) number of categories per tree. */
-export const SUGGESTED_CATEGORIES_PER_TREE = 3;
+export const SUGGESTED_CATEGORIES_PER_TREE = PERSISTENCE.categorySuggestionsPerTree;
 
 export interface AssignmentValidationError {
 	treeId: CategoryTreeId;

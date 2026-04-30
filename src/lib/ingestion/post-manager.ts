@@ -36,7 +36,7 @@ import type { UserConsumer } from '$lib/domain/user/user-consumer.js';
 import type { FetcherState } from '$lib/domain/ingestion/fetcher-state.js';
 import { emptyFetcherState } from '$lib/domain/ingestion/fetcher-state.js';
 import type { IngestionSettings, ProxyConfig } from '$lib/domain/ingestion/ingestion-settings.js';
-import { INGESTION_BACKOFF } from '$lib/config/back-settings.js';
+import { INGESTION_BACKOFF, INGESTION_FETCH, INGESTION_SCHEDULER } from '$lib/config/back-settings.js';
 import { savePostsForUser, type IngestedPost } from '$lib/persistence/post.store.js';
 import { getFetcherState, putFetcherState } from '$lib/persistence/fetcher-state.store.js';
 import { getStorageBackend } from '$lib/persistence/db.js';
@@ -58,8 +58,8 @@ export interface TickResult {
 	postsInserted: number;
 }
 
-const JITTER_PCT = 0.1;
-const RETENTION_INTERVAL_MS = 60 * 60 * 1000;
+const JITTER_PCT = INGESTION_FETCH.jitterPct;
+const RETENTION_INTERVAL_MS = INGESTION_SCHEDULER.retentionCheckIntervalMs;
 
 /**
  * Build a PostManager bound to the given dependency accessors.

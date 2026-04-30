@@ -9,10 +9,11 @@
  */
 
 import { getCapabilities } from '$lib/platform/capabilities.js';
+import { SERVICE_WORKER } from '$lib/config/back-settings.js';
 
-const PERIODIC_SYNC_TAG = 'notfeed-periodic-fetch';
-const SYNC_TAG = 'notfeed-fetch';
-const PERIODIC_MIN_INTERVAL_MS = 15 * 60_000;
+const PERIODIC_SYNC_TAG = SERVICE_WORKER.periodicSyncTag;
+const SYNC_TAG = SERVICE_WORKER.backgroundSyncTag;
+const PERIODIC_MIN_INTERVAL_MS = SERVICE_WORKER.periodicMinIntervalMs;
 
 let onlineHandlerInstalled = false;
 

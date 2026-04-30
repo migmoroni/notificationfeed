@@ -18,11 +18,12 @@ import type {
 } from '$lib/domain/user/activity.js';
 import { createActivityData } from '$lib/domain/user/activity.js';
 import { getDatabase } from './db.js';
+import { PERSISTENCE } from '$lib/config/back-settings.js';
 
 /** Skip a new event when the same `targetId` appears in the last N events. */
-const DEDUP_RECENT_COUNT = 3;
+const DEDUP_RECENT_COUNT = PERSISTENCE.activityDedupRecentCount;
 /** Skip a new event when a same-`targetId` event happened within this window. */
-const DEDUP_TIME_WINDOW_MS = 60_000;
+const DEDUP_TIME_WINDOW_MS = PERSISTENCE.activityDedupTimeWindowMs;
 
 /** Returns true when the candidate event should be suppressed by dedup. */
 function isDuplicate(events: readonly ActivityEvent[], candidate: NewActivityEvent): boolean {

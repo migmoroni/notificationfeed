@@ -31,8 +31,10 @@ export interface LayoutState {
 	landscape: boolean;
 }
 
-const BREAKPOINT = 900;
-const LARGE_SCREEN = 1280;
+import { UI_BREAKPOINTS } from '$lib/config/back-settings.js';
+
+const BREAKPOINT = UI_BREAKPOINTS.compactPx;
+const LARGE_SCREEN = UI_BREAKPOINTS.largePx;
 
 /**
  * Detect input capability from media queries.

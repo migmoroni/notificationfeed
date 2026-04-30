@@ -9,13 +9,14 @@
 
 import type { StorageBackend, StoreOps } from './storage-backend.js';
 import { STORE_SPECS } from '../schema.js';
+import { PERSISTENCE } from '$lib/config/back-settings.js';
 
-const DB_NAME = 'notfeed-v2';
+const DB_NAME = PERSISTENCE.dbName;
 /**
  * v12 (Plano B): per-user post boxes (composite key via synthetic `_pk`),
  * new `fetcherStates` store, all timestamps as epoch ms numbers.
  */
-const DB_VERSION = 12;
+const DB_VERSION = PERSISTENCE.dbSchemaVersion;
 
 /**
  * Open (or upgrade) the IndexedDB database and return a StorageBackend

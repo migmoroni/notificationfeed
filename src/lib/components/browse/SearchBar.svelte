@@ -4,6 +4,7 @@
 	import Search from '@lucide/svelte/icons/search';
 	import X from '@lucide/svelte/icons/x';
 	import { t } from '$lib/i18n/t.js';
+	import { UI_LIMITS } from '$lib/config/back-settings.js';
 
 	let inputValue = $state('');
 	let debounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -15,7 +16,7 @@
 		if (debounceTimer) clearTimeout(debounceTimer);
 		debounceTimer = setTimeout(() => {
 			browse.searchEntities(value);
-		}, 300);
+		}, UI_LIMITS.searchDebounceMs);
 	}
 
 	function handleClear() {
