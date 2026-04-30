@@ -13,8 +13,9 @@ import { getFontNodes, getNode } from '$lib/domain/content-tree/content-tree.js'
 import type { CategoryTreeId } from '$lib/domain/category/category.js';
 import { sortByPriority, EMPTY_PRIORITY_MAP, type SortedPost } from '$lib/domain/shared/feed-sorter.js';
 import { mergeAssignments } from '$lib/domain/shared/category-aggregation.js';
-import { getPosts, markAsRead as persistMarkRead } from '$lib/persistence/post.store.js';
+import { getPostsForUser, markRead as persistMarkRead, setSaved as persistSetSaved, setTrashed as persistSetTrashed } from '$lib/persistence/post.store.js';
 import { createContentTreeStore } from '$lib/persistence/content-tree.store.js';
+import { activeUser } from './active-user.svelte.js';
 import { consumer } from './consumer.svelte.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
@@ -167,10 +168,10 @@ fontNodeIds.push(node.metadata.id);
 // Filter to enabled fonts
 const enabledFontIds = consumer.getEnabledFontNodeIds(fontNodeIds);
 
-const postArrays = await Promise.all(
-enabledFontIds.map((nodeId) => getPosts({ nodeId }))
-);
-const posts = postArrays.flat();
+const userId = activeUser.current?.id ?? null;
+const posts = userId
+	? await getPostsForUser(userId, { nodeIds: enabledFontIds })
+	: [];
 
 state.posts = posts;
 state.trees = trees;
@@ -181,11 +182,40 @@ state.loading = false;
 },
 
 async markRead(nodeId: string, postId: string): Promise<void> {
-await persistMarkRead(nodeId, postId);
+const userId = activeUser.current?.id;
+if (!userId) return;
+await persistMarkRead(userId, nodeId, postId);
 
 const idx = state.posts.findIndex((p) => p.id === postId);
 if (idx >= 0) {
 state.posts[idx] = { ...state.posts[idx], read: true };
+}
+},
+
+async setSaved(nodeId: string, postId: string, value: boolean): Promise<void> {
+const userId = activeUser.current?.id;
+if (!userId) return;
+await persistSetSaved(userId, nodeId, postId, value);
+const idx = state.posts.findIndex((p) => p.id === postId);
+if (idx >= 0) {
+state.posts[idx] = {
+...state.posts[idx],
+savedAt: value ? Date.now() : null,
+trashedAt: value ? null : state.posts[idx].trashedAt
+};
+}
+},
+
+async setTrashed(nodeId: string, postId: string, value: boolean): Promise<void> {
+const userId = activeUser.current?.id;
+if (!userId) return;
+await persistSetTrashed(userId, nodeId, postId, value);
+const idx = state.posts.findIndex((p) => p.id === postId);
+if (idx >= 0) {
+state.posts[idx] = {
+...state.posts[idx],
+trashedAt: value ? Date.now() : null
+};
 }
 },
 

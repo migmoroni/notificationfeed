@@ -22,6 +22,13 @@ export type TableOps = StoreOps;
 let cached: StorageBackend | null = null;
 let pending: Promise<StorageBackend> | null = null;
 
+/**
+ * Return the active StorageBackend, opening it on first call.
+ *
+ * The result is memoized in `cached`. Concurrent callers during the
+ * initial open share the same `pending` promise so the underlying
+ * backend is opened exactly once per process.
+ */
 export async function getStorageBackend(): Promise<StorageBackend> {
 if (cached) return cached;
 if (pending) return pending;

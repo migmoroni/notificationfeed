@@ -49,32 +49,57 @@ self.addEventListener('activate', (event) => {
 	event.waitUntil(self.clients.claim());
 });
 
-// Background-sync stub. Plan B will trigger the ingestion tick here when the
-// browser flushes a pending `notfeed-fetch` tag after reconnecting.
+// Background-sync handler. Browser flushes a queued `notfeed-fetch` tag
+// (registered by the page after reconnect) → run a manager tick.
 interface SyncEvent extends ExtendableEvent {
-	readonly tag: string;
-	readonly lastChance: boolean;
+        readonly tag: string;
+        readonly lastChance: boolean;
 }
 self.addEventListener('sync', (event) => {
-	const e = event as SyncEvent;
-	console.debug('[sw] sync', e.tag);
-	// TODO(plan-B): runIngestionTickInSW({ trigger: 'sync', tag: e.tag });
+        const e = event as SyncEvent;
+        if (e.tag !== 'notfeed-fetch') return;
+        e.waitUntil(runTickInSW('sync'));
 });
 
-// Periodic background sync stub (PWA only, requires permission). Plan B will
-// run a periodic ingestion tick here.
+// Periodic background sync handler — Chrome only, requires permission.
 interface PeriodicSyncEvent extends ExtendableEvent {
-	readonly tag: string;
+        readonly tag: string;
 }
 self.addEventListener('periodicsync', (event) => {
-	const e = event as PeriodicSyncEvent;
-	console.debug('[sw] periodicsync', e.tag);
-	// TODO(plan-B): runIngestionTickInSW({ trigger: 'periodicsync', tag: e.tag });
+        const e = event as PeriodicSyncEvent;
+        if (e.tag !== 'notfeed-periodic-fetch') return;
+        e.waitUntil(runTickInSW('periodicsync'));
 });
 
-// Message channel stub. Plan B will use it for app→SW commands like
-// "force a tick now" or "update auth token".
+// Message channel — page → SW commands. Currently `{type:'tick'}` triggers
+// an immediate ingestion tick for debugging / manual refresh.
 self.addEventListener('message', (event) => {
-	console.debug('[sw] message', event.data);
-	// TODO(plan-B): handle commands from page clients.
+        const data = event.data as { type?: string } | undefined;
+        if (data?.type === 'tick') {
+                event.waitUntil(runTickInSW('message'));
+        }
 });
+
+async function runTickInSW(trigger: string): Promise<void> {
+        try {
+                const { createPostManager } = await import('$lib/ingestion/post-manager.js');
+                const manager = createPostManager({ getActiveUserId: () => null });
+                const result = await manager.tick();
+                console.debug('[sw] tick done', trigger, result);
+
+                // Optional: surface a notification when new posts landed.
+                if (result.postsInserted > 0 && self.registration && 'showNotification' in self.registration) {
+                        try {
+                                await self.registration.showNotification('Notfeed', {
+                                        body: `${result.postsInserted} novos posts`,
+                                        tag: 'notfeed-new',
+                                        renotify: false
+                                });
+                        } catch {
+                                /* permission not granted */
+                        }
+                }
+        } catch (err) {
+                console.warn('[sw] tick failed', trigger, err);
+        }
+}

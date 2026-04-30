@@ -12,6 +12,8 @@ import { SYSTEM_ALL_LIBRARY_TAB_ID } from '$lib/domain/user/user-consumer.js';
 import type { FeedMacro, FeedMacroFilters } from '$lib/domain/feed-macro/feed-macro.js';
 import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
 import { createUserConsumerStore } from '$lib/persistence/user-consumer.store.js';
+import { backfillPostsForUserNode } from '$lib/persistence/post.store.js';
+import { refreshFont as schedulerRefreshFont } from '$lib/ingestion/scheduler.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
 
@@ -35,6 +37,42 @@ function refreshActivationMap(): void {
 	const map = new Map<string, NodeActivation>();
 	for (const a of state.user?.activateNodes ?? []) map.set(a.nodeId, a);
 	state.activationMap = map;
+}
+
+/**
+ * Fire-and-forget post-activation hook: backfill historical posts from
+ * sibling user boxes (so the feed populates instantly) and request an
+ * out-of-band ingestion tick (so we get fresh content without waiting
+ * for the scheduler's interval).
+ *
+ * Both behaviors are user-tunable in the ingestion settings:
+ *   - `backfillOnActivate` controls the cross-box copy.
+ *   - `refreshOnActivate` controls the immediate fetch.
+ *
+ * Errors are logged but never block the UI activation flow.
+ */
+function triggerIngestionForActivation(userId: string, nodeId: string): void {
+	const settings = state.user?.settingsUser?.ingestion;
+	const wantBackfill = settings?.backfillOnActivate ?? true;
+	const wantRefresh = settings?.refreshOnActivate ?? true;
+	if (!wantBackfill && !wantRefresh) return;
+
+	void (async () => {
+		if (wantBackfill) {
+			try {
+				await backfillPostsForUserNode(userId, nodeId);
+			} catch (err) {
+				console.warn('[consumer] backfill failed', err);
+			}
+		}
+		if (wantRefresh) {
+			try {
+				await schedulerRefreshFont(nodeId);
+			} catch (err) {
+				console.warn('[consumer] refreshFont failed', err);
+			}
+		}
+	})();
 }
 
 // ── Exported accessor ──────────────────────────────────────────────────
@@ -112,6 +150,8 @@ export const consumer = {
 			state.user = refreshed;
 			refreshActivationMap();
 		}
+
+		triggerIngestionForActivation(state.user.id, nodeId);
 	},
 
 	async deactivateNode(nodeId: string): Promise<void> {
@@ -138,6 +178,11 @@ export const consumer = {
 		if (refreshed) {
 			state.user = refreshed;
 			refreshActivationMap();
+		}
+
+		// Re-enabling counts as a fresh activation for ingestion purposes.
+		if (newEnabled) {
+			triggerIngestionForActivation(state.user.id, nodeId);
 		}
 	},
 

@@ -1,13 +1,28 @@
 /**
- * Nostr normalizer v2.
- *
- * Transforms a raw Nostr event into a CanonicalPost (v2: nodeId instead of fontId).
+ * Nostr normalizer (Plano B).
  */
 
 import type { NostrEvent } from '$lib/ingestion/nostr/nostr.client.js';
-import type { CanonicalPost } from './canonical-post.js';
+import type { IngestedPost } from '$lib/persistence/post.store.js';
 
-export function normalizeNostrEvent(event: NostrEvent, nodeId: string): CanonicalPost {
+/**
+ * Convert a Nostr event into an `IngestedPost`.
+ *
+ * Nostr-specific mappings:
+ *  - `event.id` (32-byte hex) becomes the post id directly — it's
+ *    already globally unique and content-addressed.
+ *  - There is no Nostr equivalent of an HTML title for kind-1 notes,
+ *    so `title` is left empty; the UI renders the content body as
+ *    headline when title is blank.
+ *  - `url` uses the `nostr:` URI scheme (NIP-21) so external clients
+ *    can resolve the event.
+ *  - `event.created_at` is in seconds (Nostr convention); we multiply
+ *    by 1000 to align with the rest of the codebase's epoch-ms basis.
+ *
+ * Like the other normalizers, no `userId` is assigned here — the
+ * PostManager fans the post out to each interested user's box.
+ */
+export function normalizeNostrEvent(event: NostrEvent, nodeId: string): IngestedPost {
 	return {
 		id: event.id,
 		nodeId,
@@ -16,8 +31,7 @@ export function normalizeNostrEvent(event: NostrEvent, nodeId: string): Canonica
 		content: event.content,
 		url: `nostr:${event.id}`,
 		author: event.pubkey,
-		publishedAt: new Date(event.created_at * 1000),
-		ingestedAt: new Date(),
-		read: false
+		publishedAt: event.created_at * 1000,
+		ingestedAt: Date.now()
 	};
 }

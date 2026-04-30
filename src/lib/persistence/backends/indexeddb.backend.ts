@@ -4,14 +4,24 @@
  * Active for: web, PWA, Android TWA, and Tauri Linux AppImage.
  *
  * Pre-release: schema migrations are destructive — bumping the DB
- * version drops all stores and recreates them.
+ * version drops all stores and recreates them from STORE_SPECS.
  */
 
 import type { StorageBackend, StoreOps } from './storage-backend.js';
+import { STORE_SPECS } from '../schema.js';
 
 const DB_NAME = 'notfeed-v2';
-const DB_VERSION = 11;
+/**
+ * v12 (Plano B): per-user post boxes (composite key via synthetic `_pk`),
+ * new `fetcherStates` store, all timestamps as epoch ms numbers.
+ */
+const DB_VERSION = 12;
 
+/**
+ * Open (or upgrade) the IndexedDB database and return a StorageBackend
+ * whose every store is wired to a fresh `StoreOps` instance backed by
+ * the same `IDBDatabase` connection.
+ */
 export async function openIndexedDBBackend(): Promise<StorageBackend> {
 	const idb = await openDatabase();
 	return {
@@ -22,58 +32,39 @@ export async function openIndexedDBBackend(): Promise<StorageBackend> {
 		treePublications: createTable(idb, 'treePublications'),
 		users: createTable(idb, 'users'),
 		posts: createTable(idb, 'posts'),
+		fetcherStates: createTable(idb, 'fetcherStates'),
 		categories: createTable(idb, 'categories'),
 		activityData: createTable(idb, 'activityData')
 	};
 }
 
+/**
+ * Wrap `indexedDB.open` in a promise and run the destructive
+ * migration in `onupgradeneeded` whenever `DB_VERSION` is newer than
+ * the on-disk version. The migration drops every existing store and
+ * recreates them from `STORE_SPECS` — acceptable while the app is
+ * pre-release and has no data worth preserving across schema bumps.
+ */
 function openDatabase(): Promise<IDBDatabase> {
 	return new Promise((resolve, reject) => {
 		const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-		request.onupgradeneeded = (event) => {
+		request.onupgradeneeded = () => {
 			const idb = request.result;
-			const oldVersion = (event as IDBVersionChangeEvent).oldVersion;
 
-			// Destructive: delete all existing stores and recreate
-			if (oldVersion < 11) {
-				for (const name of idb.objectStoreNames) {
-					idb.deleteObjectStore(name);
+			// Destructive migration (pre-release): drop everything and rebuild
+			// from STORE_SPECS. Avoids bespoke per-version migration code.
+			for (const name of Array.from(idb.objectStoreNames)) {
+				idb.deleteObjectStore(name);
+			}
+
+			for (const spec of STORE_SPECS) {
+				const store = idb.createObjectStore(spec.name, { keyPath: spec.keyPath });
+				if (spec.indexes) {
+					for (const idx of spec.indexes) {
+						store.createIndex(idx.name, idx.keyPath, { unique: idx.unique ?? false });
+					}
 				}
-
-				// Content trees (with embedded nodes) — consumer/read
-				const treeStore = idb.createObjectStore('contentTrees', { keyPath: 'metadata.id' });
-				treeStore.createIndex('author', 'metadata.author', { unique: false });
-
-				// Content medias — consumer/read
-				const mediaStore = idb.createObjectStore('contentMedias', { keyPath: 'metadata.id' });
-				mediaStore.createIndex('author', 'metadata.author', { unique: false });
-
-				// Editor trees — creator/edit
-				const editorTreeStore = idb.createObjectStore('editorTrees', { keyPath: 'metadata.id' });
-				editorTreeStore.createIndex('author', 'metadata.author', { unique: false });
-
-				// Editor medias — creator/edit
-				const editorMediaStore = idb.createObjectStore('editorMedias', { keyPath: 'metadata.id' });
-				editorMediaStore.createIndex('author', 'metadata.author', { unique: false });
-
-				// Tree publications
-				idb.createObjectStore('treePublications', { keyPath: 'treeId' });
-
-				// Users
-				const userStore = idb.createObjectStore('users', { keyPath: 'id' });
-				userStore.createIndex('role', 'role', { unique: false });
-
-				// Posts (grouped by composite nodeId = treeId:localUuid)
-				idb.createObjectStore('posts', { keyPath: 'nodeId' });
-
-				// Categories
-				const catStore = idb.createObjectStore('categories', { keyPath: 'id' });
-				catStore.createIndex('parentId', 'parentId', { unique: false });
-				catStore.createIndex('treeId', 'treeId', { unique: false });
-
-				// Per-user activity log (kept outside the user record to keep users lean)
-				idb.createObjectStore('activityData', { keyPath: 'userId' });
 			}
 		};
 
@@ -82,6 +73,12 @@ function openDatabase(): Promise<IDBDatabase> {
 	});
 }
 
+/**
+ * Build a `StoreOps` object that talks to a single IndexedDB object
+ * store. Each verb opens its own short-lived transaction so callers
+ * never have to think about transaction lifetime; the trade-off is
+ * lower throughput on bulk operations, which is acceptable here.
+ */
 function createTable(db: IDBDatabase, storeName: string): StoreOps {
 	return {
 		async getAll<T>(): Promise<T[]> {

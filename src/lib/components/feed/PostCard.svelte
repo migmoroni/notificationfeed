@@ -11,6 +11,10 @@
 	import { formatRelativeDate } from '$lib/utils/date.js';
 	import CircleDot from '@lucide/svelte/icons/circle-dot';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
+	import Bookmark from '@lucide/svelte/icons/bookmark';
+	import BookmarkCheck from '@lucide/svelte/icons/bookmark-check';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import { t } from '$lib/i18n/t.js';
 
 	interface Props {
@@ -43,6 +47,19 @@
 	function truncate(text: string, maxLength: number): string {
 		if (text.length <= maxLength) return text;
 		return text.slice(0, maxLength).trimEnd() + '…';
+	}
+
+	let isSaved = $derived(sortedPost.post.savedAt != null);
+	let isTrashed = $derived(sortedPost.post.trashedAt != null);
+
+	function toggleSaved(e: MouseEvent) {
+		e.stopPropagation();
+		void feed.setSaved(sortedPost.post.nodeId, sortedPost.post.id, !isSaved);
+	}
+
+	function toggleTrashed(e: MouseEvent) {
+		e.stopPropagation();
+		void feed.setTrashed(sortedPost.post.nodeId, sortedPost.post.id, !isTrashed);
 	}
 </script>
 
@@ -100,6 +117,35 @@
 			{#if !sortedPost.post.read}
 				<CircleDot class="size-3 text-primary ml-auto" />
 			{/if}
+
+			<div class="ml-auto flex items-center gap-1">
+				<button
+					type="button"
+					class="rounded p-1 hover:bg-accent"
+					onclick={toggleSaved}
+					aria-label={isSaved ? t('post.action.unsave') : t('post.action.save')}
+					title={isSaved ? t('post.action.saved') : t('post.action.save')}
+				>
+					{#if isSaved}
+						<BookmarkCheck class="size-3.5 text-primary" />
+					{:else}
+						<Bookmark class="size-3.5" />
+					{/if}
+				</button>
+				<button
+					type="button"
+					class="rounded p-1 hover:bg-accent"
+					onclick={toggleTrashed}
+					aria-label={isTrashed ? t('post.action.restore') : t('post.action.trash')}
+					title={isTrashed ? t('post.action.restore') : t('post.action.trash')}
+				>
+					{#if isTrashed}
+						<RotateCcw class="size-3.5" />
+					{:else}
+						<Trash2 class="size-3.5" />
+					{/if}
+				</button>
+			</div>
 		</div>
 	</div>
 </article>

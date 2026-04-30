@@ -29,7 +29,7 @@ Notfeed é um cliente de agregação de informação focado em feeds e notifica�
 - **Svelte**: Svelte 5 com runes ($state, $derived, $props, $effect)
 - **UI**: Tailwind CSS 4 + shadcn-svelte (bits-ui)
 - **Desktop**: Tauri v2
-- **Persistência**: IndexedDB (`notfeed-v2`, v5)
+- **Persistência**: IndexedDB (`notfeed-v2`, v12) atrás da abstração `StorageBackend`
 - **Linguagem**: TypeScript
 - **i18n**: Sistema próprio reativo com `$state` module-level
 - **Ícones**: Lucide (via @lucide/svelte)
@@ -84,21 +84,22 @@ Notfeed é um cliente de agregação de informação focado em feeds e notifica�
 6. ✅ Import dual-mode (.notfeed.json + URLs simples)
 7. ✅ Ativação/desativação granular por nó (NodeActivation)
 8. ✅ Feed prioritizado (3 níveis com herança por árvore de nós)
-9. ✅ FavoriteTabs (many-to-many, tab sistema ⭐ + custom) → renomeado para **LibraryTabs** (2 tabs sistema: 📚 All Library + ⭐ Only Favorites + custom)
+9. ✅ LibraryTabs (2 tabs sistema: 📚 All Library + ⭐ Only Favorites + custom)
 10. ✅ Feed Macros (presets salvos com categories + modos)
 11. ✅ Publish como snapshot versionado (TreePublication)
 12. ✅ Preview para creators (visão geral + feed)
 13. ✅ Layout adaptativo (compact/expanded via store reativo)
 14. ✅ i18n (en-US + pt-BR) com tradução de categories
 15. ✅ Entity filter centralizado (two-level selection)
-16. ✅ Navegação unificada Browse ↔ Favorites via baseHref
+16. ✅ Navegação unificada Browse ↔ Library via baseHref
+17. ✅ Ingestão RSS / Atom / Nostr com PostManager isomórfico (Plano B)
+18. ✅ Per-user post boxes com backfill ao ativar fonte
+19. ✅ Tiers de ociosidade e backoff configuráveis per-usuário
+20. ✅ Conditional GET (ETag / Last-Modified) e FetcherState per-source
 
 ## Escopo futuro
 
-- [ ] Ingestão de posts via Nostr, RSS e Atom
-- [ ] Normalização para Post Canônico
-- [ ] Timeline com scroll infinito
-- [ ] Marcar posts como lidos
-- [ ] PWA instalável com suporte offline
+- [ ] Periodic Background Sync / Background Sync handlers completos no SW
+- [ ] PWA install prompt e Lighthouse audit
 - [ ] Sincronização via Nostr/Blossom
-- [ ] SQLite para Tauri (desktop)
+- [ ] SqliteBackend completo (Plano C — Tauri bundles nativos)

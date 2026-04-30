@@ -47,6 +47,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 				activateNodes: [],
 				libraryTabs: [],
 				feedMacros: [],
+				interactedAt: now,
 				createdAt: now,
 				updatedAt: now
 			};

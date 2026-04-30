@@ -153,6 +153,7 @@ export const activeUser = {
 			activateNodes: [],
 			libraryTabs: [],
 			feedMacros: [],
+			interactedAt: now,
 			createdAt: now,
 			updatedAt: now
 		};
@@ -176,6 +177,7 @@ export const activeUser = {
 			settingsUser: createUserSettings(DEFAULT_LANGUAGE),
 			ownedTreeIds: [],
 			ownedMediaIds: [],
+			interactedAt: now,
 			createdAt: now,
 			updatedAt: now
 		};
@@ -267,6 +269,7 @@ export const activeUser = {
 	},
 
 	/**
+	/**
 	 * Update a user's preferred language.
 	 */
 	async setLanguage(userId: string, language: string): Promise<void> {
@@ -301,6 +304,53 @@ export const activeUser = {
 			},
 			updatedAt: new Date()
 		};
+		await persistUser(updated);
+
+		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		if (state.current?.id === userId) {
+			state.current = updated;
+		}
+	},
+
+	/**
+	 * Replace the user's ingestion settings (Plan B).
+	 */
+	async setIngestionSettings(userId: string, ingestion: import('$lib/domain/ingestion/ingestion-settings.js').IngestionSettings): Promise<void> {
+		const user = state.allUsers.find(u => u.id === userId);
+		if (!user) return;
+
+		const updated: UserBase = {
+			...user,
+			settingsUser: { ...user.settingsUser, ingestion },
+			updatedAt: new Date()
+		};
+		await persistUser(updated);
+
+		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		if (state.current?.id === userId) {
+			state.current = updated;
+		}
+	},
+
+	/**
+	 * Stamp a user as having "interacted with the app" right now.
+	 * Used by the ingestion scheduler to decide which idle-tier
+	 * polling interval applies to this user's fonts.
+	 *
+	 * Cheap to call frequently — debounced to at-most-once-per-minute
+	 * persistence so we don't hammer IndexedDB on every notification
+	 * click or scheduler tick.
+	 */
+	async markInteracted(userId: string): Promise<void> {
+		const user = state.allUsers.find(u => u.id === userId);
+		if (!user) return;
+
+		const now = new Date();
+		const last = user.interactedAt ? new Date(user.interactedAt).getTime() : 0;
+		// Skip re-persisting if we stamped within the last 60s.
+		if (now.getTime() - last < 60_000) return;
+
+		const updated: UserBase = { ...user, interactedAt: now };
 		await persistUser(updated);
 
 		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);

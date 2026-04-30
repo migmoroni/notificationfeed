@@ -14,7 +14,7 @@ import type { PriorityLevel } from '../user/priority-level.js';
 
 export interface CanonicalPostLike {
 	nodeId: string;
-	publishedAt: Date;
+	publishedAt: number;
 }
 
 export interface SortedPost<T extends CanonicalPostLike = CanonicalPostLike> {
@@ -45,7 +45,7 @@ export function sortByPriority<T extends CanonicalPostLike>(
 	}
 
 	const byDateDesc = (a: SortedPost<T>, b: SortedPost<T>) =>
-		new Date(b.post.publishedAt).getTime() - new Date(a.post.publishedAt).getTime();
+		b.post.publishedAt - a.post.publishedAt;
 
 	high.sort(byDateDesc);
 	def.sort(byDateDesc);

@@ -46,8 +46,8 @@ function getFormatters() {
  * Format a date as a relative time string (e.g., "há 2 horas", "há 3 dias").
  * Falls back to a short date for anything older than 4 weeks.
  */
-export function formatRelativeDate(date: Date | string): string {
-	const d = typeof date === 'string' ? new Date(date) : date;
+export function formatRelativeDate(date: Date | string | number): string {
+	const d = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
 	const now = Date.now();
 	const diffSec = Math.round((d.getTime() - now) / 1000);
 	const absDiff = Math.abs(diffSec);
@@ -67,8 +67,8 @@ export function formatRelativeDate(date: Date | string): string {
  * Format a date as a short string (e.g., "16 de fev." or "16 de fev. de 2025").
  * Includes year only if it differs from the current year.
  */
-export function formatShortDate(date: Date | string): string {
-	const d = typeof date === 'string' ? new Date(date) : date;
+export function formatShortDate(date: Date | string | number): string {
+	const d = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
 	const currentYear = new Date().getFullYear();
 	const { shortDateFmt, fullDateFmt } = getFormatters();
 

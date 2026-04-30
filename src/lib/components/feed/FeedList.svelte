@@ -4,7 +4,6 @@
   Uses feed store and SortedPost from feed-sorter.
 -->
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import type { PriorityFilterValue } from './PriorityFilter.svelte';
 	import type { PriorityLevel } from '$lib/domain/user/priority-level.js';
 	import type { SortedPost } from '$lib/domain/shared/feed-sorter.js';
@@ -80,20 +79,22 @@
 		visibleCount = PAGE_SIZE;
 	});
 
-	onMount(() => {
+	// Re-bind the IntersectionObserver every time the sentinel element
+	// (re)mounts. Using $effect instead of onMount is required because the
+	// sentinel is rendered inside `{#if hasMore}` and may appear *after*
+	// the component first mounts (when posts arrive asynchronously).
+	$effect(() => {
 		if (!sentinel) return;
-
+		const el = sentinel;
 		const observer = new IntersectionObserver(
 			(entries) => {
-				if (entries[0]?.isIntersecting && hasMore) {
+				if (entries[0]?.isIntersecting && visibleCount < filtered.length) {
 					visibleCount += PAGE_SIZE;
 				}
 			},
 			{ rootMargin: '200px' }
 		);
-
-		observer.observe(sentinel);
-
+		observer.observe(el);
 		return () => observer.disconnect();
 	});
 </script>

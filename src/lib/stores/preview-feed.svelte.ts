@@ -10,7 +10,8 @@
 import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 import type { ContentTree } from '$lib/domain/content-tree/content-tree.js';
 import { getFontNodes } from '$lib/domain/content-tree/content-tree.js';
-import { getPosts } from '$lib/persistence/post.store.js';
+import { getPostsForUser } from '$lib/persistence/post.store.js';
+import { activeUser } from './active-user.svelte.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
 
@@ -50,12 +51,14 @@ state.posts = [];
 return;
 }
 
-const postArrays = await Promise.all(
-fontNodeIds.map((nodeId) => getPosts({ nodeId }))
-);
-state.posts = postArrays.flat().sort(
-(a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-);
+const userId = activeUser.current?.id ?? null;
+if (!userId) {
+state.posts = [];
+return;
+}
+
+const posts = await getPostsForUser(userId, { nodeIds: fontNodeIds });
+state.posts = posts.sort((a, b) => b.publishedAt - a.publishedAt);
 } finally {
 state.loading = false;
 }

@@ -1,10 +1,8 @@
 /**
- * Atom normalizer v2.
- *
- * Transforms a parsed Atom entry into a CanonicalPost (v2: nodeId instead of fontId).
+ * Atom normalizer (Plano B).
  */
 
-import type { CanonicalPost } from './canonical-post.js';
+import type { IngestedPost } from '$lib/persistence/post.store.js';
 
 export interface AtomEntry {
 	id: string;
@@ -16,7 +14,24 @@ export interface AtomEntry {
 	authorName?: string;
 }
 
-export function normalizeAtomEntry(entry: AtomEntry, nodeId: string): CanonicalPost {
+/**
+ * Convert a parsed Atom 1.0 `<entry>` into an `IngestedPost`.
+ *
+ * Like the RSS normalizer, the post is `userId`-less — the PostManager
+ * later inserts it into each interested user's box.
+ *
+ * Field choices:
+ *  - `entry.id` is required by the Atom spec and is used as the post
+ *    identity directly (already globally unique per feed).
+ *  - Body prefers the richer `<content>` and falls back to `<summary>`.
+ *  - `entry.updated` doubles as the publication timestamp (Atom
+ *    distinguishes `<updated>` from `<published>`, but consumers care
+ *    about "when did this post change" more than original creation).
+ *  - Bad/missing dates fall back to "now" instead of NaN.
+ */
+export function normalizeAtomEntry(entry: AtomEntry, nodeId: string): IngestedPost {
+	const now = Date.now();
+	const published = entry.updated ? Date.parse(entry.updated) : NaN;
 	return {
 		id: entry.id,
 		nodeId,
@@ -25,8 +40,7 @@ export function normalizeAtomEntry(entry: AtomEntry, nodeId: string): CanonicalP
 		content: entry.content || entry.summary,
 		url: entry.link,
 		author: entry.authorName ?? '',
-		publishedAt: entry.updated ? new Date(entry.updated) : new Date(),
-		ingestedAt: new Date(),
-		read: false
+		publishedAt: Number.isFinite(published) ? published : now,
+		ingestedAt: now
 	};
 }

@@ -14,7 +14,8 @@ import type { ContentTree, TreeLinkBody } from '$lib/domain/content-tree/content
 import { consumer } from '$lib/stores/consumer.svelte.js';
 import { layout } from '$lib/stores/layout.svelte.js';
 import { createContentTreeStore } from '$lib/persistence/content-tree.store.js';
-import { getPosts } from '$lib/persistence/post.store.js';
+import { getPostsForUser } from '$lib/persistence/post.store.js';
+import { activeUser } from '$lib/stores/active-user.svelte.js';
 import { getMediaPreviewUrl } from '$lib/services/media.service.js';
 import { createContentMediaStore } from '$lib/persistence/content-media.store.js';
 import { sortByPriority, type SortedPost } from '$lib/domain/shared/feed-sorter.js';
@@ -154,18 +155,20 @@ async function loadNode(id: string) {
 			}
 			childNodes = children;
 
-			// Load posts from all fonts in this profile (sorted by date only)
-			const allPosts: CanonicalPost[] = [];
-			for (const child of children) {
-				const fontPosts = await getPosts({ nodeId: child.metadata.id });
-				allPosts.push(...fontPosts);
-			}
+			const userId = activeUser.current?.id ?? null;
+			const nodeIds = children.map((c) => c.metadata.id);
+			const allPosts: CanonicalPost[] = userId && nodeIds.length
+				? await getPostsForUser(userId, { nodeIds })
+				: [];
 			posts = sortByPriority(allPosts, {});
 		}
 
 		// For font nodes, load posts
 		if (isFontNode(loaded)) {
-			const allPosts = await getPosts({ nodeId: loaded.metadata.id });
+			const userId = activeUser.current?.id ?? null;
+			const allPosts = userId
+				? await getPostsForUser(userId, { nodeIds: [loaded.metadata.id] })
+				: [];
 			posts = sortByPriority(allPosts, {});
 		}
 	} finally {

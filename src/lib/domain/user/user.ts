@@ -6,6 +6,10 @@
  */
 
 import type { ImageAsset } from '../shared/image-asset.js';
+import {
+	createIngestionSettings,
+	type IngestionSettings
+} from '../ingestion/ingestion-settings.js';
 
 export type UserRole = 'consumer' | 'creator';
 
@@ -24,13 +28,16 @@ export interface UserSettings {
 		/** When false, `activityService.record` is a no-op. */
 		enabled: boolean;
 	};
+	/** Ingestion / scheduler / retention configuration. */
+	ingestion: IngestionSettings;
 }
 
 /** Factory used on user creation to seed default settings. */
 export function createUserSettings(language = 'en-US'): UserSettings {
 	return {
 		language,
-		activity: { enabled: true }
+		activity: { enabled: true },
+		ingestion: createIngestionSettings()
 	};
 }
 
@@ -52,6 +59,13 @@ export interface UserBase {
 
 	/** Per-user app settings (language, activity, …). */
 	settingsUser: UserSettings;
+
+	/**
+	 * Last time the user "interacted" with the app — opening it, tapping
+	 * a notification, etc. Used by the ingestion scheduler to decide
+	 * which idle-tier polling interval to apply for this user's fonts.
+	 */
+	interactedAt: Date;
 
 	createdAt: Date;
 	updatedAt: Date;

@@ -16,6 +16,7 @@
 	import { getCapabilities } from '$lib/platform/capabilities.js';
 	import { registerPwa } from '$lib/platform/web/sw-register.js';
 	import { setupInstallPrompt } from '$lib/platform/web/install-prompt.svelte.js';
+	import { startScheduler, stopScheduler } from '$lib/ingestion/scheduler.js';
 	import Newspaper from '@lucide/svelte/icons/newspaper';
 	import Search from '@lucide/svelte/icons/search';
 	import LibraryBig from '@lucide/svelte/icons/library-big';
@@ -106,9 +107,31 @@
 			}
 
 			ready = true;
+			startScheduler();
+
+			// Stamp "interacted with the app" right now so the active
+			// user's fonts run on `activeFontIntervalMs` instead of an
+			// idle-tier interval. The scheduler also re-stamps on each
+			// tick; this initial stamp covers the launch instant.
+			const userId = activeUser.current?.id;
+			if (userId) await activeUser.markInteracted(userId);
 		})();
 
+		const onVisibility = () => {
+			if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+				const userId = activeUser.current?.id;
+				if (userId) void activeUser.markInteracted(userId);
+			}
+		};
+		if (typeof document !== 'undefined') {
+			document.addEventListener('visibilitychange', onVisibility);
+		}
+
 		return () => {
+			stopScheduler();
+			if (typeof document !== 'undefined') {
+				document.removeEventListener('visibilitychange', onVisibility);
+			}
 			layoutCleanup();
 		};
 	});

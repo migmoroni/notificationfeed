@@ -36,8 +36,18 @@
 | **PriorityLevel** | Nível de prioridade definido pelo consumer: `1` (alta), `2` (média), `3` (baixa). `null` = herdar do nível pai. Cadeia: font node → profile node → root node → 3 (default). |
 | **Post Canônico** | Representação normalizada e protocol-agnostic de um item de feed. Todo dado ingerido é convertido para este formato antes de persistência e exibição. |
 | **Ingestão** | Processo de buscar dados brutos de uma Font (via WebSocket para Nostr, HTTP para RSS/Atom). |
-| **Normalização** | Transformação de dados brutos (Nostr event, RSS item, Atom entry) para o formato de Post Canônico. |
-| **Persistência** | Armazenamento local de dados em IndexedDB (`notfeed-v2`, version 5). 8 stores: `contentTrees`, `contentMedias`, `editorTrees`, `editorMedias`, `treePublications`, `users`, `posts`, `categories`. |
+| **Normalização** | Transformação de dados brutos (Nostr event, RSS item, Atom entry) para `IngestedPost` (mesmo shape de `CanonicalPost` sem `userId` e sem flags per-usuário). Quem atribui `userId` é o PostManager ao inserir em cada caixa. |
+| **PostManager** | Orquestrador isomórfico de ingestão em `$lib/ingestion/post-manager.ts`. Roda no foreground e no Service Worker. Coalesce uma fetch física por fonte e faz broadcast do resultado para cada caixa de usuário interessada. Aplica conditional GET, backoff e retenção. |
+| **Per-user post box** | Conjunto de posts de um usuário. Cada registro em `posts` carrega `read`, `savedAt`, `trashedAt` per-usuário; posts iguais ativados por N usuários ocupam N registros (chave sintética `_pk = userId|nodeId|id`). |
+| **IngestedPost** | Tipo intermediário produzido pelos normalizadores: igual a `CanonicalPost` porém sem `userId` e com `read`/`savedAt`/`trashedAt` opcionais. |
+| **FetcherState** | Registro per-`nodeId` em `fetcherStates`, compartilhado entre todos os usuários que ativaram a fonte. Contém `etag`, `lastModified`, `consecutiveFailures`, `nextScheduledAt` etc. Permite conditional GET e backoff. |
+| **Idle tiers** | Trio de patamares de ociosidade configuráveis em `UserSettings.ingestion`: tier 1 (após `idleTier1MaxIdleMs`), tier 2 (após `idleTier2MaxIdleMs`), tier 3. Cada tier tem seu próprio intervalo de fetch. Quanto mais tempo o usuário fica sem abrir o app, maior o intervalo. |
+| **Backoff exponencial** | Estratégia de espera após falhas. Configurável via `backoffEnabled`, `backoffMultiplier`, `maxBackoffSteps`, `maxBackoffMs`. Fórmula: `min(intervalo * multiplier^min(failures, maxSteps), maxBackoffMs)`. |
+| **Conditional GET** | Headers `If-None-Match` (ETag) e `If-Modified-Since` (Last-Modified) enviados pelo cliente RSS/Atom para evitar baixar feed inalterado (resposta 304). |
+| **HTTP Adapter** | Factory em `$lib/ingestion/net/` que retorna `web-proxy.adapter.ts` (browser, via proxy CORS) ou `tauri-http.adapter.ts` (Tauri, via `tauri-plugin-http`). |
+| **Backfill (post)** | Ao ativar uma nova fonte, `backfillPostsForUserNode(userId, nodeId)` copia para a caixa do usuário os posts já presentes em outras caixas para a mesma fonte (conteúdo canonical), com `read`/`saved`/`trashed` resetados. |
+| **Retenção de órfãos** | `runRetention(now)` move para a lixeira posts com `publishedAt < now - orphanRetentionMs` que não estão saved nem trashed. Configurável per-usuário. |
+| **Persistência** | Armazenamento local de dados em IndexedDB (`notfeed-v2`, version 12). 10 stores: `contentTrees`, `contentMedias`, `editorTrees`, `editorMedias`, `treePublications`, `users`, `posts`, `fetcherStates`, `categories`, `activityData`. |
 | **Capability** | Feature flag booleana que indica se uma funcionalidade está disponível na plataforma atual (ex: `hasTray`, `hasPush`). |
 | **Language** | Tipo i18n: `'en-US' \| 'pt-BR'`. Define o idioma da interface. Store reativo `i18n/store.svelte.ts` com `$state` module-level. `DEFAULT_LANGUAGE = 'en-US'`. |
 | **t()** | Função de tradução. Busca chave no dicionário do idioma ativo com suporte a interpolação `{varName}`. Reativa automaticamente via runes do Svelte 5. |

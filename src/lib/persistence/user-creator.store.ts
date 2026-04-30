@@ -42,6 +42,7 @@ export function createUserCreatorStore(): UserCreatorRepository {
 				settingsUser: createUserSettings(),
 				ownedTreeIds: [],
 				ownedMediaIds: [],
+				interactedAt: now,
 				createdAt: now,
 				updatedAt: now
 			};

@@ -14,6 +14,11 @@ import type { StorageBackend, StoreOps } from './storage-backend.js';
 
 const NOT_IMPLEMENTED = 'SqliteBackend not implemented yet — see Plan C';
 
+/**
+ * Placeholder `StoreOps` whose every verb throws. Used to keep the
+ * stub structurally compatible with `StorageBackend` so TypeScript
+ * catches drift between the interface and the eventual real impl.
+ */
 function notImplementedTable(): StoreOps {
 	return {
 		async getAll() {
@@ -34,6 +39,12 @@ function notImplementedTable(): StoreOps {
 	};
 }
 
+/**
+ * Stub entry point. Always throws — the SQLite backend is reserved
+ * for Plan C (Tauri bundles that ship a native sqlite plugin). Any
+ * runtime that selects `storageBackend === 'sqlite'` today is a bug
+ * and should fail loudly here.
+ */
 export async function openSqliteBackend(): Promise<StorageBackend> {
 	throw new Error(NOT_IMPLEMENTED);
 
@@ -47,6 +58,7 @@ export async function openSqliteBackend(): Promise<StorageBackend> {
 		treePublications: notImplementedTable(),
 		users: notImplementedTable(),
 		posts: notImplementedTable(),
+		fetcherStates: notImplementedTable(),
 		categories: notImplementedTable(),
 		activityData: notImplementedTable()
 	};

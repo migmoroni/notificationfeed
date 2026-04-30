@@ -14,7 +14,6 @@
  * NOTE: Dev-only utility. Do NOT export from $lib/index.ts.
  */
 
-import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 import type {
 ContentTree,
 TreeNode,
@@ -29,7 +28,6 @@ import type { UserCreator } from '$lib/domain/user/user-creator.js';
 import { createUserSettings } from '$lib/domain/user/user.js';
 import type { TreePublication } from '$lib/domain/tree-export/tree-publication.js';
 import { getDatabase } from '$lib/persistence/db.js';
-import { savePosts } from '$lib/persistence/post.store.js';
 
 // ── Stable IDs ─────────────────────────────────────────────────────────
 
@@ -207,6 +205,7 @@ activateTrees: [],
 activateNodes: [],
 libraryTabs: [],
 feedMacros: [],
+interactedAt: now,
 createdAt: now,
 updatedAt: now
 };
@@ -222,6 +221,7 @@ removedAt: null,
 settingsUser: createUserSettings('en-US'),
 ownedTreeIds: [IDS.treeProfileFrontend, IDS.treeProfileNewsDraft, IDS.treeCreatorPublished, IDS.treeCreatorDraft],
 ownedMediaIds: [],
+interactedAt: now,
 createdAt: now,
 updatedAt: now
 };
@@ -505,37 +505,7 @@ exportedAt: now
 publishedAt: now
 };
 await db.treePublications.put(publication);
-
-// ── Posts (nodeId uses font composite IDs from profile trees) ────
-
-const posts: CanonicalPost[] = [
-{ id: 'post-001', nodeId: PT.fontRss1, protocol: 'rss', title: 'Show HN: A new approach to state management in Svelte 5', content: 'Runes provide fine-grained reactivity without stores.', url: 'https://news.ycombinator.com/item?id=1', author: 'svelte_dev', publishedAt: new Date('2026-02-16T10:00:00Z'), ingestedAt: now, read: false },
-{ id: 'post-002', nodeId: PT.fontRss1, protocol: 'rss', title: 'TypeScript 6.0 brings module isolation improvements', content: 'The latest TypeScript release focuses on performance.', url: 'https://news.ycombinator.com/item?id=2', author: 'ts_enthusiast', publishedAt: new Date('2026-02-15T14:30:00Z'), ingestedAt: now, read: false },
-{ id: 'post-003', nodeId: PN.fontRss2, protocol: 'rss', title: 'World leaders gather for climate summit', content: 'Representatives from 190 countries meet in Geneva.', url: 'https://bbc.co.uk/news/world-1', author: 'BBC News', publishedAt: new Date('2026-02-16T08:00:00Z'), ingestedAt: now, read: false },
-{ id: 'post-004', nodeId: PN.fontRss2, protocol: 'rss', title: 'Brazil announces new digital infrastructure plan', content: 'Government invests in broadband expansion nationwide.', url: 'https://bbc.co.uk/news/world-2', author: 'BBC News', publishedAt: new Date('2026-02-15T16:00:00Z'), ingestedAt: now, read: true },
-{ id: 'post-005', nodeId: PT.fontAtom1, protocol: 'atom', title: 'Svelte 5.1 released with improved server-side rendering', content: 'The Svelte team ships streaming SSR and better hydration.', url: 'https://svelte.dev/blog/svelte-5-1', author: 'Svelte Team', publishedAt: new Date('2026-02-14T12:00:00Z'), ingestedAt: now, read: false },
-{ id: 'post-006', nodeId: PT.fontAtom1, protocol: 'atom', title: 'Building accessible forms with Svelte and shadcn-svelte', content: 'A practical guide to form validation and accessibility.', url: 'https://svelte.dev/blog/forms', author: 'Svelte Team', publishedAt: new Date('2026-02-13T09:00:00Z'), ingestedAt: now, read: false },
-{ id: 'post-007', nodeId: PT.fontNostr1, protocol: 'nostr', title: 'NIP-29: Relay-based groups proposal finalized', content: 'The community converges on a standard for group chats.', url: '', author: 'nostr_dev', publishedAt: new Date('2026-02-16T06:00:00Z'), ingestedAt: now, read: false },
-{ id: 'post-008', nodeId: PT.fontNostr1, protocol: 'nostr', title: 'Blossom storage integration for media-rich notes', content: 'Upload images and videos using decentralized storage.', url: '', author: 'blossom_builder', publishedAt: new Date('2026-02-15T20:00:00Z'), ingestedAt: now, read: false },
-{ id: 'post-009', nodeId: PT.fontRss1, protocol: 'rss', title: 'Vite 7 ships with improved cold start performance', content: 'Build times drop by 40% thanks to new bundling strategies.', url: 'https://news.ycombinator.com/item?id=3', author: 'build_tools', publishedAt: new Date('2026-02-14T18:00:00Z'), ingestedAt: now, read: true },
-{ id: 'post-010', nodeId: PN.fontRss2, protocol: 'rss', title: 'New study reveals impact of screen time on children', content: 'Researchers find nuanced effects depending on content type.', url: 'https://bbc.co.uk/news/health-1', author: 'BBC News', publishedAt: new Date('2026-02-13T11:00:00Z'), ingestedAt: now, read: false },
-{ id: 'post-011', nodeId: PS.fontRss3, protocol: 'rss', title: 'Critical vulnerability found in widely used SSH library', content: 'Researchers disclose a remote code execution flaw affecting millions of servers.', url: 'https://krebsonsecurity.com/2026/02/ssh-vuln', author: 'Brian Krebs', publishedAt: new Date('2026-02-16T09:00:00Z'), ingestedAt: now, read: false },
-{ id: 'post-012', nodeId: PS.fontRss3, protocol: 'rss', title: 'Ransomware group dismantled by joint law enforcement operation', content: 'Europol and FBI coordinate takedown of infrastructure spanning 12 countries.', url: 'https://krebsonsecurity.com/2026/02/ransomware-takedown', author: 'Brian Krebs', publishedAt: new Date('2026-02-15T13:00:00Z'), ingestedAt: now, read: false },
-{ id: 'post-013', nodeId: PS.fontRss3, protocol: 'rss', title: 'Browser fingerprinting techniques evolve beyond cookies', content: 'New research shows canvas and GPU fingerprinting are near-impossible to block.', url: 'https://krebsonsecurity.com/2026/02/fingerprinting', author: 'Brian Krebs', publishedAt: new Date('2026-02-14T17:30:00Z'), ingestedAt: now, read: true },
-{ id: 'post-014', nodeId: PH.fontAtom2, protocol: 'atom', title: 'Breakthrough in protein folding enables faster drug discovery', content: 'AI-assisted models predict novel binding sites with 94% accuracy in trials.', url: 'https://nature.com/articles/protein-folding-2026', author: 'Nature Editorial', publishedAt: new Date('2026-02-16T07:00:00Z'), ingestedAt: now, read: false },
-{ id: 'post-015', nodeId: PH.fontAtom2, protocol: 'atom', title: 'CRISPR gene editing approved for third hereditary condition', content: 'Regulators green-light treatment targeting rare metabolic disorder.', url: 'https://nature.com/articles/crispr-approval-2026', author: 'Nature Editorial', publishedAt: new Date('2026-02-15T11:00:00Z'), ingestedAt: now, read: false },
-{ id: 'post-016', nodeId: PH.fontAtom2, protocol: 'atom', title: 'Ocean warming accelerates coral bleaching across Indo-Pacific', content: 'Satellite data confirms third mass bleaching event in six years.', url: 'https://nature.com/articles/coral-bleaching-2026', author: 'Nature Editorial', publishedAt: new Date('2026-02-14T08:00:00Z'), ingestedAt: now, read: false },
-{ id: 'post-017', nodeId: PT.fontRss1, protocol: 'rss', title: 'Ask HN: How do you manage secrets in a monorepo?', content: 'Discussion on Vault, SOPS, and environment-specific strategies.', url: 'https://news.ycombinator.com/item?id=4', author: 'repo_architect', publishedAt: new Date('2026-02-16T11:00:00Z'), ingestedAt: now, read: false },
-{ id: 'post-018', nodeId: PT.fontAtom1, protocol: 'atom', title: 'SvelteKit 3.0 testing patterns with Vitest and Playwright', content: 'End-to-end and unit testing strategies updated for the new adapter model.', url: 'https://svelte.dev/blog/testing-2026', author: 'Svelte Team', publishedAt: new Date('2026-02-12T14:00:00Z'), ingestedAt: now, read: false },
-{ id: 'post-019', nodeId: PT.fontNostr1, protocol: 'nostr', title: 'DVMs gain traction as decentralized AI inference layer', content: 'Data Vending Machines allow any relay to serve AI tasks over nostr events.', url: '', author: 'dvm_builder', publishedAt: new Date('2026-02-16T05:00:00Z'), ingestedAt: now, read: false },
-{ id: 'post-020', nodeId: PN.fontRss2, protocol: 'rss', title: 'UN report warns of rising food insecurity in West Africa', content: 'Climate shocks and conflict displace over 3 million smallholder farmers.', url: 'https://bbc.co.uk/news/world-3', author: 'BBC News', publishedAt: new Date('2026-02-12T09:30:00Z'), ingestedAt: now, read: false }
-];
-
-await savePosts(posts);
 }
 
 /** Exported IDs for use in tests */
-export const MOCK_IDS = IDS;
-
-/** Exported composite nodeIds for use in tests */
 export const MOCK_NODES = { PT, PS, PN, PH, PF, PD, TB, ND, CP, CD };
