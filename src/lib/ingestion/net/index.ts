@@ -63,7 +63,6 @@ function sameCtx(a: AdapterContext, b: AdapterContext): boolean {
 	if (a.proxies.length !== b.proxies.length) return false;
 	for (let i = 0; i < a.proxies.length; i++) {
 		if (a.proxies[i].url !== b.proxies[i].url) return false;
-		if (a.proxies[i].parsesRss !== b.proxies[i].parsesRss) return false;
 	}
 	return true;
 }

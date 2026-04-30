@@ -2,9 +2,9 @@
  * Web/PWA HTTP adapter — fetches feeds through user-configured CORS proxies.
  *
  * Tries each proxy in order; first 2xx (or 304) response wins. Supports the
- * `{url}` template token in the proxy URL. Some proxies (rss2json) pre-parse
- * RSS into JSON — those carry `parsesRss: true` in their config and the
- * resulting response is flagged with `parsedAs: 'rss-json'`.
+ * `{url}` template token in the proxy URL. The response format (raw XML vs.
+ * pre-parsed JSON à la rss2json) is auto-detected from the response
+ * `Content-Type` header and a body sniff — the user never has to declare it.
  */
 
 import type { ProxyConfig } from '$lib/domain/ingestion/ingestion-settings.js';
@@ -24,9 +24,9 @@ interface WebProxyOptions {
  * adapter falls back to a direct `fetch` — useful in the rare cases
  * where the target already exposes permissive CORS headers.
  *
- * Proxies marked with `parsesRss: true` (e.g. rss2json) will have their
- * responses tagged with `parsedAs: 'rss-json'` so the RSS client knows
- * to skip the XML parser.
+ * The response shape is sniffed automatically: a JSON `Content-Type`
+ * (or a body that parses as JSON) is tagged `parsedAs: 'rss-json'`,
+ * everything else stays `'raw'`. No per-proxy declaration required.
  */
 export function createWebProxyAdapter(opts: WebProxyOptions): HttpAdapter {
 	return {
@@ -37,7 +37,7 @@ export function createWebProxyAdapter(opts: WebProxyOptions): HttpAdapter {
 
 			let lastError: unknown = null;
 
-			for (const { proxy, target } of candidates) {
+			for (const { target } of candidates) {
 				try {
 					const headers: Record<string, string> = {};
 					if (reqOpts.etag) headers['If-None-Match'] = reqOpts.etag;
@@ -55,7 +55,7 @@ export function createWebProxyAdapter(opts: WebProxyOptions): HttpAdapter {
 							body: '',
 							etag: response.headers.get('etag'),
 							lastModified: response.headers.get('last-modified'),
-							parsedAs: proxy?.parsesRss ? 'rss-json' : 'raw'
+							parsedAs: 'raw'
 						};
 					}
 
@@ -65,12 +65,13 @@ export function createWebProxyAdapter(opts: WebProxyOptions): HttpAdapter {
 					}
 
 					const body = await response.text();
+					const contentType = response.headers.get('content-type');
 					return {
 						status: response.status,
 						body,
 						etag: response.headers.get('etag'),
 						lastModified: response.headers.get('last-modified'),
-						parsedAs: proxy?.parsesRss ? 'rss-json' : 'raw'
+						parsedAs: detectParsedAs(contentType, body)
 					};
 				} catch (err) {
 					lastError = err;
@@ -81,6 +82,22 @@ export function createWebProxyAdapter(opts: WebProxyOptions): HttpAdapter {
 			throw lastError ?? new Error(`All proxies failed for ${url}`);
 		}
 	};
+}
+
+/**
+ * Decide whether a proxy response is raw XML or a pre-parsed RSS JSON
+ * envelope (rss2json-style). Trusts the `Content-Type` first; falls
+ * back to a one-character body sniff (`{` or `[`) when the header is
+ * missing/ambiguous — enough to distinguish XML feeds (`<rss>`/`<feed>`/`<?xml`)
+ * from JSON without a full parse.
+ */
+function detectParsedAs(contentType: string | null, body: string): 'raw' | 'rss-json' {
+	const ct = (contentType ?? '').toLowerCase();
+	if (ct.includes('json')) return 'rss-json';
+	if (ct.includes('xml')) return 'raw';
+	const trimmed = body.trimStart();
+	if (trimmed.startsWith('{') || trimmed.startsWith('[')) return 'rss-json';
+	return 'raw';
 }
 
 /**

@@ -9,7 +9,8 @@
  * `FetcherState`; on 304 returns an empty post list with the previous
  * cache headers preserved.
  *
- * Some proxies (e.g. rss2json) pre-parse RSS into JSON. The adapter
+ * Some proxies (e.g. rss2json) pre-parse RSS into JSON. The web adapter
+ * auto-detects this from the response `Content-Type` / body shape and
  * flags such responses with `parsedAs: 'rss-json'` so we skip the
  * XML parser and map the JSON shape directly.
  */

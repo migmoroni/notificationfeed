@@ -12,6 +12,8 @@
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import ChevronUp from '@lucide/svelte/icons/chevron-up';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { t } from '$lib/i18n/t.js';
 
 	const SEC_MS = 1_000;
@@ -71,7 +73,7 @@
 	}
 
 	function addProxy() {
-		const next: ProxyConfig = { url: '', label: '', parsesRss: false };
+		const next: ProxyConfig = { url: '', label: '' };
 		void persist({ ...settings, proxyServices: [...settings.proxyServices, next] });
 	}
 
@@ -82,6 +84,14 @@
 
 	function removeProxy(i: number) {
 		const list = settings.proxyServices.filter((_, idx) => idx !== i);
+		void persist({ ...settings, proxyServices: list });
+	}
+
+	function moveProxy(i: number, dir: -1 | 1) {
+		const j = i + dir;
+		if (j < 0 || j >= settings.proxyServices.length) return;
+		const list = settings.proxyServices.slice();
+		[list[i], list[j]] = [list[j], list[i]];
 		void persist({ ...settings, proxyServices: list });
 	}
 
@@ -340,7 +350,10 @@
 
 		<div class="space-y-2">
 			<div class="flex items-center justify-between">
-				<p class="text-sm font-medium">{t('ingestion_settings.proxy_list')}</p>
+				<div class="min-w-0">
+					<p class="text-sm font-medium">{t('ingestion_settings.proxy_list')}</p>
+					<p class="text-xs text-muted-foreground">{t('ingestion_settings.proxy_order_hint')}</p>
+				</div>
 				<Button variant="outline" size="sm" onclick={addProxy}>
 					<Plus class="size-4" />
 					{t('ingestion_settings.add_proxy')}
@@ -348,8 +361,36 @@
 			</div>
 
 			{#each settings.proxyServices as proxy, i (i)}
-				<div class="grid grid-cols-[1fr_auto] gap-2 items-end p-3 border rounded-md">
-					<div class="space-y-2">
+				<div class="grid grid-cols-[auto_1fr_auto] gap-2 items-stretch p-3 border rounded-md">
+					<div class="flex flex-col items-center gap-1 pt-1">
+						<span
+							class="inline-flex items-center justify-center size-6 rounded-full bg-muted text-xs font-semibold tabular-nums"
+							aria-label={t('ingestion_settings.proxy_position')}
+						>{i + 1}</span>
+						<div class="flex flex-col">
+							<Button
+								variant="ghost"
+								size="icon"
+								class="size-6"
+								disabled={i === 0}
+								onclick={() => moveProxy(i, -1)}
+								aria-label={t('ingestion_settings.proxy_move_up')}
+							>
+								<ChevronUp class="size-4" />
+							</Button>
+							<Button
+								variant="ghost"
+								size="icon"
+								class="size-6"
+								disabled={i === settings.proxyServices.length - 1}
+								onclick={() => moveProxy(i, 1)}
+								aria-label={t('ingestion_settings.proxy_move_down')}
+							>
+								<ChevronDown class="size-4" />
+							</Button>
+						</div>
+					</div>
+					<div class="space-y-2 min-w-0">
 						<Input
 							placeholder={t('ingestion_settings.proxy_url_placeholder')}
 							value={proxy.url}
@@ -360,22 +401,24 @@
 							value={proxy.label ?? ''}
 							onchange={(e) => updateProxy(i, { label: (e.target as HTMLInputElement).value })}
 						/>
-						<label class="flex items-center gap-2 text-xs">
-							<Switch
-								checked={!!proxy.parsesRss}
-								onCheckedChange={(v) => updateProxy(i, { parsesRss: v })}
-							/>
-							{t('ingestion_settings.parses_rss')}
-						</label>
 					</div>
 					<Button variant="ghost" size="icon" onclick={() => removeProxy(i)} aria-label={t('btn.remove')}>
 						<Trash2 class="size-4" />
 					</Button>
 				</div>
 			{/each}
-		</div>
 
-		<div class="flex items-center justify-between gap-4 pt-2">
+			<p class="text-xs text-muted-foreground">{t('ingestion_settings.proxy_applies_to')}</p>
+		</div>
+	</section>
+
+	<Separator class="my-6" />
+
+	<section class="space-y-4">
+		<h2 class="text-sm font-semibold">{t('ingestion_settings.notifications')}</h2>
+		<p class="text-xs text-muted-foreground">{t('ingestion_settings.notifications_hint')}</p>
+
+		<div class="flex items-center justify-between gap-4">
 			<div class="min-w-0">
 				<p class="text-sm font-medium">{t('ingestion_settings.notify_on_new')}</p>
 				<p class="text-xs text-muted-foreground">{t('ingestion_settings.notify_hint')}</p>

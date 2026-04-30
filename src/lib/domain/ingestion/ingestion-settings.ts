@@ -11,8 +11,6 @@ export interface ProxyConfig {
 	url: string;
 	/** Display label shown in settings UI. */
 	label: string;
-	/** When true, the proxy returns pre-parsed JSON (e.g. rss2json) — skip XML parser. */
-	parsesRss: boolean;
 }
 
 export interface IngestionSettings {
@@ -87,8 +85,8 @@ export interface IngestionSettings {
 }
 
 export const DEFAULT_PROXIES: ProxyConfig[] = [
-	{ url: 'https://corsproxy.io/?{url}', label: 'corsproxy.io', parsesRss: false },
-	{ url: 'https://api.rss2json.com/v1/api.json?rss_url={url}', label: 'rss2json', parsesRss: true }
+	{ url: 'https://corsproxy.io/?{url}', label: 'corsproxy.io' },
+	{ url: 'https://api.rss2json.com/v1/api.json?rss_url={url}', label: 'rss2json' }
 ];
 
 export function createIngestionSettings(): IngestionSettings {
