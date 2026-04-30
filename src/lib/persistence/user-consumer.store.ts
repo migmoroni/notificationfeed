@@ -17,23 +17,23 @@ import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
 import { createUserSettings } from '$lib/domain/user/user.js';
 import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
 import { parseTreeId, getRootNodeId, getAllNodeIds } from '$lib/domain/content-tree/content-tree.js';
-import { getDatabase } from './db.js';
+import { getStorageBackend } from './db.js';
 import { getTreeByNodeId } from './content-tree.store.js';
 
 export function createUserConsumerStore(): UserConsumerRepository {
 	return {
 		async getAll(): Promise<UserConsumer[]> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			return db.users.query<UserConsumer>('role', 'consumer');
 		},
 
 		async getById(id: string): Promise<UserConsumer | null> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			return db.users.getById<UserConsumer>(id);
 		},
 
 		async create(data: NewUserConsumer): Promise<UserConsumer> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const now = new Date();
 			const consumer: UserConsumer = {
 				id: uuidv7(),
@@ -56,7 +56,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 		},
 
 		async update(id: string, data: Partial<NewUserConsumer>): Promise<UserConsumer> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const existing = await db.users.getById<UserConsumer>(id);
 			if (!existing) throw new Error(`UserConsumer not found: ${id}`);
 
@@ -70,14 +70,14 @@ export function createUserConsumerStore(): UserConsumerRepository {
 		},
 
 		async delete(id: string): Promise<void> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			await db.users.delete(id);
 		},
 
 		// -- Node management (cascades tree + root activation) --
 
 		async activateNode(userId: string, nodeId: string): Promise<void> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
@@ -120,7 +120,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 		},
 
 		async deactivateNode(userId: string, nodeId: string): Promise<void> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
@@ -149,7 +149,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 		},
 
 		async setFavorite(userId: string, nodeId: string, favorite: boolean): Promise<void> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
@@ -165,7 +165,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 		},
 
 		async setEnabled(userId: string, nodeId: string, enabled: boolean): Promise<void> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
@@ -178,7 +178,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 		},
 
 		async updateLibraryTabIds(userId: string, nodeId: string, tabIds: string[]): Promise<void> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
@@ -196,7 +196,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 			userId: string,
 			tab: Omit<LibraryTab, 'id' | 'createdAt'>
 		): Promise<LibraryTab> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
@@ -216,7 +216,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 			tabId: string,
 			data: Partial<Pick<LibraryTab, 'title' | 'emoji' | 'position'>>
 		): Promise<LibraryTab> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
@@ -230,7 +230,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 		},
 
 		async deleteTab(userId: string, tabId: string): Promise<void> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
@@ -254,7 +254,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 			userId: string,
 			macro: Omit<FeedMacro, 'id'>
 		): Promise<FeedMacro> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
@@ -270,7 +270,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 			macroId: string,
 			filters: FeedMacroFilters
 		): Promise<FeedMacro> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
@@ -284,7 +284,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 		},
 
 		async deleteMacro(userId: string, macroId: string): Promise<void> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
@@ -296,7 +296,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 		// -- Profile image --
 
 		async setProfileImage(userId: string, image: ImageAsset | null): Promise<void> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
@@ -307,7 +307,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 		},
 
 		async setProfileEmoji(userId: string, emoji: string | null): Promise<void> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
@@ -320,7 +320,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 		// -- Soft-delete / restore --
 
 		async softDelete(userId: string): Promise<void> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 
@@ -330,7 +330,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 		},
 
 		async restore(userId: string): Promise<void> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);
 

@@ -13,7 +13,7 @@ import type { UserConsumer } from '$lib/domain/user/user-consumer.js';
 import type { UserCreator } from '$lib/domain/user/user-creator.js';
 import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
 import { createUserSettings } from '$lib/domain/user/user.js';
-import { getDatabase } from '$lib/persistence/db.js';
+import { getStorageBackend } from '$lib/persistence/db.js';
 import { DEFAULT_LANGUAGE } from '$lib/i18n/types.js';
 import { setLanguage, initLanguage } from '$lib/i18n/store.svelte.js';
 
@@ -44,13 +44,13 @@ function loadActiveUserId(): string | null {
 }
 
 async function loadAllUsers(): Promise<UserBase[]> {
-	const db = await getDatabase();
+	const db = await getStorageBackend();
 	const users = await db.users.getAll<UserBase>();
 	return users;
 }
 
 async function persistUser(user: UserBase): Promise<void> {
-	const db = await getDatabase();
+	const db = await getStorageBackend();
 	await db.users.put($state.snapshot(user));
 }
 

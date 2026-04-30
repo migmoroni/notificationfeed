@@ -34,7 +34,7 @@ import { createTreePublicationStore } from '$lib/persistence/tree-publication.st
 import { processAndCreateMedia, replaceMediaFile, deleteMedia as deleteMediaService } from '$lib/services/media.service.js';
 import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
 import type { ImageSlot } from '$lib/domain/shared/image-asset.js';
-import { getDatabase } from '$lib/persistence/db.js';
+import { getStorageBackend } from '$lib/persistence/db.js';
 
 // ── Internal reactive state ────────────────────────────────────────────
 
@@ -90,7 +90,7 @@ t.metadata.id === updated.metadata.id ? updated : t
 
 /** Persist an updated UserCreator back to the DB and update state */
 async function persistUser(updated: UserCreator): Promise<void> {
-const db = await getDatabase();
+const db = await getStorageBackend();
 await db.users.put($state.snapshot(updated));
 state.user = updated;
 }

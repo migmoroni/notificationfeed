@@ -27,7 +27,7 @@ import type { UserConsumer, TreeActivation, NodeActivation } from '$lib/domain/u
 import type { UserCreator } from '$lib/domain/user/user-creator.js';
 import { createUserSettings } from '$lib/domain/user/user.js';
 import type { TreePublication } from '$lib/domain/tree-export/tree-publication.js';
-import { getDatabase } from '$lib/persistence/db.js';
+import { getStorageBackend } from '$lib/persistence/db.js';
 
 // ── Stable IDs ─────────────────────────────────────────────────────────
 
@@ -133,7 +133,7 @@ linkNews: generateNodeId(IDS.treeCreatorDraft, IDS.localTreeLink1),
 // ── Seed check ─────────────────────────────────────────────────────────
 
 export async function hasMockData(): Promise<boolean> {
-const db = await getDatabase();
+const db = await getStorageBackend();
 const users = await db.users.getAll<{ id: string }>();
 if (!users.some((u) => u.id === IDS.creator)) return false;
 const trees = await db.contentTrees.getAll<{ metadata: { id: string } }>();
@@ -188,7 +188,7 @@ metadata: { id, versionSchema: 1, createdAt: now, updatedAt: now, author }
 export async function seedMockData(): Promise<void> {
 if (await hasMockData()) return;
 
-const db = await getDatabase();
+const db = await getStorageBackend();
 const now = new Date();
 
 // ── Users ────────────────────────────────────────────────────────

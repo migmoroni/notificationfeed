@@ -10,13 +10,13 @@
 
 import type { Category } from '$lib/domain/category/category.js';
 import { CATEGORY_SEED } from '$lib/domain/category/category-seed.js';
-import { getDatabase } from './db.js';
+import { getStorageBackend } from './db.js';
 
 /**
  * Seed categories if the table is empty. Idempotent.
  */
 export async function seedCategories(): Promise<void> {
-	const db = await getDatabase();
+	const db = await getStorageBackend();
 	const existing = await db.categories.getAll<Category>();
 	if (existing.length > 0) return;
 

@@ -5,7 +5,7 @@
 import type { UserCreatorRepository } from '$lib/domain/user/user-creator.js';
 import type { UserCreator, NewUserCreator } from '$lib/domain/user/user-creator.js';
 import { createUserSettings } from '$lib/domain/user/user.js';
-import { getDatabase } from './db.js';
+import { getStorageBackend } from './db.js';
 
 export function createUserCreatorStore(): UserCreatorRepository {
 	/** Ensure legacy records have new fields with defaults */
@@ -18,19 +18,19 @@ export function createUserCreatorStore(): UserCreatorRepository {
 
 	return {
 		async getAll(): Promise<UserCreator[]> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const users = await db.users.query<UserCreator>('role', 'creator');
 			return users.map(migrate);
 		},
 
 		async getById(id: string): Promise<UserCreator | null> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const user = await db.users.getById<UserCreator>(id);
 			return user ? migrate(user) : null;
 		},
 
 		async create(data: NewUserCreator): Promise<UserCreator> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const now = new Date();
 			const creator: UserCreator = {
 				id: crypto.randomUUID(),
@@ -51,7 +51,7 @@ export function createUserCreatorStore(): UserCreatorRepository {
 		},
 
 		async update(id: string, data: Partial<NewUserCreator>): Promise<UserCreator> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const existing = await db.users.getById<UserCreator>(id);
 			if (!existing) throw new Error(`UserCreator not found: ${id}`);
 
@@ -65,7 +65,7 @@ export function createUserCreatorStore(): UserCreatorRepository {
 		},
 
 		async delete(id: string): Promise<void> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			await db.users.delete(id);
 		}
 	};

@@ -11,22 +11,22 @@ import type {
 	TreeNode
 } from '$lib/domain/content-tree/content-tree.js';
 import { parseTreeId } from '$lib/domain/content-tree/content-tree.js';
-import { getDatabase } from './db.js';
+import { getStorageBackend } from './db.js';
 
 export function createContentTreeStore(): ContentTreeRepository {
 	return {
 		async getAll(): Promise<ContentTree[]> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			return db.contentTrees.getAll<ContentTree>();
 		},
 
 		async getById(id: string): Promise<ContentTree | null> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			return db.contentTrees.getById<ContentTree>(id);
 		},
 
 		async getByIds(ids: string[]): Promise<ContentTree[]> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const results: ContentTree[] = [];
 			for (const id of ids) {
 				const tree = await db.contentTrees.getById<ContentTree>(id);
@@ -36,17 +36,17 @@ export function createContentTreeStore(): ContentTreeRepository {
 		},
 
 		async getByAuthor(authorId: string): Promise<ContentTree[]> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			return db.contentTrees.query<ContentTree>('author', authorId);
 		},
 
 		async put(tree: ContentTree): Promise<void> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			await db.contentTrees.put(tree);
 		},
 
 		async delete(id: string): Promise<void> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			await db.contentTrees.delete(id);
 		}
 	};

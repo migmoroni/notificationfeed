@@ -17,7 +17,7 @@ import type {
 	NewActivityEvent
 } from '$lib/domain/user/activity.js';
 import { createActivityData } from '$lib/domain/user/activity.js';
-import { getDatabase } from './db.js';
+import { getStorageBackend } from './db.js';
 import { PERSISTENCE } from '$lib/config/back-settings.js';
 
 /** Skip a new event when the same `targetId` appears in the last N events. */
@@ -49,12 +49,12 @@ function isDuplicate(events: readonly ActivityEvent[], candidate: NewActivityEve
 export function createActivityStore(): ActivityRepository {
 	return {
 		async getByUserId(userId: string): Promise<ActivityData | null> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			return db.activityData.getById<ActivityData>(userId);
 		},
 
 		async appendEvent(userId: string, event: NewActivityEvent): Promise<number | null> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			const existing = await db.activityData.getById<ActivityData>(userId);
 			const row: ActivityData = existing ?? createActivityData(userId);
 
@@ -68,7 +68,7 @@ export function createActivityStore(): ActivityRepository {
 		},
 
 		async deleteByUserId(userId: string): Promise<void> {
-			const db = await getDatabase();
+			const db = await getStorageBackend();
 			await db.activityData.delete(userId);
 		}
 	};
