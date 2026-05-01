@@ -45,6 +45,7 @@ import { fetchRssFeed } from '$lib/ingestion/rss/rss.client.js';
 import { fetchAtomFeed } from '$lib/ingestion/atom/atom.client.js';
 import { fetchNostrFeed } from '$lib/ingestion/nostr/nostr.client.js';
 import { runRetention } from './retention.js';
+import { runNotificationPipeline } from '$lib/notifications/notification-engine.js';
 
 export interface PostManagerDeps {
 	/** Returns the userId currently focused in the UI (if any). */
@@ -263,10 +264,23 @@ async function processFont(
 
 		// Broadcast to every interested user box.
 		let totalInserted = 0;
+		const usersWithNew = new Set<string>();
 		for (const userId of entry.userIds) {
 			if (posts.length === 0) continue;
 			const result = await savePostsForUser(userId, posts as IngestedPost[]);
 			totalInserted += result.inserted;
+			if (result.inserted > 0) usersWithNew.add(userId);
+		}
+
+		// Run the notification pipeline once per user that received
+		// fresh posts. Errors are isolated — a failing pipeline must
+		// never break ingestion.
+		for (const userId of usersWithNew) {
+			try {
+				await runNotificationPipeline(userId, ctx.now);
+			} catch (err) {
+				console.warn('[post-manager] notification pipeline failed', userId, err);
+			}
 		}
 
 		const next: FetcherState = {

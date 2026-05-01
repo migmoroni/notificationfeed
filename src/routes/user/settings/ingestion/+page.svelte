@@ -414,24 +414,6 @@
 
 	<Separator class="my-6" />
 
-	<section class="space-y-4">
-		<h2 class="text-sm font-semibold">{t('ingestion_settings.notifications')}</h2>
-		<p class="text-xs text-muted-foreground">{t('ingestion_settings.notifications_hint')}</p>
-
-		<div class="flex items-center justify-between gap-4">
-			<div class="min-w-0">
-				<p class="text-sm font-medium">{t('ingestion_settings.notify_on_new')}</p>
-				<p class="text-xs text-muted-foreground">{t('ingestion_settings.notify_hint')}</p>
-			</div>
-			<Switch
-				checked={settings.notifyOnNewPosts}
-				onCheckedChange={(v) => update('notifyOnNewPosts', v)}
-			/>
-		</div>
-	</section>
-
-	<Separator class="my-6" />
-
 	<Button variant="outline" onclick={restoreDefaults}>
 		{t('ingestion_settings.restore_defaults')}
 	</Button>

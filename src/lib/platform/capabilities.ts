@@ -44,6 +44,8 @@ export interface Capabilities {
 	hasPeriodicSync: boolean;
 	/** Supports install prompt (A2HS) */
 	hasInstallPrompt: boolean;
+	/** Can deliver OS notifications (web Notification API or Tauri plugin). */
+	hasNotifications: boolean;
 }
 
 function detectStorageBackend(): StorageBackendKind {
@@ -64,6 +66,10 @@ function detectPeriodicSync(): boolean {
 export function getCapabilities(): Capabilities {
 	const platform = detectPlatform();
 	const hasServiceWorker = typeof navigator !== 'undefined' && 'serviceWorker' in navigator;
+	const hasNotifications =
+		platform === 'desktop' ||
+		(typeof window !== 'undefined' && 'Notification' in window) ||
+		(typeof self !== 'undefined' && 'Notification' in self);
 
 	return {
 		platform,
@@ -75,6 +81,7 @@ export function getCapabilities(): Capabilities {
 		hasServiceWorker,
 		hasBackgroundSync: hasServiceWorker && detectBackgroundSync(),
 		hasPeriodicSync: hasServiceWorker && detectPeriodicSync(),
-		hasInstallPrompt: platform === 'web'
+		hasInstallPrompt: platform === 'web',
+		hasNotifications
 	};
 }

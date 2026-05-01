@@ -60,6 +60,8 @@ export async function openSqliteBackend(): Promise<StorageBackend> {
 		posts: notImplementedTable(),
 		fetcherStates: notImplementedTable(),
 		categories: notImplementedTable(),
-		activityData: notImplementedTable()
+		activityData: notImplementedTable(),
+		notificationMeta: notImplementedTable(),
+		notificationInbox: notImplementedTable()
 	};
 }

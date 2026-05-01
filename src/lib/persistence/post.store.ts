@@ -22,7 +22,10 @@ interface StoredPost extends CanonicalPost {
 }
 
 /** Post payload as produced by normalizers (no userId, no synthetic keys). */
-export type IngestedPost = Omit<CanonicalPost, 'userId' | 'savedAt' | 'trashedAt' | 'read'> & {
+export type IngestedPost = Omit<
+	CanonicalPost,
+	'userId' | 'savedAt' | 'trashedAt' | 'read' | 'notifiedAt'
+> & {
 	read?: boolean;
 	savedAt?: number | null;
 	trashedAt?: number | null;
@@ -106,7 +109,8 @@ export async function savePostsForUser(
 				ingestedAt: existing.ingestedAt,
 				read: existing.read,
 				savedAt: existing.savedAt,
-				trashedAt: existing.trashedAt
+				trashedAt: existing.trashedAt,
+				notifiedAt: existing.notifiedAt ?? null
 			};
 			await db.posts.put(toStored(merged));
 			updated++;
@@ -124,7 +128,8 @@ export async function savePostsForUser(
 				ingestedAt: incoming.ingestedAt,
 				read: incoming.read ?? false,
 				savedAt: incoming.savedAt ?? null,
-				trashedAt: incoming.trashedAt ?? null
+				trashedAt: incoming.trashedAt ?? null,
+				notifiedAt: null
 			};
 			await db.posts.put(toStored(fresh));
 			inserted++;
@@ -293,6 +298,45 @@ export async function deletePostsForUserNode(userId: string, nodeId: string): Pr
 }
 
 /**
+ * Return the user's posts that the notification engine has not yet
+ * processed (i.e. `notifiedAt == null`). Trashed posts are excluded
+ * — once a post is in trash there's no point notifying about it.
+ */
+export async function listUnnotifiedForUser(userId: string): Promise<CanonicalPost[]> {
+	const db = await getStorageBackend();
+	const records = await db.posts.query<StoredPost>('byUser', userId);
+	return records
+		.filter((r) => r.notifiedAt == null && r.trashedAt == null)
+		.map(fromStored)
+		.sort((a, b) => b.publishedAt - a.publishedAt);
+}
+
+/**
+ * Stamp `notifiedAt` on a batch of posts. The engine calls this once
+ * a step has produced its inbox entry / OS notification, so the same
+ * posts never trigger another notification on subsequent ticks.
+ */
+export async function markPostsNotified(
+	userId: string,
+	postKeys: { nodeId: string; postId: string }[],
+	at: number = Date.now()
+): Promise<number> {
+	if (postKeys.length === 0) return 0;
+	const db = await getStorageBackend();
+	let count = 0;
+	for (const k of postKeys) {
+		const key = pk(userId, k.nodeId, k.postId);
+		const existing = await db.posts.getById<StoredPost>(key);
+		if (!existing) continue;
+		if (existing.notifiedAt != null) continue;
+		existing.notifiedAt = at;
+		await db.posts.put(existing);
+		count++;
+	}
+	return count;
+}
+
+/**
  * Backfill a user's box with posts that already exist in *other* users'
  * boxes for the same source. Called when a user newly activates a font
  * so they immediately see historical content without waiting for the
@@ -340,7 +384,11 @@ export async function backfillPostsForUserNode(
 			ingestedAt: now,
 			read: false,
 			savedAt: null,
-			trashedAt: null
+			trashedAt: null,
+			// Backfilled posts are pre-seen by the pipeline — they
+			// existed before this user activated the source, so we
+			// should not generate notifications for them.
+			notifiedAt: now
 		};
 		await db.posts.put(toStored(fresh));
 		inserted++;

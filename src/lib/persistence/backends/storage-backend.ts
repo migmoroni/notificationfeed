@@ -63,6 +63,10 @@ export interface StorageBackend {
 	categories: StoreOps;
 	/** Activity / read-history aggregates used by the dashboard. */
 	activityData: StoreOps;
+	/** Per-user notification metadata (per-step lastFiredAt, lastClearedAt, …). */
+	notificationMeta: StoreOps;
+	/** In-app notification inbox. Composite key via `_pk = ${userId}|${notifId}`. */
+	notificationInbox: StoreOps;
 }
 
 /** Names of all known stores. Drives schema-as-data in Plan B. */
@@ -76,6 +80,8 @@ export const STORE_NAMES = [
 	'posts',
 	'fetcherStates',
 	'categories',
-	'activityData'
+	'activityData',
+	'notificationMeta',
+	'notificationInbox'
 ] as const satisfies readonly (keyof StorageBackend)[];
 export type StoreName = (typeof STORE_NAMES)[number];

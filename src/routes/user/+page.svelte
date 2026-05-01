@@ -507,6 +507,16 @@ onchange={(e) => handleLanguageChange((e.target as HTMLSelectElement).value as L
 </Button>
 </div>
 
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm font-medium">{t('notifications.settings_title')}</p>
+<p class="text-xs text-muted-foreground">{t('notifications.settings_hint')}</p>
+</div>
+<Button variant="outline" size="sm" href="/user/settings/notifications">
+{t('user.ingestion_manage')}
+</Button>
+</div>
+
 <InstallButton />
 </div>
 </section>

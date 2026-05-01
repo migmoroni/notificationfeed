@@ -80,7 +80,17 @@ export const STORE_SPECS: readonly StoreSpec[] = [
 			{ name: 'treeId', keyPath: 'treeId' }
 		]
 	},
-	{ name: 'activityData', keyPath: 'userId' }
+	{ name: 'activityData', keyPath: 'userId' },
+	// Per-user notification metadata (per-step lastFiredAt, lastClearedAt, …).
+	// The pipeline definition itself lives on the user record
+	// (`settingsUser.notifications`); only runtime metadata sits here.
+	{ name: 'notificationMeta', keyPath: 'userId' },
+	// In-app notification inbox. `_pk = ${userId}|${notifId}`, indexed by user.
+	{
+		name: 'notificationInbox',
+		keyPath: '_pk',
+		indexes: [{ name: 'byUser', keyPath: 'userId' }]
+	}
 ] as const;
 
 export type SchemaStoreName = (typeof STORE_SPECS)[number]['name'];

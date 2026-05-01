@@ -10,6 +10,10 @@ import {
 	createIngestionSettings,
 	type IngestionSettings
 } from '../ingestion/ingestion-settings.js';
+import {
+	createNotificationPipeline,
+	type NotificationPipeline
+} from '../notifications/pipeline.js';
 
 export type UserRole = 'consumer' | 'creator';
 
@@ -30,6 +34,12 @@ export interface UserSettings {
 	};
 	/** Ingestion / scheduler / retention configuration. */
 	ingestion: IngestionSettings;
+	/**
+	 * Notification pipeline (master toggle + the three funnel steps).
+	 * Lives here, not in a separate persistence store, because it's a
+	 * per-user preference like every other settings slice.
+	 */
+	notifications: NotificationPipeline;
 }
 
 /** Factory used on user creation to seed default settings. */
@@ -37,7 +47,8 @@ export function createUserSettings(language = 'en-US'): UserSettings {
 	return {
 		language,
 		activity: { enabled: true },
-		ingestion: createIngestionSettings()
+		ingestion: createIngestionSettings(),
+		notifications: createNotificationPipeline()
 	};
 }
 

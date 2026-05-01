@@ -80,25 +80,43 @@ self.addEventListener('message', (event) => {
         }
 });
 
+// Notification click — focus an existing window if one is open, otherwise
+// open a new one. The target URL is set by the engine via the
+// `data.targetUrl` field on `showNotification`.
+self.addEventListener('notificationclick', (event) => {
+        event.notification.close();
+        const data = event.notification.data as { targetUrl?: string } | undefined;
+        const targetUrl = data?.targetUrl ?? '/';
+        event.waitUntil(
+                (async () => {
+                        const clientsApi = (self as unknown as ServiceWorkerGlobalScope).clients;
+                        const allClients = await clientsApi.matchAll({
+                                type: 'window',
+                                includeUncontrolled: true
+                        });
+                        // Prefer focusing an open window — navigate it to the target.
+                        for (const c of allClients) {
+                                try {
+                                        await (c as WindowClient).focus();
+                                        await (c as WindowClient).navigate(targetUrl);
+                                        return;
+                                } catch {
+                                        /* try next */
+                                }
+                        }
+                        await clientsApi.openWindow(targetUrl);
+                })()
+        );
+});
+
 async function runTickInSW(trigger: string): Promise<void> {
         try {
                 const { createPostManager } = await import('$lib/ingestion/post-manager.js');
                 const manager = createPostManager({ getActiveUserId: () => null });
                 const result = await manager.tick();
                 console.debug('[sw] tick done', trigger, result);
-
-                // Optional: surface a notification when new posts landed.
-                if (result.postsInserted > 0 && self.registration && 'showNotification' in self.registration) {
-                        try {
-                                await self.registration.showNotification('Notfeed', {
-                                        body: `${result.postsInserted} novos posts`,
-                                        tag: 'notfeed-new',
-                                        renotify: false
-                                });
-                        } catch {
-                                /* permission not granted */
-                        }
-                }
+                // Notifications are delegated to the per-user pipeline run from
+                // inside `post-manager.processFont` (see notification-engine).
         } catch (err) {
                 console.warn('[sw] tick failed', trigger, err);
         }

@@ -3,9 +3,11 @@
 	import { feed } from '$lib/stores/feed.svelte.js';
 	import { feedCategories } from '$lib/stores/feed-categories.svelte.js';
 	import { feedEntityFilter } from '$lib/stores/feed-entity-filter.svelte.js';
-	import { feedMacros } from '$lib/stores/feed-macros.svelte.js';
+	import { feedMacros, ALL_MACROS_ID } from '$lib/stores/feed-macros.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { sidebarSlot } from '$lib/stores/sidebar-slot.svelte.js';
+	import { page } from '$app/state';
+	import { replaceState } from '$app/navigation';
 	import FeedList from '$lib/components/feed/FeedList.svelte';
 	import { PriorityFilter } from '$lib/components/feed/index.js';
 	import FeedMacros from '$lib/components/feed/FeedMacros.svelte';
@@ -141,6 +143,43 @@
 		feedCategories.loadCategories();
 		feedEntityFilter.loadNodes();
 		sidebarSlot.set(sidebarContent);
+	});
+
+	/**
+	 * Notification deep-link: `/?macro=<id>` (or `__all__`) routes
+	 * here from the bell / OS notification click. We apply the macro
+	 * then strip the param so subsequent edits don't re-apply on
+	 * reload. Lives in a `$effect` (not `onMount`) because clicking
+	 * the bell while already on `/` calls `goto` without remounting,
+	 * so `onMount` would miss the param. The effect depends on the
+	 * macro list too so a click that lands before macros are loaded
+	 * still resolves once they arrive.
+	 */
+	$effect(() => {
+		const macroParam = page.url.searchParams.get('macro');
+		if (!macroParam) return;
+		const macros = feedMacros.macros;
+		const isAll = macroParam === ALL_MACROS_ID;
+		if (!isAll && !macros.some((m) => m.id === macroParam)) {
+			// macros may still be loading — wait for next run.
+			return;
+		}
+		untrack(() => {
+			// `__all__` represents the "global / everything" view. The
+			// combined "all my macros" sidebar entry only renders when
+			// the user has ≥2 saved macros; below that threshold the
+			// equivalent view is the default unfiltered "All" entry
+			// (`activeMacroId === null`). Fall through to it so the
+			// notification's destination is always something the user
+			// can actually see selected in the sidebar.
+			const target =
+				isAll && macros.length < 2 ? null : isAll ? ALL_MACROS_ID : macroParam;
+			feedMacros.applyMacro(target);
+			activeTab = 'saved';
+			const url = new URL(page.url);
+			url.searchParams.delete('macro');
+			replaceState(url, page.state);
+		});
 	});
 
 	onDestroy(() => {

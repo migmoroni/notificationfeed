@@ -92,7 +92,7 @@ export const PERSISTENCE = {
 	/** Database name — change only if you intend a hard split. */
 	dbName: 'notfeed-v2',
 	/** Schema version. Bumping wipes data (destructive migration). */
-	dbSchemaVersion: 12,
+	dbSchemaVersion: 15,
 	/** Skip new activity events when the same targetId is among the last N. */
 	activityDedupRecentCount: 3,
 	/** Skip new activity events when the same targetId fired within this window. */
@@ -168,3 +168,57 @@ export const UI_BREAKPOINTS = {
 
 export type UiLimits = typeof UI_LIMITS;
 export type UiBreakpoints = typeof UI_BREAKPOINTS;
+
+// ── Notifications ──────────────────────────────────────────────────────
+
+/**
+ * Notification pipeline defaults. The pipeline is fixed in shape —
+ * exactly three steps in funnel order, identified by stable ids:
+ *
+ *   1. `per_post`     — fire one notification per post matched by the
+ *                       feed-macros the user picked. Click opens the
+ *                       post URL.
+ *   2. `batch_macro`  — fire one summary per matched feed-macro when
+ *                       new posts arrive. Click opens the feed page
+ *                       with that macro selected.
+ *   3. `batch_global` — catch-all: fire one global summary when any
+ *                       new posts arrive at all. Click opens the feed
+ *                       page with the “all” macro selected.
+ *
+ * Steps 1 and 2 only ever reference feed-macros the user has already
+ * created on the feed page — the notification system never defines
+ * its own filter logic. They start with an empty `macroIds`, so they
+ * stay dormant until the user picks at least one macro.
+ *
+ * The OS notification tag is shared across runtimes (web `Notification`
+ * / SW `showNotification` / Tauri plugin) so a new batch supersedes the
+ * previous unread one instead of stacking.
+ */
+export const NOTIFICATIONS = {
+	/** Master switch seeded on first run for every user. */
+	defaultEnabled: true,
+	/** Stable ids of the three pipeline steps, in funnel order. */
+	stepIds: {
+		perPost: 'per_post',
+		batchMacro: 'batch_macro',
+		batchGlobal: 'batch_global'
+	},
+	/**
+	 * Defaults applied when seeding a fresh pipeline. Steps 1 and 2 start
+	 * dormant (no macros selected); step 3 — the catch-all — fires every
+	 * 30 minutes whenever any new post arrives.
+	 */
+	defaultPipelineSteps: [
+		{ id: 'per_post', kind: 'per_post' as const, macroIds: [] as string[], intervalMs: 0 },
+		{ id: 'batch_macro', kind: 'batch_macro' as const, macroIds: [] as string[], intervalMs: 30 * MINUTE },
+		{ id: 'batch_global', kind: 'batch_global' as const, macroIds: [] as string[], intervalMs: 30 * MINUTE }
+	],
+	/** How many recent inbox entries the bell popover shows. */
+	inboxRecentLimit: 20,
+	/** Hard cap on stored inbox entries per user — older ones get pruned. */
+	inboxHardCap: 500,
+	/** OS notification tag — newer notifications replace the previous unread one. */
+	osNotificationTag: 'notfeed-new'
+} as const;
+
+export type Notifications = typeof NOTIFICATIONS;

@@ -176,8 +176,43 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 - [ ] Service Worker com cache strategies (cache-first para assets, network-first para dados)
 - [ ] Web App Manifest (ícones, display: standalone, theme_color)
 - [ ] Install prompt na UI
-- [ ] Notificações de novos posts (background)
+- [x] Notificações de novos posts (pipeline de 3 etapas referenciando feed-macros, ADR-040)
 - [ ] Lighthouse audit (alvo: PWA score 100)
+
+---
+
+## Fase 7.1 — Pipeline de Notificações ✅
+
+> Funil fixo de três etapas (per_post → batch_macro → batch_global) que referencia feed-macros criados pelo usuário. Inbox in-app + OS notifications best-effort + click-routing.
+
+### Domínio
+- [x] `NotificationPipeline` em `UserSettings.notifications` (3 steps fixos)
+- [x] `NotificationStep { id, kind, macroIds: string[], intervalMs }`
+- [x] `InboxEntry.target` discriminado: `{ kind:'url', url, postId }` ou `{ kind:'macro', macroId }`
+- [x] `dbSchemaVersion: 15` (substituição destrutiva, ADR-004)
+
+### Engine
+- [x] `notification-engine.ts` isomórfico (foreground + service worker)
+- [x] First-match-wins por post nos 3 steps
+- [x] `intervalMs` clampeado pelo menor `*IntervalMs` da ingestão
+- [x] `macro-evaluator.ts` (`buildNodeCategoryIndex`, `postMatchesMacro`) como fonte única para "post bate macro?"
+- [x] IDs de macro órfãos silenciosamente ignorados
+
+### Surfaces
+- [x] `os-notifier` propaga `data.targetUrl` (browser + SW)
+- [x] SW `notificationclick` reusa janela aberta via `clients.matchAll`+`focus`+`navigate`
+- [x] `NotificationBell` roteia inbox click via `entry.target` (`window.open` para post, `goto('/?macro=…')` para macro)
+- [x] Página `/` lê `?macro=` em `$effect`, aplica e remove via `replaceState`
+- [x] Fallback `__all__` → `applyMacro(null)` quando o usuário tem < 2 macros
+
+### Settings UI
+- [x] `/user/settings/notifications` — funil de 3 cartões fixos com multi-select de macros
+- [x] Sem enumeração de fontes ativadas — fonte da verdade é `consumer.feedMacros`
+- [x] Floor de intervalo casa com a menor cadência de ingestão
+
+### i18n
+- [x] Chaves renomeadas: `*_fonts_*` → `*_macros_*`, `step_kind_batch_node` → `step_kind_batch_macro`
+- [x] Hints reescritos para mencionar destino do clique (en-US + pt-BR)
 
 ---
 

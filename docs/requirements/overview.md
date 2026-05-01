@@ -96,6 +96,7 @@ Notfeed é um cliente de agregação de informação focado em feeds e notifica�
 18. ✅ Per-user post boxes com backfill ao ativar fonte
 19. ✅ Tiers de ociosidade e backoff configuráveis per-usuário
 20. ✅ Conditional GET (ETag / Last-Modified) e FetcherState per-source
+21. ✅ Pipeline de notificações como funil fixo de três etapas referenciando feed-macros (per_post / batch_macro / batch_global), com inbox in-app, OS notifications best-effort e click-routing (post URL ou `/?macro=<id>`)
 
 ## Escopo futuro
 

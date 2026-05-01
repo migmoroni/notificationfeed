@@ -79,9 +79,6 @@ export interface IngestionSettings {
 	proxyEnabled: boolean;
 	/** Ordered list; first 2xx response wins. */
 	proxyServices: ProxyConfig[];
-
-	/** Show OS notification when new posts arrive (PWA only, requires permission). */
-	notifyOnNewPosts: boolean;
 }
 
 export const DEFAULT_PROXIES: ProxyConfig[] = [
@@ -104,7 +101,6 @@ export function createIngestionSettings(): IngestionSettings {
 		trashAgeOrphanDays: 30,
 		purgeAfterTrashDays: 30,
 		proxyEnabled: true,
-		proxyServices: [...DEFAULT_PROXIES],
-		notifyOnNewPosts: false
+		proxyServices: [...DEFAULT_PROXIES]
 	};
 }

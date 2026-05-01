@@ -333,6 +333,30 @@ export const activeUser = {
 	},
 
 	/**
+	 * Replace the user's notification pipeline (master toggle + steps).
+	 * Stamps `updatedAt` on the pipeline so consumers can react.
+	 */
+	async setNotificationPipeline(userId: string, pipeline: import('$lib/domain/notifications/pipeline.js').NotificationPipeline): Promise<void> {
+		const user = state.allUsers.find(u => u.id === userId);
+		if (!user) return;
+
+		const updated: UserBase = {
+			...user,
+			settingsUser: {
+				...user.settingsUser,
+				notifications: { ...pipeline, updatedAt: Date.now() }
+			},
+			updatedAt: new Date()
+		};
+		await persistUser(updated);
+
+		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		if (state.current?.id === userId) {
+			state.current = updated;
+		}
+	},
+
+	/**
 	 * Stamp a user as having "interacted with the app" right now.
 	 * Used by the ingestion scheduler to decide which idle-tier
 	 * polling interval applies to this user's fonts.

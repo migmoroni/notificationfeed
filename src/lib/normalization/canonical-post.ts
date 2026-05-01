@@ -51,4 +51,11 @@ export interface CanonicalPost {
 
 	/** When the post was sent to trash (epoch ms), or null. */
 	trashedAt: number | null;
+
+	/**
+	 * When the notification engine fired a notification covering this
+	 * post (epoch ms), or null when not yet processed. Marks the post
+	 * as “seen by the pipeline” so subsequent ticks ignore it.
+	 */
+	notifiedAt: number | null;
 }
