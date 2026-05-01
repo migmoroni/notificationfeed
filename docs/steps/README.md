@@ -257,8 +257,8 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 
 > Conectar a fontes reais.
 
-- [ ] Ingestion clients (Nostr WebSocket, RSS fetch, Atom fetch)
-- [ ] Normalizers (Nostr, RSS, Atom → CanonicalPost)
+- [ ] Ingestion clients (Nostr WebSocket, RSS fetch, Atom fetch, JSON Feed fetch)
+- [ ] Normalizers (Nostr, RSS, Atom, JSON Feed → CanonicalPost)
 - [ ] Ingestion scheduler (polling + WebSocket)
 - [ ] Timeline com scroll infinito usando posts reais
 - [ ] Marcar posts como lidos

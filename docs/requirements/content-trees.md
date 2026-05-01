@@ -127,7 +127,7 @@ TreeExport {
 
 Dois modos:
 1. **TreeExport** (.notfeed.json) — `importTreeExport()`: valida JSON, checa duplicatas por `exportId`, persiste tree + medias em `contentTrees`/`contentMedias`
-2. **URLs simples** — `importSimpleUrls()`: auto-detecta RSS/Atom, cria ContentTree com profile node + font nodes (uma font por URL)
+2. **URLs simples** — `importSimpleUrls()`: auto-detecta RSS/Atom/JSON Feed, cria ContentTree com profile node + font nodes (uma font por URL)
 
 ## Regras de negócio
 

@@ -2,7 +2,7 @@
 
 ## O que é
 
-Notfeed é um cliente de agregação de informação focado em feeds e notificações. Consome dados de múltiplos protocolos (Nostr, RSS, Atom) e os apresenta em uma timeline unificada.
+Notfeed é um cliente de agregação de informação focado em feeds e notificações. Consome dados de múltiplos protocolos (Nostr, RSS, Atom, JSON Feed) e os apresenta em uma timeline unificada.
 
 ## Princípios
 
@@ -92,7 +92,7 @@ Notfeed é um cliente de agregação de informação focado em feeds e notifica�
 14. ✅ i18n (en-US + pt-BR) com tradução de categories
 15. ✅ Entity filter centralizado (two-level selection)
 16. ✅ Navegação unificada Browse ↔ Library via baseHref
-17. ✅ Ingestão RSS / Atom / Nostr com PostManager isomórfico (Plano B)
+17. ✅ Ingestão RSS / Atom / JSON Feed / Nostr com PostManager isomórfico (Plano B)
 18. ✅ Per-user post boxes com backfill ao ativar fonte
 19. ✅ Tiers de ociosidade e backoff configuráveis per-usuário
 20. ✅ Conditional GET (ETag / Last-Modified) e FetcherState per-source

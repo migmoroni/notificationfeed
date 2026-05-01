@@ -2,7 +2,7 @@
 
 ## Definição
 
-Font (fonte de dados) é um TreeNode com `role='font'` dentro de uma ContentTree. Encapsula a configuração técnica de um protocolo de ingestão (Nostr, RSS ou Atom). Herda categories do nó pai via propagação ascendente.
+Font (fonte de dados) é um TreeNode com `role='font'` dentro de uma ContentTree. Encapsula a configuração técnica de um protocolo de ingestão (Nostr, RSS, Atom ou JSON Feed). Herda categories do nó pai via propagação ascendente.
 
 ## Estrutura
 
@@ -21,7 +21,7 @@ TreeNode {
     }
     body: FontBody {
       role: 'font'
-      protocol: FontProtocol                // 'nostr' | 'rss' | 'atom'
+      protocol: FontProtocol                // 'nostr' | 'rss' | 'atom' | 'jsonfeed'
       config: FontConfig                    // Config específica do protocolo
       defaultEnabled: boolean               // Estado padrão para novos consumers
     }
@@ -60,6 +60,13 @@ TreeNode {
 }
 ```
 
+### JSON Feed (`FontJsonfeedConfig`)
+```typescript
+{
+  url: string         // Ex: "https://example.com/feed.json" (JSON Feed v1.0/v1.1)
+}
+```
+
 ## ID composto
 
 O ID global de uma Font é `treeId:localUuid`:
@@ -77,7 +84,7 @@ O ID global de uma Font é `treeId:localUuid`:
 - Font é sempre um nó embarcado em uma ContentTree. Não existe como entidade independente.
 - Somente o creator dono da ContentTree pode editar.
 - Title deve ter entre 1 e 100 caracteres.
-- A URL de RSS/Atom deve ser válida.
+- A URL de RSS/Atom/JSON Feed deve ser válida.
 - O pubkey de Nostr deve ser um hexadecimal ou npub válido.
 - `defaultEnabled` determina o estado inicial para consumers que não têm overrides.
 - Consumer pode ativar/desativar via `NodeActivation.enabled`.
@@ -88,7 +95,8 @@ O ID global de uma Font é `treeId:localUuid`:
 ## Detecção de protocolo (import)
 
 Na importação por URL simples, o protocolo é detectado heuristicamente:
-- Presença de `'atom'`, `'.xml'`, `'/feed'`, `'rss'` na URL → inferência do tipo
+- URL termina com `.json`, contém `'feed.json'` ou `'jsonfeed'` → JSON Feed (precedência sobre XML)
+- Presença de `'atom'`, `'.xml'`, `'/feed'`, `'rss'` na URL → RSS/Atom
 - Default: RSS
 
 ## Navegação

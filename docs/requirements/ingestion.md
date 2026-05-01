@@ -1,4 +1,4 @@
-# Ingestão e Normalização — Requisitos (Plano B)
+# Ingestão e Normalização — Requisitos
 
 ## Fluxo de dados
 
@@ -45,6 +45,7 @@ Roda no foreground enquanto o app está aberto; no Service Worker, é acionado v
 |---|---|---|
 | RSS 2.0 | `ingestion/rss/rss.client.ts` | HTTP GET com conditional headers; parse XML |
 | Atom 1.0 | `ingestion/atom/atom.client.ts` | HTTP GET com conditional headers; parse XML |
+| JSON Feed 1.0/1.1 | `ingestion/jsonfeed/jsonfeed.client.ts` | HTTP GET com conditional headers; `JSON.parse` lenient (erro/shape inválido → `[]`) |
 | Nostr | `ingestion/nostr/nostr.client.ts` | WebSocket nos relays da Font; `REQ` com filtros (`authors`, `kinds`), encerra após `EOSE` |
 
 ### HTTP Adapter (`$lib/ingestion/net/`)
@@ -63,6 +64,7 @@ Funções **puras** que produzem `IngestedPost` (mesmo shape do `CanonicalPost` 
 |---|---|---|
 | `normalizeRssItem(item, nodeId)` | IngestedPost | id = `guid ?? link`; data inválida → `now` |
 | `normalizeAtomEntry(entry, nodeId)` | IngestedPost | id = `entry.id`; prefere `<content>` sobre `<summary>` |
+| `normalizeJsonfeedItem(item, nodeId)` | IngestedPost | id = `item.id ?? item.url`; conteúdo: `content_html` → `content_text` → `summary`; autor v1.1 (`authors[0].name`) → v1 (`author.name`); data: `date_published` → `date_modified` → `now` |
 | `normalizeNostrEvent(event, nodeId)` | IngestedPost | id = `event.id`; URL = `nostr:{id}` (NIP-21); `created_at` em segundos → ms |
 
 ## Configuração per-usuário
@@ -93,7 +95,7 @@ Fórmula: `min(intervalo * multiplier^min(failures, maxSteps), maxMs)` + jitter.
 
 ### Retenção (órfãos)
 
-Cada usuário tem `orphanRetentionMs` (default 30 dias). `runRetention(now)` move para a lixeira posts com `publishedAt < now - retention` que não estão `saved` nem `trashed`. Posts marcados como saved nunca caem na retenção.
+Cada usuário tem janelas de retenção para fontes ativas e órfãs. `runRetention(now)` move para a lixeira posts com `ingestedAt < now - retention` que não estão `saved` nem `trashed`. A data original de publicação não decide retenção; um post antigo recém-ingerido ainda fica visível. Posts marcados como saved nunca caem na retenção.
 
 ## Persistência
 
@@ -149,7 +151,7 @@ interface FetcherState {
 - [x] Backoff exponencial system-level em `back-settings.ts` (config do dev)
 - [x] Tiers de ociosidade configuráveis (5 fields)
 - [x] HTTP adapter por plataforma (web proxy / Tauri http)
-- [x] Normalizadores RSS / Atom / Nostr (puros, sem userId)
+- [x] Normalizadores RSS / Atom / JSON Feed / Nostr (puros, sem userId)
 - [x] Per-user post boxes com backfill
 - [x] FetcherState per-source compartilhado
 - [x] Retenção de órfãos per-usuário

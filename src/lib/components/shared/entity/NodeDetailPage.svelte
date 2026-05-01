@@ -28,6 +28,9 @@ import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 import Globe from '@lucide/svelte/icons/globe';
 import User from '@lucide/svelte/icons/user';
 import Rss from '@lucide/svelte/icons/rss';
+import Atom from '@lucide/svelte/icons/atom';
+import Zap from '@lucide/svelte/icons/zap';
+import Braces from '@lucide/svelte/icons/braces';
 import Link from '@lucide/svelte/icons/link';
 import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
 import ConfirmUnfollowDialog from '$lib/components/shared/dialog/ConfirmUnfollowDialog.svelte';
@@ -65,6 +68,18 @@ tree: { label: 'Tree Link', icon: Link }
 };
 
 let meta = $derived(node ? roleMeta[node.role] ?? { label: node.role, icon: Globe } : null);
+
+/** Protocol-specific icon for font nodes; falls back to the role icon. */
+function protocolIconFor(n: TreeNode | null): typeof Globe | null {
+	if (!n || !isFontNode(n)) return null;
+	const proto = n.data.body.protocol;
+	if (proto === 'atom') return Atom;
+	if (proto === 'jsonfeed') return Braces;
+	if (proto === 'nostr') return Zap;
+	return Rss;
+}
+
+let protocolIcon = $derived(protocolIconFor(node));
 let activation = $derived(node ? consumer.getActivation(node.metadata.id) : null);
 let isActivated = $derived(!!activation);
 let isFavorite = $derived(activation?.favorite ?? false);
@@ -280,7 +295,7 @@ class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text
 {avatarEmoji}
 </div>
 {:else if meta}
-{@const MetaIcon = meta.icon}
+{@const MetaIcon = protocolIcon ?? meta.icon}
 <div class="size-20 shrink-0 flex items-center justify-center rounded-lg bg-muted text-muted-foreground">
 <MetaIcon class="size-8" />
 </div>
@@ -358,12 +373,13 @@ class="ml-auto text-xs font-medium px-3 py-1.5 rounded-md border transition-colo
 <div class="flex flex-col gap-2">
 {#each childNodes as child (child.metadata.id)}
 {@const childMeta = roleMeta[child.role]}
+{@const childProtocolIcon = protocolIconFor(child)}
 <a
 href="{baseHref}/node/{child.metadata.id}"
 class="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors"
 >
 {#if childMeta}
-{@const ChildIcon = childMeta.icon}
+{@const ChildIcon = childProtocolIcon ?? childMeta.icon}
 <ChildIcon class="size-5 text-muted-foreground shrink-0" />
 {/if}
 <div class="flex-1 min-w-0">

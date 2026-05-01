@@ -14,7 +14,7 @@
 
 ## ADR-003: Post Canônico como formato único
 
-**Contexto**: RSS, Atom e Nostr têm schemas diferentes.  
+**Contexto**: RSS, Atom, JSON Feed e Nostr têm schemas diferentes.  
 **Decisão**: Normalizar tudo para `CanonicalPost` no ponto de ingestão, antes da persistência.  
 **Consequência**: A UI e persistência nunca lidam com dados crus de protocolo.
 
@@ -156,9 +156,9 @@ Todos os nós compartilham `NodeHeader` (title, subtitle, summary, coverMediaId,
 
 ## ADR-023: Import dual-mode (.notfeed.json + URLs)
 
-**Contexto**: Consumers precisam adicionar conteúdo de duas formas: importar árvores completas (.notfeed.json) de creators, ou colar URLs simples de feeds RSS/Atom.  
-**Decisão**: `ImportService` com dois métodos: `importTreeExport()` valida JSON, checa duplicatas por `exportId`, e persiste ContentTree + ContentMedias. `importSimpleUrls()` auto-detecta RSS/Atom e cria ContentTree com profile + font nodes, uma font por URL. UI em `/browse/import` com tabs (Arquivo / URLs) e preview antes de importar.  
-**Consequência**: Import é consumer-only. Detecção de protocolo é heurística (baseada em URL patterns: 'atom', '.xml', '/feed', 'rss').
+**Contexto**: Consumers precisam adicionar conteúdo de duas formas: importar árvores completas (.notfeed.json) de creators, ou colar URLs simples de feeds RSS/Atom/JSON Feed.  
+**Decisão**: `ImportService` com dois métodos: `importTreeExport()` valida JSON, checa duplicatas por `exportId`, e persiste ContentTree + ContentMedias. `importSimpleUrls()` auto-detecta RSS/Atom/JSON Feed e cria ContentTree com profile + font nodes, uma font por URL. UI em `/browse/import` com tabs (Arquivo / URLs) e preview antes de importar.  
+**Consequência**: Import é consumer-only. Detecção de protocolo é heurística (JSON Feed tem precedência via sufixo `.json`, `feed.json` ou `jsonfeed`; depois URL patterns 'atom', '.xml', '/feed', 'rss').
 
 ## ADR-024: Publish como snapshot versionado
 
@@ -250,7 +250,7 @@ IDs de nós são compostos: `treeId:localUuid` para unicidade global. Utilitári
 ## ADR-037: PostManager isomórfico + FetcherState compartilhado (Plano B)
 
 **Contexto**: A ingestão precisava (a) rodar tanto na thread principal quanto no Service Worker com a mesma lógica, (b) evitar fetches duplicadas quando dois usuários ativam a mesma fonte, e (c) suportar conditional GET e backoff sem duplicar estado.  
-**Decisão**: Criar `PostManager` (`$lib/ingestion/post-manager.ts`) como módulo isomórfico com função-fábrica `createPostManager()` que aceita um `IngestionContext` (lista de usuários ativos, http adapter, capabilities). A mesma instância roda no foreground (driven by scheduler) e no SW (driven por `sync` / `periodicsync`). Estado per-fonte vive em um novo store `fetcherStates` keyed por `nodeId`: `etag`, `lastModified`, `consecutiveFailures`, `nextScheduledAt`. Antes de fetch, o manager calcula o **menor** intervalo desejado entre os usuários interessados (coalescência); aplica conditional GET se há etag/lastModified; em sucesso, normaliza uma vez e faz `savePostsForUser` para cada usuário; em falha, aplica backoff. Normalizadores (`rss/atom/nostr.normalizer.ts`) produzem `IngestedPost` puro (sem `userId`) para reforçar a separação.  
+**Decisão**: Criar `PostManager` (`$lib/ingestion/post-manager.ts`) como módulo isomórfico com função-fábrica `createPostManager()` que aceita um `IngestionContext` (lista de usuários ativos, http adapter, capabilities). A mesma instância roda no foreground (driven by scheduler) e no SW (driven por `sync` / `periodicsync`). Estado per-fonte vive em um novo store `fetcherStates` keyed por `nodeId`: `etag`, `lastModified`, `consecutiveFailures`, `nextScheduledAt`. Antes de fetch, o manager calcula o **menor** intervalo desejado entre os usuários interessados (coalescência); aplica conditional GET se há etag/lastModified; em sucesso, normaliza uma vez e faz `savePostsForUser` para cada usuário; em falha, aplica backoff. Normalizadores (`rss/atom/jsonfeed/nostr.normalizer.ts`) produzem `IngestedPost` puro (sem `userId`) para reforçar a separação.  
 **Consequência**: Uma fetch física por fonte por tick, independentemente de quantos usuários a têm ativada. Settings de ingestão são per-usuário (cada um define seus tiers de ociosidade e backoff), mas a coalescência impede que o número de chamadas de rede cresça com o número de usuários. PostManager pode ser plugado a `Periodic Background Sync` no Plano AB sem refatoração — basta chamar `tick()` no handler do SW.
 
 ## ADR-038: Idle tiers per-usuário + backoff system-level
