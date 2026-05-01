@@ -245,13 +245,18 @@ export async function setTrashed(
 }
 
 /**
- * Bulk-trash posts in a user's box where `publishedAt < cutoff` and the
+ * Bulk-trash posts in a user's box where `ingestedAt < cutoff` and the
  * post is not saved and not already trashed. Returns the count touched.
+ *
+ * Retention is based on when Notfeed first saw the post, not when the
+ * publisher originally dated it. This keeps legitimate archive feeds
+ * (for example JSON Feed specs or old blog imports) visible after a
+ * fresh activation instead of trashing them immediately.
  */
 export async function trashOldPostsForUser(
 	userId: string,
 	nodeIds: string[],
-	cutoffPublishedAt: number,
+	cutoffIngestedAt: number,
 	now: number = Date.now()
 ): Promise<number> {
 	if (nodeIds.length === 0) return 0;
@@ -263,7 +268,7 @@ export async function trashOldPostsForUser(
 		if (!allow.has(r.nodeId)) continue;
 		if (r.savedAt != null) continue;
 		if (r.trashedAt != null) continue;
-		if (r.publishedAt >= cutoffPublishedAt) continue;
+		if (r.ingestedAt >= cutoffIngestedAt) continue;
 		r.trashedAt = now;
 		await db.posts.put(r);
 		count++;

@@ -63,10 +63,10 @@ export interface IngestionSettings {
 	 */
 	refreshOnActivate: boolean;
 
-	/** Posts older than this in active sources auto-move to trash (days). */
+	/** Posts ingested longer ago than this in active sources auto-move to trash (days). */
 	trashAgeActiveDays: number;
 	/**
-	 * Posts older than this on fonts the user has *deactivated* (still
+	 * Posts ingested longer ago than this on fonts the user has *deactivated* (still
 	 * have residual posts in this user's box) auto-move to trash. This
 	 * is a per-user judgment: other users keeping the same font active
 	 * are unaffected.

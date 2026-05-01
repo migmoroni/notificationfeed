@@ -5,10 +5,12 @@
  * post box*, applies the user's own retention settings:
  *
  *   1. For fonts the user currently activates:
- *      `trashedAt = now` on posts older than `trashAgeActiveDays` (unless saved).
+ *      `trashedAt = now` on posts ingested longer ago than
+ *      `trashAgeActiveDays` (unless saved).
  *   2. For fonts the user *no longer activates* but for which residual
  *      posts still live in their box (they deactivated/disabled the font):
- *      `trashedAt = now` on posts older than `trashAgeOrphanDays` (unless saved).
+ *      `trashedAt = now` on posts ingested longer ago than
+ *      `trashAgeOrphanDays` (unless saved).
  *      What other users do with the same font is irrelevant here.
  *   3. Physically deletes posts whose `trashedAt < now - purgeAfterTrashDays`.
  *
