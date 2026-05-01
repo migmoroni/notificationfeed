@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import type { FontBody, FontProtocol, FontConfig, FontNostrConfig, FontRssConfig, FontAtomConfig } from '$lib/domain/content-tree/content-tree.js';
+	import type { FontBody, FontProtocol, FontConfig, FontNostrConfig, FontRssConfig, FontAtomConfig, FontJsonfeedConfig } from '$lib/domain/content-tree/content-tree.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
@@ -25,6 +25,7 @@
 	// Protocol-specific fields
 	let rssUrl = $state(untrack(() => (body.config as FontRssConfig).url ?? ''));
 	let atomUrl = $state(untrack(() => (body.config as FontAtomConfig).url ?? ''));
+	let jsonfeedUrl = $state(untrack(() => (body.config as FontJsonfeedConfig).url ?? ''));
 	let nostrPubkey = $state(untrack(() => (body.config as FontNostrConfig).pubkey ?? ''));
 	let nostrRelays = $state<string[]>(untrack(() => (body.config as FontNostrConfig).relays ?? []));
 	let nostrKinds = $state<number[]>(untrack(() => (body.config as FontNostrConfig).kinds ?? []));
@@ -36,6 +37,8 @@
 				return { url: rssUrl.trim() } satisfies FontRssConfig;
 			case 'atom':
 				return { url: atomUrl.trim() } satisfies FontAtomConfig;
+			case 'jsonfeed':
+				return { url: jsonfeedUrl.trim() } satisfies FontJsonfeedConfig;
 			case 'nostr':
 				return {
 					pubkey: nostrPubkey.trim(),
@@ -89,12 +92,14 @@
 			<Select.Trigger class="w-full">
 				{#if protocol === 'rss'}RSS
 				{:else if protocol === 'atom'}Atom
+				{:else if protocol === 'jsonfeed'}JSON Feed
 				{:else if protocol === 'nostr'}Nostr
 				{:else}Selecionar…{/if}
 			</Select.Trigger>
 			<Select.Content>
 				<Select.Item value="rss">RSS</Select.Item>
 				<Select.Item value="atom">Atom</Select.Item>
+				<Select.Item value="jsonfeed">JSON Feed</Select.Item>
 				<Select.Item value="nostr">Nostr</Select.Item>
 			</Select.Content>
 		</Select.Root>
@@ -120,6 +125,17 @@
 				bind:value={atomUrl}
 				oninput={() => emit()}
 				placeholder={t('form.atom_url_placeholder')}
+			/>
+		</div>
+	{:else if protocol === 'jsonfeed'}
+		<div class="space-y-2">
+			<Label for="jsonfeed-url">{t('form.jsonfeed_url_label')}</Label>
+			<Input
+				id="jsonfeed-url"
+				type="url"
+				bind:value={jsonfeedUrl}
+				oninput={() => emit()}
+				placeholder={t('form.jsonfeed_url_placeholder')}
 			/>
 		</div>
 	{:else if protocol === 'nostr'}

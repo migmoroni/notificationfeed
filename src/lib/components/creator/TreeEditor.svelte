@@ -22,6 +22,7 @@ import Trash2 from '@lucide/svelte/icons/trash-2';
 import Rss from '@lucide/svelte/icons/rss';
 import Atom from '@lucide/svelte/icons/atom';
 import Zap from '@lucide/svelte/icons/zap';
+import Braces from '@lucide/svelte/icons/braces';
 import User from '@lucide/svelte/icons/user';
 import Link2 from '@lucide/svelte/icons/link-2';
 import FolderPlus from '@lucide/svelte/icons/folder-plus';
@@ -382,6 +383,8 @@ saving = false;
 <Atom class="size-3.5" />
 {:else if fontBody.protocol === 'nostr'}
 <Zap class="size-3.5" />
+{:else if fontBody.protocol === 'jsonfeed'}
+<Braces class="size-3.5" />
 {:else}
 <Rss class="size-3.5" />
 {/if}

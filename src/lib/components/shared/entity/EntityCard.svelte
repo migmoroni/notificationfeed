@@ -16,6 +16,7 @@
 	import Rss from '@lucide/svelte/icons/rss';
 	import Atom from '@lucide/svelte/icons/atom';
 	import Zap from '@lucide/svelte/icons/zap';
+	import Braces from '@lucide/svelte/icons/braces';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
 	import ConfirmUnfollowDialog from '$lib/components/shared/dialog/ConfirmUnfollowDialog.svelte';
@@ -57,6 +58,7 @@
 		if (!isFontNode(node)) return null;
 		const proto = node.data.body.protocol;
 		if (proto === 'atom') return Atom;
+		if (proto === 'jsonfeed') return Braces;
 		if (proto === 'nostr') return Zap;
 		return Rss;
 	});

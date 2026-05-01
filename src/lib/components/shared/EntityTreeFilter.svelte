@@ -23,6 +23,7 @@ import Rss from '@lucide/svelte/icons/rss';
 import { consumer } from '$lib/stores/consumer.svelte.js';
 import Atom from '@lucide/svelte/icons/atom';
 import Zap from '@lucide/svelte/icons/zap';
+import Braces from '@lucide/svelte/icons/braces';
 import User from '@lucide/svelte/icons/user';
 import FileText from '@lucide/svelte/icons/file-text';
 import FolderOpen from '@lucide/svelte/icons/folder-open';
@@ -99,6 +100,7 @@ function fontProtocolIcon(node: TreeNode) {
 if (!isFontNode(node)) return Rss;
 const proto = node.data.body.protocol;
 if (proto === 'atom') return Atom;
+if (proto === 'jsonfeed') return Braces;
 if (proto === 'nostr') return Zap;
 return Rss;
 }

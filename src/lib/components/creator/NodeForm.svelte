@@ -87,6 +87,8 @@
 					return !!(fb.config as { url: string }).url?.trim();
 				case 'atom':
 					return !!(fb.config as { url: string }).url?.trim();
+				case 'jsonfeed':
+					return !!(fb.config as { url: string }).url?.trim();
 				case 'nostr':
 					return !!(fb.config as { pubkey: string }).pubkey?.trim();
 			}

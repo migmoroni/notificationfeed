@@ -44,7 +44,7 @@ categoryAssignments: CategoryAssignment[];
 // Node Body variants (discriminated by role)
 // ---------------------------------------------------------------------------
 
-export type FontProtocol = 'nostr' | 'rss' | 'atom';
+export type FontProtocol = 'nostr' | 'rss' | 'atom' | 'jsonfeed';
 
 export interface FontNostrConfig {
 relays: string[];
@@ -60,7 +60,11 @@ export interface FontAtomConfig {
 url: string;
 }
 
-export type FontConfig = FontNostrConfig | FontRssConfig | FontAtomConfig;
+export interface FontJsonfeedConfig {
+url: string;
+}
+
+export type FontConfig = FontNostrConfig | FontRssConfig | FontAtomConfig | FontJsonfeedConfig;
 
 /** A simple external link (website, linktree, etc.) */
 export interface ExternalLink {

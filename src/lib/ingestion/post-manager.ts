@@ -30,7 +30,7 @@
  *    jitter. Disabled there → next try at the regular interval.
  */
 
-import type { TreeNode, FontBody, FontRssConfig, FontAtomConfig, FontNostrConfig } from '$lib/domain/content-tree/content-tree.js';
+import type { TreeNode, FontBody, FontRssConfig, FontAtomConfig, FontNostrConfig, FontJsonfeedConfig } from '$lib/domain/content-tree/content-tree.js';
 import { isFontNode } from '$lib/domain/content-tree/content-tree.js';
 import type { UserConsumer } from '$lib/domain/user/user-consumer.js';
 import type { FetcherState } from '$lib/domain/ingestion/fetcher-state.js';
@@ -44,6 +44,7 @@ import { getHttpAdapter, type HttpAdapter } from '$lib/ingestion/net/index.js';
 import { fetchRssFeed } from '$lib/ingestion/rss/rss.client.js';
 import { fetchAtomFeed } from '$lib/ingestion/atom/atom.client.js';
 import { fetchNostrFeed } from '$lib/ingestion/nostr/nostr.client.js';
+import { fetchJsonfeedFeed } from '$lib/ingestion/jsonfeed/jsonfeed.client.js';
 import { runRetention } from './retention.js';
 import { runNotificationPipeline } from '$lib/notifications/notification-engine.js';
 
@@ -409,6 +410,15 @@ async function runClient(
 				etag: null,
 				lastModified: null,
 				nostrSince: r.nextState.nostrSince ?? null
+			};
+		}
+		case 'jsonfeed': {
+			const r = await fetchJsonfeedFeed(http, body.config as FontJsonfeedConfig, nodeId, prev);
+			return {
+				posts: r.posts,
+				etag: r.nextState.etag,
+				lastModified: r.nextState.lastModified,
+				nostrSince: null
 			};
 		}
 	}

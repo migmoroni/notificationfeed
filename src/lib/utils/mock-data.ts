@@ -60,6 +60,7 @@ localFontAtom1: '00000000-0000-0000-0000-000000005003',
 localFontNostr1: '00000000-0000-0000-0000-000000005004',
 localFontRss3: '00000000-0000-0000-0000-000000005007',
 localFontAtom2: '00000000-0000-0000-0000-000000005008',
+localFontJsonfeed1: '00000000-0000-0000-0000-000000005009',
 localFontCreatorRss1: '00000000-0000-0000-0000-000000005005',
 localFontCreatorAtom1: '00000000-0000-0000-0000-000000005006',
 } as const;
@@ -72,6 +73,7 @@ root: generateNodeId(IDS.treeProfileTech, IDS.localRoot),
 fontRss1: generateNodeId(IDS.treeProfileTech, IDS.localFontRss1),
 fontAtom1: generateNodeId(IDS.treeProfileTech, IDS.localFontAtom1),
 fontNostr1: generateNodeId(IDS.treeProfileTech, IDS.localFontNostr1),
+fontJsonfeed1: generateNodeId(IDS.treeProfileTech, IDS.localFontJsonfeed1),
 };
 
 // Profile tree: Security & Privacy
@@ -252,8 +254,13 @@ categoryAssignments: [{ treeId: 'content', categoryIds: ['baaac'] }]
 [PT.fontNostr1]: makeNode(PT.fontNostr1, 'font', {
 title: 'Nostr Dev Updates',
 }, { role: 'font', protocol: 'nostr', config: { pubkey: 'npub1mockkey000000000000000000000000000000', relays: ['wss://relay.damus.io'] }, defaultEnabled: true }),
+
+[PT.fontJsonfeed1]: makeNode(PT.fontJsonfeed1, 'font', {
+title: 'JSON Feed Spec Blog',
+categoryAssignments: [{ treeId: 'content', categoryIds: ['baaac'] }]
+}, { role: 'font', protocol: 'jsonfeed', config: { url: 'https://www.jsonfeed.org/feed.json' }, defaultEnabled: true }),
 },
-{ '/': PT.root, '*': [PT.fontRss1, PT.fontAtom1, PT.fontNostr1] },
+{ '/': PT.root, '*': [PT.fontRss1, PT.fontAtom1, PT.fontNostr1, PT.fontJsonfeed1] },
 [],
 IDS.consumer
 );

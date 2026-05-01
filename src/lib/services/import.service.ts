@@ -92,8 +92,9 @@ mediaIds
 /**
  * Auto-detect protocol from a URL.
  */
-function detectProtocol(url: string): 'rss' | 'atom' | null {
+function detectProtocol(url: string): 'rss' | 'atom' | 'jsonfeed' | null {
 const lower = url.toLowerCase().trim();
+if (lower.endsWith('.json') || lower.includes('feed.json') || lower.includes('jsonfeed')) return 'jsonfeed';
 if (lower.includes('atom')) return 'atom';
 if (lower.endsWith('.xml') || lower.endsWith('/feed') || lower.includes('rss') || lower.includes('feed')) return 'rss';
 if (lower.startsWith('http://') || lower.startsWith('https://')) return 'rss';

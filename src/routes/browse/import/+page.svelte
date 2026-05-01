@@ -222,7 +222,7 @@
 					id="url-input"
 					bind:value={urlText}
 					rows="8"
-					placeholder={"https://example.com/feed.xml\nhttps://blog.example.com/rss\nhttps://example.com/atom.xml"}
+					placeholder={t('browse.urls_placeholder')}
 					class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y"
 				></textarea>
 				<p class="mt-1 text-xs text-muted-foreground">
