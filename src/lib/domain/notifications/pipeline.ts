@@ -48,6 +48,13 @@ export interface PipelineEventSettings {
 	mode: PipelineEventMode;
 	severityThreshold: EventSeverity;
 	batchIntervalMs: number;
+	/**
+	 * Do-not-disturb for the health channel. When true the consumer
+	 * still records inbox entries (so they show up in the bell when
+	 * the user opens it) but skips the OS notification and the entries
+	 * are flagged `quiet` so they do not bump the unread badge.
+	 */
+	quiet: boolean;
 }
 
 export interface NotificationStep {
@@ -70,6 +77,18 @@ export interface NotificationStep {
 export interface NotificationPipeline {
 	/** Master switch — when false, no step ever fires. */
 	enabled: boolean;
+	/**
+	 * Do-not-disturb for the post channel (the three-step funnel).
+	 * When true, the engine still creates inbox entries but skips OS
+	 * notifications and the entries do not bump the unread badge.
+	 */
+	quietPosts: boolean;
+	/**
+	 * When true, the bell popover splits its inbox list into two tabs
+	 * ("posts" and "health"). When false, all entries appear in a
+	 * single chronological list. Default: true.
+	 */
+	splitInboxTabs: boolean;
 	/**
 	 * Always exactly three steps in this order:
 	 * `[per_post, batch_macro, batch_global]`. Persisted as an array
@@ -101,7 +120,8 @@ export function defaultPipelineEventSettings(): PipelineEventSettings {
 	return {
 		mode: d.mode,
 		severityThreshold: d.severityThreshold,
-		batchIntervalMs: d.batchIntervalMs
+		batchIntervalMs: d.batchIntervalMs,
+		quiet: d.quiet
 	};
 }
 
@@ -109,8 +129,28 @@ export function defaultPipelineEventSettings(): PipelineEventSettings {
 export function createNotificationPipeline(): NotificationPipeline {
 	return {
 		enabled: NOTIFICATIONS.defaultEnabled,
+		quietPosts: NOTIFICATIONS.defaultQuietPosts,
+		splitInboxTabs: NOTIFICATIONS.defaultSplitInboxTabs,
 		steps: defaultSteps(),
 		pipelineEvents: defaultPipelineEventSettings(),
 		updatedAt: Date.now()
+	};
+}
+
+/**
+ * Heal a persisted pipeline by filling fields that were added after
+ * the user record was first written. Returns a normalized object —
+ * defaults are non-destructive (only used when the field is missing).
+ */
+export function withPipelineDefaults(p: NotificationPipeline): NotificationPipeline {
+	const events = p.pipelineEvents ?? defaultPipelineEventSettings();
+	return {
+		...p,
+		quietPosts: p.quietPosts ?? NOTIFICATIONS.defaultQuietPosts,
+		splitInboxTabs: p.splitInboxTabs ?? NOTIFICATIONS.defaultSplitInboxTabs,
+		pipelineEvents: {
+			...events,
+			quiet: events.quiet ?? NOTIFICATIONS.pipelineEventDefaults.quiet
+		}
 	};
 }

@@ -317,6 +317,7 @@ export async function runNotificationPipeline(
 	// Persist inbox entries first (canonical log), then fire OS
 	// notifications best-effort, then stamp posts.
 	let rand = 0;
+	const quiet = pipeline.quietPosts === true;
 	const entries: Omit<InboxEntry, '_pk' | 'userId'>[] = fires.map((f) => ({
 		id: `${f.stepId}-${now}-${rand++}`,
 		kind: f.kind,
@@ -325,23 +326,26 @@ export async function runNotificationPipeline(
 		body: f.body,
 		createdAt: now,
 		read: false,
+		quiet,
 		target: f.target
 	}));
 	await appendInboxEntries(userId, entries);
 
-	for (const f of fires) {
-		const targetUrl =
-			f.target.kind === 'url'
-				? f.target.url
-				: f.target.kind === 'node'
-					? `/library/node/${encodeURIComponent(f.target.nodeId)}`
-					: `/?macro=${encodeURIComponent(f.target.macroId)}`;
-		void notifyOs({
-			title: f.title,
-			body: f.body,
-			tag: NOTIFICATIONS.osNotificationTag,
-			data: { targetUrl }
-		});
+	if (!quiet) {
+		for (const f of fires) {
+			const targetUrl =
+				f.target.kind === 'url'
+					? f.target.url
+					: f.target.kind === 'node'
+						? `/library/node/${encodeURIComponent(f.target.nodeId)}`
+						: `/?macro=${encodeURIComponent(f.target.macroId)}`;
+			void notifyOs({
+				title: f.title,
+				body: f.body,
+				tag: NOTIFICATIONS.osNotificationTag,
+				data: { targetUrl }
+			});
+		}
 	}
 
 	// Stamp lastFired for batch steps that fired.

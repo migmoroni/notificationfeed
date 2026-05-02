@@ -54,12 +54,12 @@ export async function markAllInboxRead(userId: string): Promise<void> {
 	}
 }
 
-/** Count unread inbox entries for the user. */
+/** Count unread inbox entries for the user. Quiet entries are excluded. */
 export async function countUnreadForUser(userId: string): Promise<number> {
 	const db = await getStorageBackend();
 	const rows = await db.notificationInbox.query<InboxEntry>('byUser', userId);
 	let n = 0;
-	for (const r of rows) if (!r.read) n++;
+	for (const r of rows) if (!r.read && !r.quiet) n++;
 	return n;
 }
 

@@ -53,6 +53,12 @@ export interface InboxEntry {
 	createdAt: number;
 	/** Whether the user has opened/acknowledged this entry. */
 	read: boolean;
+	/**
+	 * Quiet entries are recorded in the inbox but never trigger an OS
+	 * notification and do not contribute to the unread badge. Used by
+	 * the per-channel "do not disturb" toggles.
+	 */
+	quiet?: boolean;
 	/** Where to navigate when this entry is clicked. */
 	target: InboxTarget;
 }

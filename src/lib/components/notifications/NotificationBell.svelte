@@ -20,7 +20,7 @@
 		markAllInboxRead,
 		countUnreadForUser
 	} from '$lib/persistence/notification-inbox.store.js';
-	import type { InboxEntry } from '$lib/domain/notifications/inbox.js';
+	import type { InboxEntry, InboxEntryKind } from '$lib/domain/notifications/inbox.js';
 
 	let open = $state(false);
 	let entries = $state<InboxEntry[]>([]);
@@ -28,6 +28,30 @@
 	let pollTimer: ReturnType<typeof setInterval> | null = null;
 
 	let userId = $derived(activeUser.current?.id ?? null);
+
+	/** Whether the bell splits its inbox into Posts/Health tabs. */
+	let splitTabs = $derived(activeUser.current?.settingsUser.notifications?.splitInboxTabs ?? true);
+
+	type TabId = 'posts' | 'health';
+	let activeTab = $state<TabId>('posts');
+
+	const HEALTH_KINDS: ReadonlySet<InboxEntryKind> = new Set([
+		'font_unstable',
+		'font_offline',
+		'font_recovered',
+		'font_degraded',
+		'font_source_switched'
+	]);
+	function isHealth(kind: InboxEntryKind): boolean {
+		return HEALTH_KINDS.has(kind);
+	}
+
+	let visibleEntries = $derived.by(() => {
+		if (!splitTabs) return entries;
+		return activeTab === 'health'
+			? entries.filter((e) => isHealth(e.kind))
+			: entries.filter((e) => !isHealth(e.kind));
+	});
 
 	async function refresh() {
 		const id = userId;
@@ -73,7 +97,14 @@
 	async function handleMarkAll() {
 		const id = userId;
 		if (!id) return;
-		await markAllInboxRead(id);
+		if (splitTabs) {
+			// Mark only the entries of the active tab as read.
+			for (const e of visibleEntries) {
+				if (!e.read) await markInboxEntryRead(id, e.id);
+			}
+		} else {
+			await markAllInboxRead(id);
+		}
 		await refresh();
 	}
 
@@ -145,7 +176,7 @@
 			>
 				<div class="flex items-center justify-between p-3 border-b border-border">
 					<span class="text-sm font-semibold">{t('notifications.title')}</span>
-					{#if unread > 0}
+					{#if visibleEntries.some((e) => !e.read)}
 						<button
 							type="button"
 							class="text-xs inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
@@ -157,13 +188,48 @@
 					{/if}
 				</div>
 
+				{#if splitTabs}
+					{@const postsCount = entries.filter((e) => !isHealth(e.kind)).length}
+					{@const healthCount = entries.filter((e) => isHealth(e.kind)).length}
+					<div class="flex border-b border-border text-xs" role="tablist">
+						<button
+							type="button"
+							role="tab"
+							aria-selected={activeTab === 'posts'}
+							class="flex-1 px-3 py-2 transition-colors {activeTab === 'posts'
+								? 'border-b-2 border-primary text-foreground font-medium'
+								: 'text-muted-foreground hover:text-foreground'}"
+							onclick={() => (activeTab = 'posts')}
+						>
+							{t('notifications.tab_posts')}
+							{#if postsCount > 0}
+								<span class="ml-1 text-[10px] opacity-70">({postsCount})</span>
+							{/if}
+						</button>
+						<button
+							type="button"
+							role="tab"
+							aria-selected={activeTab === 'health'}
+							class="flex-1 px-3 py-2 transition-colors {activeTab === 'health'
+								? 'border-b-2 border-primary text-foreground font-medium'
+								: 'text-muted-foreground hover:text-foreground'}"
+							onclick={() => (activeTab = 'health')}
+						>
+							{t('notifications.tab_health')}
+							{#if healthCount > 0}
+								<span class="ml-1 text-[10px] opacity-70">({healthCount})</span>
+							{/if}
+						</button>
+					</div>
+				{/if}
+
 				<div class="max-h-96 overflow-y-auto">
-					{#if entries.length === 0}
+					{#if visibleEntries.length === 0}
 						<p class="p-6 text-center text-xs text-muted-foreground">
 							{t('notifications.empty')}
 						</p>
 					{:else}
-						{#each entries as entry (entry.id)}
+						{#each visibleEntries as entry (entry.id)}
 							{@const accent =
 								entry.kind === 'font_offline'
 									? 'border-l-4 border-l-destructive'
@@ -196,14 +262,6 @@
 						{/each}
 					{/if}
 				</div>
-
-				<a
-					href="/user/settings/notifications"
-					class="p-2 text-center text-xs text-muted-foreground border-t border-border hover:text-foreground hover:bg-accent"
-					onclick={() => (open = false)}
-				>
-					{t('notifications.view_all')}
-				</a>
 			</div>
 		{/if}
 	</div>

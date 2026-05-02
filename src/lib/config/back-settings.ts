@@ -308,6 +308,13 @@ export type UiBreakpoints = typeof UI_BREAKPOINTS;
 export const NOTIFICATIONS = {
 	/** Master switch seeded on first run for every user. */
 	defaultEnabled: true,
+	/**
+	 * Do-not-disturb defaults. Quiet means: still record inbox entries,
+	 * but skip OS notifications and don't bump the unread badge.
+	 */
+	defaultQuietPosts: false,
+	/** Default for splitting the bell inbox into Posts/Health tabs. */
+	defaultSplitInboxTabs: true,
 	/** Stable ids of the three pipeline steps, in funnel order. */
 	stepIds: {
 		perPost: 'per_post',
@@ -343,7 +350,8 @@ export const NOTIFICATIONS = {
 	pipelineEventDefaults: {
 		mode: 'realtime' as 'realtime' | 'batched',
 		severityThreshold: 'warning' as 'info' | 'warning' | 'critical',
-		batchIntervalMs: 30 * MINUTE
+		batchIntervalMs: 30 * MINUTE,
+		quiet: false
 	},
 	/**
 	 * Dedup windows per event type. While inside the window for a given

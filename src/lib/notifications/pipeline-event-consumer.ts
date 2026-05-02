@@ -210,6 +210,7 @@ export async function consumePipelineEvents(
 	}
 
 	// Build inbox entries.
+	const quiet = settings.quiet === true;
 	const newEntries: Omit<InboxEntry, '_pk' | 'userId'>[] = toDeliver.map((ev, i) => {
 		const fontTitle = findNodeTitle(trees, ev.fontId);
 		const suffix = i18nSuffixFor(ev.type);
@@ -228,27 +229,30 @@ export async function consumePipelineEvents(
 			body,
 			createdAt: ev.timestamp,
 			read: false,
+			quiet,
 			target: { kind: 'node', nodeId: ev.fontId }
 		};
 	});
 
 	if (newEntries.length > 0) {
 		await appendInboxEntries(userId, newEntries);
-		// Best-effort OS notifications.
-		for (const e of newEntries) {
-			void notifyOs({
-				title: e.title,
-				body: e.body,
-				tag: `${NOTIFICATIONS.osNotificationTag}-${e.kind}-${
-					e.target.kind === 'node' ? e.target.nodeId : 'x'
-				}`,
-				data: {
-					targetUrl:
-						e.target.kind === 'node'
-							? `/library/node/${encodeURIComponent(e.target.nodeId)}`
-							: '/'
-				}
-			});
+		if (!quiet) {
+			// Best-effort OS notifications.
+			for (const e of newEntries) {
+				void notifyOs({
+					title: e.title,
+					body: e.body,
+					tag: `${NOTIFICATIONS.osNotificationTag}-${e.kind}-${
+						e.target.kind === 'node' ? e.target.nodeId : 'x'
+					}`,
+					data: {
+						targetUrl:
+							e.target.kind === 'node'
+								? `/library/node/${encodeURIComponent(e.target.nodeId)}`
+								: '/'
+					}
+				});
+			}
 		}
 	}
 

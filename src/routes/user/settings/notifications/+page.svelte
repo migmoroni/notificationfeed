@@ -16,6 +16,7 @@
 	import {
 		createNotificationPipeline,
 		defaultPipelineEventSettings,
+		withPipelineDefaults,
 		type NotificationPipeline,
 		type NotificationStep,
 		type PipelineEventSettings,
@@ -53,7 +54,7 @@
 				Array.isArray(activeUser.current.settingsUser.notifications.steps) &&
 				activeUser.current.settingsUser.notifications.steps.length === 3 &&
 				activeUser.current.settingsUser.notifications.pipelineEvents
-				? activeUser.current.settingsUser.notifications
+				? withPipelineDefaults(activeUser.current.settingsUser.notifications)
 				: createNotificationPipeline()
 			: null
 	);
@@ -78,6 +79,20 @@
 	function setEnabled(v: boolean) {
 		if (!pipeline) return;
 		void persist({ ...pipeline, enabled: v });
+	}
+
+	function setQuietPosts(v: boolean) {
+		if (!pipeline) return;
+		void persist({ ...pipeline, quietPosts: v });
+	}
+
+	function setSplitInboxTabs(v: boolean) {
+		if (!pipeline) return;
+		void persist({ ...pipeline, splitInboxTabs: v });
+	}
+
+	function setEventQuiet(v: boolean) {
+		updatePipelineEvents({ quiet: v });
 	}
 
 	function updateStep(idx: 0 | 1 | 2, patch: Partial<NotificationStep>) {
@@ -196,7 +211,6 @@
 	<p class="text-sm text-muted-foreground mb-6">{t('notifications.settings_hint')}</p>
 
 	{#if pipeline}
-		<Separator class="my-4" />
 
 		<section class="space-y-4">
 			<div class="flex items-center justify-between gap-4">
@@ -223,6 +237,43 @@
 		</section>
 
 		<Separator class="my-6" />
+		
+		<!-- Do-not-disturb (DND) — placed first, per design. Quiet still
+		     records inbox entries so they are visible when the bell opens,
+		     but suppresses OS popups and the unread badge. -->
+		<section class="rounded-lg border border-border bg-card p-4 space-y-3">
+			<div>
+				<h2 class="text-sm font-semibold">{t('notifications.dnd_title')}</h2>
+				<p class="text-xs text-muted-foreground mt-1">{t('notifications.dnd_hint')}</p>
+			</div>
+			<div class="flex items-center justify-between gap-4">
+				<div class="min-w-0">
+					<p class="text-sm font-medium">{t('notifications.dnd_posts_label')}</p>
+					<p class="text-xs text-muted-foreground">{t('notifications.dnd_posts_hint')}</p>
+				</div>
+				<Switch checked={pipeline.quietPosts} onCheckedChange={setQuietPosts} />
+			</div>
+			<div class="flex items-center justify-between gap-4">
+				<div class="min-w-0">
+					<p class="text-sm font-medium">{t('notifications.dnd_health_label')}</p>
+					<p class="text-xs text-muted-foreground">{t('notifications.dnd_health_hint')}</p>
+				</div>
+				<Switch checked={eventSettings.quiet} onCheckedChange={setEventQuiet} />
+			</div>
+		</section>
+
+		<!-- Inbox layout — controls how the bell groups its entries. -->
+		<section class="mt-4 rounded-lg border border-border bg-card p-4">
+			<div class="flex items-center justify-between gap-4">
+				<div class="min-w-0">
+					<p class="text-sm font-medium">{t('notifications.split_tabs_label')}</p>
+					<p class="text-xs text-muted-foreground">{t('notifications.split_tabs_hint')}</p>
+				</div>
+				<Switch checked={pipeline.splitInboxTabs} onCheckedChange={setSplitInboxTabs} />
+			</div>
+		</section>
+
+		<Separator class="my-4" />
 
 		<section class="space-y-3">
 			<div>
