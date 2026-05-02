@@ -58,7 +58,8 @@ import {
 import { getStorageBackend } from '$lib/persistence/db.js';
 import {
 	getNotificationMeta,
-	recordStepFired
+	recordStepFired,
+	recordBatchGlobalNodes
 } from '$lib/persistence/notification-meta.store.js';
 import { appendInboxEntries } from '$lib/persistence/notification-inbox.store.js';
 import { notifyOs } from './os-notifier.js';
@@ -137,9 +138,13 @@ interface UserContext {
  * when the persisted slice is missing or malformed (no migrations —
  * pre-launch app, schema is destructive).
  *
- * Each batch step's `intervalMs` is clamped up to the smallest
- * ingestion polling interval so notifications can never fire more
- * often than ingestion produces posts.
+ * `batch_macro` is clamped up to the smallest ingestion polling
+ * interval so per-macro batching never fires faster than ingestion
+ * produces posts. `batch_global` is exempt — it's the catch-all that
+ * the activation flow piggybacks on (each `consumer.activateNode`
+ * triggers an immediate `refreshFont`), and clamping it would suppress
+ * the user-visible "you got new posts" ping for back-to-back
+ * activations.
  */
 async function loadUserContext(userId: string): Promise<UserContext | null> {
 	const db = await getStorageBackend();
@@ -161,7 +166,7 @@ async function loadUserContext(userId: string): Promise<UserContext | null> {
 			ing.idleTier3IntervalMs
 		);
 		for (const step of pipeline.steps) {
-			if (step.kind !== 'per_post' && step.intervalMs < floor) {
+			if (step.kind === 'batch_macro' && step.intervalMs < floor) {
 				step.intervalMs = floor;
 			}
 		}
@@ -267,7 +272,19 @@ export async function runNotificationPipeline(
 	const batchGlobalStep = pipeline.steps.find((s) => s.kind === 'batch_global');
 	if (batchGlobalStep && batchGlobalBucket.length > 0) {
 		const lastFired = meta.stepLastFiredAt[batchGlobalStep.id] ?? 0;
-		if (now - lastFired >= batchGlobalStep.intervalMs) {
+		// Cooldown bypass: when this batch contains posts from a node
+		// that has never had a `batch_global` fire delivered before
+		// (a freshly activated font's first delivery), notify even if
+		// we're inside the configured interval. Without this, the very
+		// first batch from each new font after the first one of the
+		// hour is silently swallowed.
+		const everFiredNodes = new Set(
+			meta.batchGlobalEverNotifiedNodeIds ?? []
+		);
+		const hasFirstDelivery = batchGlobalBucket.some(
+			(p) => !everFiredNodes.has(p.nodeId)
+		);
+		if (hasFirstDelivery || now - lastFired >= batchGlobalStep.intervalMs) {
 			const { title, body } = batchSummary(batchGlobalBucket.length);
 			fires.push({
 				stepId: batchGlobalStep.id,
@@ -319,6 +336,15 @@ export async function runNotificationPipeline(
 		if (step && step.kind !== 'per_post') {
 			await recordStepFired(userId, stepId, now);
 		}
+	}
+
+	// Track which nodes have now had their first `batch_global` fire,
+	// so the cooldown bypass only applies to genuinely new sources.
+	const batchGlobalNodeIds = fires
+		.filter((f) => f.kind === 'batch_global')
+		.flatMap((f) => f.consumed.map((p) => p.nodeId));
+	if (batchGlobalNodeIds.length > 0) {
+		await recordBatchGlobalNodes(userId, batchGlobalNodeIds);
 	}
 
 	// Consume posts.

@@ -262,6 +262,11 @@ export const NOTIFICATIONS = {
 	 * Defaults applied when seeding a fresh pipeline. Steps 1 and 2 start
 	 * dormant (no macros selected); step 3 — the catch-all — fires every
 	 * 30 minutes whenever any new post arrives.
+	 *
+	 * The engine bypasses the `batch_global` cooldown for the first
+	 * batch of a freshly activated font, so each newly followed source
+	 * gets a "you started getting posts" ping even when several fonts
+	 * are activated back-to-back.
 	 */
 	defaultPipelineSteps: [
 		{ id: 'per_post', kind: 'per_post' as const, macroIds: [] as string[], intervalMs: 0 },

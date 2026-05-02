@@ -34,6 +34,30 @@ export async function recordStepFired(
 	await putNotificationMeta(meta);
 }
 
+/**
+ * Mark a set of `nodeId`s as having had their first `batch_global`
+ * notification delivered. Idempotent — already-tracked nodes are
+ * left alone, and the persisted array stays deduped.
+ */
+export async function recordBatchGlobalNodes(
+	userId: string,
+	nodeIds: string[]
+): Promise<void> {
+	if (nodeIds.length === 0) return;
+	const meta = await getNotificationMeta(userId);
+	const set = new Set(meta.batchGlobalEverNotifiedNodeIds ?? []);
+	let changed = false;
+	for (const id of nodeIds) {
+		if (!set.has(id)) {
+			set.add(id);
+			changed = true;
+		}
+	}
+	if (!changed) return;
+	meta.batchGlobalEverNotifiedNodeIds = [...set];
+	await putNotificationMeta(meta);
+}
+
 /** Stamp `lastClearedAt = at`, used by the bell's "mark all as read". */
 export async function recordCleared(userId: string, at: number = Date.now()): Promise<void> {
 	const meta = await getNotificationMeta(userId);

@@ -11,6 +11,18 @@ export interface NotificationMeta {
 	userId: string;
 	/** Per-step `lastFiredAt` (epoch ms). Missing key = never fired. */
 	stepLastFiredAt: Record<string, number>;
+	/**
+	 * Set of `nodeId`s that have already had at least one
+	 * `batch_global` notification delivered for them. Used by the
+	 * engine to bypass the configured cooldown for the very first
+	 * batch coming from a freshly activated font, so each new source
+	 * gets its initial "you started getting posts" ping even when
+	 * several activations land back-to-back.
+	 *
+	 * Stored as an array (Sets don't survive structured-clone in
+	 * IndexedDB cleanly) and treated as a set in code.
+	 */
+	batchGlobalEverNotifiedNodeIds: string[];
 	/** When the user last cleared the inbox unread count. */
 	lastClearedAt: number;
 	updatedAt: number;
@@ -21,6 +33,7 @@ export function createNotificationMeta(userId: string): NotificationMeta {
 	return {
 		userId,
 		stepLastFiredAt: {},
+		batchGlobalEverNotifiedNodeIds: [],
 		lastClearedAt: 0,
 		updatedAt: now
 	};
