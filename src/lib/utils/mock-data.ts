@@ -404,22 +404,22 @@ categoryAssignments: []
 [PX.fontRss]: makeNode(PX.fontRss, 'font', {
 title: 'Test RSS — Hacker News',
 subtitle: 'rss',
-}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: 'https://exemple.com/exemple/rss.xml' }, primary: true }], defaultEnabled: true }),
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: 'https://notfeed.com/exemple/rss.xml' }, primary: true }], defaultEnabled: true }),
 
 [PX.fontAtom]: makeNode(PX.fontAtom, 'font', {
 title: 'Test Atom — Svelte Blog',
 subtitle: 'atom',
-}, { role: 'font', protocols: [{ id: 'p1', protocol: 'atom', config: { url: 'https://exemple.com/exemple/blog/atom.xml' }, primary: true }], defaultEnabled: true }),
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'atom', config: { url: 'https://notfeed.com/exemple/blog/atom.xml' }, primary: true }], defaultEnabled: true }),
 
 [PX.fontNostr]: makeNode(PX.fontNostr, 'font', {
 title: 'Test Nostr — fiatjaf',
 subtitle: 'nostr',
-}, { role: 'font', protocols: [{ id: 'p1', protocol: 'nostr', config: { pubkey: 'npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6', relays: ['wss://relay.damus.io'] }, primary: true }], defaultEnabled: true }),
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'nostr', config: { pubkey: 'npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6', relays: ['wss://notfeed.com'] }, primary: true }], defaultEnabled: true }),
 
 [PX.fontJsonfeed]: makeNode(PX.fontJsonfeed, 'font', {
 title: 'Test JSON Feed — JSONFeed.org',
 subtitle: 'jsonfeed',
-}, { role: 'font', protocols: [{ id: 'p1', protocol: 'jsonfeed', config: { url: 'https://exemple.com/exemple/feed.json' }, primary: true }], defaultEnabled: true }),
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'jsonfeed', config: { url: 'https://notfeed.com/exemple/feed.json' }, primary: true }], defaultEnabled: true }),
 },
 { '/': PX.root, '*': [PX.fontRss, PX.fontAtom, PX.fontNostr, PX.fontJsonfeed] },
 [],
