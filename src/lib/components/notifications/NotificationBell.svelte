@@ -178,7 +178,7 @@
 									: ''}
 							<button
 								type="button"
-								class="w-full text-left px-3 py-2 border-b border-border last:border-0 hover:bg-accent transition-colors flex flex-col gap-0.5 {accent} {entry.read
+								class="w-full text-left px-3 py-2 border-b border-border last:border-b-0 hover:bg-accent transition-colors flex flex-col gap-0.5 {accent} {entry.read
 									? 'opacity-70'
 									: ''}"
 								onclick={() => handleEntryClick(entry)}
