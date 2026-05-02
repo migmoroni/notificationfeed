@@ -3,6 +3,7 @@
  */
 
 import type { IngestedPost } from '$lib/persistence/post.store.js';
+import { htmlToPlainText } from './content-text.js';
 
 export interface AtomEntry {
 	id: string;
@@ -36,10 +37,10 @@ export function normalizeAtomEntry(entry: AtomEntry, nodeId: string): IngestedPo
 		id: entry.id,
 		nodeId,
 		protocol: 'atom',
-		title: entry.title,
-		content: entry.content || entry.summary,
+		title: htmlToPlainText(entry.title),
+		content: htmlToPlainText(entry.content || entry.summary),
 		url: entry.link,
-		author: entry.authorName ?? '',
+		author: htmlToPlainText(entry.authorName ?? ''),
 		publishedAt: Number.isFinite(published) ? published : now,
 		ingestedAt: now
 	};

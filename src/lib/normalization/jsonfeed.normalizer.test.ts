@@ -27,7 +27,7 @@ describe('normalizeJsonfeedItem', () => {
 		expect(post.nodeId).toBe(NODE_ID);
 		expect(post.protocol).toBe('jsonfeed');
 		expect(post.title).toBe('Hello');
-		expect(post.content).toBe('<p>Hello</p>');
+		expect(post.content).toBe('Hello');
 	});
 
 	it('falls back to item.url when item.id is missing', () => {
@@ -50,7 +50,7 @@ describe('normalizeJsonfeedItem', () => {
 			summary: 'sum'
 		};
 
-		expect(normalizeJsonfeedItem(item, NODE_ID).content).toBe('<b>html</b>');
+		expect(normalizeJsonfeedItem(item, NODE_ID).content).toBe('html');
 	});
 
 	it('falls back to content_text when content_html missing', () => {

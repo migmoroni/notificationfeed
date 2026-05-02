@@ -7,6 +7,7 @@
  */
 
 import type { IngestedPost } from '$lib/persistence/post.store.js';
+import { htmlToPlainText } from './content-text.js';
 
 /** v1.1 author shape (also reused as v1 single-author fallback). */
 export interface JsonfeedAuthor {
@@ -57,8 +58,8 @@ export function normalizeJsonfeedItem(item: JsonfeedItem, nodeId: string): Inges
 
 	const id = item.id ?? item.url ?? '';
 	const url = item.url ?? item.external_url ?? '';
-	const title = item.title ?? '';
-	const content = item.content_html ?? item.content_text ?? item.summary ?? '';
+	const title = htmlToPlainText(item.title ?? '');
+	const content = htmlToPlainText(item.content_html ?? item.content_text ?? item.summary ?? '');
 
 	const authorName =
 		(item.authors && item.authors.length > 0 ? item.authors[0]?.name : undefined) ??
@@ -76,7 +77,7 @@ export function normalizeJsonfeedItem(item: JsonfeedItem, nodeId: string): Inges
 		title,
 		content,
 		url,
-		author: authorName,
+		author: htmlToPlainText(authorName),
 		publishedAt,
 		ingestedAt: now
 	};

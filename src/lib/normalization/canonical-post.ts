@@ -28,7 +28,7 @@ export interface CanonicalPost {
 	/** Post title (may be empty for Nostr). */
 	title: string;
 
-	/** Main text content (plain text or sanitized HTML). */
+	/** Main text content, normalized to plain text for previews and notifications. */
 	content: string;
 
 	/** Link to the original source. */

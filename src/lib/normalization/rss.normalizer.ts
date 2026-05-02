@@ -6,6 +6,7 @@
  */
 
 import type { IngestedPost } from '$lib/persistence/post.store.js';
+import { htmlToPlainText } from './content-text.js';
 
 export interface RssItem {
 	title: string;
@@ -29,8 +30,8 @@ export interface RssItem {
  *  - `<pubDate>` is parsed via `Date.parse`; on invalid/empty values
  *    we fall back to "now" so the post still surfaces in the feed in
  *    a sane order.
- *  - HTML in `description` / `content:encoded` is preserved verbatim
- *    here — sanitization (if any) happens at render time.
+ *  - HTML in `description` / `content:encoded` is converted to plain
+ *    text so feed cards and notifications never display markup.
  */
 export function normalizeRssItem(item: RssItem, nodeId: string): IngestedPost {
 	const now = Date.now();
@@ -39,10 +40,10 @@ export function normalizeRssItem(item: RssItem, nodeId: string): IngestedPost {
 		id: item.guid ?? item.link,
 		nodeId,
 		protocol: 'rss',
-		title: item.title,
-		content: item.description,
+		title: htmlToPlainText(item.title),
+		content: htmlToPlainText(item.description),
 		url: item.link,
-		author: item.author ?? '',
+		author: htmlToPlainText(item.author ?? ''),
 		publishedAt: Number.isFinite(published) ? published : now,
 		ingestedAt: now
 	};

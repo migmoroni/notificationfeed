@@ -105,11 +105,7 @@ function batchSummary(count: number): { title: string; body: string } {
 /** Truncate a single-post title for the body of a `per_post` notification. */
 function perPostSummary(post: CanonicalPost): { title: string; body: string } {
 	const title = post.title?.trim() || post.author?.trim() || 'Notfeed';
-	const body = (post.content ?? '')
-		.replace(/<[^>]*>/g, '')
-		.replace(/\s+/g, ' ')
-		.trim()
-		.slice(0, 140);
+	const body = (post.content ?? '').replace(/\s+/g, ' ').trim().slice(0, 140);
 	return { title: title.slice(0, 80), body: body || post.url || '' };
 }
 
