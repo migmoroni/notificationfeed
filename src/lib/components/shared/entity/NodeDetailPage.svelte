@@ -58,6 +58,16 @@ let isUnreachable = $derived.by(() => {
 	const succAt = fetcherState.lastSuccessAt ?? 0;
 	return succAt < notifiedAt;
 });
+// Soft "transient outage" state — only valid while the grace window
+// is still open and we haven't already escalated to unreachable.
+let isUnstable = $derived.by(() => {
+	if (!fetcherState) return false;
+	if (isUnreachable) return false;
+	const notifiedAt = fetcherState.lastInstabilityNotifiedAt;
+	if (!notifiedAt) return false;
+	const succAt = fetcherState.lastSuccessAt ?? 0;
+	return succAt < notifiedAt;
+});
 let avatarUrl = $state<string | null>(null);
 let avatarEmoji = $state<string | null>(null);
 let bannerUrl = $state<string | null>(null);
@@ -324,6 +334,8 @@ class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text
 {/if}
 {#if isUnreachable}
 <Badge variant="destructive" class="text-xs">{t('font.unreachable_label')}</Badge>
+{:else if isUnstable}
+<Badge class="text-xs bg-orange-500 text-white hover:bg-orange-500/90 border-transparent">{t('font.unstable_label')}</Badge>
 {/if}
 </div>
 

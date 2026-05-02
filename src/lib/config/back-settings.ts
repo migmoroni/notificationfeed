@@ -136,6 +136,35 @@ export type IngestionProtocolScoring = typeof INGESTION_PROTOCOL_SCORING;
  */
 export const INGESTION_UNREACHABLE_NOTIF_COOLDOWN_MS = 24 * HOUR;
 
+/**
+ * Two-stage failure handling for a font that has already delivered
+ * posts at least once. The premise is that an established source is
+ * far more likely to be temporarily wobbly (relay restart, brief CDN
+ * hiccup, transient 5xx) than truly gone, so we hold a softer mode
+ * before raising the full "unreachable" alarm.
+ *
+ *   - `graceMs` window after the last success during which failures
+ *     count as *instability*, not as unreachability. After it elapses
+ *     without recovery, the font drops into the regular unreachable
+ *     state (current red alert).
+ *   - `graceIntervalMs` polls more sparsely than the user's normal
+ *     cadence — we still try every protocol, just less often, so we
+ *     don't hammer a struggling endpoint.
+ *   - `notifCooldownMs` rate-limits the instability inbox entry /
+ *     OS notification to once per font per window.
+ *
+ * Fonts that have *never* succeeded (no `lastSuccessAt`) skip this
+ * stage entirely — they go straight to the unreachable path because
+ * we have no positive history to justify waiting it out.
+ */
+export const INGESTION_INSTABILITY = {
+	graceMs: 12 * HOUR,
+	graceIntervalMs: 1 * HOUR,
+	notifCooldownMs: 12 * HOUR
+} as const;
+
+export type IngestionInstability = typeof INGESTION_INSTABILITY;
+
 // ── Persistence ────────────────────────────────────────────────────────
 
 /**

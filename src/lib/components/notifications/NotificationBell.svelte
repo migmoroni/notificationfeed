@@ -164,9 +164,15 @@
 						</p>
 					{:else}
 						{#each entries as entry (entry.id)}
+							{@const accent =
+								entry.kind === 'font_unreachable'
+									? 'border-l-4 border-l-destructive'
+									: entry.kind === 'font_unstable'
+									? 'border-l-4 border-l-orange-500'
+									: ''}
 							<button
 								type="button"
-								class="w-full text-left px-3 py-2 border-b border-border last:border-0 hover:bg-accent transition-colors flex flex-col gap-0.5 {entry.read
+								class="w-full text-left px-3 py-2 border-b border-border last:border-0 hover:bg-accent transition-colors flex flex-col gap-0.5 {accent} {entry.read
 									? 'opacity-70'
 									: ''}"
 								onclick={() => handleEntryClick(entry)}

@@ -20,7 +20,7 @@
  * `NOTIFICATIONS.inboxHardCap` per user.
  */
 
-export type InboxEntryKind = 'per_post' | 'batch_macro' | 'batch_global' | 'font_unreachable';
+export type InboxEntryKind = 'per_post' | 'batch_macro' | 'batch_global' | 'font_unreachable' | 'font_unstable';
 
 export type InboxTarget =
 	| { kind: 'url'; url: string; postId: string }

@@ -91,6 +91,14 @@ export interface FetcherState {
 	 * the warning to once per 24h per font.
 	 */
 	lastUnreachableNotifiedAt: number;
+
+	/**
+	 * Last time the "font unstable" notification was emitted. Distinct
+	 * from `lastUnreachableNotifiedAt` so the two cooldowns don't cross
+	 * each other (instability is a softer state that runs while the
+	 * grace window is open). Reset to 0 on success.
+	 */
+	lastInstabilityNotifiedAt: number;
 }
 
 /** Fresh state for a never-fetched source. */
@@ -103,7 +111,8 @@ export function emptyFetcherState(nodeId: string): FetcherState {
 		lastFetchedAt: 0,
 		lastSuccessAt: null,
 		nextScheduledAt: 0,
-		lastUnreachableNotifiedAt: 0
+		lastUnreachableNotifiedAt: 0,
+		lastInstabilityNotifiedAt: 0
 	};
 }
 

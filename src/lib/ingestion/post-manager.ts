@@ -36,7 +36,7 @@ import type { UserConsumer } from '$lib/domain/user/user-consumer.js';
 import type { FetcherState, ProtocolFetcherState } from '$lib/domain/ingestion/fetcher-state.js';
 import { emptyFetcherState, getOrCreateProtoState } from '$lib/domain/ingestion/fetcher-state.js';
 import type { IngestionSettings, ProxyConfig } from '$lib/domain/ingestion/ingestion-settings.js';
-import { INGESTION_BACKOFF, INGESTION_FETCH, INGESTION_SCHEDULER, INGESTION_PROTOCOL_SCORING, INGESTION_UNREACHABLE_NOTIF_COOLDOWN_MS } from '$lib/config/back-settings.js';
+import { INGESTION_BACKOFF, INGESTION_FETCH, INGESTION_SCHEDULER, INGESTION_PROTOCOL_SCORING, INGESTION_UNREACHABLE_NOTIF_COOLDOWN_MS, INGESTION_INSTABILITY } from '$lib/config/back-settings.js';
 import { savePostsForUser, type IngestedPost } from '$lib/persistence/post.store.js';
 import { getFetcherState, putFetcherState } from '$lib/persistence/fetcher-state.store.js';
 import { getStorageBackend } from '$lib/persistence/db.js';
@@ -376,12 +376,15 @@ async function processFont(
 		next.lastFetchedAt = ctx.now;
 		next.lastSuccessAt = ctx.now;
 		next.lastUnreachableNotifiedAt = 0; // reset cooldown on success
+		next.lastInstabilityNotifiedAt = 0; // reset instability cooldown on success
 		next.nextScheduledAt = ctx.now + jitter(interval);
 		await putFetcherState(next);
 		return totalInserted;
 	}
 
-	// Total failure path: apply backoff and consider unreachable notif.
+	// Total failure path: classify into either *instability* (the font
+	// has succeeded before and is still inside the grace window) or
+	// full *unreachable* (never succeeded, or grace window expired).
 	const cfg = INGESTION_BACKOFF;
 	let backoff: number;
 	if (!cfg.enabled || cfg.multiplier <= 1) {
@@ -391,14 +394,39 @@ async function processFont(
 		backoff = Math.min(interval * Math.pow(cfg.multiplier, exponent), cfg.maxMs);
 	}
 
-	next.lastFetchedAt = ctx.now;
-	next.nextScheduledAt = ctx.now + jitter(backoff);
+	const hasHistory = next.lastSuccessAt != null && next.lastSuccessAt > 0;
+	const inGrace =
+		hasHistory &&
+		ctx.now - (next.lastSuccessAt ?? 0) < INGESTION_INSTABILITY.graceMs;
 
-	// Rate-limited "font unreachable" notification.
-	const sinceLast = ctx.now - next.lastUnreachableNotifiedAt;
-	if (next.lastUnreachableNotifiedAt === 0 || sinceLast >= INGESTION_UNREACHABLE_NOTIF_COOLDOWN_MS) {
-		next.lastUnreachableNotifiedAt = ctx.now;
-		await emitUnreachableNotifications(entry, ctx.now);
+	next.lastFetchedAt = ctx.now;
+
+	if (inGrace) {
+		// Stretch retries during the grace window. We deliberately use
+		// a sparser interval than the user's configured cadence so an
+		// already-wobbly source isn't hammered while it recovers.
+		const graceWait = Math.max(backoff, INGESTION_INSTABILITY.graceIntervalMs);
+		next.nextScheduledAt = ctx.now + jitter(graceWait);
+
+		const sinceLastUnstable = ctx.now - next.lastInstabilityNotifiedAt;
+		if (
+			next.lastInstabilityNotifiedAt === 0 ||
+			sinceLastUnstable >= INGESTION_INSTABILITY.notifCooldownMs
+		) {
+			next.lastInstabilityNotifiedAt = ctx.now;
+			await emitInstabilityNotifications(entry, ctx.now);
+		}
+	} else {
+		next.nextScheduledAt = ctx.now + jitter(backoff);
+
+		const sinceLast = ctx.now - next.lastUnreachableNotifiedAt;
+		if (
+			next.lastUnreachableNotifiedAt === 0 ||
+			sinceLast >= INGESTION_UNREACHABLE_NOTIF_COOLDOWN_MS
+		) {
+			next.lastUnreachableNotifiedAt = ctx.now;
+			await emitUnreachableNotifications(entry, ctx.now);
+		}
 	}
 
 	await putFetcherState(next);
@@ -488,6 +516,24 @@ async function emitUnreachableNotifications(entry: FontEntry, now: number): Prom
 }
 
 /**
+ * Push a "this font is wobbly" entry into every interested user's
+ * inbox. Counterpart to `emitUnreachableNotifications` for the
+ * softer instability stage; rate-limited via
+ * `FetcherState.lastInstabilityNotifiedAt`.
+ */
+async function emitInstabilityNotifications(entry: FontEntry, now: number): Promise<void> {
+	const fontTitle = entry.node.data.header?.title ?? 'font';
+	for (const userId of entry.userIds) {
+		try {
+			const lang = entry.langByUser.get(userId);
+			await enqueueInstabilityNotification(userId, entry.node.metadata.id, fontTitle, now, lang);
+		} catch (err) {
+			console.warn('[post-manager] failed to emit instability notification', userId, err);
+		}
+	}
+}
+
+/**
  * Compute the polling interval for a font.
  *
  * Each interested user contributes a candidate interval based on their
@@ -567,6 +613,41 @@ async function enqueueUnreachableNotification(
 	]);
 	try {
 		await notifyOs({ title, body, tag: `font-unreachable-${nodeId}` });
+	} catch {
+		// best-effort
+	}
+}
+
+/**
+ * Inbox + OS notification for the softer instability stage. Same
+ * shape as `enqueueUnreachableNotification`, different copy and a
+ * separate OS tag so a later escalation to "unreachable" can stack
+ * without colliding with this entry.
+ */
+async function enqueueInstabilityNotification(
+	userId: string,
+	nodeId: string,
+	fontTitle: string,
+	now: number,
+	lang: string | undefined
+): Promise<void> {
+	const id = `font-unstable-${nodeId}-${now}`;
+	const title = tFor(lang, 'notifications.font_unstable_title');
+	const body = tFor(lang, 'notifications.font_unstable_body', { font: fontTitle });
+	await appendInboxEntries(userId, [
+		{
+			id,
+			kind: 'font_unstable',
+			stepId: 'font_unstable',
+			title,
+			body,
+			createdAt: now,
+			read: false,
+			target: { kind: 'node', nodeId }
+		}
+	]);
+	try {
+		await notifyOs({ title, body, tag: `font-unstable-${nodeId}` });
 	} catch {
 		// best-effort
 	}

@@ -478,7 +478,10 @@
 	"form.protocol_primary_badge": "Primary",
 	"notifications.font_unreachable_title": "Font unreachable",
 	"notifications.font_unreachable_body": "Could not fetch updates from {font} via any configured protocol.",
+	"notifications.font_unstable_title": "Font unstable",
+	"notifications.font_unstable_body": "{font} is failing to respond. Treating as a transient outage for the next 12 hours.",
 	"font.unreachable_label": "Could not fetch — all protocols failing",
+	"font.unstable_label": "Unstable — retrying less often (transient outage)",
 	"settings.ingestion.reset_scoring": "Reset protocol scoring",
 	"settings.ingestion.reset_scoring_desc": "Clear failure counters and protocol scores for every font. The next refresh will retry the declared primary protocol.",
 	"settings.ingestion.reset_scoring_done": "Cleared scoring for {count} fonts."
