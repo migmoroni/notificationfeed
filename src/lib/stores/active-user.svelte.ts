@@ -366,16 +366,26 @@ export const activeUser = {
 	 * click or scheduler tick.
 	 */
 	async markInteracted(userId: string): Promise<void> {
-		const user = state.allUsers.find(u => u.id === userId);
-		if (!user) return;
+		const cached = state.allUsers.find(u => u.id === userId);
+		if (!cached) return;
 
 		const now = new Date();
-		const last = user.interactedAt ? new Date(user.interactedAt).getTime() : 0;
+		const last = cached.interactedAt ? new Date(cached.interactedAt).getTime() : 0;
 		// Skip re-persisting if we stamped within the last 60s.
 		if (now.getTime() - last < 60_000) return;
 
-		const updated: UserBase = { ...user, interactedAt: now };
-		await persistUser(updated);
+		// CRITICAL: read fresh from DB before persisting. Other stores
+		// (notably `consumer`) write to the same user record via their
+		// own paths (`activateNodes`, `libraryTabs`, …). Merging from
+		// the in-memory `state.allUsers` snapshot — which was loaded
+		// once at boot — would clobber every change those stores have
+		// made since then.
+		const db = await getStorageBackend();
+		const fresh = await db.users.getById<UserBase>(userId);
+		if (!fresh) return;
+
+		const updated: UserBase = { ...fresh, interactedAt: now };
+		await db.users.put($state.snapshot(updated));
 
 		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
 		if (state.current?.id === userId) {
