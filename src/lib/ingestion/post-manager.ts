@@ -364,14 +364,7 @@ async function processFont(
 		} catch (err) {
 			const latency = Math.max(0, Date.now() - startedAt);
 			applyFailureMetrics(protoState, latency, ctx.now);
-			console.info('[post-manager] source attempt failed', {
-				nodeId,
-				entryId: candidate.id,
-				protocol: candidate.protocol,
-				failureCount: protoState.failureCount,
-				circuitState: protoState.circuitState,
-				err: err instanceof Error ? err.message : String(err)
-			});
+			void err;
 			if (protoState.consecutiveFailures < INGESTION_PROTOCOL_SCORING.failoverThreshold) break;
 		}
 	}
@@ -403,6 +396,20 @@ async function processFont(
 				await runNotificationPipeline(userId, ctx.now);
 			} catch (err) {
 				console.warn('[post-manager] notification pipeline failed', userId, err);
+			}
+		}
+
+		// Even on success, surface pipeline events (e.g. RECOVERED,
+		// SOURCE_SWITCHED) to every interested user — not only those
+		// that received new posts.
+		if (events.length > 0) {
+			for (const userId of entry.userIds) {
+				if (usersWithNew.has(userId)) continue;
+				try {
+					await runNotificationPipeline(userId, ctx.now);
+				} catch (err) {
+					console.warn('[post-manager] notification pipeline failed', userId, err);
+				}
 			}
 		}
 
@@ -467,6 +474,19 @@ async function processFont(
 	}
 
 	await persistAll(next, events);
+
+	// Failure path: still need to surface pipeline events
+	// (UNSTABLE / OFFLINE / SOURCE_SWITCHED) to interested users.
+	if (events.length > 0) {
+		for (const userId of entry.userIds) {
+			try {
+				await runNotificationPipeline(userId, ctx.now);
+			} catch (err) {
+				console.warn('[post-manager] notification pipeline failed', userId, err);
+			}
+		}
+	}
+
 	return 'failed';
 }
 

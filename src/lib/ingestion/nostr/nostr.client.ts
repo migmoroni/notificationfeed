@@ -86,26 +86,12 @@ export async function fetchNostrFeed(
 	};
 	if (since !== null) filter.since = since;
 
-	console.info('[nostr] fetch start', {
-		nodeId,
-		pubkey: authorHex.slice(0, 12) + '…',
-		relays: config.relays,
-		kinds,
-		limit,
-		since
-	});
-
 	const { events, allFailed, perRelay } = await collectFromRelays(
 		config.relays,
 		filter,
 		timeoutMs
 	);
-	console.info('[nostr] fetch result', {
-		nodeId,
-		totalEvents: events.length,
-		allFailed,
-		perRelay
-	});
+	void perRelay;
 	if (allFailed && config.relays.length > 0) {
 		throw new Error(`nostr: all ${config.relays.length} relay(s) failed to connect`);
 	}
