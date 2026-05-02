@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { fetchJsonfeedFeed } from './jsonfeed.client.js';
 import type { HttpAdapter, HttpRequestOpts, HttpResponse } from '$lib/ingestion/net/index.js';
-import type { FetcherState } from '$lib/domain/ingestion/fetcher-state.js';
+import type { ProtocolFetcherState } from '$lib/domain/ingestion/fetcher-state.js';
 
 const NODE_ID = 'tree-1:font-1';
 const URL = 'https://example.com/feed.json';
@@ -19,16 +19,16 @@ function makeAdapter(response: HttpResponse, captured?: { opts?: HttpRequestOpts
 	};
 }
 
-function emptyState(): FetcherState {
+function emptyState(): ProtocolFetcherState {
 	return {
-		nodeId: NODE_ID,
+		entryId: 'entry-1',
 		etag: null,
 		lastModified: null,
 		nostrSince: null,
 		consecutiveFailures: 0,
 		lastFetchedAt: 0,
 		lastSuccessAt: null,
-		nextScheduledAt: 0
+		score: 0
 	};
 }
 
@@ -78,7 +78,7 @@ describe('fetchJsonfeedFeed', () => {
 			captured
 		);
 
-		const prev: FetcherState = {
+		const prev: ProtocolFetcherState = {
 			...emptyState(),
 			etag: '"old"',
 			lastModified: 'Tue, 31 Mar 2026 00:00:00 GMT'
@@ -99,7 +99,7 @@ describe('fetchJsonfeedFeed', () => {
 			parsedAs: 'raw'
 		});
 
-		const prev: FetcherState = { ...emptyState(), etag: '"old"', lastModified: 'X' };
+		const prev: ProtocolFetcherState = { ...emptyState(), etag: '"old"', lastModified: 'X' };
 		const result = await fetchJsonfeedFeed(adapter, { url: URL }, NODE_ID, prev);
 
 		expect(result.posts).toEqual([]);

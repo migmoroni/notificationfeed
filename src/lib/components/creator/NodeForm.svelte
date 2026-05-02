@@ -67,7 +67,13 @@
 			case 'profile':
 				return { role: 'profile', links: [] };
 			case 'font':
-				return { role: 'font', protocol: 'rss', config: { url: '' }, defaultEnabled: true };
+				return {
+					role: 'font',
+					protocols: [
+						{ id: crypto.randomUUID(), protocol: 'rss', config: { url: '' }, primary: true }
+					],
+					defaultEnabled: true
+				};
 			case 'collection':
 				return { role: 'collection', links: [] };
 			case 'tree':
@@ -82,15 +88,20 @@
 
 		if (body.role === 'font') {
 			const fb = body as FontBody;
-			switch (fb.protocol) {
-				case 'rss':
-					return !!(fb.config as { url: string }).url?.trim();
-				case 'atom':
-					return !!(fb.config as { url: string }).url?.trim();
-				case 'jsonfeed':
-					return !!(fb.config as { url: string }).url?.trim();
-				case 'nostr':
-					return !!(fb.config as { pubkey: string }).pubkey?.trim();
+			if (fb.protocols.length === 0) return false;
+			const primaries = fb.protocols.filter((p) => p.primary).length;
+			if (primaries !== 1) return false;
+			for (const entry of fb.protocols) {
+				switch (entry.protocol) {
+					case 'rss':
+					case 'atom':
+					case 'jsonfeed':
+						if (!(entry.config as { url: string }).url?.trim()) return false;
+						break;
+					case 'nostr':
+						if (!(entry.config as { pubkey: string }).pubkey?.trim()) return false;
+						break;
+				}
 			}
 		}
 

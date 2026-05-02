@@ -10,6 +10,8 @@ import { t } from '$lib/i18n/t.js';
 import { untrack } from 'svelte';
 import type { TreeNode } from '$lib/domain/content-tree/content-tree.js';
 	import { isFontNode, isProfileNode, isTreeLinkNode, isCollectionNode, parseTreeId } from '$lib/domain/content-tree/content-tree.js';
+	import { getFetcherState } from '$lib/persistence/fetcher-state.store.js';
+	import type { FetcherState } from '$lib/domain/ingestion/fetcher-state.js';
 import type { ContentTree, TreeLinkBody } from '$lib/domain/content-tree/content-tree.js';
 import { consumer } from '$lib/stores/consumer.svelte.js';
 import { layout } from '$lib/stores/layout.svelte.js';
@@ -48,6 +50,14 @@ let node = $state<TreeNode | null>(null);
 let childNodes = $state<TreeNode[]>([]);
 let linkedProfiles = $state<{ linkNode: TreeNode; tree: ContentTree; fontCount: number }[]>([]);
 let posts = $state<SortedPost<CanonicalPost>[]>([]);
+let fetcherState = $state<FetcherState | null>(null);
+let isUnreachable = $derived.by(() => {
+	if (!fetcherState) return false;
+	const notifiedAt = fetcherState.lastUnreachableNotifiedAt;
+	if (!notifiedAt) return false;
+	const succAt = fetcherState.lastSuccessAt ?? 0;
+	return succAt < notifiedAt;
+});
 let avatarUrl = $state<string | null>(null);
 let avatarEmoji = $state<string | null>(null);
 let bannerUrl = $state<string | null>(null);
@@ -72,7 +82,9 @@ let meta = $derived(node ? roleMeta[node.role] ?? { label: node.role, icon: Glob
 /** Protocol-specific icon for font nodes; falls back to the role icon. */
 function protocolIconFor(n: TreeNode | null): typeof Globe | null {
 	if (!n || !isFontNode(n)) return null;
-	const proto = n.data.body.protocol;
+	const primary = n.data.body.protocols.find((p) => p.primary) ?? n.data.body.protocols[0];
+	if (!primary) return null;
+	const proto = primary.protocol;
 	if (proto === 'atom') return Atom;
 	if (proto === 'jsonfeed') return Braces;
 	if (proto === 'nostr') return Zap;
@@ -185,6 +197,9 @@ async function loadNode(id: string) {
 				? await getPostsForUser(userId, { nodeIds: [loaded.metadata.id] })
 				: [];
 			posts = sortByPriority(allPosts, {});
+			fetcherState = await getFetcherState(loaded.metadata.id);
+		} else {
+			fetcherState = null;
 		}
 	} finally {
 		loading = false;
@@ -306,6 +321,9 @@ class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text
 <h1 class="text-xl font-bold truncate">{node.data.header.title}</h1>
 {#if meta}
 <Badge variant="outline" class="text-xs">{meta.label}</Badge>
+{/if}
+{#if isUnreachable}
+<Badge variant="destructive" class="text-xs">{t('font.unreachable_label')}</Badge>
 {/if}
 </div>
 

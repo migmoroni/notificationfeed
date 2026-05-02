@@ -98,6 +98,20 @@
 	function restoreDefaults() {
 		void persist(createIngestionSettings());
 	}
+
+	let resetting = $state(false);
+
+	async function handleResetScoring() {
+		if (resetting) return;
+		resetting = true;
+		try {
+			const { resetAllProtocolScoring } = await import('$lib/ingestion/post-manager.js');
+			const count = await resetAllProtocolScoring();
+			console.info(t('settings.ingestion.reset_scoring_done', { count: String(count) }));
+		} finally {
+			resetting = false;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -410,6 +424,20 @@
 
 			<p class="text-xs text-muted-foreground">{t('ingestion_settings.proxy_applies_to')}</p>
 		</div>
+	</section>
+
+	<Separator class="my-6" />
+
+	<section class="space-y-3">
+		<div>
+			<h2 class="text-base font-semibold">{t('settings.ingestion.reset_scoring')}</h2>
+			<p class="text-sm text-muted-foreground">
+				{t('settings.ingestion.reset_scoring_desc')}
+			</p>
+		</div>
+		<Button variant="outline" onclick={handleResetScoring} disabled={resetting}>
+			{t('settings.ingestion.reset_scoring')}
+		</Button>
 	</section>
 
 	<Separator class="my-6" />

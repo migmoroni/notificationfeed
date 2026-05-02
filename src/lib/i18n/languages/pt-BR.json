@@ -471,5 +471,15 @@
 	"post.action.restore": "Restaurar",
 	"feed.tab.saved": "Salvos",
 	"feed.tab.trash": "Lixeira",
-	"feed.refresh_now": "Atualizar agora"
+	"feed.refresh_now": "Atualizar agora",
+	"form.add_protocol": "Adicionar protocolo",
+	"form.mark_primary": "Marcar como principal",
+	"form.remove_protocol": "Remover protocolo",
+	"form.protocol_primary_badge": "Principal",
+	"notifications.font_unreachable_title": "Fonte inacessível",
+	"notifications.font_unreachable_body": "Não foi possível buscar atualizações de {font} por nenhum protocolo configurado.",
+	"font.unreachable_label": "Não foi possível buscar — todos os protocolos falhando",
+	"settings.ingestion.reset_scoring": "Redefinir pontuação de protocolos",
+	"settings.ingestion.reset_scoring_desc": "Limpa contadores de falhas e pontuações por protocolo de todas as fontes. A próxima atualização tentará o protocolo principal declarado.",
+	"settings.ingestion.reset_scoring_done": "Pontuação redefinida para {count} fontes."
 }

@@ -299,7 +299,11 @@ export async function runNotificationPipeline(
 
 	for (const f of fires) {
 		const targetUrl =
-			f.target.kind === 'url' ? f.target.url : `/?macro=${encodeURIComponent(f.target.macroId)}`;
+			f.target.kind === 'url'
+				? f.target.url
+				: f.target.kind === 'node'
+					? `/library/node/${encodeURIComponent(f.target.nodeId)}`
+					: `/?macro=${encodeURIComponent(f.target.macroId)}`;
 		void notifyOs({
 			title: f.title,
 			body: f.body,

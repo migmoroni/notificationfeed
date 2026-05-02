@@ -28,6 +28,7 @@ vi.mock('./db.js', () => ({
 }));
 
 import { trashOldPostsForUser } from './post.store.js';
+import { savePostsForUser } from './post.store.js';
 
 const DAY_MS = 86_400_000;
 const USER_ID = 'user-1';
@@ -82,5 +83,68 @@ describe('trashOldPostsForUser', () => {
 
 		expect(count).toBe(1);
 		expect(dbMock.records[0].trashedAt).toBe(now);
+	});
+});
+describe('savePostsForUser cross-protocol dedup', () => {
+	beforeEach(() => {
+		dbMock.records = [];
+		dbMock.put.mockClear();
+	});
+
+	function ingested(id: string, url: string, protocol: string) {
+		return {
+			userId: USER_ID,
+			nodeId: NODE_ID,
+			id,
+			protocol,
+			title: 't',
+			content: '',
+			url,
+			author: '',
+			publishedAt: 1,
+			ingestedAt: 1,
+			read: false,
+			savedAt: null,
+			trashedAt: null
+		} as any;
+	}
+
+	it('skips inserting a post when an existing record has the same normalized URL', async () => {
+		dbMock.records = [post({ id: 'rss-1', url: 'https://example.com/post' })];
+		const res = await savePostsForUser(USER_ID, [
+			ingested('atom-1', 'https://example.com/post/', 'atom')
+		]);
+		expect(res.inserted).toBe(0);
+		expect(res.updated).toBe(0);
+		expect(dbMock.records).toHaveLength(1);
+		expect(dbMock.records[0].id).toBe('rss-1');
+	});
+
+	it('inserts when URLs differ even by protocol', async () => {
+		dbMock.records = [post({ id: 'rss-1', url: 'https://example.com/a' })];
+		const res = await savePostsForUser(USER_ID, [
+			ingested('atom-1', 'https://example.com/b', 'atom')
+		]);
+		expect(res.inserted).toBe(1);
+		expect(dbMock.records).toHaveLength(2);
+	});
+
+	it('treats trailing-slash and case differences as duplicates', async () => {
+		dbMock.records = [post({ id: 'rss-1', url: 'https://Example.COM/x' })];
+		const res = await savePostsForUser(USER_ID, [
+			ingested('jf-1', 'https://example.com/x/', 'jsonfeed')
+		]);
+		expect(res.inserted).toBe(0);
+		expect(dbMock.records).toHaveLength(1);
+	});
+
+	it('updates existing record when same composite id arrives again', async () => {
+		dbMock.records = [post({ id: 'p1', url: 'https://example.com/p', title: 'old' })];
+		const res = await savePostsForUser(USER_ID, [
+			{ ...ingested('p1', 'https://example.com/p', 'rss'), title: 'new' }
+		]);
+		expect(res.updated).toBe(1);
+		expect(res.inserted).toBe(0);
+		expect(dbMock.records[0].title).toBe('new');
 	});
 });

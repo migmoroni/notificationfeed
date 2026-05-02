@@ -151,7 +151,11 @@ title = parsed.hostname.replace('www.', '');
 title = url.slice(0, 50);
 }
 
-const fontBody: FontBody = { role: 'font', protocol, config: { url }, defaultEnabled: true };
+const fontBody: FontBody = {
+	role: 'font',
+	protocols: [{ id: crypto.randomUUID(), protocol, config: { url }, primary: true }],
+	defaultEnabled: true
+};
 const fontNodeId = generateNodeId(treeId, uuidv7());
 const fontNode: TreeNode = {
 role: 'font',

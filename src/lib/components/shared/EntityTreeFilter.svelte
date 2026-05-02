@@ -98,7 +98,9 @@ let totalSelected = $derived(store.totalSelected);
 
 function fontProtocolIcon(node: TreeNode) {
 if (!isFontNode(node)) return Rss;
-const proto = node.data.body.protocol;
+const primary = node.data.body.protocols.find((p) => p.primary) ?? node.data.body.protocols[0];
+if (!primary) return Rss;
+const proto = primary.protocol;
 if (proto === 'atom') return Atom;
 if (proto === 'jsonfeed') return Braces;
 if (proto === 'nostr') return Zap;

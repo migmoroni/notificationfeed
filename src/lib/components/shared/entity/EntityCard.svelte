@@ -56,7 +56,9 @@
 	 */
 	let protocolIcon = $derived.by(() => {
 		if (!isFontNode(node)) return null;
-		const proto = node.data.body.protocol;
+		const primary = node.data.body.protocols.find((p) => p.primary) ?? node.data.body.protocols[0];
+		if (!primary) return null;
+		const proto = primary.protocol;
 		if (proto === 'atom') return Atom;
 		if (proto === 'jsonfeed') return Braces;
 		if (proto === 'nostr') return Zap;

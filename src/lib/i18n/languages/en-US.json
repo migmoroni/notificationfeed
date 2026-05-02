@@ -471,5 +471,15 @@
 	"post.action.restore": "Restore",
 	"feed.tab.saved": "Saved",
 	"feed.tab.trash": "Trash",
-	"feed.refresh_now": "Refresh now"
+	"feed.refresh_now": "Refresh now",
+	"form.add_protocol": "Add protocol",
+	"form.mark_primary": "Mark as primary",
+	"form.remove_protocol": "Remove protocol",
+	"form.protocol_primary_badge": "Primary",
+	"notifications.font_unreachable_title": "Font unreachable",
+	"notifications.font_unreachable_body": "Could not fetch updates from {font} via any configured protocol.",
+	"font.unreachable_label": "Could not fetch — all protocols failing",
+	"settings.ingestion.reset_scoring": "Reset protocol scoring",
+	"settings.ingestion.reset_scoring_desc": "Clear failure counters and protocol scores for every font. The next refresh will retry the declared primary protocol.",
+	"settings.ingestion.reset_scoring_done": "Cleared scoring for {count} fonts."
 }

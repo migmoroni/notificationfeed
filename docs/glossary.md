@@ -27,6 +27,10 @@
 | **Font** | TreeNode com `role='font'`. Canal técnico de distribuição que encapsula a configuração de um protocolo (Nostr, RSS, Atom ou JSON Feed). Body: `FontBody { protocol, config, defaultEnabled }`. |
 | **FontProtocol** | Protocolo de uma font: `'nostr' \| 'rss' \| 'atom' \| 'jsonfeed'`. |
 | **FontConfig** | Union de configuração por protocolo: `FontNostrConfig { relays[], pubkey, kinds? }`, `FontRssConfig { url }`, `FontAtomConfig { url }`, `FontJsonfeedConfig { url }`. |
+| **RSS** | Protocolo/formato XML clássico de syndication da web aberta. Uma Font RSS aponta para uma URL de feed (`FontRssConfig { url }`); o cliente busca via HTTP, parseia `<item>` e normaliza com `normalizeRssItem()`. |
+| **Atom** | Protocolo/formato XML de syndication mais estruturado que RSS. Uma Font Atom aponta para uma URL (`FontAtomConfig { url }`); o cliente busca via HTTP, parseia `<entry>` e normaliza com `normalizeAtomEntry()`. |
+| **JSON Feed** | Formato de feed em JSON (v1.0/v1.1), alternativa a RSS/Atom para publicar listas de posts sem XML. Uma Font JSON Feed usa `FontJsonfeedConfig { url }`; o cliente busca via HTTP, lê `items[]` e normaliza com `normalizeJsonfeedItem()`. |
+| **Nostr** | Protocolo descentralizado baseado em chaves públicas e relays WebSocket. Uma Font Nostr usa `FontNostrConfig { relays[], pubkey, kinds? }`; o cliente envia `REQ` aos relays, recebe eventos e normaliza com `normalizeNostrEvent()`. |
 | **Profile** | TreeNode com `role='profile'`. Identidade temática/editorial que agrupa Fonts. Body: `ProfileBody { links: ExternalLink[] }`. Categories via `NodeHeader.categoryAssignments`. |
 | **ExternalLink** | Value object `{ title, url }` usado em ProfileBody e CollectionBody. |
 | **TreeExport** | Snapshot JSON autocontido de uma ContentTree. Campos: `exportId`, `version`, `exportedAt`, `creatorDisplayName`, `tree: ContentTree`, `medias: ContentMedia[]`. Formato do `.notfeed.json`. |

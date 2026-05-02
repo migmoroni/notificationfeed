@@ -58,6 +58,7 @@ localFontRss1: '00000000-0000-0000-0000-000000005001',
 localFontRss2: '00000000-0000-0000-0000-000000005002',
 localFontAtom1: '00000000-0000-0000-0000-000000005003',
 localFontNostr1: '00000000-0000-0000-0000-000000005004',
+localFontNostr2: '00000000-0000-0000-0000-00000000500a',
 localFontRss3: '00000000-0000-0000-0000-000000005007',
 localFontAtom2: '00000000-0000-0000-0000-000000005008',
 localFontJsonfeed1: '00000000-0000-0000-0000-000000005009',
@@ -73,6 +74,7 @@ root: generateNodeId(IDS.treeProfileTech, IDS.localRoot),
 fontRss1: generateNodeId(IDS.treeProfileTech, IDS.localFontRss1),
 fontAtom1: generateNodeId(IDS.treeProfileTech, IDS.localFontAtom1),
 fontNostr1: generateNodeId(IDS.treeProfileTech, IDS.localFontNostr1),
+fontNostr2: generateNodeId(IDS.treeProfileTech, IDS.localFontNostr2),
 fontJsonfeed1: generateNodeId(IDS.treeProfileTech, IDS.localFontJsonfeed1),
 };
 
@@ -244,23 +246,27 @@ categoryAssignments: [
 [PT.fontRss1]: makeNode(PT.fontRss1, 'font', {
 title: 'Hacker News RSS',
 categoryAssignments: [{ treeId: 'content', categoryIds: ['baaac'] }]
-}, { role: 'font', protocol: 'rss', config: { url: 'https://hnrss.org/frontpage' }, defaultEnabled: true }),
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: 'https://hnrss.org/frontpage' }, primary: true }], defaultEnabled: true }),
 
 [PT.fontAtom1]: makeNode(PT.fontAtom1, 'font', {
 title: 'Svelte Blog (Atom)',
 categoryAssignments: [{ treeId: 'content', categoryIds: ['baaac'] }]
-}, { role: 'font', protocol: 'atom', config: { url: 'https://svelte.dev/blog/rss.xml' }, defaultEnabled: true }),
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'atom', config: { url: 'https://svelte.dev/blog/rss.xml' }, primary: true }], defaultEnabled: true }),
 
 [PT.fontNostr1]: makeNode(PT.fontNostr1, 'font', {
-title: 'Nostr Dev Updates',
-}, { role: 'font', protocol: 'nostr', config: { pubkey: 'npub1mockkey000000000000000000000000000000', relays: ['wss://relay.damus.io'] }, defaultEnabled: true }),
+title: 'fiatjaf (Nostr)',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'nostr', config: { pubkey: 'npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6', relays: ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.primal.net'] }, primary: true }], defaultEnabled: true }),
+
+[PT.fontNostr2]: makeNode(PT.fontNostr2, 'font', {
+title: 'Nostr (bot de teste — alta frequência)',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'nostr', config: { pubkey: '32e1827635450ebb3c5a7d12c1f8e7b2b514439ac10a67eef3d9fd9c5c68e245', relays: ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.primal.net', 'wss://nostr.wine'] }, primary: true }], defaultEnabled: true }),
 
 [PT.fontJsonfeed1]: makeNode(PT.fontJsonfeed1, 'font', {
 title: 'JSON Feed Spec Blog',
 categoryAssignments: [{ treeId: 'content', categoryIds: ['baaac'] }]
-}, { role: 'font', protocol: 'jsonfeed', config: { url: 'https://www.jsonfeed.org/feed.json' }, defaultEnabled: true }),
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'jsonfeed', config: { url: 'https://www.jsonfeed.org/feed.json' }, primary: true }], defaultEnabled: true }),
 },
-{ '/': PT.root, '*': [PT.fontRss1, PT.fontAtom1, PT.fontNostr1, PT.fontJsonfeed1] },
+{ '/': PT.root, '*': [PT.fontRss1, PT.fontAtom1, PT.fontNostr1, PT.fontNostr2, PT.fontJsonfeed1] },
 [],
 IDS.consumer
 );
@@ -279,7 +285,7 @@ categoryAssignments: [
 [PS.fontRss3]: makeNode(PS.fontRss3, 'font', {
 title: 'Krebs on Security',
 categoryAssignments: [{ treeId: 'content', categoryIds: ['baaac'] }]
-}, { role: 'font', protocol: 'rss', config: { url: 'https://krebsonsecurity.com/feed/' }, defaultEnabled: true }),
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: 'https://krebsonsecurity.com/feed/' }, primary: true }], defaultEnabled: true }),
 },
 { '/': PS.root, '*': [PS.fontRss3] },
 [],
@@ -299,7 +305,7 @@ categoryAssignments: [
 
 [PN.fontRss2]: makeNode(PN.fontRss2, 'font', {
 title: 'BBC World RSS',
-}, { role: 'font', protocol: 'rss', config: { url: 'http://feeds.bbci.co.uk/news/world/rss.xml' }, defaultEnabled: true }),
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: 'http://feeds.bbci.co.uk/news/world/rss.xml' }, primary: true }], defaultEnabled: true }),
 },
 { '/': PN.root, '*': [PN.fontRss2] },
 [],
@@ -319,7 +325,7 @@ categoryAssignments: [
 
 [PH.fontAtom2]: makeNode(PH.fontAtom2, 'font', {
 title: 'Nature News (Atom)',
-}, { role: 'font', protocol: 'atom', config: { url: 'https://www.nature.com/nature.rss' }, defaultEnabled: true }),
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'atom', config: { url: 'https://www.nature.com/nature.rss' }, primary: true }], defaultEnabled: true }),
 },
 { '/': PH.root, '*': [PH.fontAtom2] },
 [],
@@ -339,11 +345,11 @@ categoryAssignments: [
 
 [PF.fontRss1]: makeNode(PF.fontRss1, 'font', {
 title: 'Hacker News (Creator)',
-}, { role: 'font', protocol: 'rss', config: { url: 'https://hnrss.org/frontpage' }, defaultEnabled: true }),
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: 'https://hnrss.org/frontpage' }, primary: true }], defaultEnabled: true }),
 
 [PF.fontAtom1]: makeNode(PF.fontAtom1, 'font', {
 title: 'Svelte Blog (Creator)',
-}, { role: 'font', protocol: 'atom', config: { url: 'https://svelte.dev/blog/rss.xml' }, defaultEnabled: true }),
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'atom', config: { url: 'https://svelte.dev/blog/rss.xml' }, primary: true }], defaultEnabled: true }),
 },
 { '/': PF.root, '*': [PF.fontRss1, PF.fontAtom1] },
 [],

@@ -13,7 +13,7 @@
  */
 
 import type { FontJsonfeedConfig } from '$lib/domain/content-tree/content-tree.js';
-import type { FetcherState } from '$lib/domain/ingestion/fetcher-state.js';
+import type { ProtocolFetcherState } from '$lib/domain/ingestion/fetcher-state.js';
 import type { IngestedPost } from '$lib/persistence/post.store.js';
 import {
 	normalizeJsonfeedItem,
@@ -24,7 +24,7 @@ import type { HttpAdapter } from '$lib/ingestion/net/index.js';
 
 export interface FetchResult {
 	posts: IngestedPost[];
-	nextState: Pick<FetcherState, 'etag' | 'lastModified' | 'lastFetchedAt' | 'lastSuccessAt'>;
+	nextState: Pick<ProtocolFetcherState, 'etag' | 'lastModified' | 'lastFetchedAt' | 'lastSuccessAt'>;
 }
 
 /**
@@ -34,7 +34,7 @@ export async function fetchJsonfeedFeed(
 	http: HttpAdapter,
 	config: FontJsonfeedConfig,
 	nodeId: string,
-	prev: FetcherState | null
+	prev: ProtocolFetcherState | null
 ): Promise<FetchResult> {
 	const now = Date.now();
 	const response = await http.fetchText(config.url, {

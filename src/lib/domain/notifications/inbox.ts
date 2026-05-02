@@ -20,11 +20,12 @@
  * `NOTIFICATIONS.inboxHardCap` per user.
  */
 
-export type InboxEntryKind = 'per_post' | 'batch_macro' | 'batch_global';
+export type InboxEntryKind = 'per_post' | 'batch_macro' | 'batch_global' | 'font_unreachable';
 
 export type InboxTarget =
 	| { kind: 'url'; url: string; postId: string }
-	| { kind: 'macro'; macroId: string };
+	| { kind: 'macro'; macroId: string }
+	| { kind: 'node'; nodeId: string };
 
 export interface InboxEntry {
 	/** Synthetic primary key `${userId}|${id}`. Maintained on write. */

@@ -91,6 +91,9 @@
 		const target = entry.target;
 		if (target.kind === 'url') {
 			window.open(target.url, '_blank', 'noopener');
+		} else if (target.kind === 'node') {
+			open = false;
+			void goto('/library/node/' + encodeURIComponent(target.nodeId));
 		} else {
 			open = false;
 			void goto('/?macro=' + encodeURIComponent(target.macroId));

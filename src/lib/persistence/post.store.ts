@@ -90,6 +90,25 @@ export async function savePostsForUser(
 	let inserted = 0;
 	let updated = 0;
 
+	// Cross-protocol dedup: when the same logical post is delivered via
+	// two protocols of the same multi-protocol font, ids differ but URLs
+	// usually match. Cache (userId, nodeId) → Set<normalizedUrl> of items
+	// already in the DB so we can skip soft-duplicate inserts.
+	const dedupCache = new Map<string, Set<string>>();
+	async function getUrlSet(nodeId: string): Promise<Set<string>> {
+		const cacheKey = userNodeKey(userId, nodeId);
+		let set = dedupCache.get(cacheKey);
+		if (set) return set;
+		const records = await db.posts.query<StoredPost>('byUserNode', cacheKey);
+		set = new Set();
+		for (const r of records) {
+			const norm = normalizeUrl(r.url);
+			if (norm) set.add(norm);
+		}
+		dedupCache.set(cacheKey, set);
+		return set;
+	}
+
 	for (const incoming of posts) {
 		const key = pk(userId, incoming.nodeId, incoming.id);
 		const existing = await db.posts.getById<StoredPost>(key);
@@ -115,6 +134,16 @@ export async function savePostsForUser(
 			await db.posts.put(toStored(merged));
 			updated++;
 		} else {
+			// Cross-protocol dedup check: skip insert if a post with the same
+			// normalized URL already exists in this user's box for this font.
+			const norm = normalizeUrl(incoming.url);
+			if (norm) {
+				const urlSet = await getUrlSet(incoming.nodeId);
+				if (urlSet.has(norm)) {
+					continue;
+				}
+				urlSet.add(norm);
+			}
 			const fresh: CanonicalPost = {
 				userId,
 				nodeId: incoming.nodeId,
@@ -137,6 +166,25 @@ export async function savePostsForUser(
 	}
 
 	return { inserted, updated };
+}
+
+/**
+ * Normalize a post URL for cross-protocol duplicate detection. Lowercase
+ * scheme/host and strip a single trailing slash from the path. Returns
+ * empty string when the input is not parseable.
+ */
+function normalizeUrl(url: string): string {
+	if (!url) return '';
+	try {
+		const u = new URL(url);
+		const protocol = u.protocol.toLowerCase();
+		const host = u.host.toLowerCase();
+		let path = u.pathname;
+		if (path.length > 1 && path.endsWith('/')) path = path.slice(0, -1);
+		return `${protocol}//${host}${path}${u.search}`;
+	} catch {
+		return url.trim().toLowerCase();
+	}
 }
 
 /**

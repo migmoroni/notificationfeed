@@ -367,6 +367,8 @@ saving = false;
 {#snippet fontCard(entry: { nodeId: string; node: TreeNode; pathKey?: string })}
 {@const node = entry.node}
 {@const fontBody = node.data.body as FontBody}
+{@const primaryEntry = fontBody.protocols.find((p) => p.primary) ?? fontBody.protocols[0]}
+{@const primaryProtocol = primaryEntry?.protocol ?? 'rss'}
 {@const avatar = getNodeAvatar(node)}
 <div class="flex items-center gap-2 px-3 py-2 rounded-md border bg-background text-sm">
 {#if avatar?.type === 'image'}
@@ -379,11 +381,11 @@ saving = false;
 </div>
 {:else}
 <div class="shrink-0 w-7 h-7 rounded bg-muted flex items-center justify-center text-muted-foreground">
-{#if fontBody.protocol === 'atom'}
+{#if primaryProtocol === 'atom'}
 <Atom class="size-3.5" />
-{:else if fontBody.protocol === 'nostr'}
+{:else if primaryProtocol === 'nostr'}
 <Zap class="size-3.5" />
-{:else if fontBody.protocol === 'jsonfeed'}
+{:else if primaryProtocol === 'jsonfeed'}
 <Braces class="size-3.5" />
 {:else}
 <Rss class="size-3.5" />
@@ -391,7 +393,7 @@ saving = false;
 </div>
 {/if}
 <span class="flex-1 truncate">{node.data.header.title}</span>
-<Badge variant="outline" class="text-[10px] uppercase">{fontBody.protocol}</Badge>
+<Badge variant="outline" class="text-[10px] uppercase">{primaryProtocol}</Badge>
 {#if entry.pathKey && tree.sections.length > 0}
 <select
 class="h-6 text-[10px] rounded border bg-background px-1"

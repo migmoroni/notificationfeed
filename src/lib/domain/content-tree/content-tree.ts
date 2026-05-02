@@ -66,6 +66,23 @@ url: string;
 
 export type FontConfig = FontNostrConfig | FontRssConfig | FontAtomConfig | FontJsonfeedConfig;
 
+/**
+ * One protocol entry inside a font. A font may have several entries —
+ * exactly one is marked `primary: true` (user preference). The system
+ * tries the primary first, then falls back to other entries when the
+ * primary fails repeatedly. The user is *not* aware of this — fallback
+ * is silent except for the "could not fetch" warning when *all* entries
+ * fail.
+ */
+export interface FontProtocolEntry {
+	/** Local UUID, stable across edits — used as key in `FetcherState.protocols`. */
+	id: string;
+	protocol: FontProtocol;
+	config: FontConfig;
+	/** Exactly one entry per FontBody must have `primary: true`. */
+	primary: boolean;
+}
+
 /** A simple external link (website, linktree, etc.) */
 export interface ExternalLink {
 	title: string;
@@ -78,12 +95,19 @@ role: 'profile';
 links: ExternalLink[];
 }
 
-/** Body for role = 'font' — feed source */
+/**
+ * Body for role = 'font' — feed source.
+ *
+ * `protocols` is a non-empty list. Exactly one entry is the *declared
+ * primary* (user preference, persisted on the tree). The PostManager
+ * tries the declared primary first; on repeated failures it falls
+ * over to the next-best fallback (silently). Scoring is per-entry,
+ * not per-font, and lives in `FetcherState.protocols[entryId]`.
+ */
 export interface FontBody {
-role: 'font';
-protocol: FontProtocol;
-config: FontConfig;
-defaultEnabled: boolean;
+	role: 'font';
+	protocols: FontProtocolEntry[];
+	defaultEnabled: boolean;
 }
 
 /** Body for role = 'tree' — cross-link to another tree */
@@ -283,4 +307,47 @@ return null;
 /** Generate a composite nodeId for a tree */
 export function generateNodeId(treeId: string, localUuid: string): string {
 return `${treeId}:${localUuid}`;
+}
+
+// ---------------------------------------------------------------------------
+// FontBody helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Return the entry the user marked as primary. Falls back to the first
+ * entry if none is marked (defensive — the editor enforces exactly one
+ * primary, but persisted data may have drifted).
+ */
+export function getPrimaryProtocolEntry(body: FontBody): FontProtocolEntry | null {
+	if (body.protocols.length === 0) return null;
+	return body.protocols.find((p) => p.primary) ?? body.protocols[0];
+}
+
+/**
+ * Order protocol entries for ingestion: declared primary first, then
+ * fallbacks ordered by descending score (ties broken by original order).
+ * `effectivePrimaryId`, when provided, overrides the head of the list —
+ * this is how the runtime promotes a fallback after sustained wins.
+ */
+export function getProtocolEntriesByPriority(
+	body: FontBody,
+	scores: Record<string, number> = {},
+	effectivePrimaryId: string | null = null
+): FontProtocolEntry[] {
+	const declaredPrimary = getPrimaryProtocolEntry(body);
+	const head =
+		(effectivePrimaryId && body.protocols.find((p) => p.id === effectivePrimaryId)) ||
+		declaredPrimary;
+	const rest = body.protocols.filter((p) => p !== head);
+	rest.sort((a, b) => (scores[b.id] ?? 0) - (scores[a.id] ?? 0));
+	return head ? [head, ...rest] : rest;
+}
+
+/** Build a fresh FontProtocolEntry with a generated id and `primary: false`. */
+export function createProtocolEntry(
+	protocol: FontProtocol,
+	config: FontConfig,
+	primary = false
+): FontProtocolEntry {
+	return { id: crypto.randomUUID(), protocol, config, primary };
 }

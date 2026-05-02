@@ -30,13 +30,13 @@
  *    jitter. Disabled there → next try at the regular interval.
  */
 
-import type { TreeNode, FontBody, FontRssConfig, FontAtomConfig, FontNostrConfig, FontJsonfeedConfig } from '$lib/domain/content-tree/content-tree.js';
-import { isFontNode } from '$lib/domain/content-tree/content-tree.js';
+import type { TreeNode, FontBody, FontProtocolEntry, FontRssConfig, FontAtomConfig, FontNostrConfig, FontJsonfeedConfig } from '$lib/domain/content-tree/content-tree.js';
+import { isFontNode, getProtocolEntriesByPriority, getPrimaryProtocolEntry } from '$lib/domain/content-tree/content-tree.js';
 import type { UserConsumer } from '$lib/domain/user/user-consumer.js';
-import type { FetcherState } from '$lib/domain/ingestion/fetcher-state.js';
-import { emptyFetcherState } from '$lib/domain/ingestion/fetcher-state.js';
+import type { FetcherState, ProtocolFetcherState } from '$lib/domain/ingestion/fetcher-state.js';
+import { emptyFetcherState, getOrCreateProtoState } from '$lib/domain/ingestion/fetcher-state.js';
 import type { IngestionSettings, ProxyConfig } from '$lib/domain/ingestion/ingestion-settings.js';
-import { INGESTION_BACKOFF, INGESTION_FETCH, INGESTION_SCHEDULER } from '$lib/config/back-settings.js';
+import { INGESTION_BACKOFF, INGESTION_FETCH, INGESTION_SCHEDULER, INGESTION_PROTOCOL_SCORING, INGESTION_UNREACHABLE_NOTIF_COOLDOWN_MS } from '$lib/config/back-settings.js';
 import { savePostsForUser, type IngestedPost } from '$lib/persistence/post.store.js';
 import { getFetcherState, putFetcherState } from '$lib/persistence/fetcher-state.store.js';
 import { getStorageBackend } from '$lib/persistence/db.js';
@@ -47,6 +47,9 @@ import { fetchNostrFeed } from '$lib/ingestion/nostr/nostr.client.js';
 import { fetchJsonfeedFeed } from '$lib/ingestion/jsonfeed/jsonfeed.client.js';
 import { runRetention } from './retention.js';
 import { runNotificationPipeline } from '$lib/notifications/notification-engine.js';
+import { appendInboxEntries } from '$lib/persistence/notification-inbox.store.js';
+import { notifyOs } from '$lib/notifications/os-notifier.js';
+import { tFor } from '$lib/i18n/t-static.js';
 
 export interface PostManagerDeps {
 	/** Returns the userId currently focused in the UI (if any). */
@@ -123,6 +126,7 @@ interface FontEntry {
 	userIds: string[]; // users that activated AND enabled this font
 	settingsByUser: Map<string, IngestionSettings>;
 	interactedAtByUser: Map<string, number>;
+	langByUser: Map<string, string>;
 }
 
 interface TickContext {
@@ -165,12 +169,19 @@ async function loadContext(): Promise<TickContext> {
 			if (!node || !isFontNode(node)) continue;
 			let entry = fontByNodeId.get(act.nodeId);
 			if (!entry) {
-				entry = { node, userIds: [], settingsByUser: new Map(), interactedAtByUser: new Map() };
+				entry = {
+					node,
+					userIds: [],
+					settingsByUser: new Map(),
+					interactedAtByUser: new Map(),
+					langByUser: new Map()
+				};
 				fontByNodeId.set(act.nodeId, entry);
 			}
 			entry.userIds.push(user.id);
 			entry.settingsByUser.set(user.id, settings);
 			entry.interactedAtByUser.set(user.id, interactedAt);
+			entry.langByUser.set(user.id, user.settingsUser?.language ?? '');
 		}
 	}
 
@@ -238,15 +249,25 @@ async function runTick(deps: PostManagerDeps): Promise<TickResult> {
 type ProcessResult = 'skipped' | 'failed' | number;
 
 /**
- * Process a single font: skip if not yet due (unless `forceNow`),
- * otherwise call the protocol client, broadcast the produced posts to
- * every interested user box, and persist the next `FetcherState`
- * (cache headers, since cursor, scheduling). On failure, applies the
- * configured backoff and reschedules accordingly.
+ * Process a single font with multi-protocol failover.
  *
- * @returns `'skipped'` when the font is not due yet,
- *  `'failed'` on fetch error, or the number of posts inserted across
- *  all interested user boxes on success.
+ * Behaviour per tick:
+ *  1. Skip if not yet due (unless `forceNow`).
+ *  2. Build the trial order: declared primary (or runtime effective
+ *     primary, when promoted) first, then fallbacks ranked by score.
+ *  3. Try each protocol in order. The first one to succeed produces
+ *     the posts; remaining protocols are not tried this tick. On per-
+ *     protocol success, score++. On per-protocol failure, score-- and
+ *     `consecutiveFailures++` for that entry. We move to the next
+ *     entry only when the active one has reached `failoverThreshold`
+ *     consecutive failures (so a single transient blip does NOT cause
+ *     a thrash to fallback in the same tick).
+ *  4. Apply per-tick decay to all entry scores.
+ *  5. Update `effectivePrimaryEntryId` / `promotionStreakTicks` based
+ *     on the current scores.
+ *  6. On success → broadcast posts, schedule next tick at `interval`,
+ *     reset `lastUnreachableNotifiedAt`. On total failure → schedule
+ *     with backoff and emit the rate-limited unreachable notification.
  */
 async function processFont(
 	ctx: TickContext,
@@ -254,28 +275,96 @@ async function processFont(
 	forceNow: boolean
 ): Promise<ProcessResult> {
 	const nodeId = entry.node.metadata.id;
+	const body = entry.node.data.body as FontBody;
+	if (body.protocols.length === 0) return 'skipped';
+
 	const prev = (await getFetcherState(nodeId)) ?? emptyFetcherState(nodeId);
 
 	if (!forceNow && prev.nextScheduledAt > ctx.now) return 'skipped';
 
 	const interval = pickInterval(ctx, entry);
 
-	try {
-		const { posts, etag, lastModified, nostrSince } = await runClient(ctx.httpAdapter, entry.node, prev);
+	// Build trial order using current scores + effective primary.
+	const scores: Record<string, number> = {};
+	for (const e of body.protocols) {
+		scores[e.id] = prev.protocols[e.id]?.score ?? 0;
+	}
+	const trialOrder = getProtocolEntriesByPriority(body, scores, prev.effectivePrimaryEntryId);
 
-		// Broadcast to every interested user box.
+	// Mutable copy of state we'll persist at the end.
+	const next: FetcherState = {
+		...prev,
+		protocols: { ...prev.protocols }
+	};
+
+	let success = false;
+	let postsResult: { posts: IngestedPost[]; usedEntry: FontProtocolEntry } | null = null;
+	let totalFailuresThisTick = 0;
+
+	for (const candidate of trialOrder) {
+		const protoState = { ...getOrCreateProtoState(next, candidate.id) };
+		next.protocols[candidate.id] = protoState;
+
+		// Skip candidates after the active one unless they crossed the
+		// threshold. The "active" candidate is whichever is first in
+		// `trialOrder` — fallbacks only run when it has accumulated
+		// `failoverThreshold` consecutive failures (this tick included).
+		if (candidate !== trialOrder[0]) {
+			const active = trialOrder[0];
+			const activeFailures = next.protocols[active.id]?.consecutiveFailures ?? 0;
+			if (activeFailures < INGESTION_PROTOCOL_SCORING.failoverThreshold) break;
+		}
+
+		try {
+			const r = await runClient(ctx.httpAdapter, entry.node, candidate, protoState);
+			protoState.etag = r.etag ?? protoState.etag;
+			protoState.lastModified = r.lastModified ?? protoState.lastModified;
+			protoState.nostrSince = r.nostrSince ?? protoState.nostrSince;
+			protoState.lastFetchedAt = ctx.now;
+			protoState.lastSuccessAt = ctx.now;
+			protoState.consecutiveFailures = 0;
+			protoState.score = clampScore(protoState.score + INGESTION_PROTOCOL_SCORING.successDelta);
+			postsResult = { posts: r.posts, usedEntry: candidate };
+			success = true;
+			break;
+		} catch (err) {
+			protoState.lastFetchedAt = ctx.now;
+			protoState.consecutiveFailures += 1;
+			protoState.score = clampScore(protoState.score + INGESTION_PROTOCOL_SCORING.failureDelta);
+			totalFailuresThisTick++;
+			console.info('[post-manager] font protocol failed', {
+				nodeId,
+				entryId: candidate.id,
+				protocol: candidate.protocol,
+				consecutiveFailures: protoState.consecutiveFailures,
+				err: err instanceof Error ? err.message : String(err)
+			});
+			// Continue to next candidate only when threshold reached.
+			if (protoState.consecutiveFailures < INGESTION_PROTOCOL_SCORING.failoverThreshold) break;
+		}
+	}
+
+	// Per-tick decay applied to all entries (untouched ones still age).
+	for (const e of body.protocols) {
+		const s = next.protocols[e.id];
+		if (!s) continue;
+		s.score = clampScore(s.score * INGESTION_PROTOCOL_SCORING.decayFactor);
+	}
+
+	// Update effective-primary election.
+	updateEffectivePrimary(next, body);
+
+	// Broadcast on success.
+	if (success && postsResult) {
 		let totalInserted = 0;
 		const usersWithNew = new Set<string>();
 		for (const userId of entry.userIds) {
-			if (posts.length === 0) continue;
-			const result = await savePostsForUser(userId, posts as IngestedPost[]);
+			if (postsResult.posts.length === 0) continue;
+			const result = await savePostsForUser(userId, postsResult.posts);
 			totalInserted += result.inserted;
 			if (result.inserted > 0) usersWithNew.add(userId);
 		}
 
-		// Run the notification pipeline once per user that received
-		// fresh posts. Errors are isolated — a failing pipeline must
-		// never break ingestion.
 		for (const userId of usersWithNew) {
 			try {
 				await runNotificationPipeline(userId, ctx.now);
@@ -284,36 +373,117 @@ async function processFont(
 			}
 		}
 
-		const next: FetcherState = {
-			...prev,
-			etag: etag ?? prev.etag,
-			lastModified: lastModified ?? prev.lastModified,
-			nostrSince: nostrSince ?? prev.nostrSince,
-			lastFetchedAt: ctx.now,
-			lastSuccessAt: ctx.now,
-			consecutiveFailures: 0,
-			nextScheduledAt: ctx.now + jitter(interval)
-		};
+		next.lastFetchedAt = ctx.now;
+		next.lastSuccessAt = ctx.now;
+		next.lastUnreachableNotifiedAt = 0; // reset cooldown on success
+		next.nextScheduledAt = ctx.now + jitter(interval);
 		await putFetcherState(next);
 		return totalInserted;
-	} catch {
-		const failures = prev.consecutiveFailures + 1;
-		const cfg = INGESTION_BACKOFF;
-		let backoff: number;
-		if (!cfg.enabled || cfg.multiplier <= 1) {
-			backoff = interval;
-		} else {
-			const exponent = Math.min(failures, cfg.maxSteps);
-			backoff = Math.min(interval * Math.pow(cfg.multiplier, exponent), cfg.maxMs);
+	}
+
+	// Total failure path: apply backoff and consider unreachable notif.
+	const cfg = INGESTION_BACKOFF;
+	let backoff: number;
+	if (!cfg.enabled || cfg.multiplier <= 1) {
+		backoff = interval;
+	} else {
+		const exponent = Math.min(totalFailuresThisTick, cfg.maxSteps);
+		backoff = Math.min(interval * Math.pow(cfg.multiplier, exponent), cfg.maxMs);
+	}
+
+	next.lastFetchedAt = ctx.now;
+	next.nextScheduledAt = ctx.now + jitter(backoff);
+
+	// Rate-limited "font unreachable" notification.
+	const sinceLast = ctx.now - next.lastUnreachableNotifiedAt;
+	if (next.lastUnreachableNotifiedAt === 0 || sinceLast >= INGESTION_UNREACHABLE_NOTIF_COOLDOWN_MS) {
+		next.lastUnreachableNotifiedAt = ctx.now;
+		await emitUnreachableNotifications(entry, ctx.now);
+	}
+
+	await putFetcherState(next);
+	return 'failed';
+}
+
+function clampScore(value: number): number {
+	if (value < INGESTION_PROTOCOL_SCORING.scoreMin) return INGESTION_PROTOCOL_SCORING.scoreMin;
+	if (value > INGESTION_PROTOCOL_SCORING.scoreMax) return INGESTION_PROTOCOL_SCORING.scoreMax;
+	return value;
+}
+
+/**
+ * Promote a fallback to effective primary when its score exceeds the
+ * declared primary's by `promotionMargin` for
+ * `promotionWindowTicks` consecutive ticks. Reverts (clears
+ * `effectivePrimaryEntryId`) the first tick the lead disappears.
+ */
+function updateEffectivePrimary(state: FetcherState, body: FontBody): void {
+	const declared = getPrimaryProtocolEntry(body);
+	if (!declared || body.protocols.length < 2) {
+		state.effectivePrimaryEntryId = null;
+		state.promotionStreakTicks = 0;
+		return;
+	}
+	const declaredScore = state.protocols[declared.id]?.score ?? 0;
+
+	let topFallback: FontProtocolEntry | null = null;
+	let topScore = -Infinity;
+	for (const e of body.protocols) {
+		if (e === declared) continue;
+		const s = state.protocols[e.id]?.score ?? 0;
+		if (s > topScore) {
+			topScore = s;
+			topFallback = e;
 		}
-		const next: FetcherState = {
-			...prev,
-			lastFetchedAt: ctx.now,
-			consecutiveFailures: failures,
-			nextScheduledAt: ctx.now + jitter(backoff)
-		};
-		await putFetcherState(next);
-		return 'failed';
+	}
+	if (!topFallback) {
+		state.effectivePrimaryEntryId = null;
+		state.promotionStreakTicks = 0;
+		return;
+	}
+
+	const lead = topScore - declaredScore;
+	if (lead >= INGESTION_PROTOCOL_SCORING.promotionMargin) {
+		state.promotionStreakTicks += 1;
+		if (state.promotionStreakTicks >= INGESTION_PROTOCOL_SCORING.promotionWindowTicks) {
+			if (state.effectivePrimaryEntryId !== topFallback.id) {
+				console.info('[post-manager] promoting fallback to effective primary', {
+					nodeId: state.nodeId,
+					from: declared.id,
+					to: topFallback.id,
+					lead
+				});
+			}
+			state.effectivePrimaryEntryId = topFallback.id;
+		}
+	} else {
+		// Lead disappeared — revert immediately.
+		if (state.effectivePrimaryEntryId !== null) {
+			console.info('[post-manager] reverting effective primary to declared', {
+				nodeId: state.nodeId,
+				declared: declared.id
+			});
+		}
+		state.effectivePrimaryEntryId = null;
+		state.promotionStreakTicks = 0;
+	}
+}
+
+/**
+ * Push a "could not fetch this font" entry into the notification
+ * inbox of every interested user. Rate-limiting (max 1 per 24h per
+ * font) is enforced by the caller via
+ * `FetcherState.lastUnreachableNotifiedAt`.
+ */
+async function emitUnreachableNotifications(entry: FontEntry, now: number): Promise<void> {
+	const fontTitle = entry.node.data.header?.title ?? 'font';
+	for (const userId of entry.userIds) {
+		try {
+			const lang = entry.langByUser.get(userId);
+			await enqueueUnreachableNotification(userId, entry.node.metadata.id, fontTitle, now, lang);
+		} catch (err) {
+			console.warn('[post-manager] failed to emit unreachable notification', userId, err);
+		}
 	}
 }
 
@@ -364,6 +534,44 @@ function jitter(ms: number): number {
 	return Math.floor(ms + (Math.random() * 2 - 1) * delta);
 }
 
+/**
+ * Push a "could not fetch" inbox entry for a single user and best-effort
+ * fire an OS notification. Errors are swallowed by the caller — failure
+ * to notify must never break ingestion.
+ */
+async function enqueueUnreachableNotification(
+	userId: string,
+	nodeId: string,
+	fontTitle: string,
+	now: number,
+	lang: string | undefined
+): Promise<void> {
+	const id = `font-unreachable-${nodeId}-${now}`;
+	// Non-reactive translation: the post-manager runs in the service
+	// worker and on the page, where the reactive i18n store may not be
+	// available. `tFor` reads JSON dictionaries directly using the
+	// user's persisted language preference.
+	const title = tFor(lang, 'notifications.font_unreachable_title');
+	const body = tFor(lang, 'notifications.font_unreachable_body', { font: fontTitle });
+	await appendInboxEntries(userId, [
+		{
+			id,
+			kind: 'font_unreachable',
+			stepId: 'font_unreachable',
+			title,
+			body,
+			createdAt: now,
+			read: false,
+			target: { kind: 'node', nodeId }
+		}
+	]);
+	try {
+		await notifyOs({ title, body, tag: `font-unreachable-${nodeId}` });
+	} catch {
+		// best-effort
+	}
+}
+
 interface ClientResult {
 	posts: IngestedPost[];
 	etag: string | null;
@@ -372,21 +580,25 @@ interface ClientResult {
 }
 
 /**
- * Dispatch to the right protocol client based on the font's `body.protocol`.
- * Returns a normalized `ClientResult` with the produced posts plus the
- * fields that should be merged into the next `FetcherState`.
+ * Dispatch to the right protocol client for a single
+ * `FontProtocolEntry`. Returns a normalized `ClientResult` with the
+ * produced posts plus the fields that should be merged into that
+ * entry's `ProtocolFetcherState`.
+ *
+ * Throws on network/parse error — the caller (`processFont`) catches
+ * and updates per-entry failure counters.
  */
 async function runClient(
 	http: HttpAdapter,
 	node: TreeNode,
-	prev: FetcherState
+	entry: FontProtocolEntry,
+	prev: ProtocolFetcherState
 ): Promise<ClientResult> {
-	const body = node.data.body as FontBody;
 	const nodeId = node.metadata.id;
 
-	switch (body.protocol) {
+	switch (entry.protocol) {
 		case 'rss': {
-			const r = await fetchRssFeed(http, body.config as FontRssConfig, nodeId, prev);
+			const r = await fetchRssFeed(http, entry.config as FontRssConfig, nodeId, prev);
 			return {
 				posts: r.posts,
 				etag: r.nextState.etag,
@@ -395,7 +607,7 @@ async function runClient(
 			};
 		}
 		case 'atom': {
-			const r = await fetchAtomFeed(http, body.config as FontAtomConfig, nodeId, prev);
+			const r = await fetchAtomFeed(http, entry.config as FontAtomConfig, nodeId, prev);
 			return {
 				posts: r.posts,
 				etag: r.nextState.etag,
@@ -404,7 +616,7 @@ async function runClient(
 			};
 		}
 		case 'nostr': {
-			const r = await fetchNostrFeed(body.config as FontNostrConfig, nodeId, prev);
+			const r = await fetchNostrFeed(entry.config as FontNostrConfig, nodeId, prev);
 			return {
 				posts: r.posts,
 				etag: null,
@@ -413,7 +625,7 @@ async function runClient(
 			};
 		}
 		case 'jsonfeed': {
-			const r = await fetchJsonfeedFeed(http, body.config as FontJsonfeedConfig, nodeId, prev);
+			const r = await fetchJsonfeedFeed(http, entry.config as FontJsonfeedConfig, nodeId, prev);
 			return {
 				posts: r.posts,
 				etag: r.nextState.etag,
@@ -422,4 +634,37 @@ async function runClient(
 			};
 		}
 	}
+}
+
+/**
+ * Reset per-protocol scoring on every font. Wipes scores,
+ * `consecutiveFailures`, `effectivePrimaryEntryId`,
+ * `promotionStreakTicks`, and `lastUnreachableNotifiedAt`. Cache
+ * headers (etag/lastModified/nostrSince) and schedules are preserved.
+ *
+ * Exposed via app settings → Ingestion → "Reset protocol scoring" so
+ * the user can clear stale judgments after fixing a config or
+ * relocating a feed.
+ */
+export async function resetAllProtocolScoring(): Promise<number> {
+	const db = await getStorageBackend();
+	const all = await db.fetcherStates.getAll<FetcherState>();
+	let count = 0;
+	for (const fs of all) {
+		const next: FetcherState = {
+			...fs,
+			protocols: Object.fromEntries(
+				Object.entries(fs.protocols ?? {}).map(([id, ps]) => [
+					id,
+					{ ...ps, score: 0, consecutiveFailures: 0 }
+				])
+			),
+			effectivePrimaryEntryId: null,
+			promotionStreakTicks: 0,
+			lastUnreachableNotifiedAt: 0
+		};
+		await putFetcherState(next);
+		count++;
+	}
+	return count;
 }
