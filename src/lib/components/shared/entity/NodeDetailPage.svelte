@@ -51,23 +51,9 @@ let childNodes = $state<TreeNode[]>([]);
 let linkedProfiles = $state<{ linkNode: TreeNode; tree: ContentTree; fontCount: number }[]>([]);
 let posts = $state<SortedPost<CanonicalPost>[]>([]);
 let fetcherState = $state<FetcherState | null>(null);
-let isUnreachable = $derived.by(() => {
-	if (!fetcherState) return false;
-	const notifiedAt = fetcherState.lastUnreachableNotifiedAt;
-	if (!notifiedAt) return false;
-	const succAt = fetcherState.lastSuccessAt ?? 0;
-	return succAt < notifiedAt;
-});
-// Soft "transient outage" state — only valid while the grace window
-// is still open and we haven't already escalated to unreachable.
-let isUnstable = $derived.by(() => {
-	if (!fetcherState) return false;
-	if (isUnreachable) return false;
-	const notifiedAt = fetcherState.lastInstabilityNotifiedAt;
-	if (!notifiedAt) return false;
-	const succAt = fetcherState.lastSuccessAt ?? 0;
-	return succAt < notifiedAt;
-});
+// Pipeline state machine: HEALTHY / RECOVERING / UNSTABLE / DEGRADED / OFFLINE.
+// Drives the small status badge next to the title.
+let pipelineState = $derived(fetcherState?.pipelineState ?? 'HEALTHY');
 let avatarUrl = $state<string | null>(null);
 let avatarEmoji = $state<string | null>(null);
 let bannerUrl = $state<string | null>(null);
@@ -332,10 +318,14 @@ class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text
 {#if meta}
 <Badge variant="outline" class="text-xs">{meta.label}</Badge>
 {/if}
-{#if isUnreachable}
-<Badge variant="destructive" class="text-xs">{t('font.unreachable_label')}</Badge>
-{:else if isUnstable}
-<Badge class="text-xs bg-orange-500 text-white hover:bg-orange-500/90 border-transparent">{t('font.unstable_label')}</Badge>
+{#if pipelineState === 'OFFLINE'}
+<Badge variant="destructive" class="text-xs">{t('font.state.offline')}</Badge>
+{:else if pipelineState === 'UNSTABLE'}
+<Badge class="text-xs bg-orange-500 text-white hover:bg-orange-500/90 border-transparent">{t('font.state.unstable')}</Badge>
+{:else if pipelineState === 'DEGRADED'}
+<Badge variant="secondary" class="text-xs">{t('font.state.degraded')}</Badge>
+{:else if pipelineState === 'RECOVERING'}
+<Badge class="text-xs bg-blue-500 text-white hover:bg-blue-500/90 border-transparent">{t('font.state.recovering')}</Badge>
 {/if}
 </div>
 

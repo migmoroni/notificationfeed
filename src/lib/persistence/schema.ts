@@ -90,6 +90,17 @@ export const STORE_SPECS: readonly StoreSpec[] = [
 		name: 'notificationInbox',
 		keyPath: '_pk',
 		indexes: [{ name: 'byUser', keyPath: 'userId' }]
+	},
+	// Pipeline event bus. Durable queue between post-manager (producer)
+	// and pipeline-event-consumer (consumer). Indexed by fontId for
+	// per-font lookups and by timestamp for pruning.
+	{
+		name: 'pipelineEvents',
+		keyPath: 'id',
+		indexes: [
+			{ name: 'byFont', keyPath: 'fontId' },
+			{ name: 'byTimestamp', keyPath: 'timestamp' }
+		]
 	}
 ] as const;
 

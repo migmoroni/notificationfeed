@@ -1,6 +1,11 @@
 /**
  * Notification engine.
  *
+ * See `docs/notification-system.md` for the full picture: this engine
+ * runs **two independent channels** in sequence — first the
+ * pipeline-event consumer (operational health) then the three-step
+ * post pipeline (new-post notifications).
+ *
  * Runs after an ingestion sweep: reads the user's pipeline + meta,
  * collects unnotified posts (`notifiedAt == null`), evaluates each
  * step in order against user-created **feed-macros**, writes inbox
@@ -63,6 +68,7 @@ import {
 } from '$lib/persistence/notification-meta.store.js';
 import { appendInboxEntries } from '$lib/persistence/notification-inbox.store.js';
 import { notifyOs } from './os-notifier.js';
+import { consumePipelineEvents } from './pipeline-event-consumer.js';
 
 /** Sentinel macroId routed to "all macros combined" on the feed page. */
 const ALL_MACROS_ID = '__all__';
@@ -190,6 +196,15 @@ export async function runNotificationPipeline(
 	userId: string,
 	now: number = Date.now()
 ): Promise<RunResult> {
+	// Drain the pipeline-event channel first (operational health
+	// notifications). Independent of the post-pipeline below — a user
+	// with `enabled === false` is short-circuited inside the consumer.
+	try {
+		await consumePipelineEvents(userId, now);
+	} catch (err) {
+		console.warn('[notification-engine] pipeline-event consumer failed', err);
+	}
+
 	const ctx = await loadUserContext(userId);
 	if (!ctx || !ctx.pipeline.enabled) {
 		return { entriesCreated: 0, postsConsumed: 0 };

@@ -92,6 +92,11 @@ const NS_CONTENT = 'http://purl.org/rss/1.0/modules/content/';
  * `<item>` elements at some depth. Returns `[]` on parse error.
  */
 function parseRssXml(xml: string): RssItem[] {
+	// Sniff the body before handing it to DOMParser. The browser's
+	// XML parser writes "XML Parsing Error" to the console on malformed
+	// input *before* we get a chance to check `parsererror` — noisy
+	// when an upstream returns an HTML 404/500 page through the CORS proxy.
+	if (!looksLikeXml(xml)) return [];
 	const parser = new DOMParser();
 	const doc = parser.parseFromString(xml, 'text/xml');
 	if (doc.querySelector('parsererror')) return [];
@@ -151,6 +156,19 @@ function textOf(parent: Element, tag: string): string {
  */
 function nsTextOf(parent: Element, ns: string, local: string): string {
 	return parent.getElementsByTagNameNS(ns, local)[0]?.textContent?.trim() ?? '';
+}
+
+/**
+ * Cheap sniff to decide whether the body is worth handing to
+ * `DOMParser`. Avoids the synchronous "XML Parsing Error" console
+ * noise that the browser writes for HTML / plain-text / empty bodies.
+ */
+function looksLikeXml(text: string): boolean {
+	const trimmed = text.trimStart();
+	if (!trimmed.startsWith('<')) return false;
+	const head = trimmed.slice(0, 256).toLowerCase();
+	if (head.startsWith('<!doctype html') || head.startsWith('<html')) return false;
+	return true;
 }
 
 // ── rss2json JSON shape ────────────────────────────────────────────────

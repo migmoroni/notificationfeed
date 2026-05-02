@@ -29,7 +29,7 @@ Notfeed é um cliente de agregação de informação focado em feeds e notifica�
 - **Svelte**: Svelte 5 com runes ($state, $derived, $props, $effect)
 - **UI**: Tailwind CSS 4 + shadcn-svelte (bits-ui)
 - **Desktop**: Tauri v2
-- **Persistência**: IndexedDB (`notfeed-v2`, v12) atrás da abstração `StorageBackend`
+- **Persistência**: IndexedDB (`notfeed-v2`, v17) atrás da abstração `StorageBackend`
 - **Linguagem**: TypeScript
 - **i18n**: Sistema próprio reativo com `$state` module-level
 - **Ícones**: Lucide (via @lucide/svelte)
@@ -96,7 +96,11 @@ Notfeed é um cliente de agregação de informação focado em feeds e notifica�
 18. ✅ Per-user post boxes com backfill ao ativar fonte
 19. ✅ Tiers de ociosidade e backoff configuráveis per-usuário
 20. ✅ Conditional GET (ETag / Last-Modified) e FetcherState per-source
-21. ✅ Pipeline de notificações como funil fixo de três etapas referenciando feed-macros (per_post / batch_macro / batch_global), com inbox in-app, OS notifications best-effort e click-routing (post URL ou `/?macro=<id>`)
+21. ✅ Pipeline de notificações com **dois canais independentes** consumidos pelo mesmo engine:
+    - Canal 1 (posts): funil fixo de três etapas referenciando feed-macros (per_post / batch_macro / batch_global), com inbox in-app, OS notifications best-effort e click-routing (post URL ou `/?macro=<id>`).
+    - Canal 2 (eventos de pipeline): consumo durável da fila `pipelineEvents` com `mode` (`realtime`/`batched`), `severityThreshold` e dedup por `(fontId, eventType)`; emite kinds `font_unstable`/`font_offline`/`font_recovered`/`font_degraded`/`font_source_switched`. Ver `docs/notification-system.md`.
+22. ✅ Máquina de estados de ingestão em dois níveis (font: HEALTHY/RECOVERING/UNSTABLE/DEGRADED/OFFLINE; source: CLOSED/OPEN/HALF_OPEN) com três modos em camadas (Adaptive Fallback / Backoff Exponencial / Circuit Breaker) e `confidence` derivado. Ver `docs/ingestion-pipeline.md`.
+23. ✅ Multi-protocolo por font: `FontBody.protocols: FontProtocolEntry[]` com primary + fallbacks; cada entry mantém circuit-breaker, backoff, EWMA e score independentes; promoção automática de fallback emite `SOURCE_SWITCHED`.
 
 ## Escopo futuro
 

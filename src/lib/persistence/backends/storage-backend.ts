@@ -67,6 +67,8 @@ export interface StorageBackend {
 	notificationMeta: StoreOps;
 	/** In-app notification inbox. Composite key via `_pk = ${userId}|${notifId}`. */
 	notificationInbox: StoreOps;
+	/** Pipeline event bus (durable queue from post-manager to consumer). */
+	pipelineEvents: StoreOps;
 }
 
 /** Names of all known stores. Drives schema-as-data in Plan B. */
@@ -82,6 +84,7 @@ export const STORE_NAMES = [
 	'categories',
 	'activityData',
 	'notificationMeta',
-	'notificationInbox'
+	'notificationInbox',
+	'pipelineEvents'
 ] as const satisfies readonly (keyof StorageBackend)[];
 export type StoreName = (typeof STORE_NAMES)[number];

@@ -1,6 +1,10 @@
 /**
  * PostManager — central ingestion orchestrator.
  *
+ * See `docs/ingestion-pipeline.md` for the full state machine, mode
+ * descriptions, and config table. See `docs/notification-system.md`
+ * for how this module's `PipelineEvent` output is consumed.
+ *
  * Isomorphic: must NOT import any `*.svelte.ts` store. Receives all
  * runtime state via injected accessors so the same module can run
  * inside the foreground page and inside the service worker.
@@ -33,12 +37,23 @@
 import type { TreeNode, FontBody, FontProtocolEntry, FontRssConfig, FontAtomConfig, FontNostrConfig, FontJsonfeedConfig } from '$lib/domain/content-tree/content-tree.js';
 import { isFontNode, getProtocolEntriesByPriority, getPrimaryProtocolEntry } from '$lib/domain/content-tree/content-tree.js';
 import type { UserConsumer } from '$lib/domain/user/user-consumer.js';
-import type { FetcherState, ProtocolFetcherState } from '$lib/domain/ingestion/fetcher-state.js';
-import { emptyFetcherState, getOrCreateProtoState } from '$lib/domain/ingestion/fetcher-state.js';
+import type { FetcherState, ProtocolFetcherState, PipelineState } from '$lib/domain/ingestion/fetcher-state.js';
+import { emptyFetcherState, getOrCreateProtoState, transition } from '$lib/domain/ingestion/fetcher-state.js';
+import type { PipelineEvent, PipelineEventType } from '$lib/domain/ingestion/pipeline-event.js';
+import { defaultSeverityFor } from '$lib/domain/ingestion/pipeline-event.js';
 import type { IngestionSettings, ProxyConfig } from '$lib/domain/ingestion/ingestion-settings.js';
-import { INGESTION_BACKOFF, INGESTION_FETCH, INGESTION_SCHEDULER, INGESTION_PROTOCOL_SCORING, INGESTION_UNREACHABLE_NOTIF_COOLDOWN_MS, INGESTION_INSTABILITY } from '$lib/config/back-settings.js';
+import {
+	INGESTION_BACKOFF,
+	INGESTION_FETCH,
+	INGESTION_SCHEDULER,
+	INGESTION_PROTOCOL_SCORING,
+	INGESTION_INSTABILITY,
+	INGESTION_CIRCUIT_BREAKER,
+	INGESTION_CONFIDENCE
+} from '$lib/config/back-settings.js';
 import { savePostsForUser, type IngestedPost } from '$lib/persistence/post.store.js';
 import { getFetcherState, putFetcherState } from '$lib/persistence/fetcher-state.store.js';
+import { appendPipelineEvent } from '$lib/persistence/pipeline-events.store.js';
 import { getStorageBackend } from '$lib/persistence/db.js';
 import { getHttpAdapter, type HttpAdapter } from '$lib/ingestion/net/index.js';
 import { fetchRssFeed } from '$lib/ingestion/rss/rss.client.js';
@@ -47,9 +62,6 @@ import { fetchNostrFeed } from '$lib/ingestion/nostr/nostr.client.js';
 import { fetchJsonfeedFeed } from '$lib/ingestion/jsonfeed/jsonfeed.client.js';
 import { runRetention } from './retention.js';
 import { runNotificationPipeline } from '$lib/notifications/notification-engine.js';
-import { appendInboxEntries } from '$lib/persistence/notification-inbox.store.js';
-import { notifyOs } from '$lib/notifications/os-notifier.js';
-import { tFor } from '$lib/i18n/t-static.js';
 
 export interface PostManagerDeps {
 	/** Returns the userId currently focused in the UI (if any). */
@@ -249,25 +261,30 @@ async function runTick(deps: PostManagerDeps): Promise<TickResult> {
 type ProcessResult = 'skipped' | 'failed' | number;
 
 /**
- * Process a single font with multi-protocol failover.
+ * Process a single font with the explicit pipeline state machine and
+ * three execution modes. See `docs/ingestion-pipeline.md` for the full
+ * picture; the short version:
  *
- * Behaviour per tick:
- *  1. Skip if not yet due (unless `forceNow`).
- *  2. Build the trial order: declared primary (or runtime effective
- *     primary, when promoted) first, then fallbacks ranked by score.
- *  3. Try each protocol in order. The first one to succeed produces
- *     the posts; remaining protocols are not tried this tick. On per-
- *     protocol success, score++. On per-protocol failure, score-- and
- *     `consecutiveFailures++` for that entry. We move to the next
- *     entry only when the active one has reached `failoverThreshold`
- *     consecutive failures (so a single transient blip does NOT cause
- *     a thrash to fallback in the same tick).
- *  4. Apply per-tick decay to all entry scores.
- *  5. Update `effectivePrimaryEntryId` / `promotionStreakTicks` based
- *     on the current scores.
- *  6. On success → broadcast posts, schedule next tick at `interval`,
- *     reset `lastUnreachableNotifiedAt`. On total failure → schedule
- *     with backoff and emit the rate-limited unreachable notification.
+ *  - Mode 1 (Adaptive Fallback) — the normal path. Sources whose
+ *    circuit is `CLOSED` and `backoffUntil <= now` are eligible. The
+ *    declared (or runtime-promoted) primary is tried first, then
+ *    fallbacks ranked by score. The first success ends the tick.
+ *
+ *  - Mode 2 (Exponential Backoff per-source) — implicit. Each failed
+ *    source gets its own `backoffUntil = now + base * 2^failureCount`
+ *    (capped at 24h). Eligibility checks naturally skip sources still
+ *    serving their backoff. The font itself transitions to UNSTABLE
+ *    and is re-scheduled at `unstableSparseIntervalMs`.
+ *
+ *  - Mode 3 (Circuit Breaker) — once a source's `failureCount` reaches
+ *    `openAfterFailures` or its backoff hits the cap, it flips to OPEN
+ *    and only one probe (HALF_OPEN) is allowed every 6h–24h. When all
+ *    sources are OPEN the font transitions to OFFLINE.
+ *
+ * On any successful tick the affected source is brought back to
+ * CLOSED and the font enters RECOVERING; after `recoveringHoldTicks`
+ * of continued health it transitions to HEALTHY. Every legal pipeline
+ * transition appends a `PipelineEvent` for the consumer to deliver.
  */
 async function processFont(
 	ctx: TickContext,
@@ -292,54 +309,69 @@ async function processFont(
 	const trialOrder = getProtocolEntriesByPriority(body, scores, prev.effectivePrimaryEntryId);
 
 	// Mutable copy of state we'll persist at the end.
-	const next: FetcherState = {
+	let next: FetcherState = {
 		...prev,
 		protocols: { ...prev.protocols }
 	};
+	const events: PipelineEvent[] = [];
 
 	let success = false;
 	let postsResult: { posts: IngestedPost[]; usedEntry: FontProtocolEntry } | null = null;
-	let totalFailuresThisTick = 0;
+	let attemptedAny = false;
 
-	for (const candidate of trialOrder) {
+	for (let i = 0; i < trialOrder.length; i++) {
+		const candidate = trialOrder[i];
 		const protoState = { ...getOrCreateProtoState(next, candidate.id) };
 		next.protocols[candidate.id] = protoState;
 
-		// Skip candidates after the active one unless they crossed the
-		// threshold. The "active" candidate is whichever is first in
-		// `trialOrder` — fallbacks only run when it has accumulated
-		// `failoverThreshold` consecutive failures (this tick included).
-		if (candidate !== trialOrder[0]) {
+		// Source-level eligibility: respect per-source backoff regardless
+		// of mode. OPEN sources stay locked until their probe window
+		// elapses; HALF_OPEN means a probe is in flight from a previous
+		// tick and we should attempt it.
+		if (!forceNow && protoState.backoffUntil != null && protoState.backoffUntil > ctx.now) {
+			continue;
+		}
+
+		// Skip fallbacks until the active source has crossed the
+		// failover threshold this tick. Active = first eligible source
+		// in trial order.
+		if (i > 0) {
 			const active = trialOrder[0];
 			const activeFailures = next.protocols[active.id]?.consecutiveFailures ?? 0;
 			if (activeFailures < INGESTION_PROTOCOL_SCORING.failoverThreshold) break;
 		}
 
+		// HALF_OPEN promotion: an OPEN source that came due is moved
+		// to HALF_OPEN before the probe.
+		if (protoState.circuitState === 'OPEN') {
+			protoState.circuitState = 'HALF_OPEN';
+		}
+
+		attemptedAny = true;
+		protoState.lastAttemptAt = ctx.now;
+		const startedAt = ctx.now;
+
 		try {
 			const r = await runClient(ctx.httpAdapter, entry.node, candidate, protoState);
+			const latency = Math.max(0, Date.now() - startedAt);
+			applySuccessMetrics(protoState, latency);
 			protoState.etag = r.etag ?? protoState.etag;
 			protoState.lastModified = r.lastModified ?? protoState.lastModified;
 			protoState.nostrSince = r.nostrSince ?? protoState.nostrSince;
-			protoState.lastFetchedAt = ctx.now;
-			protoState.lastSuccessAt = ctx.now;
-			protoState.consecutiveFailures = 0;
-			protoState.score = clampScore(protoState.score + INGESTION_PROTOCOL_SCORING.successDelta);
 			postsResult = { posts: r.posts, usedEntry: candidate };
 			success = true;
 			break;
 		} catch (err) {
-			protoState.lastFetchedAt = ctx.now;
-			protoState.consecutiveFailures += 1;
-			protoState.score = clampScore(protoState.score + INGESTION_PROTOCOL_SCORING.failureDelta);
-			totalFailuresThisTick++;
-			console.info('[post-manager] font protocol failed', {
+			const latency = Math.max(0, Date.now() - startedAt);
+			applyFailureMetrics(protoState, latency, ctx.now);
+			console.info('[post-manager] source attempt failed', {
 				nodeId,
 				entryId: candidate.id,
 				protocol: candidate.protocol,
-				consecutiveFailures: protoState.consecutiveFailures,
+				failureCount: protoState.failureCount,
+				circuitState: protoState.circuitState,
 				err: err instanceof Error ? err.message : String(err)
 			});
-			// Continue to next candidate only when threshold reached.
 			if (protoState.consecutiveFailures < INGESTION_PROTOCOL_SCORING.failoverThreshold) break;
 		}
 	}
@@ -351,8 +383,9 @@ async function processFont(
 		s.score = clampScore(s.score * INGESTION_PROTOCOL_SCORING.decayFactor);
 	}
 
-	// Update effective-primary election.
-	updateEffectivePrimary(next, body);
+	// Update effective-primary election; emits SOURCE_SWITCHED when it changes.
+	const switchEvent = updateEffectivePrimary(next, body, ctx.now);
+	if (switchEvent) events.push(switchEvent);
 
 	// Broadcast on success.
 	if (success && postsResult) {
@@ -375,62 +408,193 @@ async function processFont(
 
 		next.lastFetchedAt = ctx.now;
 		next.lastSuccessAt = ctx.now;
-		next.lastUnreachableNotifiedAt = 0; // reset cooldown on success
-		next.lastInstabilityNotifiedAt = 0; // reset instability cooldown on success
+
+		// Pipeline state transition on success.
+		const wasUnhealthy = prev.pipelineState !== 'HEALTHY';
+		if (wasUnhealthy && prev.pipelineState !== 'RECOVERING') {
+			const r = transition(next, 'RECOVERING', ctx.now, confidenceFor);
+			if (r.changed) {
+				next = r.state;
+				next.recoveringTicksRemaining = INGESTION_INSTABILITY.recoveringHoldTicks;
+				events.push(makeEvent(nodeId, 'PIPELINE_RECOVERED', ctx.now));
+			}
+		} else if (prev.pipelineState === 'RECOVERING') {
+			next.recoveringTicksRemaining = Math.max(0, prev.recoveringTicksRemaining - 1);
+			if (next.recoveringTicksRemaining <= 0) {
+				const r = transition(next, 'HEALTHY', ctx.now, confidenceFor);
+				if (r.changed) next = r.state;
+			}
+		}
+
 		next.nextScheduledAt = ctx.now + jitter(interval);
-		await putFetcherState(next);
+		await persistAll(next, events);
 		return totalInserted;
 	}
 
-	// Total failure path: classify into either *instability* (the font
-	// has succeeded before and is still inside the grace window) or
-	// full *unreachable* (never succeeded, or grace window expired).
-	const cfg = INGESTION_BACKOFF;
-	let backoff: number;
-	if (!cfg.enabled || cfg.multiplier <= 1) {
-		backoff = interval;
-	} else {
-		const exponent = Math.min(totalFailuresThisTick, cfg.maxSteps);
-		backoff = Math.min(interval * Math.pow(cfg.multiplier, exponent), cfg.maxMs);
-	}
-
-	const hasHistory = next.lastSuccessAt != null && next.lastSuccessAt > 0;
-	const inGrace =
-		hasHistory &&
-		ctx.now - (next.lastSuccessAt ?? 0) < INGESTION_INSTABILITY.graceMs;
-
+	// No success this tick. If we didn't even attempt a source (every
+	// source was on backoff), just reschedule conservatively without
+	// touching state-machine.
 	next.lastFetchedAt = ctx.now;
-
-	if (inGrace) {
-		// Stretch retries during the grace window. We deliberately use
-		// a sparser interval than the user's configured cadence so an
-		// already-wobbly source isn't hammered while it recovers.
-		const graceWait = Math.max(backoff, INGESTION_INSTABILITY.graceIntervalMs);
-		next.nextScheduledAt = ctx.now + jitter(graceWait);
-
-		const sinceLastUnstable = ctx.now - next.lastInstabilityNotifiedAt;
-		if (
-			next.lastInstabilityNotifiedAt === 0 ||
-			sinceLastUnstable >= INGESTION_INSTABILITY.notifCooldownMs
-		) {
-			next.lastInstabilityNotifiedAt = ctx.now;
-			await emitInstabilityNotifications(entry, ctx.now);
-		}
-	} else {
-		next.nextScheduledAt = ctx.now + jitter(backoff);
-
-		const sinceLast = ctx.now - next.lastUnreachableNotifiedAt;
-		if (
-			next.lastUnreachableNotifiedAt === 0 ||
-			sinceLast >= INGESTION_UNREACHABLE_NOTIF_COOLDOWN_MS
-		) {
-			next.lastUnreachableNotifiedAt = ctx.now;
-			await emitUnreachableNotifications(entry, ctx.now);
-		}
+	if (!attemptedAny) {
+		next.nextScheduledAt = ctx.now + jitter(earliestSourceDue(next, ctx.now, interval));
+		await persistAll(next, events);
+		return 'failed';
 	}
 
-	await putFetcherState(next);
+	// Failure-path scheduling and pipeline-state evaluation.
+	const allOpen = body.protocols.every((e) => next.protocols[e.id]?.circuitState === 'OPEN');
+
+	if (allOpen) {
+		// Every source has tripped its breaker. The font is OFFLINE.
+		const r = transition(next, 'OFFLINE', ctx.now, confidenceFor);
+		if (r.changed) {
+			next = r.state;
+			events.push(makeEvent(nodeId, 'PIPELINE_OFFLINE', ctx.now));
+		}
+		// Sleep until the earliest probe is due.
+		next.nextScheduledAt = ctx.now + jitter(earliestSourceDue(next, ctx.now, interval));
+	} else {
+		// At least one source still tries; treat as instability.
+		const r = transition(next, 'UNSTABLE', ctx.now, confidenceFor);
+		if (r.changed) {
+			next = r.state;
+			events.push(makeEvent(nodeId, 'PIPELINE_UNSTABLE', ctx.now));
+		}
+		// Sparse retry — but never sooner than the earliest source's
+		// own backoff, which may already be longer.
+		const sparse = INGESTION_INSTABILITY.unstableSparseIntervalMs;
+		next.nextScheduledAt = ctx.now + jitter(Math.max(sparse, earliestSourceDue(next, ctx.now, sparse)));
+	}
+
+	await persistAll(next, events);
 	return 'failed';
+}
+
+/** Persist state + every emitted event in sequence. */
+async function persistAll(state: FetcherState, events: PipelineEvent[]): Promise<void> {
+	await putFetcherState(state);
+	for (const ev of events) {
+		try {
+			await appendPipelineEvent({
+				fontId: ev.fontId,
+				type: ev.type,
+				severity: ev.severity,
+				timestamp: ev.timestamp,
+				metadata: ev.metadata
+			});
+		} catch (err) {
+			console.warn('[post-manager] failed to append pipeline event', err);
+		}
+	}
+}
+
+/** Build a fresh `PipelineEvent` shell (id/consumedBy filled by the store). */
+function makeEvent(
+	fontId: string,
+	type: PipelineEventType,
+	now: number,
+	metadata?: Record<string, unknown>
+): PipelineEvent {
+	return {
+		id: '', // filled by appendPipelineEvent
+		fontId,
+		type,
+		severity: defaultSeverityFor(type),
+		timestamp: now,
+		metadata,
+		consumedBy: []
+	};
+}
+
+/** Map pipeline state to confidence via config. */
+function confidenceFor(s: PipelineState): number {
+	return INGESTION_CONFIDENCE[s];
+}
+
+/**
+ * Update success metrics on a per-source state. Closes a HALF_OPEN
+ * circuit and resets the absolute failure counters.
+ */
+function applySuccessMetrics(s: ProtocolFetcherState, latencyMs: number): void {
+	const a = INGESTION_PROTOCOL_SCORING.ewmaAlpha;
+	s.successRate = clamp01(s.successRate * (1 - a) + 1 * a);
+	s.avgLatencyMs = s.avgLatencyMs === 0 ? latencyMs : s.avgLatencyMs * (1 - a) + latencyMs * a;
+	s.lastLatencyMs = latencyMs;
+	s.lastFetchedAt = Date.now();
+	s.lastSuccessAt = Date.now();
+	s.consecutiveFailures = 0;
+	s.failureCount = 0;
+	s.score = clampScore(s.score + INGESTION_PROTOCOL_SCORING.successDelta);
+	s.circuitState = 'CLOSED';
+	s.backoffUntil = null;
+}
+
+/**
+ * Update failure metrics on a per-source state. Computes the next
+ * `backoffUntil` from `failureCount` and trips the breaker to OPEN
+ * once thresholds are crossed (or back to OPEN if HALF_OPEN failed).
+ */
+function applyFailureMetrics(s: ProtocolFetcherState, latencyMs: number, now: number): void {
+	const a = INGESTION_PROTOCOL_SCORING.ewmaAlpha;
+	s.successRate = clamp01(s.successRate * (1 - a));
+	s.avgLatencyMs = s.avgLatencyMs === 0 ? latencyMs : s.avgLatencyMs * (1 - a) + latencyMs * a;
+	s.lastLatencyMs = latencyMs;
+	s.lastFetchedAt = now;
+	s.consecutiveFailures += 1;
+	s.failureCount += 1;
+	s.score = clampScore(s.score + INGESTION_PROTOCOL_SCORING.failureDelta);
+
+	const cfg = INGESTION_BACKOFF;
+	const baseInterval = INGESTION_SCHEDULER.defaultTickIntervalMs;
+	let backoffMs: number;
+	if (!cfg.enabled || cfg.multiplier <= 1) {
+		backoffMs = baseInterval;
+	} else {
+		const exp = Math.min(s.failureCount, cfg.maxSteps);
+		backoffMs = Math.min(baseInterval * Math.pow(cfg.multiplier, exp), cfg.maxMs);
+	}
+
+	const cb = INGESTION_CIRCUIT_BREAKER;
+	const shouldOpen =
+		s.failureCount >= cb.openAfterFailures || backoffMs >= cb.openAfterBackoffMs;
+
+	if (shouldOpen) {
+		// Open the breaker. If we just failed a HALF_OPEN probe, push
+		// the next probe further out (use the upper bound of the probe
+		// window) to avoid hammering a clearly-down source.
+		const probeMs = randBetween(cb.probeIntervalMin, cb.probeIntervalMax);
+		s.circuitState = 'OPEN';
+		s.backoffUntil = now + probeMs;
+	} else {
+		s.backoffUntil = now + backoffMs;
+	}
+}
+
+/**
+ * Earliest epoch ms at which any source becomes due. Used to schedule
+ * the font's next tick when the pipeline is failing, so we don't
+ * wake before any source is ready.
+ */
+function earliestSourceDue(state: FetcherState, now: number, fallback: number): number {
+	let min = Infinity;
+	for (const s of Object.values(state.protocols)) {
+		const due = s.backoffUntil ?? now;
+		const wait = Math.max(0, due - now);
+		if (wait < min) min = wait;
+	}
+	if (!Number.isFinite(min)) return fallback;
+	return Math.max(min, 1000); // never schedule in the past
+}
+
+function clamp01(v: number): number {
+	if (v < 0) return 0;
+	if (v > 1) return 1;
+	return v;
+}
+
+function randBetween(min: number, max: number): number {
+	if (max <= min) return min;
+	return Math.floor(min + Math.random() * (max - min));
 }
 
 function clampScore(value: number): number {
@@ -444,13 +608,21 @@ function clampScore(value: number): number {
  * declared primary's by `promotionMargin` for
  * `promotionWindowTicks` consecutive ticks. Reverts (clears
  * `effectivePrimaryEntryId`) the first tick the lead disappears.
+ *
+ * Returns a `SOURCE_SWITCHED` event when the runtime primary changes
+ * (in either direction); otherwise `null`.
  */
-function updateEffectivePrimary(state: FetcherState, body: FontBody): void {
+function updateEffectivePrimary(
+	state: FetcherState,
+	body: FontBody,
+	now: number
+): PipelineEvent | null {
+	const before = state.effectivePrimaryEntryId;
 	const declared = getPrimaryProtocolEntry(body);
 	if (!declared || body.protocols.length < 2) {
 		state.effectivePrimaryEntryId = null;
 		state.promotionStreakTicks = 0;
-		return;
+		return null;
 	}
 	const declaredScore = state.protocols[declared.id]?.score ?? 0;
 
@@ -467,7 +639,7 @@ function updateEffectivePrimary(state: FetcherState, body: FontBody): void {
 	if (!topFallback) {
 		state.effectivePrimaryEntryId = null;
 		state.promotionStreakTicks = 0;
-		return;
+		return null;
 	}
 
 	const lead = topScore - declaredScore;
@@ -495,42 +667,15 @@ function updateEffectivePrimary(state: FetcherState, body: FontBody): void {
 		state.effectivePrimaryEntryId = null;
 		state.promotionStreakTicks = 0;
 	}
-}
 
-/**
- * Push a "could not fetch this font" entry into the notification
- * inbox of every interested user. Rate-limiting (max 1 per 24h per
- * font) is enforced by the caller via
- * `FetcherState.lastUnreachableNotifiedAt`.
- */
-async function emitUnreachableNotifications(entry: FontEntry, now: number): Promise<void> {
-	const fontTitle = entry.node.data.header?.title ?? 'font';
-	for (const userId of entry.userIds) {
-		try {
-			const lang = entry.langByUser.get(userId);
-			await enqueueUnreachableNotification(userId, entry.node.metadata.id, fontTitle, now, lang);
-		} catch (err) {
-			console.warn('[post-manager] failed to emit unreachable notification', userId, err);
-		}
+	const after = state.effectivePrimaryEntryId;
+	if (before !== after) {
+		return makeEvent(state.nodeId, 'SOURCE_SWITCHED', now, {
+			from: before ?? declared.id,
+			to: after ?? declared.id
+		});
 	}
-}
-
-/**
- * Push a "this font is wobbly" entry into every interested user's
- * inbox. Counterpart to `emitUnreachableNotifications` for the
- * softer instability stage; rate-limited via
- * `FetcherState.lastInstabilityNotifiedAt`.
- */
-async function emitInstabilityNotifications(entry: FontEntry, now: number): Promise<void> {
-	const fontTitle = entry.node.data.header?.title ?? 'font';
-	for (const userId of entry.userIds) {
-		try {
-			const lang = entry.langByUser.get(userId);
-			await enqueueInstabilityNotification(userId, entry.node.metadata.id, fontTitle, now, lang);
-		} catch (err) {
-			console.warn('[post-manager] failed to emit instability notification', userId, err);
-		}
-	}
+	return null;
 }
 
 /**
@@ -578,79 +723,6 @@ function pickIntervalForUser(
 function jitter(ms: number): number {
 	const delta = ms * JITTER_PCT;
 	return Math.floor(ms + (Math.random() * 2 - 1) * delta);
-}
-
-/**
- * Push a "could not fetch" inbox entry for a single user and best-effort
- * fire an OS notification. Errors are swallowed by the caller — failure
- * to notify must never break ingestion.
- */
-async function enqueueUnreachableNotification(
-	userId: string,
-	nodeId: string,
-	fontTitle: string,
-	now: number,
-	lang: string | undefined
-): Promise<void> {
-	const id = `font-unreachable-${nodeId}-${now}`;
-	// Non-reactive translation: the post-manager runs in the service
-	// worker and on the page, where the reactive i18n store may not be
-	// available. `tFor` reads JSON dictionaries directly using the
-	// user's persisted language preference.
-	const title = tFor(lang, 'notifications.font_unreachable_title');
-	const body = tFor(lang, 'notifications.font_unreachable_body', { font: fontTitle });
-	await appendInboxEntries(userId, [
-		{
-			id,
-			kind: 'font_unreachable',
-			stepId: 'font_unreachable',
-			title,
-			body,
-			createdAt: now,
-			read: false,
-			target: { kind: 'node', nodeId }
-		}
-	]);
-	try {
-		await notifyOs({ title, body, tag: `font-unreachable-${nodeId}` });
-	} catch {
-		// best-effort
-	}
-}
-
-/**
- * Inbox + OS notification for the softer instability stage. Same
- * shape as `enqueueUnreachableNotification`, different copy and a
- * separate OS tag so a later escalation to "unreachable" can stack
- * without colliding with this entry.
- */
-async function enqueueInstabilityNotification(
-	userId: string,
-	nodeId: string,
-	fontTitle: string,
-	now: number,
-	lang: string | undefined
-): Promise<void> {
-	const id = `font-unstable-${nodeId}-${now}`;
-	const title = tFor(lang, 'notifications.font_unstable_title');
-	const body = tFor(lang, 'notifications.font_unstable_body', { font: fontTitle });
-	await appendInboxEntries(userId, [
-		{
-			id,
-			kind: 'font_unstable',
-			stepId: 'font_unstable',
-			title,
-			body,
-			createdAt: now,
-			read: false,
-			target: { kind: 'node', nodeId }
-		}
-	]);
-	try {
-		await notifyOs({ title, body, tag: `font-unstable-${nodeId}` });
-	} catch {
-		// best-effort
-	}
 }
 
 interface ClientResult {
@@ -718,9 +790,9 @@ async function runClient(
 }
 
 /**
- * Reset per-protocol scoring on every font. Wipes scores,
- * `consecutiveFailures`, `effectivePrimaryEntryId`,
- * `promotionStreakTicks`, and `lastUnreachableNotifiedAt`. Cache
+ * Reset all judgement state on every font. Returns each per-source
+ * record to a pristine CLOSED-circuit, zero-failure state and brings
+ * the font's pipeline back to HEALTHY with full confidence. Cache
  * headers (etag/lastModified/nostrSince) and schedules are preserved.
  *
  * Exposed via app settings → Ingestion → "Reset protocol scoring" so
@@ -737,12 +809,26 @@ export async function resetAllProtocolScoring(): Promise<number> {
 			protocols: Object.fromEntries(
 				Object.entries(fs.protocols ?? {}).map(([id, ps]) => [
 					id,
-					{ ...ps, score: 0, consecutiveFailures: 0 }
+					{
+						...ps,
+						score: 0,
+						consecutiveFailures: 0,
+						failureCount: 0,
+						successRate: 1,
+						avgLatencyMs: 0,
+						lastLatencyMs: 0,
+						lastAttemptAt: 0,
+						circuitState: 'CLOSED' as const,
+						backoffUntil: null
+					}
 				])
 			),
 			effectivePrimaryEntryId: null,
 			promotionStreakTicks: 0,
-			lastUnreachableNotifiedAt: 0
+			pipelineState: 'HEALTHY' as const,
+			lastTransitionAt: 0,
+			recoveringTicksRemaining: 0,
+			confidence: 1
 		};
 		await putFetcherState(next);
 		count++;

@@ -43,6 +43,8 @@ treeProfileNews: '00000000-0000-0000-0000-000000003012',
 treeProfileScience: '00000000-0000-0000-0000-000000003013',
 treeProfileFrontend: '00000000-0000-0000-0000-000000003014',
 treeProfileNewsDraft: '00000000-0000-0000-0000-000000003015',
+// Profile tree dedicated to ingestion testing — one font per protocol.
+treeProfileTest: '00000000-0000-0000-0000-000000003016',
 
 // Creator trees (aggregate profile trees via tree-link nodes)
 treeTechBlog: '00000000-0000-0000-0000-000000003001',
@@ -64,6 +66,11 @@ localFontAtom2: '00000000-0000-0000-0000-000000005008',
 localFontJsonfeed1: '00000000-0000-0000-0000-000000005009',
 localFontCreatorRss1: '00000000-0000-0000-0000-000000005005',
 localFontCreatorAtom1: '00000000-0000-0000-0000-000000005006',
+// Test profile fonts — one per protocol.
+localFontTestRss: '00000000-0000-0000-0000-00000000500b',
+localFontTestAtom: '00000000-0000-0000-0000-00000000500c',
+localFontTestNostr: '00000000-0000-0000-0000-00000000500d',
+localFontTestJsonfeed: '00000000-0000-0000-0000-00000000500e',
 } as const;
 
 // ── Composite nodeIds ───────────────────────────────────────────────────
@@ -106,6 +113,15 @@ fontAtom1: generateNodeId(IDS.treeProfileFrontend, IDS.localFontCreatorAtom1),
 // Profile tree: News Draft (creator-authored)
 const PD = {
 root: generateNodeId(IDS.treeProfileNewsDraft, IDS.localRoot),
+};
+
+// Profile tree: Test Sources — one font per supported protocol.
+const PX = {
+root: generateNodeId(IDS.treeProfileTest, IDS.localRoot),
+fontRss: generateNodeId(IDS.treeProfileTest, IDS.localFontTestRss),
+fontAtom: generateNodeId(IDS.treeProfileTest, IDS.localFontTestAtom),
+fontNostr: generateNodeId(IDS.treeProfileTest, IDS.localFontTestNostr),
+fontJsonfeed: generateNodeId(IDS.treeProfileTest, IDS.localFontTestJsonfeed),
 };
 
 // Creator tree: TechBlog (links to PT + PS)
@@ -371,6 +387,45 @@ categoryAssignments: [
 IDS.creator
 );
 
+// Test Sources — one font per protocol, all owned by the consumer
+// so they can be activated from the library page to exercise the
+// ingestion pipeline state machine. Useful for verifying
+// `pipelineEvents` writes: flip a URL to garbage to drive the
+// HEALTHY → UNSTABLE → OFFLINE → RECOVERED transitions.
+const treeProfileTest = makeTree(
+IDS.treeProfileTest,
+{
+[PX.root]: makeNode(PX.root, 'profile', {
+title: 'Test Sources',
+summary: 'Ingestion test bench — one font per protocol.',
+categoryAssignments: []
+}, { role: 'profile', links: [] }),
+
+[PX.fontRss]: makeNode(PX.fontRss, 'font', {
+title: 'Test RSS — Hacker News',
+subtitle: 'rss',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: 'https://exemple.com/exemple/rss.xml' }, primary: true }], defaultEnabled: true }),
+
+[PX.fontAtom]: makeNode(PX.fontAtom, 'font', {
+title: 'Test Atom — Svelte Blog',
+subtitle: 'atom',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'atom', config: { url: 'https://exemple.com/exemple/blog/atom.xml' }, primary: true }], defaultEnabled: true }),
+
+[PX.fontNostr]: makeNode(PX.fontNostr, 'font', {
+title: 'Test Nostr — fiatjaf',
+subtitle: 'nostr',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'nostr', config: { pubkey: 'npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6', relays: ['wss://relay.damus.io'] }, primary: true }], defaultEnabled: true }),
+
+[PX.fontJsonfeed]: makeNode(PX.fontJsonfeed, 'font', {
+title: 'Test JSON Feed — JSONFeed.org',
+subtitle: 'jsonfeed',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'jsonfeed', config: { url: 'https://exemple.com/exemple/feed.json' }, primary: true }], defaultEnabled: true }),
+},
+{ '/': PX.root, '*': [PX.fontRss, PX.fontAtom, PX.fontNostr, PX.fontJsonfeed] },
+[],
+IDS.consumer
+);
+
 // ── Collection Trees (root=collection + tree-link nodes) ──────────────
 
 const techSourcesSectionId = 'sec-tech';
@@ -489,7 +544,7 @@ IDS.creator
 
 const allTrees = [
 treeProfileTech, treeProfileSecurity, treeProfileNews, treeProfileScience,
-treeProfileFrontend, treeProfileNewsDraft,
+treeProfileFrontend, treeProfileNewsDraft, treeProfileTest,
 treeTechBlog, treeNewsDaily, treeCreatorPublished, treeCreatorDraft
 ];
 for (const tree of allTrees) {
@@ -521,4 +576,4 @@ await db.treePublications.put(publication);
 }
 
 /** Exported IDs for use in tests */
-export const MOCK_NODES = { PT, PS, PN, PH, PF, PD, TB, ND, CP, CD };
+export const MOCK_NODES = { PT, PS, PN, PH, PF, PD, PX, TB, ND, CP, CD };

@@ -124,46 +124,73 @@ export const INGESTION_PROTOCOL_SCORING = {
 	/** Score lead a fallback must hold over the declared primary to be considered a candidate for promotion. */
 	promotionMargin: 5,
 	/** Number of consecutive ticks the lead must be sustained before promoting. */
-	promotionWindowTicks: 3
+	promotionWindowTicks: 3,
+	/**
+	 * Smoothing factor for the EWMAs that track per-source `successRate`
+	 * and `avgLatencyMs`. Closer to 1 reacts faster but is noisier;
+	 * closer to 0 is smoother but slow to adapt. 0.2 is a balanced pick.
+	 */
+	ewmaAlpha: 0.2
 } as const;
 
 export type IngestionProtocolScoring = typeof INGESTION_PROTOCOL_SCORING;
 
 /**
- * Cooldown for the "this font could not be fetched" notification.
- * Counted per-font in `FetcherState.lastUnreachableNotifiedAt`.
- * Resets the moment any protocol succeeds.
- */
-export const INGESTION_UNREACHABLE_NOTIF_COOLDOWN_MS = 24 * HOUR;
-
-/**
- * Two-stage failure handling for a font that has already delivered
- * posts at least once. The premise is that an established source is
- * far more likely to be temporarily wobbly (relay restart, brief CDN
- * hiccup, transient 5xx) than truly gone, so we hold a softer mode
- * before raising the full "unreachable" alarm.
- *
- *   - `graceMs` window after the last success during which failures
- *     count as *instability*, not as unreachability. After it elapses
- *     without recovery, the font drops into the regular unreachable
- *     state (current red alert).
- *   - `graceIntervalMs` polls more sparsely than the user's normal
- *     cadence — we still try every protocol, just less often, so we
- *     don't hammer a struggling endpoint.
- *   - `notifCooldownMs` rate-limits the instability inbox entry /
- *     OS notification to once per font per window.
- *
- * Fonts that have *never* succeeded (no `lastSuccessAt`) skip this
- * stage entirely — they go straight to the unreachable path because
- * we have no positive history to justify waiting it out.
+ * Soft-failure window. After Mode 1 (Adaptive Fallback) reports a
+ * full failure, the font transitions to `UNSTABLE` and is polled at
+ * `unstableSparseIntervalMs` instead of the user's normal cadence.
+ * Sources keep their own per-source backoff (Mode 2). On the first
+ * success after instability the font enters `RECOVERING` for
+ * `recoveringHoldTicks` before going back to `HEALTHY` — this stops
+ * a single lucky probe from immediately silencing the warning.
  */
 export const INGESTION_INSTABILITY = {
-	graceMs: 12 * HOUR,
-	graceIntervalMs: 1 * HOUR,
-	notifCooldownMs: 12 * HOUR
+	unstableSparseIntervalMs: 1 * HOUR,
+	recoveringHoldTicks: 1
 } as const;
 
 export type IngestionInstability = typeof INGESTION_INSTABILITY;
+
+/**
+ * Per-source circuit-breaker thresholds. A source trips to `OPEN` once
+ * its absolute `failureCount` reaches `openAfterFailures` *or* its
+ * computed backoff hits the cap of `INGESTION_BACKOFF.maxMs`. While
+ * `OPEN`, a single probe is scheduled within the random window
+ * `[probeIntervalMin, probeIntervalMax]` (with jitter), moving the
+ * source to `HALF_OPEN`. One success there closes the breaker and
+ * resets metrics.
+ */
+export const INGESTION_CIRCUIT_BREAKER = {
+	openAfterFailures: 6,
+	openAfterBackoffMs: 24 * HOUR,
+	probeIntervalMin: 6 * HOUR,
+	probeIntervalMax: 24 * HOUR,
+	halfOpenSuccessesToClose: 1
+} as const;
+
+export type IngestionCircuitBreaker = typeof INGESTION_CIRCUIT_BREAKER;
+
+/**
+ * Confidence score (0..1) reported by the pipeline for each font,
+ * derived purely from `pipelineState`. UI consumers can use this to
+ * dim cards, weight relevance signals, etc.
+ */
+export const INGESTION_CONFIDENCE = {
+	HEALTHY: 1.0,
+	RECOVERING: 0.7,
+	UNSTABLE: 0.5,
+	DEGRADED: 0.3,
+	OFFLINE: 0.0
+} as const;
+
+export type IngestionConfidence = typeof INGESTION_CONFIDENCE;
+
+/**
+ * Retention window for events in the `pipelineEvents` store. Events
+ * older than this are pruned regardless of consumption status — they
+ * are well past any dedup or batch-grouping interest.
+ */
+export const INGESTION_PIPELINE_EVENT_RETENTION_MS = 7 * 24 * HOUR;
 
 // ── Persistence ────────────────────────────────────────────────────────
 
@@ -176,7 +203,7 @@ export const PERSISTENCE = {
 	/** Database name — change only if you intend a hard split. */
 	dbName: 'notfeed-v2',
 	/** Schema version. Bumping wipes data (destructive migration). */
-	dbSchemaVersion: 16,
+	dbSchemaVersion: 17,
 	/** Skip new activity events when the same targetId is among the last N. */
 	activityDedupRecentCount: 3,
 	/** Skip new activity events when the same targetId fired within this window. */
@@ -307,7 +334,28 @@ export const NOTIFICATIONS = {
 	/** Hard cap on stored inbox entries per user — older ones get pruned. */
 	inboxHardCap: 500,
 	/** OS notification tag — newer notifications replace the previous unread one. */
-	osNotificationTag: 'notfeed-new'
+	osNotificationTag: 'notfeed-new',
+	/**
+	 * Pipeline-event channel (separate from the three post steps).
+	 * Defaults are seeded into every user's `NotificationPipeline` and
+	 * overridable on the settings page.
+	 */
+	pipelineEventDefaults: {
+		mode: 'realtime' as 'realtime' | 'batched',
+		severityThreshold: 'warning' as 'info' | 'warning' | 'critical',
+		batchIntervalMs: 30 * MINUTE
+	},
+	/**
+	 * Dedup windows per event type. While inside the window for a given
+	 * `(fontId, type)` pair, the consumer drops repeats. Recovery events
+	 * are exempt: they always fire if the previous state was non-healthy.
+	 */
+	pipelineEventDedup: {
+		unstable: 30 * MINUTE,
+		offline: 6 * HOUR,
+		degraded: 30 * MINUTE,
+		sourceSwitched: 6 * HOUR
+	}
 } as const;
 
 export type Notifications = typeof NOTIFICATIONS;

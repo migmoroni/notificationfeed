@@ -37,7 +37,8 @@ export async function openIndexedDBBackend(): Promise<StorageBackend> {
 		categories: createTable(idb, 'categories'),
 		activityData: createTable(idb, 'activityData'),
 		notificationMeta: createTable(idb, 'notificationMeta'),
-		notificationInbox: createTable(idb, 'notificationInbox')
+		notificationInbox: createTable(idb, 'notificationInbox'),
+		pipelineEvents: createTable(idb, 'pipelineEvents')
 	};
 }
 

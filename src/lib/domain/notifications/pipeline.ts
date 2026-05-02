@@ -25,9 +25,30 @@
  */
 
 import { NOTIFICATIONS } from '$lib/config/back-settings.js';
+import type { EventSeverity } from '$lib/domain/ingestion/pipeline-event.js';
 
 export type NotificationStepKind = 'per_post' | 'batch_macro' | 'batch_global';
 export type NotificationStepId = 'per_post' | 'batch_macro' | 'batch_global';
+
+/** Delivery mode for the pipeline-event channel. */
+export type PipelineEventMode = 'realtime' | 'batched';
+
+/**
+ * Per-user settings for the second notification channel: pipeline
+ * state events (UNSTABLE / OFFLINE / RECOVERED / DEGRADED /
+ * SOURCE_SWITCHED). Independent of the three post-pipeline steps.
+ *
+ * - `mode='realtime'`  — every event past the severity threshold is
+ *   delivered as soon as the consumer runs (subject to per-event-type
+ *   dedup windows).
+ * - `mode='batched'`   — events are accumulated and delivered as a
+ *   single summary every `batchIntervalMs`.
+ */
+export interface PipelineEventSettings {
+	mode: PipelineEventMode;
+	severityThreshold: EventSeverity;
+	batchIntervalMs: number;
+}
 
 export interface NotificationStep {
 	id: NotificationStepId;
@@ -55,6 +76,12 @@ export interface NotificationPipeline {
 	 * so order is explicit and matches the funnel UI.
 	 */
 	steps: [NotificationStep, NotificationStep, NotificationStep];
+	/**
+	 * Delivery settings for the second channel (pipeline state
+	 * events). Independent of `steps`, which only governs post
+	 * notifications.
+	 */
+	pipelineEvents: PipelineEventSettings;
 	updatedAt: number;
 }
 
@@ -68,11 +95,22 @@ function defaultSteps(): [NotificationStep, NotificationStep, NotificationStep] 
 	];
 }
 
+/** Build the canonical pipeline-event settings from defaults. */
+export function defaultPipelineEventSettings(): PipelineEventSettings {
+	const d = NOTIFICATIONS.pipelineEventDefaults;
+	return {
+		mode: d.mode,
+		severityThreshold: d.severityThreshold,
+		batchIntervalMs: d.batchIntervalMs
+	};
+}
+
 /** Fresh pipeline for a brand-new user. Seeded into `UserSettings.notifications`. */
 export function createNotificationPipeline(): NotificationPipeline {
 	return {
 		enabled: NOTIFICATIONS.defaultEnabled,
 		steps: defaultSteps(),
+		pipelineEvents: defaultPipelineEventSettings(),
 		updatedAt: Date.now()
 	};
 }

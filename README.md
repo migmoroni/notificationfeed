@@ -193,6 +193,8 @@ A pasta [docs/](docs/) é a fonte da verdade técnica:
 
 - [overview.md](docs/requirements/overview.md) — visão geral, escopo implementado, princípios
 - [architecture.md](docs/architecture.md) — ADRs (decisões arquiteturais numeradas)
+- [ingestion-pipeline.md](docs/ingestion-pipeline.md) — máquina de estados de ingestão (HEALTHY/UNSTABLE/OFFLINE/RECOVERING) e disjuntor por origem
+- [notification-system.md](docs/notification-system.md) — os dois canais (posts + eventos de pipeline) e o consumidor
 - [glossary.md](docs/glossary.md) — vocabulário do domínio
 - [requirements/](docs/requirements/) — fonts, content-trees, ingestion, profiles, categories, persistence, users, platforms
 - [build-targets.md](docs/build-targets.md) — pré-requisitos por plataforma

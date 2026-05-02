@@ -17,10 +17,10 @@ Seleção em runtime via `capabilities.storageBackend` (`'indexeddb' | 'sqlite'`
 ## Database (IndexedDB)
 
 - **Nome**: `notfeed-v2`
-- **Versão atual**: `12` (Plano B — per-user post boxes)
+- **Versão atual**: `17`
 - **Migração**: Destrutiva. Ao incrementar a versão, todos os stores são deletados e recriados a partir de `STORE_SPECS`. Aceitável em pré-lançamento.
 
-## Stores (10 totais)
+## Stores (13 totais)
 
 ### contentTrees
 Árvores publicadas/importadas com nós embarcados.
@@ -51,7 +51,7 @@ Todos os usuários (consumer e creator).
 - keyPath: `id`
 - Index: `role`
 
-### posts (Plano B v12)
+### posts
 **Per-user post boxes**. Um registro por usuário × fonte × post id.
 - keyPath: `_pk` — chave sintética `${userId}|${nodeId}|${id}`
 - Index `byUser`: `userId` — listar todos os posts de um usuário
@@ -59,10 +59,9 @@ Todos os usuários (consumer e creator).
 
 Cada registro carrega `read`, `savedAt`, `trashedAt`, `ingestedAt` per-usuário. Posts da mesma fonte ativados por N usuários ocupam N registros independentes.
 
-### fetcherStates (Plano B v12)
-**Per-source ingestion metadata**. Um registro por `nodeId`, compartilhado entre todos os usuários que ativaram a fonte.
+### fetcherStates
+**Per-source ingestion state**. Um registro por `nodeId`, compartilhado entre todos os usuários que ativaram a fonte. Carrega o estado da máquina de pipeline (`pipelineState`, `confidence`, `effectivePrimaryEntryId`) e um sub-mapa `protocols` com circuit-breaker / backoff / EWMA por entrada de protocolo. Ver `docs/ingestion-pipeline.md`.
 - keyPath: `nodeId`
-- Campos: `etag?`, `lastModified?`, `lastSuccessAt`, `lastFailureAt`, `consecutiveFailures`, `nextScheduledAt`
 
 ### categories
 Taxonomia oficial (seed).
@@ -72,6 +71,21 @@ Taxonomia oficial (seed).
 ### activityData
 Agregados de atividade / histórico de leitura usados pelo dashboard.
 - keyPath: `id`
+
+### notificationMeta
+Metadados de runtime do engine de notificações por usuário (`stepLastFiredAt`, `lastClearedAt`, `batchGlobalEverNotifiedNodeIds`). A definição do pipeline em si vive em `users.settingsUser.notifications`.
+- keyPath: `userId`
+
+### notificationInbox
+Histórico canônico de notificações disparadas (sino in-app). Compartilhado pelos dois canais (posts e eventos de pipeline).
+- keyPath: `_pk` (chave sintética `${userId}|${notifId}`)
+- Index `byUser`: `userId`
+
+### pipelineEvents
+Fila durável de eventos emitidos pelo post-manager (`PIPELINE_UNSTABLE`, `PIPELINE_OFFLINE`, `PIPELINE_RECOVERED`, `PIPELINE_DEGRADED`, `SOURCE_SWITCHED`). Cada entrada carrega `consumedBy[]` per-usuário. Podada após `INGESTION_PIPELINE_EVENT_RETENTION_MS` (7 dias). Ver `docs/notification-system.md`.
+- keyPath: `id` (uuidv7)
+- Index `byFont`: `fontId`
+- Index `byTimestamp`: `timestamp`
 
 ## Abstração
 
@@ -135,13 +149,15 @@ Publicar copia o `TreeExport` snapshot de `editorTrees` para `contentTrees`. `me
 ## Funcionalidades
 
 - [x] StorageBackend abstrato (IndexedDB + stub SQLite)
-- [x] Inicialização do banco com schema versionado (v12)
+- [x] Inicialização do banco com schema versionado (v17)
 - [x] Migração destrutiva (delete + recreate stores)
 - [x] contentTrees / contentMedias / editorTrees / editorMedias: CRUD com index por author
 - [x] treePublications: save/get/delete por treeId
 - [x] users: CRUD com index por role
-- [x] posts (Plano B): per-user boxes com `byUser` / `byUserNode`
-- [x] fetcherStates: per-source state
+- [x] posts: per-user boxes com `byUser` / `byUserNode`
+- [x] fetcherStates: estado da pipeline com máquina de estados por font + por source
 - [x] categories: CRUD com indexes parentId e treeId; seed automático
 - [x] activityData: agregados de atividade
+- [x] notificationMeta + notificationInbox: dois canais (posts + eventos de pipeline)
+- [x] pipelineEvents: fila durável com poda por retenção (7 dias)
 - [ ] SqliteBackend completo (Plano C — Tauri bundles nativos)

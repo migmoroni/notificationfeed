@@ -165,10 +165,16 @@
 					{:else}
 						{#each entries as entry (entry.id)}
 							{@const accent =
-								entry.kind === 'font_unreachable'
+								entry.kind === 'font_offline'
 									? 'border-l-4 border-l-destructive'
 									: entry.kind === 'font_unstable'
 									? 'border-l-4 border-l-orange-500'
+									: entry.kind === 'font_recovered'
+									? 'border-l-4 border-l-emerald-500'
+									: entry.kind === 'font_degraded'
+									? 'border-l-4 border-l-muted-foreground'
+									: entry.kind === 'font_source_switched'
+									? 'border-l-4 border-l-blue-500'
 									: ''}
 							<button
 								type="button"

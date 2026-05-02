@@ -67,6 +67,10 @@ export async function fetchAtomFeed(
  * parse error so a single broken response can never crash the tick.
  */
 function parseAtomXml(xml: string): AtomEntry[] {
+	// Sniff before DOMParser: the browser logs "XML Parsing Error" to
+	// the console synchronously on malformed input, which is noisy when
+	// upstream feeds answer with HTML error pages through the proxy.
+	if (!looksLikeXml(xml)) return [];
 	const parser = new DOMParser();
 	const doc = parser.parseFromString(xml, 'text/xml');
 	if (doc.querySelector('parsererror')) return [];
@@ -111,4 +115,17 @@ function textOfPath(parent: Element, ...path: string[]): string {
 		if (!cur) return '';
 	}
 	return cur?.textContent?.trim() ?? '';
+}
+
+/**
+ * Cheap sniff to decide whether the body is worth handing to
+ * `DOMParser`. Avoids the synchronous "XML Parsing Error" console
+ * noise that the browser writes for HTML / plain-text / empty bodies.
+ */
+function looksLikeXml(text: string): boolean {
+	const trimmed = text.trimStart();
+	if (!trimmed.startsWith('<')) return false;
+	const head = trimmed.slice(0, 256).toLowerCase();
+	if (head.startsWith('<!doctype html') || head.startsWith('<html')) return false;
+	return true;
 }

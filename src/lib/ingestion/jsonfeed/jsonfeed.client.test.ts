@@ -26,9 +26,16 @@ function emptyState(): ProtocolFetcherState {
 		lastModified: null,
 		nostrSince: null,
 		consecutiveFailures: 0,
+		failureCount: 0,
 		lastFetchedAt: 0,
+		lastAttemptAt: 0,
 		lastSuccessAt: null,
-		score: 0
+		score: 0,
+		successRate: 1,
+		lastLatencyMs: 0,
+		avgLatencyMs: 0,
+		circuitState: 'CLOSED',
+		backoffUntil: null
 	};
 }
 

@@ -29,9 +29,12 @@ Orquestrador isomórfico — roda no foreground (página) e no Service Worker, c
 
 Responsabilidades:
 - Determinar quais usuários têm cada `nodeId` ativado e calcular o intervalo agregado para a fonte (o **menor** intervalo entre os usuários interessados ganha).
-- Aplicar **conditional GET** via `If-None-Match` / `If-Modified-Since` quando o `FetcherState` tem `etag` / `lastModified`.
+- Selecionar a entry de protocolo ativa via `getProtocolEntriesByPriority()` (primary declarada / promovida em runtime, depois fallbacks ranqueados por score).
+- Aplicar **conditional GET** via `If-None-Match` / `If-Modified-Since` para HTTP, ou `since` para Nostr, usando os campos cacheados em `ProtocolFetcherState`.
+- Avançar a máquina de estados (font: HEALTHY/RECOVERING/UNSTABLE/DEGRADED/OFFLINE; source: CLOSED/OPEN/HALF_OPEN) e emitir `PipelineEvent` em toda transição legítima.
+- Promover fallback como `effectivePrimaryEntryId` quando ela ganhar score sustentável sobre a primary atual; emitir `SOURCE_SWITCHED`.
 - Normalizar o payload uma única vez e fazer `savePostsForUser(userId, posts)` para cada usuário interessado.
-- Aplicar **backoff exponencial** com jitter quando uma fetch falha; resetar em sucesso.
+- Aplicar **backoff exponencial** com jitter por entry em falha; resetar contadores e EWMA em sucesso.
 - Aplicar **retenção** per-usuário (ver seção própria).
 
 ### Scheduler (`$lib/ingestion/scheduler.ts`)
@@ -84,7 +87,7 @@ Todos os 5 limiares (`idleTier{1,2,3}IntervalMs`, `idleTier{1,2}MaxIdleMs`) são
 
 ### Backoff em falha (system-level)
 
-A política de backoff afeta uma `FetcherState` compartilhada por todos os usuários da fonte e não cabe ao usuário final ajustar. Os parâmetros vivem em `src/lib/config/back-settings.ts` (constante `INGESTION_BACKOFF`), local com sintaxe simples para o desenvolvedor revisar/ajustar:
+A política de backoff afeta uma `ProtocolFetcherState` por entry de protocolo (compartilhada entre todos os usuários da fonte) e não cabe ao usuário final ajustar. Os parâmetros vivem em `src/lib/config/back-settings.ts` (constante `INGESTION_BACKOFF`):
 
 - `enabled: boolean` — mestre. `false` desativa backoff (sempre intervalo normal).
 - `multiplier: number` — fator de crescimento (default `2`).
@@ -92,6 +95,8 @@ A política de backoff afeta uma `FetcherState` compartilhada por todos os usuá
 - `maxMs: number` — teto absoluto (default `24h`).
 
 Fórmula: `min(intervalo * multiplier^min(failures, maxSteps), maxMs)` + jitter.
+
+Valores complementares de circuit-breaker, instabilidade e scoring vivem em `INGESTION_CIRCUIT_BREAKER`, `INGESTION_INSTABILITY` e `INGESTION_PROTOCOL_SCORING`. Ver `docs/ingestion-pipeline.md` para a dinâmica.
 
 ### Retenção (órfãos)
 
@@ -101,7 +106,7 @@ Cada usuário tem janelas de retenção para fontes ativas e órfãs. `runRetent
 
 ### `posts` store
 
-Schema v12: cada post é um registro com chave sintética `_pk = ${userId}|${nodeId}|${id}`.
+Cada post é um registro com chave sintética `_pk = ${userId}|${nodeId}|${id}`.
 
 Índices:
 - `byUser` (`userId`) — listar caixa de um usuário.
@@ -111,19 +116,40 @@ Posts iguais (mesmo `id` da fonte) ativados por dois usuários ocupam **dois reg
 
 ### `fetcherStates` store
 
-Um registro por `nodeId`, compartilhado entre todos os usuários que ativaram a fonte. Campos:
+Um registro por `nodeId`, compartilhado entre todos os usuários que ativaram a fonte. Carrega o estado da máquina de pipeline e um sub-mapa por entry de protocolo:
 
 ```typescript
 interface FetcherState {
   nodeId: string;
+  pipelineState: PipelineState;          // HEALTHY | RECOVERING | UNSTABLE | DEGRADED | OFFLINE
+  confidence: number;                    // 0..1, derivada do pipelineState
+  effectivePrimaryEntryId: string | null;
+  lastTransitionAt: number;
+  recoveringTicksRemaining: number;
+  protocols: Record<string, ProtocolFetcherState>;
+}
+
+interface ProtocolFetcherState {
+  entryId: string;
+  circuitState: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+  failureCount: number;
+  consecutiveFailures: number;
+  successRate: number;                   // EWMA
+  avgLatencyMs: number;                  // EWMA
+  score: number;
+  backoffUntil: number | null;
   etag?: string;
   lastModified?: string;
+  nostrSince?: number;
+  lastFetchedAt: number;
   lastSuccessAt: number;
-  lastFailureAt: number;
-  consecutiveFailures: number;
-  nextScheduledAt: number;
+  lastAttemptAt: number;
 }
 ```
+
+### `pipelineEvents` store
+
+Fila durável de eventos emitidos a cada transição legítima da máquina (`PIPELINE_UNSTABLE`, `PIPELINE_OFFLINE`, `PIPELINE_RECOVERED`, `PIPELINE_DEGRADED`, `SOURCE_SWITCHED`). Consumida por `pipeline-event-consumer.ts`. Podada após `INGESTION_PIPELINE_EVENT_RETENTION_MS` (7 dias). Ver `docs/notification-system.md`.
 
 ## Ações que disparam fetches
 
@@ -138,17 +164,23 @@ interface FetcherState {
 ## Regras
 
 - Normalizadores nunca atribuem `userId` — quem faz o broadcast é o PostManager.
-- Conditional GET é obrigatório quando o servidor envia `ETag` ou `Last-Modified`.
+- Conditional GET é obrigatório quando o servidor envia `ETag` ou `Last-Modified`; para Nostr, usa-se `since` em REQ.
 - Backoff e jitter previnem trovões em massa após falha de rede.
-- Settings são per-usuário; o intervalo efetivo de uma fonte é o **menor** entre os usuários interessados (coalescência no nível de rede).
-- Migração destrutiva v11→v12: dados de `posts` antigos (chave por `nodeId`) são apagados; o backfill recria.
+- Settings de cadência são per-usuário; o intervalo efetivo de uma fonte é o **menor** entre os usuários interessados (coalescência no nível de rede).
+- A primary declarada no `FontBody` não muta; a promoção de fallback acontece apenas no campo runtime `effectivePrimaryEntryId` do `FetcherState`.
+- Toda transição legítima emite `PipelineEvent`; loops auto-permitidos (e.g. UNSTABLE → UNSTABLE) não emitem.
 
 ## Funcionalidades
 
 - [x] PostManager isomórfico (foreground + SW)
-- [x] Scheduler com tick configurável
-- [x] Conditional GET (ETag / Last-Modified)
-- [x] Backoff exponencial system-level em `back-settings.ts` (config do dev)
+- [x] Multi-protocolo por font (`FontBody.protocols[]`) com primary + fallbacks
+- [x] Máquina de estados em dois níveis (font + por source) com `transition()` puro
+- [x] Três modos em camadas: Adaptive Fallback / Backoff Exponencial / Circuit Breaker
+- [x] Promoção de fallback em runtime (`effectivePrimaryEntryId`) com `SOURCE_SWITCHED`
+- [x] EWMA de successRate / latência + score por entry
+- [x] Confidence derivada (HEALTHY=1.0 → OFFLINE=0.0)
+- [x] Conditional GET (ETag / Last-Modified) e `since` em Nostr
+- [x] Backoff exponencial system-level em `back-settings.ts`
 - [x] Tiers de ociosidade configuráveis (5 fields)
 - [x] HTTP adapter por plataforma (web proxy / Tauri http)
 - [x] Normalizadores RSS / Atom / JSON Feed / Nostr (puros, sem userId)
@@ -156,5 +188,6 @@ interface FetcherState {
 - [x] FetcherState per-source compartilhado
 - [x] Retenção de órfãos per-usuário
 - [x] Cliente Nostr via WebSocket (REQ + EOSE)
+- [x] Fila durável `pipelineEvents` com poda em 7 dias
 - [ ] Periodic Background Sync handler completo (stub atual)
 - [ ] Background Sync handler completo (stub atual)

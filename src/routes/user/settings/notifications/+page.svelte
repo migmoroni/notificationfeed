@@ -15,9 +15,13 @@
 	import { getCapabilities } from '$lib/platform/capabilities.js';
 	import {
 		createNotificationPipeline,
+		defaultPipelineEventSettings,
 		type NotificationPipeline,
-		type NotificationStep
+		type NotificationStep,
+		type PipelineEventSettings,
+		type PipelineEventMode
 	} from '$lib/domain/notifications/pipeline.js';
+	import type { EventSeverity } from '$lib/domain/ingestion/pipeline-event.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Mail from '@lucide/svelte/icons/mail';
 	import Rss from '@lucide/svelte/icons/rss';
@@ -47,7 +51,8 @@
 		activeUser.current
 			? activeUser.current.settingsUser.notifications &&
 				Array.isArray(activeUser.current.settingsUser.notifications.steps) &&
-				activeUser.current.settingsUser.notifications.steps.length === 3
+				activeUser.current.settingsUser.notifications.steps.length === 3 &&
+				activeUser.current.settingsUser.notifications.pipelineEvents
 				? activeUser.current.settingsUser.notifications
 				: createNotificationPipeline()
 			: null
@@ -154,6 +159,26 @@
 	function togglePicker(idx: 0 | 1) {
 		openPicker = openPicker === idx ? null : idx;
 	}
+
+	/** Update the second-channel pipeline-event settings. */
+	function updatePipelineEvents(patch: Partial<PipelineEventSettings>) {
+		if (!pipeline) return;
+		const current = pipeline.pipelineEvents ?? defaultPipelineEventSettings();
+		void persist({ ...pipeline, pipelineEvents: { ...current, ...patch } });
+	}
+	function setEventMode(mode: PipelineEventMode) {
+		updatePipelineEvents({ mode });
+	}
+	function setEventSeverity(severityThreshold: EventSeverity) {
+		updatePipelineEvents({ severityThreshold });
+	}
+	function setEventBatchInterval(ms: number) {
+		updatePipelineEvents({ batchIntervalMs: Math.max(MIN_MS, ms) });
+	}
+
+	let eventSettings = $derived<PipelineEventSettings>(
+		pipeline?.pipelineEvents ?? defaultPipelineEventSettings()
+	);
 </script>
 
 <svelte:head>
@@ -424,6 +449,106 @@
 					</div>
 				</div>
 			</div>
+		</section>
+
+		<Separator class="my-6" />
+
+		<section class="space-y-4">
+			<div>
+				<h2 class="text-sm font-semibold">{t('notifications.pipeline_events_title')}</h2>
+				<p class="text-xs text-muted-foreground mt-1">
+					{t('notifications.pipeline_events_intro')}
+				</p>
+			</div>
+
+			<!-- When -->
+			<div class="space-y-2">
+				<p class="text-xs font-medium">{t('notifications.pipeline_events_mode')}</p>
+				<div class="grid grid-cols-2 gap-2">
+					<button
+						type="button"
+						class="text-left rounded-lg border p-3 transition-colors hover:bg-accent {eventSettings.mode ===
+						'realtime'
+							? 'border-primary bg-primary/5'
+							: 'border-border'}"
+						onclick={() => setEventMode('realtime')}
+					>
+						<p class="text-sm font-medium">
+							{t('notifications.pipeline_events_mode_realtime')}
+						</p>
+						<p class="text-[11px] text-muted-foreground mt-0.5">
+							{t('notifications.pipeline_events_mode_realtime_hint')}
+						</p>
+					</button>
+					<button
+						type="button"
+						class="text-left rounded-lg border p-3 transition-colors hover:bg-accent {eventSettings.mode ===
+						'batched'
+							? 'border-primary bg-primary/5'
+							: 'border-border'}"
+						onclick={() => setEventMode('batched')}
+					>
+						<p class="text-sm font-medium">
+							{t('notifications.pipeline_events_mode_batched')}
+						</p>
+						<p class="text-[11px] text-muted-foreground mt-0.5">
+							{t('notifications.pipeline_events_mode_batched_hint')}
+						</p>
+					</button>
+				</div>
+			</div>
+
+			<!-- What -->
+			<div class="space-y-2">
+				<div>
+					<p class="text-xs font-medium">{t('notifications.pipeline_events_severity')}</p>
+					<p class="text-[11px] text-muted-foreground">
+						{t('notifications.pipeline_events_severity_hint')}
+					</p>
+				</div>
+				<div class="space-y-1.5">
+					{#each [{ value: 'info', label: t('notifications.pipeline_events_severity_info'), desc: t('notifications.pipeline_events_severity_info_desc') }, { value: 'warning', label: t('notifications.pipeline_events_severity_warning'), desc: t('notifications.pipeline_events_severity_warning_desc') }, { value: 'critical', label: t('notifications.pipeline_events_severity_critical'), desc: t('notifications.pipeline_events_severity_critical_desc') }] as opt (opt.value)}
+						<button
+							type="button"
+							class="w-full text-left rounded-lg border p-3 transition-colors hover:bg-accent {eventSettings.severityThreshold ===
+							opt.value
+								? 'border-primary bg-primary/5'
+								: 'border-border'}"
+							onclick={() => setEventSeverity(opt.value as EventSeverity)}
+						>
+							<div class="flex items-baseline justify-between gap-2">
+								<p class="text-sm font-medium">{opt.label}</p>
+								{#if eventSettings.severityThreshold === opt.value}
+									<span class="text-[10px] text-primary">●</span>
+								{/if}
+							</div>
+							<p class="text-[11px] text-muted-foreground mt-0.5">{opt.desc}</p>
+						</button>
+					{/each}
+				</div>
+			</div>
+
+			<!-- Batch window (only when relevant) -->
+			{#if eventSettings.mode === 'batched'}
+				<div class="space-y-1 rounded-lg border border-dashed border-border p-3">
+					<p class="text-xs font-medium">
+						{t('notifications.pipeline_events_batch_interval')}
+					</p>
+					<p class="text-[11px] text-muted-foreground">
+						{t('notifications.pipeline_events_batch_interval_hint')}
+					</p>
+					<Input
+						type="number"
+						min={1}
+						class="h-8 mt-1"
+						value={Math.max(1, Math.round(eventSettings.batchIntervalMs / MIN_MS))}
+						onchange={(e) =>
+							setEventBatchInterval(
+								Math.max(1, Number((e.target as HTMLInputElement).value)) * MIN_MS
+							)}
+					/>
+				</div>
+			{/if}
 		</section>
 	{:else}
 		<p class="text-sm text-muted-foreground">…</p>
