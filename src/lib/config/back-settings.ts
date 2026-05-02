@@ -55,6 +55,15 @@ export const INGESTION_FETCH = {
 	nostrEoseTimeoutMs: 8 * SECOND,
 	/** Max events a single Nostr REQ asks for (per relay). */
 	nostrPostsPerFetch: 200,
+
+	/**
+	 * On the very first fetch for a Nostr font (no `nostrSince` cursor
+	 * yet), how many recent backlog events to deliver. Caps the initial
+	 * dump so newly-activated fonts surface a manageable history; later
+	 * polls fall back to `nostrPostsPerFetch` since the `since` cursor
+	 * protects against missing events.
+	 */
+	nostrInitialBacklog: 20,
 	/** Default kinds when the font config doesn't override them
 	 *  (1 = short notes, 30023 = NIP-23 long-form). */
 	nostrDefaultKinds: [1, 30023] as readonly number[],
@@ -81,6 +90,52 @@ export type IngestionBackoff = typeof INGESTION_BACKOFF;
 export type IngestionFetch = typeof INGESTION_FETCH;
 export type IngestionScheduler = typeof INGESTION_SCHEDULER;
 
+/**
+ * Multi-protocol scoring policy.
+ *
+ * Each `FontProtocolEntry` in a font carries an independent score. The
+ * declared primary is tried first; on `failoverThreshold` consecutive
+ * failures the system silently tries the next-best fallback (highest
+ * score) in the same tick. Scores nudge ±1 per outcome and decay
+ * gently each tick so old performance fades. When a fallback's score
+ * exceeds the declared primary's by `promotionMargin` for
+ * `promotionWindowTicks` consecutive ticks, the system promotes that
+ * fallback to *effective primary* (runtime only — the tree stays
+ * untouched). The promotion reverts whenever the lead disappears.
+ *
+ * The user is unaware of any of this. Multi-protocol UI is hidden in
+ * normal use; only the "could not fetch this font" notification
+ * (rate-limited 1×/24h per font) and the unreachable label on the
+ * detail page surface failure.
+ */
+export const INGESTION_PROTOCOL_SCORING = {
+	/** Score delta on a successful fetch for the protocol that ran. */
+	successDelta: +1,
+	/** Score delta on a failed fetch for the protocol that ran. */
+	failureDelta: -1,
+	/** Multiplier applied to every protocol's score each tick. */
+	decayFactor: 0.98,
+	/** Lower clamp on score. */
+	scoreMin: -50,
+	/** Upper clamp on score. */
+	scoreMax: 50,
+	/** Consecutive failures of the active protocol that trigger fallback in the same tick. */
+	failoverThreshold: 2,
+	/** Score lead a fallback must hold over the declared primary to be considered a candidate for promotion. */
+	promotionMargin: 5,
+	/** Number of consecutive ticks the lead must be sustained before promoting. */
+	promotionWindowTicks: 3
+} as const;
+
+export type IngestionProtocolScoring = typeof INGESTION_PROTOCOL_SCORING;
+
+/**
+ * Cooldown for the "this font could not be fetched" notification.
+ * Counted per-font in `FetcherState.lastUnreachableNotifiedAt`.
+ * Resets the moment any protocol succeeds.
+ */
+export const INGESTION_UNREACHABLE_NOTIF_COOLDOWN_MS = 24 * HOUR;
+
 // ── Persistence ────────────────────────────────────────────────────────
 
 /**
@@ -92,7 +147,7 @@ export const PERSISTENCE = {
 	/** Database name — change only if you intend a hard split. */
 	dbName: 'notfeed-v2',
 	/** Schema version. Bumping wipes data (destructive migration). */
-	dbSchemaVersion: 15,
+	dbSchemaVersion: 16,
 	/** Skip new activity events when the same targetId is among the last N. */
 	activityDedupRecentCount: 3,
 	/** Skip new activity events when the same targetId fired within this window. */
