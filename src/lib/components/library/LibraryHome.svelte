@@ -42,7 +42,7 @@
 				<button
 					type="button"
 					onclick={() => library.setActiveTab(tab.id)}
-					class="group flex flex-col items-center justify-center gap-2 aspect-square rounded-lg border bg-card text-card-foreground p-3 hover:bg-accent hover:text-accent-foreground transition-colors"
+					class="group flex flex-col items-center justify-start gap-2 h-full rounded-lg border bg-card text-card-foreground p-3 hover:bg-accent hover:text-accent-foreground transition-colors"
 				>
 					<span class="text-5xl leading-none">{tab.emoji}</span>
 					<span class="text-sm font-medium text-center line-clamp-2 wrap-break-word">{tab.title}</span>
