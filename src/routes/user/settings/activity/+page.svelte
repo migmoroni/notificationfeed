@@ -6,6 +6,7 @@
 	import { activitySettings } from '$lib/stores/activity-settings.svelte.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import { t } from '$lib/i18n/t.js';
+	import PageHeader from '$lib/components/shared/PageHeader.svelte';
 
 	function toggleEnabled(value: boolean): void {
 		void activitySettings.setEnabled(value);
@@ -16,31 +17,38 @@
 	<title>{t('page_title.activity_settings')}</title>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-6 {layout.isExpanded ? 'max-w-2xl' : 'max-w-lg'}">
-	<div class="flex items-center gap-2 mb-6">
-		<Button variant="ghost" size="icon" href="/user" aria-label={t('btn.back')}>
-			<ArrowLeft class="size-5" />
-		</Button>
-		<h1 class="text-xl font-bold">{t('activity_settings.title')}</h1>
+<div class="mx-auto w-full h-full flex flex-col pt-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
+	<div class="px-4 shrink-0">
+		<PageHeader title={t('activity_settings.title')}>
+			{#snippet prefix()}
+				<Button variant="ghost" size="icon" href="/user" aria-label={t('btn.back')}>
+					<ArrowLeft class="size-5" />
+				</Button>
+			{/snippet}
+		</PageHeader>
 	</div>
 
-	<p class="text-sm text-muted-foreground mb-6">
-		{t('activity_settings.description')}
-	</p>
+	<div class="overflow-y-auto h-full px-4 pb-24">
+		<div class="mx-auto w-full flex flex-col gap-6 {layout.isExpanded ? 'max-w-3xl' : 'max-w-xl'}">
+			<p class="text-sm text-muted-foreground">
+				{t('activity_settings.description')}
+			</p>
 
-	<Separator class="my-4" />
+			<Separator class="my-4" />
 
-	<div class="space-y-4">
-		<div class="flex items-center justify-between gap-4">
-			<div class="min-w-0">
-				<p class="text-sm font-medium">{t('activity_settings.enabled_label')}</p>
-				<p class="text-xs text-muted-foreground">{t('activity_settings.enabled_hint')}</p>
+			<div class="space-y-4">
+				<div class="flex items-center justify-between gap-4">
+					<div class="min-w-0">
+						<p class="text-sm font-medium">{t('activity_settings.enabled_label')}</p>
+						<p class="text-xs text-muted-foreground">{t('activity_settings.enabled_hint')}</p>
+					</div>
+					<Switch
+						checked={activitySettings.enabled}
+						onCheckedChange={toggleEnabled}
+						aria-label={t('activity_settings.enabled_label')}
+					/>
+				</div>
 			</div>
-			<Switch
-				checked={activitySettings.enabled}
-				onCheckedChange={toggleEnabled}
-				aria-label={t('activity_settings.enabled_label')}
-			/>
 		</div>
 	</div>
 </div>

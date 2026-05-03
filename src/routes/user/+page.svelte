@@ -247,8 +247,13 @@ let showRemoved = $state(false);
 <title>{t('page_title.users')}</title>
 </svelte:head>
 
-<div class="container mx-auto py-4 px-4 {layout.isExpanded ? 'max-w-2xl' : 'max-w-lg'}">
-	<PageHeader title={t('title.users')} />
+<div class="mx-auto w-full h-full flex flex-col pt-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
+	<div class="px-4 shrink-0">
+		<PageHeader title={t('title.users')} />
+	</div>
+
+	<div class="overflow-y-auto h-full px-4 pb-24">
+		<div class="mx-auto w-full flex flex-col gap-6 {layout.isExpanded ? 'max-w-3xl' : 'max-w-xl'}">
 
 <!-- Active user banner -->
 {#if activeUser.current}
@@ -521,6 +526,8 @@ onchange={(e) => handleLanguageChange((e.target as HTMLSelectElement).value as L
 <InstallButton />
 </div>
 </section>
+</div>
+</div>
 </div>
 
 <!-- Create user dialog -->

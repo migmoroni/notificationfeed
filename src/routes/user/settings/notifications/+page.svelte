@@ -29,6 +29,7 @@
 	import Globe from '@lucide/svelte/icons/globe';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { t } from '$lib/i18n/t.js';
+	import PageHeader from '$lib/components/shared/PageHeader.svelte';
 
 	const MIN_MS = 60_000;
 
@@ -200,15 +201,20 @@
 	<title>{t('notifications.settings_title')}</title>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-6 {layout.isExpanded ? 'max-w-2xl' : 'max-w-lg'}">
-	<div class="flex items-center gap-2 mb-6">
-		<Button variant="ghost" size="icon" href="/user" aria-label={t('btn.back')}>
-			<ArrowLeft class="size-5" />
-		</Button>
-		<h1 class="text-xl font-bold">{t('notifications.settings_title')}</h1>
+<div class="mx-auto w-full h-full flex flex-col pt-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
+	<div class="px-4 shrink-0">
+		<PageHeader title={t('notifications.settings_title')}>
+			{#snippet prefix()}
+				<Button variant="ghost" size="icon" href="/user" aria-label={t('btn.back')}>
+					<ArrowLeft class="size-5" />
+				</Button>
+			{/snippet}
+		</PageHeader>
 	</div>
 
-	<p class="text-sm text-muted-foreground mb-6">{t('notifications.settings_hint')}</p>
+	<div class="overflow-y-auto h-full px-4 pb-24">
+		<div class="mx-auto w-full flex flex-col gap-6 {layout.isExpanded ? 'max-w-3xl' : 'max-w-xl'}">
+			<p class="text-sm text-muted-foreground">{t('notifications.settings_hint')}</p>
 
 	{#if pipeline}
 
@@ -604,4 +610,6 @@
 	{:else}
 		<p class="text-sm text-muted-foreground">…</p>
 	{/if}
+	</div>
+	</div>
 </div>

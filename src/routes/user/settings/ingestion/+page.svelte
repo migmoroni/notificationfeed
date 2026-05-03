@@ -15,6 +15,7 @@
 	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { t } from '$lib/i18n/t.js';
+	import PageHeader from '$lib/components/shared/PageHeader.svelte';
 
 	const SEC_MS = 1_000;
 	const MIN_MS = 60_000;
@@ -118,21 +119,26 @@
 	<title>{t('ingestion_settings.title')}</title>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-6 {layout.isExpanded ? 'max-w-2xl' : 'max-w-lg'}">
-	<div class="flex items-center gap-2 mb-6">
-		<Button variant="ghost" size="icon" href="/user" aria-label={t('btn.back')}>
-			<ArrowLeft class="size-5" />
-		</Button>
-		<h1 class="text-xl font-bold">{t('ingestion_settings.title')}</h1>
+<div class="mx-auto w-full h-full flex flex-col pt-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
+	<div class="px-4 shrink-0">
+		<PageHeader title={t('ingestion_settings.title')}>
+			{#snippet prefix()}
+				<Button variant="ghost" size="icon" href="/user" aria-label={t('btn.back')}>
+					<ArrowLeft class="size-5" />
+				</Button>
+			{/snippet}
+		</PageHeader>
 	</div>
 
-	<p class="text-sm text-muted-foreground mb-6">
-		{t('ingestion_settings.description')}
-	</p>
+	<div class="overflow-y-auto h-full px-4 pb-24">
+		<div class="mx-auto w-full flex flex-col gap-6 {layout.isExpanded ? 'max-w-3xl' : 'max-w-xl'}">
+			<p class="text-sm text-muted-foreground">
+				{t('ingestion_settings.description')}
+			</p>
 
-	<Separator class="my-4" />
+			<Separator class="my-4" />
 
-	<section class="space-y-4">
+			<section class="space-y-4">
 		<h2 class="text-sm font-semibold">{t('ingestion_settings.scheduler')}</h2>
 		<p class="text-xs text-muted-foreground">{t('ingestion_settings.scheduler_hint')}</p>
 
@@ -445,4 +451,6 @@
 	<Button variant="outline" onclick={restoreDefaults}>
 		{t('ingestion_settings.restore_defaults')}
 	</Button>
+	</div>
+	</div>
 </div>
