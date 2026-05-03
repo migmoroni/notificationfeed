@@ -345,8 +345,9 @@ import PageHeader from '$lib/components/shared/PageHeader.svelte';
 	<title>{t('page_title.feed')}</title>
 </svelte:head>
 
-<div class="mx-auto w-full h-full flex flex-col overflow-hidden pt-4 px-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
-	<PageHeader
+<div class="mx-auto w-full h-full flex flex-col pt-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
+	<div class="px-4 shrink-0">
+		<PageHeader
 		title={t('title.feed')}
 		subtitle={feed.lastRefresh ? formatRelativeDate(feed.lastRefresh) : null}
 	>
@@ -374,10 +375,11 @@ import PageHeader from '$lib/components/shared/PageHeader.svelte';
 			</div>
 		{/snippet}
 	</PageHeader>
+	</div>
 
-	<div class="flex-1 min-h-0 overflow-hidden">
+	<div class="flex-1 min-h-0 flex flex-col">
 		<!-- Feed list -->
-		<div class="overflow-y-auto h-full pb-24">
+		<div class="overflow-y-auto h-full pr-6 pb-24 px-4">
 			<FeedList {filter} {anyIds} {allIds} nodeIds={allowedNodeIds} />
 		</div>
 	</div>
