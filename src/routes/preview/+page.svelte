@@ -85,8 +85,9 @@ return `/preview/node/${node.metadata.id}`;
 </svelte:head>
 
 <Tabs.Root bind:value={activeTab}>
-<div class="mx-auto w-full h-full flex flex-col overflow-hidden py-4 px-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
-	<PageHeader title={t('title.preview')}>
+<div class="mx-auto w-full h-full flex flex-col pt-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
+	<div class="px-4 shrink-0">
+		<PageHeader title={t('title.preview')}>
 		{#snippet bottomRow()}
 			{#if activeUser.isCreator && creator.trees.length > 0}
 				<Tabs.List class="w-full justify-start rounded-none border-b border-border bg-transparent p-0">
@@ -118,16 +119,16 @@ return `/preview/node/${node.metadata.id}`;
 	</a>
 	</div>
 	{:else}
-	<div class="flex-1 min-h-0 overflow-hidden {layout.isExpanded ? '' : 'grid gap-12 md:grid-cols-[265px_1fr]'}">
+	<div class="grid flex-1 min-h-0 overflow-hidden pl-4 {layout.isExpanded ? '' : 'gap-12 md:grid-cols-[265px_1fr]'}">
 	{#if !layout.isExpanded}
 	<!-- Sidebar only in compact mode (inline) -->
-	<aside class="overflow-y-auto">
-	<EntityTreeFilter store={previewEntityFilter} />
+	<aside class="overflow-y-auto relative pb-4">
+		<EntityTreeFilter store={previewEntityFilter} />
 	</aside>
 	{/if}
 
 	<!-- Main content -->
-	<div class="overflow-y-auto pb-24">
+	<div class="overflow-y-auto h-full pb-24 pr-4">
 
 <Tabs.Content value="overview" class="mt-4">
 {#if loading}
@@ -220,5 +221,6 @@ Fonts ({filteredFonts.length})
 </div>
 </div>
 {/if}
+</div>
 </div>
 </Tabs.Root>

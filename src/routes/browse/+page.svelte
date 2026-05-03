@@ -98,8 +98,9 @@ import PageHeader from '$lib/components/shared/PageHeader.svelte';
 	<title>{t('page_title.browse')}</title>
 </svelte:head>
 
-<div class="mx-auto w-full h-full flex flex-col overflow-hidden py-4 px-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
-	<PageHeader title={t('title.browse')}>
+<div class="mx-auto w-full h-full flex flex-col pt-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
+	<div class="px-4 shrink-0">
+		<PageHeader title={t('title.browse')}>
 		{#snippet actions()}
 			<Button variant="outline" size="sm" onclick={() => goto('/browse/import')}>
 				<Upload class="mr-1.5 size-4" />
@@ -126,16 +127,17 @@ import PageHeader from '$lib/components/shared/PageHeader.svelte';
 			</div>
 		{/snippet}
 	</PageHeader>
+	</div>
 
-	<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? '' : 'md:grid-cols-[265px_1fr]'}">
+	<div class="grid flex-1 min-h-0 overflow-hidden pl-4 {layout.isExpanded ? '' : 'gap-12 md:grid-cols-[265px_1fr]'}">
 		{#if !layout.isExpanded}
-		<aside class="overflow-hidden h-full relative">
+		<aside class="overflow-hidden h-full relative pb-4">
 			<FilterSidebar entityStore={browseEntityFilter} categoryStore={browseCategories} />
 		</aside>
 		{/if}
 
 		<!-- Main: results -->
-		<div class="overflow-y-auto">
+		<div class="overflow-y-auto h-full pb-24 pr-4">
 			<EntityList nodes={filteredNodes} loading={browse.loading} />
 		</div>
 	</div>

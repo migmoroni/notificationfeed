@@ -46,29 +46,30 @@ import PageHeader from '$lib/components/shared/PageHeader.svelte';
 	<title>{t('page_title.library')}</title>
 </svelte:head>
 
-<div class="mx-auto w-full h-full flex flex-col overflow-hidden py-4 px-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
-	<PageHeader title={t('title.library')}>
-		{#snippet bottomRow()}
-			{#if !isHome}
+<div class="mx-auto w-full h-full flex flex-col pt-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
+	<div class="px-4 shrink-0">
+		<PageHeader title={t('title.library')}>
+			{#snippet bottomRow()}
 				<div class="w-full">
 					<LibrarySearchBar
 						value={library.searchQuery}
+						placeholderKey={isHome ? 'library.search_tabs_placeholder' : 'library.search_placeholder'}
 						onchange={(v) => library.setSearchQuery(v)}
 					/>
 				</div>
-			{/if}
-		{/snippet}
-	</PageHeader>
+			{/snippet}
+		</PageHeader>
+	</div>
 
-	<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? '' : 'lg:grid-cols-[295px_1fr]'}">
+	<div class="grid flex-1 min-h-0 overflow-hidden pl-4 {layout.isExpanded ? '' : 'gap-12 lg:grid-cols-[295px_1fr]'}">
 		{#if !layout.isExpanded}
-		<aside class="overflow-y-auto gap-4">
+		<aside class="overflow-y-auto h-full relative pb-4">
 			<TabSidebar />
 		</aside>
 		{/if}
 
 		<!-- Main: filtered items or home grid -->
-		<div class="overflow-y-auto pb-24 pt-4 {library.isSelecting ? 'pb-20' : ''}">
+		<div class="overflow-y-auto h-full pb-24 pr-4 {library.isSelecting ? 'pb-20' : ''}">
 			{#if isHome}
 				<LibraryHome />
 			{:else}
