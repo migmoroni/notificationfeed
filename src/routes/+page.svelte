@@ -11,6 +11,7 @@
 	import FeedList from '$lib/components/feed/FeedList.svelte';
 	import { PriorityFilter } from '$lib/components/feed/index.js';
 	import ViewModeToggle from '$lib/components/feed/ViewModeToggle.svelte';
+import PageHeader from '$lib/components/shared/PageHeader.svelte';
 	import FeedMacros from '$lib/components/feed/FeedMacros.svelte';
 	import FilterSidebar from '$lib/components/shared/FilterSidebar.svelte';
 	import ActiveCategoryBadges from '$lib/components/shared/ActiveCategoryBadges.svelte';
@@ -345,41 +346,38 @@
 </svelte:head>
 
 <div class="mx-auto w-full h-full flex flex-col overflow-hidden pt-4 px-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
-	<!-- Header -->
-	<div class="flex items-center justify-between mb-4 gap-3 pr-24">
-		<div class="flex items-center gap-3 min-w-0">
-			<h1 class="text-xl font-bold shrink-0">{t('title.feed')}</h1>
-			{#if feed.lastRefresh}
-				<span class="text-xs text-muted-foreground truncate hidden sm:inline">
-					{formatRelativeDate(feed.lastRefresh)}
-				</span>
-			{/if}
-		</div>
-		<button
-			onclick={handleRefresh}
-			disabled={refreshing}
-			class="inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50"
-			aria-label={t('aria.update_feed')}
-		>
-			<RefreshCw class="size-4 {refreshing ? 'animate-spin' : ''}" />
-		</button>
-	</div>
+	<PageHeader
+		title={t('title.feed')}
+		subtitle={feed.lastRefresh ? formatRelativeDate(feed.lastRefresh) : null}
+	>
+		{#snippet actions()}
+			<button
+				onclick={handleRefresh}
+				disabled={refreshing}
+				class="inline-flex items-center justify-center size-9 rounded-full bg-background border border-border shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50"
+				aria-label={t('aria.update_feed')}
+			>
+				<RefreshCw class="size-4 {refreshing ? 'animate-spin' : ''}" />
+			</button>
+		{/snippet}
 
-	<!-- Priority filter + active filter badges (single-line, horizontally scrollable, reserved height) -->
-	<div class="mb-4 flex items-center gap-3">
-			<div class="flex items-center gap-2">
-				<PriorityFilter value={filter} onchange={(v) => (filter = v)} />
-				<ViewModeToggle />
+		{#snippet bottomRow()}
+			<div class="flex items-center gap-3 w-full border-t border-border/40 pt-4 mt-2">
+				<div class="flex items-center gap-2">
+					<PriorityFilter value={filter} onchange={(v) => (filter = v)} />
+					<ViewModeToggle />
+				</div>
+				<div class="flex-1 min-w-0 min-h-7 flex items-center justify-end gap-1.5 overflow-x-auto whitespace-nowrap">
+					<ActiveLibraryTabBadges store={feedEntityFilter} />
+					<ActiveCategoryBadges store={feedCategories} />
+				</div>
 			</div>
-		<div class="flex-1 min-w-0 min-h-7 flex items-center gap-1.5 overflow-x-auto whitespace-nowrap">
-			<ActiveLibraryTabBadges store={feedEntityFilter} />
-			<ActiveCategoryBadges store={feedCategories} />
-		</div>
-	</div>
+		{/snippet}
+	</PageHeader>
 
 	<div class="flex-1 min-h-0 overflow-hidden">
 		<!-- Feed list -->
-		<div class="overflow-y-auto h-full pr-24 pb-24 pt-4">
+		<div class="overflow-y-auto h-full pb-24">
 			<FeedList {filter} {anyIds} {allIds} nodeIds={allowedNodeIds} />
 		</div>
 	</div>

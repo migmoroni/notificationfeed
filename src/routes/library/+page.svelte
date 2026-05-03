@@ -13,6 +13,7 @@
 	import LibraryItemList from '$lib/components/library/LibraryItemList.svelte';
 	import ConfirmUnfavoriteDialog from '$lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
 	import { t } from '$lib/i18n/t.js';
+import PageHeader from '$lib/components/shared/PageHeader.svelte';
 
 	let showAssignment = $state(false);
 	let showRemoveConfirm = $state(false);
@@ -46,9 +47,18 @@
 </svelte:head>
 
 <div class="mx-auto w-full h-full flex flex-col overflow-hidden py-4 px-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
-	<div class="mb-4">
-		<h1 class="text-xl font-bold mb-3">{t('title.library')}</h1>
-	</div>
+	<PageHeader title={t('title.library')}>
+		{#snippet bottomRow()}
+			{#if !isHome}
+				<div class="w-full">
+					<LibrarySearchBar
+						value={library.searchQuery}
+						onchange={(v) => library.setSearchQuery(v)}
+					/>
+				</div>
+			{/if}
+		{/snippet}
+	</PageHeader>
 
 	<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? '' : 'lg:grid-cols-[295px_1fr]'}">
 		{#if !layout.isExpanded}
@@ -58,16 +68,10 @@
 		{/if}
 
 		<!-- Main: filtered items or home grid -->
-		<div class="overflow-y-auto pr-24 pb-24 pt-4 {library.isSelecting ? 'pb-20' : ''}">
+		<div class="overflow-y-auto pb-24 pt-4 {library.isSelecting ? 'pb-20' : ''}">
 			{#if isHome}
 				<LibraryHome />
 			{:else}
-				<div class="mb-4">
-					<LibrarySearchBar
-						value={library.searchQuery}
-						onchange={(v) => library.setSearchQuery(v)}
-					/>
-				</div>
 				<LibraryItemList items={library.filteredItems} loading={library.loading} />
 			{/if}
 		</div>

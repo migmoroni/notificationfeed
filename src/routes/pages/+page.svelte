@@ -15,6 +15,7 @@
 	import Archive from '@lucide/svelte/icons/archive';
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
 	import { t } from '$lib/i18n/t.js';
+import PageHeader from '$lib/components/shared/PageHeader.svelte';
 
 	const roleMeta: Record<string, { label: string; icon: typeof Newspaper }> = {
 		profile: { label: 'Profile', icon: Newspaper },
@@ -29,27 +30,27 @@
 	<title>{t('page_title.pages')}</title>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-6 {layout.isExpanded ? 'max-w-4xl' : 'max-w-2xl'}">
-	<div class="flex items-center justify-between mb-6">
-		<h1 class="text-xl font-bold">{t('title.pages')}</h1>
-
-		{#if activeUser.isCreator}
-			<div class="flex items-center gap-2">
-				{#if creator.removedTrees.length > 0}
-					<Button variant={showRemoved ? 'secondary' : 'ghost'} size="sm" onclick={() => (showRemoved = !showRemoved)}>
-						<Archive class="size-4 mr-1" />
-					{t('pages.removed')} ({creator.removedTrees.length})
-					</Button>
-				{/if}
-				{#if !showRemoved}
-					<Button href="/pages/new">
-						<Plus class="size-4 mr-1" />
-					{t('title.new_page')}
-					</Button>
-				{/if}
-			</div>
-		{/if}
-	</div>
+<div class="container mx-auto py-4 px-4 {layout.isExpanded ? 'max-w-4xl' : 'max-w-2xl'}">
+	<PageHeader title={t('title.pages')}>
+		{#snippet actions()}
+			{#if activeUser.isCreator}
+				<div class="flex items-center gap-2">
+					{#if creator.removedTrees.length > 0}
+						<Button variant={showRemoved ? 'secondary' : 'ghost'} size="sm" onclick={() => (showRemoved = !showRemoved)}>
+							<Archive class="size-4 mr-1" />
+							{t('pages.removed')} ({creator.removedTrees.length})
+						</Button>
+					{/if}
+					{#if !showRemoved}
+						<Button href="/pages/new">
+							<Plus class="size-4 mr-1" />
+							{t('title.new_page')}
+						</Button>
+					{/if}
+				</div>
+			{/if}
+		{/snippet}
+	</PageHeader>
 
 	{#if !activeUser.isCreator}
 		<div class="py-12 text-center">

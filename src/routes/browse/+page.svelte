@@ -9,6 +9,7 @@
 	import EntityList from '$lib/components/shared/entity/EntityList.svelte';
 	import { SearchBar } from '$lib/components/browse/index.js';
 	import FilterSidebar from '$lib/components/shared/FilterSidebar.svelte';
+import PageHeader from '$lib/components/shared/PageHeader.svelte';
 	import ActiveCategoryBadges from '$lib/components/shared/ActiveCategoryBadges.svelte';
 	import ActiveLibraryTabBadges from '$lib/components/shared/ActiveLibraryTabBadges.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -98,44 +99,43 @@
 </svelte:head>
 
 <div class="mx-auto w-full h-full flex flex-col overflow-hidden py-4 px-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
-	<!-- Header -->
-	<div class="mb-4 flex items-center justify-between pr-24">
-		<h1 class="text-xl font-bold">{t('title.browse')}</h1>
-		<Button variant="outline" size="sm" onclick={() => goto('/browse/import')}>
-			<Upload class="mr-1.5 size-4" />
-			{t('btn.import')}
-		</Button>
-	</div>
+	<PageHeader title={t('title.browse')}>
+		{#snippet actions()}
+			<Button variant="outline" size="sm" onclick={() => goto('/browse/import')}>
+				<Upload class="mr-1.5 size-4" />
+				{t('btn.import')}
+			</Button>
+		{/snippet}
 
-	<!-- Search bar (full width above content) -->
-	<div class="mb-4 pr-24">
-		<SearchBar />
-	</div>
-
-	<!-- Active filter badges (single-line, horizontally scrollable, reserved height) -->
-	<div class="mb-3 min-h-7 flex items-center gap-3 pr-24">
-		<span
-			class="shrink-0 text-xs font-medium uppercase tracking-wide
-				{isLibrarySearch ? 'text-primary' : 'text-muted-foreground'}"
-		>
-			{isLibrarySearch ? t('browse.library_search') : t('browse.global_search')}
-		</span>
-		<div class="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto whitespace-nowrap">
-			<ActiveLibraryTabBadges store={browseEntityFilter} />
-			<ActiveCategoryBadges store={browseCategories} />
-		</div>
-	</div>
+		{#snippet bottomRow()}
+			<div class="w-full flex flex-col gap-3">
+				<SearchBar />
+				<!-- Active filter badges -->
+				<div class="min-h-7 flex items-center gap-3">
+					<span
+						class="shrink-0 text-xs font-medium uppercase tracking-wide
+								{isLibrarySearch ? 'text-primary' : 'text-muted-foreground'}"
+					>
+						{isLibrarySearch ? t('browse.library_search') : t('browse.global_search')}
+					</span>
+					<div class="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto whitespace-nowrap">
+						<ActiveLibraryTabBadges store={browseEntityFilter} />
+						<ActiveCategoryBadges store={browseCategories} />
+					</div>
+				</div>
+			</div>
+		{/snippet}
+	</PageHeader>
 
 	<div class="grid gap-12 flex-1 min-h-0 overflow-hidden {layout.isExpanded ? '' : 'md:grid-cols-[265px_1fr]'}">
 		{#if !layout.isExpanded}
-		<!-- Sidebar only in compact mode (inline) -->
 		<aside class="overflow-hidden h-full relative">
 			<FilterSidebar entityStore={browseEntityFilter} categoryStore={browseCategories} />
 		</aside>
 		{/if}
 
 		<!-- Main: results -->
-		<div class="overflow-y-auto pr-24">
+		<div class="overflow-y-auto">
 			<EntityList nodes={filteredNodes} loading={browse.loading} />
 		</div>
 	</div>

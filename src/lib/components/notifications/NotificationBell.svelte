@@ -153,7 +153,7 @@
 </script>
 
 {#if userId}
-	<div data-notif-bell class="fixed top-2 right-4 z-30">
+	<div data-notif-bell class="relative z-30 inline-block">
 		<button
 			type="button"
 			class="relative inline-flex items-center justify-center size-9 rounded-full bg-background/80 backdrop-blur border border-border shadow-sm hover:bg-accent transition-colors"

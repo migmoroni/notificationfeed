@@ -33,6 +33,7 @@ import Newspaper from '@lucide/svelte/icons/newspaper';
 import FileStack from '@lucide/svelte/icons/file-stack';
 import ChevronDown from '@lucide/svelte/icons/chevron-down';
 import { t } from '$lib/i18n/t.js';
+import PageHeader from '$lib/components/shared/PageHeader.svelte';
 import { currentLanguage, setLanguage } from '$lib/i18n/store.svelte.js';
 import { ALL_LANGUAGES } from '$lib/i18n/types.js';
 import type { Language } from '$lib/i18n/types.js';
@@ -246,8 +247,8 @@ let showRemoved = $state(false);
 <title>{t('page_title.users')}</title>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-6 {layout.isExpanded ? 'max-w-2xl' : 'max-w-lg'}">
-<h1 class="text-xl font-bold mb-6">{t('title.users')}</h1>
+<div class="container mx-auto py-4 px-4 {layout.isExpanded ? 'max-w-2xl' : 'max-w-lg'}">
+	<PageHeader title={t('title.users')} />
 
 <!-- Active user banner -->
 {#if activeUser.current}

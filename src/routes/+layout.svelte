@@ -17,7 +17,6 @@
 	import { registerPwa } from '$lib/platform/web/sw-register.js';
 	import { setupInstallPrompt } from '$lib/platform/web/install-prompt.svelte.js';
 	import { startScheduler, stopScheduler } from '$lib/ingestion/scheduler.js';
-	import NotificationBell from '$lib/components/notifications/NotificationBell.svelte';
 	import Newspaper from '@lucide/svelte/icons/newspaper';
 	import Search from '@lucide/svelte/icons/search';
 	import LibraryBig from '@lucide/svelte/icons/library-big';
@@ -143,7 +142,6 @@
 </svelte:head>
 
 <div class="flex h-dvh w-full overflow-hidden bg-background text-foreground">
-	<NotificationBell />
 	{#if layout.isExpanded}
 		<!-- EXPANDED: fixed sidebar + scrollable main content -->
 		<aside

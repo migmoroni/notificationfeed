@@ -17,12 +17,14 @@ import * as Tabs from '$lib/components/ui/tabs/index.js';
 import Eye from '@lucide/svelte/icons/eye';
 import Rss from '@lucide/svelte/icons/rss';
 import { t } from '$lib/i18n/t.js';
+import PageHeader from '$lib/components/shared/PageHeader.svelte';
 
 function toSortedPost(post: CanonicalPost): SortedPost<CanonicalPost> {
 return { post, priority: 'default' };
 }
 
 let loading = $state(true);
+let activeTab = $state('overview');
 let allNodes: TreeNode[] = $state([]);
 
 onMount(async () => {
@@ -82,47 +84,50 @@ return `/preview/node/${node.metadata.id}`;
 <title>{t('page_title.preview')}</title>
 </svelte:head>
 
+<Tabs.Root bind:value={activeTab}>
 <div class="mx-auto w-full h-full flex flex-col overflow-hidden py-4 px-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
-<div class="mb-4">
-<h1 class="text-xl font-bold">{t('title.preview')}</h1>
-</div>
+	<PageHeader title={t('title.preview')}>
+		{#snippet bottomRow()}
+			{#if activeUser.isCreator && creator.trees.length > 0}
+				<Tabs.List class="w-full justify-start rounded-none border-b border-border bg-transparent p-0">
+					<Tabs.Trigger value="overview" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">{t('preview.overview')}</Tabs.Trigger>
+					<Tabs.Trigger value="feed" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">{t('preview.feed_tab')}</Tabs.Trigger>
+				</Tabs.List>
+			{/if}
+		{/snippet}
+	</PageHeader>
 
-{#if !activeUser.isCreator}
-<div class="py-12 text-center">
-<Eye class="size-12 mx-auto text-muted-foreground mb-3" />
-<p class="text-sm text-muted-foreground mb-2">
-{t('preview.access_creator')}
-</p>
-<a href="/user" class="text-sm text-primary hover:underline">
-{t('pages.switch_user')}
-</a>
-</div>
-{:else if creator.trees.length === 0}
-<div class="py-12 text-center">
-<Eye class="size-12 mx-auto text-muted-foreground mb-3" />
-<p class="text-sm text-muted-foreground mb-2">
-{t('preview.no_pages')}
-</p>
-<a href="/pages" class="text-sm text-primary hover:underline">
-{t('preview.go_to_pages')}
-</a>
-</div>
-{:else}
-<div class="flex-1 min-h-0 overflow-hidden {layout.isExpanded ? '' : 'grid gap-12 md:grid-cols-[265px_1fr]'}">
-{#if !layout.isExpanded}
-<!-- Sidebar only in compact mode (inline) -->
-<aside class="overflow-y-auto">
-<EntityTreeFilter store={previewEntityFilter} />
-</aside>
-{/if}
+	{#if !activeUser.isCreator}
+	<div class="py-12 text-center">
+	<Eye class="size-12 mx-auto text-muted-foreground mb-3" />
+	<p class="text-sm text-muted-foreground mb-2">
+	{t('preview.access_creator')}
+	</p>
+	<a href="/user" class="text-sm text-primary hover:underline">
+	{t('pages.switch_user')}
+	</a>
+	</div>
+	{:else if creator.trees.length === 0}
+	<div class="py-12 text-center">
+	<Eye class="size-12 mx-auto text-muted-foreground mb-3" />
+	<p class="text-sm text-muted-foreground mb-2">
+	{t('preview.no_pages')}
+	</p>
+	<a href="/pages" class="text-sm text-primary hover:underline">
+	{t('preview.go_to_pages')}
+	</a>
+	</div>
+	{:else}
+	<div class="flex-1 min-h-0 overflow-hidden {layout.isExpanded ? '' : 'grid gap-12 md:grid-cols-[265px_1fr]'}">
+	{#if !layout.isExpanded}
+	<!-- Sidebar only in compact mode (inline) -->
+	<aside class="overflow-y-auto">
+	<EntityTreeFilter store={previewEntityFilter} />
+	</aside>
+	{/if}
 
-<!-- Main content -->
-<div class="overflow-y-auto pr-24 pb-24">
-<Tabs.Root value="overview">
-<Tabs.List>
-<Tabs.Trigger value="overview">{t('preview.overview')}</Tabs.Trigger>
-<Tabs.Trigger value="feed">{t('preview.feed_tab')}</Tabs.Trigger>
-</Tabs.List>
+	<!-- Main content -->
+	<div class="overflow-y-auto pb-24">
 
 <Tabs.Content value="overview" class="mt-4">
 {#if loading}
@@ -212,8 +217,8 @@ Fonts ({filteredFonts.length})
 </div>
 {/if}
 </Tabs.Content>
-</Tabs.Root>
 </div>
 </div>
 {/if}
 </div>
+</Tabs.Root>
