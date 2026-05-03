@@ -17,7 +17,7 @@
 </script>
 
 <Tabs.Root value={viewModeStore.mode} onValueChange={handleChange}>
-	<Tabs.List class="h-9 w-[120px] flex px-0.5">
+	<Tabs.List class="h-9 w-30 flex px-0.5">
 		{#each options as opt}
 			<Tabs.Trigger value={opt.value} class="text-xs px-0 flex-1 flex justify-center" aria-label={opt.title} title={opt.title}>
 				<opt.icon class="size-4" />

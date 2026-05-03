@@ -362,7 +362,7 @@ import PageHeader from '$lib/components/shared/PageHeader.svelte';
 		{/snippet}
 
 		{#snippet bottomRow()}
-			<div class="flex items-center gap-3 w-full border-t border-border/40 pt-4 mt-2">
+			<div class="flex items-center gap-3 w-full">
 				<div class="flex items-center gap-2">
 					<PriorityFilter value={filter} onchange={(v) => (filter = v)} />
 					<ViewModeToggle />
