@@ -23,6 +23,8 @@ import { createContentMediaStore } from '$lib/persistence/content-media.store.js
 import { sortByPriority, type SortedPost } from '$lib/domain/shared/feed-sorter.js';
 import type { CanonicalPost } from '$lib/normalization/canonical-post.js';
 import PostCard from '$lib/components/feed/PostCard.svelte';
+import ViewModeToggle from '$lib/components/feed/ViewModeToggle.svelte';
+import { viewModeStore } from '$lib/stores/view-mode.svelte.js';
 import FavoriteButton from '$lib/components/shared/FavoriteButton.svelte';
 import { Badge } from '$lib/components/ui/badge/index.js';
 import { Separator } from '$lib/components/ui/separator/index.js';
@@ -418,10 +420,13 @@ class="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transiti
 <!-- Posts (for font nodes) -->
 {#if posts.length > 0}
 <section>
-<h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-{t('node_detail.posts_section', { count: posts.length })}
-</h2>
-<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between mb-3">
+	<h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+		{t('node_detail.posts_section', { count: posts.length })}
+	</h2>
+	<ViewModeToggle />
+</div>
+<div class="grid gap-3 {layout.isExpanded && viewModeStore.mode === 'cards' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}">
 {#each posts as sortedPost (sortedPost.post.id)}
 <PostCard {sortedPost} />
 {/each}

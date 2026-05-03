@@ -10,6 +10,7 @@
 	import { replaceState } from '$app/navigation';
 	import FeedList from '$lib/components/feed/FeedList.svelte';
 	import { PriorityFilter } from '$lib/components/feed/index.js';
+	import ViewModeToggle from '$lib/components/feed/ViewModeToggle.svelte';
 	import FeedMacros from '$lib/components/feed/FeedMacros.svelte';
 	import FilterSidebar from '$lib/components/shared/FilterSidebar.svelte';
 	import ActiveCategoryBadges from '$lib/components/shared/ActiveCategoryBadges.svelte';
@@ -366,7 +367,10 @@
 
 	<!-- Priority filter + active filter badges (single-line, horizontally scrollable, reserved height) -->
 	<div class="mb-4 flex items-center gap-3">
-		<PriorityFilter value={filter} onchange={(v) => (filter = v)} />
+			<div class="flex items-center gap-2">
+				<PriorityFilter value={filter} onchange={(v) => (filter = v)} />
+				<ViewModeToggle />
+			</div>
 		<div class="flex-1 min-w-0 min-h-7 flex items-center gap-1.5 overflow-x-auto whitespace-nowrap">
 			<ActiveLibraryTabBadges store={feedEntityFilter} />
 			<ActiveCategoryBadges store={feedCategories} />

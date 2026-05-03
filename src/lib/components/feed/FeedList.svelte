@@ -11,6 +11,7 @@
 	import { feed } from '$lib/stores/feed.svelte.js';
 	import { feedEntityFilter } from '$lib/stores/feed-entity-filter.svelte.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
+	import { viewModeStore } from '$lib/stores/view-mode.svelte.js';
 	import { t } from '$lib/i18n/t.js';
 	import { UI_LIMITS } from '$lib/config/back-settings.js';
 	import { PRIORITY_LEVELS } from '$lib/components/shared/priority/priority.js';
@@ -101,7 +102,7 @@
 </script>
 
 {#snippet postGrid(posts: SortedPost<CanonicalPost>[])}
-	<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}">
+	<div class="grid gap-3 {layout.isExpanded && viewModeStore.mode === 'cards' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}">
 		{#each posts as sortedPost (sortedPost.post.id)}
 			<PostCard {sortedPost} />
 		{/each}
@@ -158,13 +159,13 @@
 		</div>
 	{/if}
 {:else}
-	<div class="grid gap-3 {layout.isExpanded ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}">
+	<div class="grid gap-3 {layout.isExpanded && viewModeStore.mode === 'cards' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}">
 		{#each visible as sortedPost (sortedPost.post.id)}
 			<PostCard {sortedPost} />
 		{/each}
 
 		{#if hasMore}
-			<div bind:this={sentinel} class="h-10 flex items-center justify-center {layout.isExpanded ? 'lg:col-span-2' : ''}">
+			<div bind:this={sentinel} class="h-10 flex items-center justify-center {layout.isExpanded && viewModeStore.mode === 'cards' ? 'lg:col-span-2' : ''}">
 				<div class="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent"></div>
 			</div>
 		{/if}
