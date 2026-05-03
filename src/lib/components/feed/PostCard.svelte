@@ -127,11 +127,22 @@
 			onkeydown={handleKeydown}
 			tabindex="0"
 			role="button"
-			aria-label={t('aria.open_post', { title: sortedPost.post.title })}
+			aria-label={t('aria.open_post', { title: sortedPost.post.title || 'Post' })}
 		>
 			<h3 class="text-sm font-medium leading-snug truncate flex-1 flex flex-row items-center gap-1.5">
-				{sortedPost.post.title}
-				<PriorityBadge level={sortedPost.priority} />
+				<span class="truncate">
+					{#if sortedPost.post.title?.trim()}
+						{sortedPost.post.title}
+						{#if sortedPost.post.content?.trim()}
+							<span class="text-muted-foreground font-normal ml-1">— {sortedPost.post.content}</span>
+						{/if}
+					{:else if sortedPost.post.content?.trim()}
+						{sortedPost.post.content}
+					{/if}
+				</span>
+				<div class="shrink-0 flex items-center">
+					<PriorityBadge level={sortedPost.priority} />
+				</div>
 			</h3>
 		</div>
 
