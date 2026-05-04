@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Switch } from '$lib/components/ui/switch/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import { onMount, tick } from 'svelte';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { activeUser } from '$lib/stores/active-user.svelte.js';
 	import {
@@ -15,8 +17,13 @@
 		type FeedTransportRule,
 		type IpfsFeedTransportRule
 	} from '$lib/domain/ingestion/ingestion-settings.js';
+	import type { PipelineState } from '$lib/domain/ingestion/fetcher-state.js';
 	import { resetHttpAdapter } from '$lib/ingestion/net/index.js';
-	import { reloadSchedulerInterval } from '$lib/ingestion/scheduler.js';
+	import {
+		reloadSchedulerInterval,
+		refreshFont as schedulerRefreshFont,
+		tickNow as schedulerTickNow
+	} from '$lib/ingestion/scheduler.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
@@ -29,6 +36,14 @@
 	const MIN_MS = 60_000;
 	const HOUR_MS = 60 * MIN_MS;
 	const FEED_KINDS: FeedKind[] = ['rss', 'atom', 'jsonfeed'];
+
+	interface ProtocolScoringStateRow {
+		nodeId: string;
+		title: string;
+		pipelineState: PipelineState;
+		confidence: number;
+		protocolCount: number;
+	}
 
 	let settings = $state<IngestionSettings>(
 		activeUser.current?.settingsUser.ingestion ?? createIngestionSettings()
@@ -61,6 +76,10 @@
 	let idle2IntMin = $derived(Math.round(settings.idleTier2IntervalMs / MIN_MS));
 	let idle2MaxHours = $derived(Math.round(settings.idleTier2MaxIdleMs / HOUR_MS));
 	let idle3IntHours = $derived(Math.round(settings.idleTier3IntervalMs / HOUR_MS));
+	let protocolScoringRows = $state<ProtocolScoringStateRow[]>([]);
+	let protocolScoringLoading = $state(false);
+	let resettingRowNodeId = $state<string | null>(null);
+	let protocolScoringScrollEl = $state<HTMLDivElement | null>(null);
 
 	async function persist(next: IngestionSettings): Promise<void> {
 		settings = next;
@@ -182,6 +201,46 @@
 
 	let resetting = $state(false);
 
+	function pipelineStateLabel(state: PipelineState): string {
+		switch (state) {
+			case 'OFFLINE':
+				return t('font.state.offline');
+			case 'UNSTABLE':
+				return t('font.state.unstable');
+			case 'DEGRADED':
+				return t('font.state.degraded');
+			case 'RECOVERING':
+				return t('font.state.recovering');
+			default:
+				return t('font.state.healthy');
+		}
+	}
+
+	async function loadProtocolScoringRows(opts?: { showLoading?: boolean; preserveScroll?: boolean }) {
+		const showLoading = opts?.showLoading ?? protocolScoringRows.length === 0;
+		const preserveScroll = opts?.preserveScroll ?? false;
+		const previousScrollTop = preserveScroll ? (protocolScoringScrollEl?.scrollTop ?? 0) : 0;
+
+		if (showLoading) protocolScoringLoading = true;
+		try {
+			const { listProtocolScoringStateRows } = await import('$lib/ingestion/post-manager.js');
+			protocolScoringRows = await listProtocolScoringStateRows();
+		} finally {
+			if (showLoading) protocolScoringLoading = false;
+		}
+
+		if (preserveScroll) {
+			await tick();
+			if (protocolScoringScrollEl) {
+				protocolScoringScrollEl.scrollTop = previousScrollTop;
+			}
+		}
+	}
+
+	onMount(() => {
+		void loadProtocolScoringRows({ showLoading: true });
+	});
+
 	async function handleResetScoring() {
 		if (resetting) return;
 		resetting = true;
@@ -189,8 +248,37 @@
 			const { resetAllProtocolScoring } = await import('$lib/ingestion/post-manager.js');
 			const count = await resetAllProtocolScoring();
 			console.info(t('settings.ingestion.reset_scoring_done', { count: String(count) }));
+			try {
+				await schedulerTickNow();
+			} catch (err) {
+				console.warn('[settings/ingestion] tickNow after reset_scoring failed', err);
+			}
+			await loadProtocolScoringRows({ showLoading: false, preserveScroll: true });
 		} finally {
 			resetting = false;
+		}
+	}
+
+	async function handleResetScoringRow(row: ProtocolScoringStateRow) {
+		if (resettingRowNodeId) return;
+		resettingRowNodeId = row.nodeId;
+		try {
+			const { resetProtocolScoringForFont } = await import('$lib/ingestion/post-manager.js');
+			const changed = await resetProtocolScoringForFont(row.nodeId);
+			if (changed) {
+				console.info(t('settings.ingestion.reset_scoring_row_done', { title: row.title }));
+				try {
+					await schedulerRefreshFont(row.nodeId);
+				} catch (err) {
+					console.warn('[settings/ingestion] refreshFont after reset_scoring_row failed', {
+						nodeId: row.nodeId,
+						err
+					});
+				}
+			}
+			await loadProtocolScoringRows({ showLoading: false, preserveScroll: true });
+		} finally {
+			resettingRowNodeId = null;
 		}
 	}
 </script>
@@ -672,6 +760,64 @@
 				{t('settings.ingestion.reset_scoring_desc')}
 			</p>
 		</div>
+
+		<div class="space-y-2">
+			<p class="text-sm font-medium">{t('settings.ingestion.reset_scoring_table_title')}</p>
+
+			{#if protocolScoringLoading}
+				<p class="text-xs text-muted-foreground">{t('settings.ingestion.reset_scoring_table_loading')}</p>
+			{:else if protocolScoringRows.length === 0}
+				<p class="text-xs text-muted-foreground">{t('settings.ingestion.reset_scoring_table_empty')}</p>
+			{:else}
+				<div class="rounded-md border border-border overflow-hidden">
+					<div class="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-3 gap-y-1 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground bg-muted/40">
+						<span>{t('settings.ingestion.reset_scoring_table_col_font')}</span>
+						<span class="text-right">{t('settings.ingestion.reset_scoring_table_col_state')}</span>
+						<span class="text-right">{t('settings.ingestion.reset_scoring_table_col_action')}</span>
+					</div>
+
+					<div class="h-72 overflow-y-auto" bind:this={protocolScoringScrollEl}>
+						{#each protocolScoringRows as row (row.nodeId)}
+							<div class="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-3 px-3 py-3 items-center border-t border-border">
+								<div class="min-w-0">
+									<p class="text-sm font-medium truncate">{row.title}</p>
+									<p class="text-[11px] text-muted-foreground truncate">{row.nodeId}</p>
+								</div>
+								<div class="flex justify-end">
+									{#if row.pipelineState === 'OFFLINE'}
+										<Badge variant="destructive" class="text-xs">{pipelineStateLabel(row.pipelineState)}</Badge>
+									{:else if row.pipelineState === 'UNSTABLE'}
+										<Badge class="text-xs bg-orange-500 text-white hover:bg-orange-500/90 border-transparent">{pipelineStateLabel(row.pipelineState)}</Badge>
+									{:else if row.pipelineState === 'DEGRADED'}
+										<Badge variant="secondary" class="text-xs">{pipelineStateLabel(row.pipelineState)}</Badge>
+									{:else if row.pipelineState === 'RECOVERING'}
+										<Badge class="text-xs bg-blue-500 text-white hover:bg-blue-500/90 border-transparent">{pipelineStateLabel(row.pipelineState)}</Badge>
+									{:else}
+										<Badge variant="outline" class="text-xs">{pipelineStateLabel(row.pipelineState)}</Badge>
+									{/if}
+								</div>
+								<div class="flex justify-end">
+									<Button
+										variant="outline"
+										size="sm"
+										disabled={resetting || resettingRowNodeId === row.nodeId}
+										onclick={() => handleResetScoringRow(row)}
+										aria-label={t('settings.ingestion.reset_scoring_row_aria', { title: row.title })}
+									>
+										{#if resettingRowNodeId === row.nodeId}
+											{t('settings.ingestion.reset_scoring_row_loading')}
+										{:else}
+											{t('settings.ingestion.reset_scoring_row_action')}
+										{/if}
+									</Button>
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/if}
+		</div>
+
 		<Button variant="outline" onclick={handleResetScoring} disabled={resetting}>
 			{t('settings.ingestion.reset_scoring')}
 		</Button>

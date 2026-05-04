@@ -828,7 +828,8 @@ async function runClient(
  * Reset all judgement state on every font. Returns each per-source
  * record to a pristine CLOSED-circuit, zero-failure state and brings
  * the font's pipeline back to HEALTHY with full confidence. Cache
- * headers (etag/lastModified/nostrSince) and schedules are preserved.
+ * headers (etag/lastModified/nostrSince) are preserved, and the font
+ * is marked due now so a verification can run immediately.
  *
  * Exposed via app settings → Ingestion → "Reset protocol scoring" so
  * the user can clear stale judgments after fixing a config or
@@ -839,34 +840,95 @@ export async function resetAllProtocolScoring(): Promise<number> {
 	const all = await db.fetcherStates.getAll<FetcherState>();
 	let count = 0;
 	for (const fs of all) {
-		const next: FetcherState = {
-			...fs,
-			protocols: Object.fromEntries(
-				Object.entries(fs.protocols ?? {}).map(([id, ps]) => [
-					id,
-					{
-						...ps,
-						score: 0,
-						consecutiveFailures: 0,
-						failureCount: 0,
-						successRate: 1,
-						avgLatencyMs: 0,
-						lastLatencyMs: 0,
-						lastAttemptAt: 0,
-						circuitState: 'CLOSED' as const,
-						backoffUntil: null
-					}
-				])
-			),
-			effectivePrimaryEntryId: null,
-			promotionStreakTicks: 0,
-			pipelineState: 'HEALTHY' as const,
-			lastTransitionAt: 0,
-			recoveringTicksRemaining: 0,
-			confidence: 1
-		};
+		const next = resetFetcherJudgement(fs);
 		await putFetcherState(next);
 		count++;
 	}
 	return count;
+}
+
+/**
+ * Reset judgement state for a single font node. Returns true when an
+ * existing persisted state was found and reset.
+ */
+export async function resetProtocolScoringForFont(nodeId: string): Promise<boolean> {
+	const db = await getStorageBackend();
+	const existing = await db.fetcherStates.getById<FetcherState>(nodeId);
+	if (!existing) return false;
+
+	await putFetcherState(resetFetcherJudgement(existing));
+	return true;
+}
+
+export interface ProtocolScoringStateRow {
+	nodeId: string;
+	title: string;
+	pipelineState: PipelineState;
+	confidence: number;
+	protocolCount: number;
+}
+
+/**
+ * Snapshot used by settings UI to show the current pipeline state for
+ * every font that already has a persisted `FetcherState`.
+ */
+export async function listProtocolScoringStateRows(): Promise<ProtocolScoringStateRow[]> {
+	const db = await getStorageBackend();
+	const states = await db.fetcherStates.getAll<FetcherState>();
+	if (states.length === 0) return [];
+
+	const trees = await db.contentTrees.getAll<{ nodes: Record<string, TreeNode> }>();
+	const titleByNodeId = new Map<string, string>();
+	for (const tree of trees) {
+		for (const [nodeId, node] of Object.entries(tree.nodes)) {
+			if (!isFontNode(node)) continue;
+			if (titleByNodeId.has(nodeId)) continue;
+			const title = node.data.header?.title?.trim() || nodeId;
+			titleByNodeId.set(nodeId, title);
+		}
+	}
+
+	return states
+		.map((state) => ({
+			nodeId: state.nodeId,
+			title: titleByNodeId.get(state.nodeId) ?? state.nodeId,
+			pipelineState: state.pipelineState ?? 'HEALTHY',
+			confidence: typeof state.confidence === 'number' ? state.confidence : 1,
+			protocolCount: Object.keys(state.protocols ?? {}).length
+		}))
+		.sort(
+			(a, b) =>
+				a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }) ||
+				a.nodeId.localeCompare(b.nodeId)
+		);
+}
+
+function resetFetcherJudgement(state: FetcherState): FetcherState {
+	return {
+		...state,
+		protocols: Object.fromEntries(
+			Object.entries(state.protocols ?? {}).map(([id, protocol]) => [
+				id,
+				{
+					...protocol,
+					score: 0,
+					consecutiveFailures: 0,
+					failureCount: 0,
+					successRate: 1,
+					avgLatencyMs: 0,
+					lastLatencyMs: 0,
+					lastAttemptAt: 0,
+					circuitState: 'CLOSED' as const,
+					backoffUntil: null
+				}
+			])
+		),
+		effectivePrimaryEntryId: null,
+		promotionStreakTicks: 0,
+		pipelineState: 'HEALTHY' as const,
+		lastTransitionAt: 0,
+		recoveringTicksRemaining: 0,
+		confidence: 1,
+		nextScheduledAt: 0
+	};
 }
