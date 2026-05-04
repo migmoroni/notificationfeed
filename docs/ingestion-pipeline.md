@@ -34,6 +34,29 @@ All numeric configs live in `back-settings.ts` under
 `INGESTION_CIRCUIT_BREAKER`, `INGESTION_BACKOFF`,
 `INGESTION_CONFIDENCE`.
 
+## Feed URL transport (HTTP + IPFS/IPNS)
+
+The logical feed protocol remains unchanged (`rss`, `atom`,
+`jsonfeed`). The transport is determined by the `config.url` scheme:
+
+- `http://` / `https://`
+- `ipfs://<cid>[/path]`
+- `ipns://<name>[/path]` (including DNSLink names like domains)
+- HTTP gateway paths such as `/ipfs/<cid>/...` and `/ipns/<name>/...`
+
+Resolution strategy by runtime:
+
+- **Web/PWA/TWA**: `ipfs://` and `ipns://` are mapped to the user's
+  configured IPFS gateway chain (`ingestion.ipfsGatewayServices`), then
+  the existing proxy chain is applied when `proxyEnabled=true`.
+- **Tauri desktop**: tries Helia first (with timeout/body cap), then
+  falls back to the same gateway chain, optionally wrapped by proxy
+  templates.
+
+Conditional GET (`ETag`/`Last-Modified`) and parsed-body detection
+remain unchanged for HTTP/gateway requests. Helia-resolved content is
+treated as a fresh `200` payload with no cache headers.
+
 ## Font-level state machine
 
 ```

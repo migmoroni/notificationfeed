@@ -2,12 +2,14 @@
  * HTTP adapter factory.
  *
  * Picks the right adapter at runtime:
- * - Tauri desktop (window.__TAURI_INTERNALS__): direct HTTP via plugin-http.
- * - Web/PWA/TWA/SW: CORS proxy chain configured per-user.
+ * - Tauri desktop (window.__TAURI_INTERNALS__): Helia-first for ipfs/ipns,
+ *   then gateway/proxy fallback over plugin-http.
+ * - Web/PWA/TWA/SW: gateway + CORS proxy chain configured per-user.
  */
 
-import type { ProxyConfig } from '$lib/domain/ingestion/ingestion-settings.js';
+import type { ProxyConfig, IpfsGatewayConfig } from '$lib/domain/ingestion/ingestion-settings.js';
 import type { HttpAdapter } from './http-adapter.js';
+import { createTauriHttpAdapter } from './tauri-http.adapter.js';
 import { createWebProxyAdapter } from './web-proxy.adapter.js';
 
 export type { HttpAdapter, HttpRequestOpts, HttpResponse } from './http-adapter.js';
@@ -15,6 +17,8 @@ export type { HttpAdapter, HttpRequestOpts, HttpResponse } from './http-adapter.
 interface AdapterContext {
 	proxies: ProxyConfig[];
 	proxyEnabled: boolean;
+	ipfsGateways: IpfsGatewayConfig[];
+	ipfsGatewayEnabled: boolean;
 }
 
 let cached: { ctx: AdapterContext; adapter: HttpAdapter } | null = null;
@@ -34,13 +38,29 @@ export async function getHttpAdapter(ctx: AdapterContext): Promise<HttpAdapter> 
 
 	let adapter: HttpAdapter;
 	if (isTauri()) {
-		const { createTauriHttpAdapter } = await import('./tauri-http.adapter.js');
-		adapter = await createTauriHttpAdapter();
+		adapter = createTauriHttpAdapter({
+			proxies: ctx.proxies,
+			proxyEnabled: ctx.proxyEnabled,
+			ipfsGateways: ctx.ipfsGateways,
+			ipfsGatewayEnabled: ctx.ipfsGatewayEnabled
+		});
 	} else {
-		adapter = createWebProxyAdapter({ proxies: ctx.proxies, enabled: ctx.proxyEnabled });
+		adapter = createWebProxyAdapter({
+			proxies: ctx.proxies,
+			enabled: ctx.proxyEnabled,
+			ipfsGateways: ctx.ipfsGateways,
+			ipfsGatewayEnabled: ctx.ipfsGatewayEnabled
+		});
 	}
 
-	cached = { ctx: { ...ctx, proxies: [...ctx.proxies] }, adapter };
+	cached = {
+		ctx: {
+			...ctx,
+			proxies: [...ctx.proxies],
+			ipfsGateways: [...ctx.ipfsGateways]
+		},
+		adapter
+	};
 	return adapter;
 }
 
@@ -60,9 +80,14 @@ export function resetHttpAdapter(): void {
  */
 function sameCtx(a: AdapterContext, b: AdapterContext): boolean {
 	if (a.proxyEnabled !== b.proxyEnabled) return false;
+	if (a.ipfsGatewayEnabled !== b.ipfsGatewayEnabled) return false;
 	if (a.proxies.length !== b.proxies.length) return false;
+	if (a.ipfsGateways.length !== b.ipfsGateways.length) return false;
 	for (let i = 0; i < a.proxies.length; i++) {
 		if (a.proxies[i].url !== b.proxies[i].url) return false;
+	}
+	for (let i = 0; i < a.ipfsGateways.length; i++) {
+		if (a.ipfsGateways[i].url !== b.ipfsGateways[i].url) return false;
 	}
 	return true;
 }

@@ -21,6 +21,7 @@
 	import AvatarPicker from './AvatarPicker.svelte';
 	import MediaUpload from './MediaUpload.svelte';
 	import { t } from '$lib/i18n/t.js';
+	import { isSupportedFeedUrl } from '$lib/ingestion/net/feed-url.js';
 
 	interface Props {
 		mode: 'create' | 'edit';
@@ -96,7 +97,10 @@
 					case 'rss':
 					case 'atom':
 					case 'jsonfeed':
-						if (!(entry.config as { url: string }).url?.trim()) return false;
+						{
+							const url = (entry.config as { url: string }).url?.trim() ?? '';
+							if (!url || !isSupportedFeedUrl(url)) return false;
+						}
 						break;
 					case 'nostr':
 						if (!(entry.config as { pubkey: string }).pubkey?.trim()) return false;

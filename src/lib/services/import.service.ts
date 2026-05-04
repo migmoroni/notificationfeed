@@ -15,6 +15,7 @@ import { createContentMediaStore } from '$lib/persistence/content-media.store.js
 import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
 import { t } from '$lib/i18n/t.js';
 import { currentLanguage } from '$lib/i18n/store.svelte.js';
+import { getFeedUrlHeuristicHint, isSupportedFeedUrl, parseFeedTransportUrl } from '$lib/ingestion/net/feed-url.js';
 
 export interface ImportResult {
 success: boolean;
@@ -93,11 +94,12 @@ mediaIds
  * Auto-detect protocol from a URL.
  */
 function detectProtocol(url: string): 'rss' | 'atom' | 'jsonfeed' | null {
-const lower = url.toLowerCase().trim();
+	const lower = getFeedUrlHeuristicHint(url).toLowerCase().trim();
 if (lower.endsWith('.json') || lower.includes('feed.json') || lower.includes('jsonfeed')) return 'jsonfeed';
 if (lower.includes('atom')) return 'atom';
 if (lower.endsWith('.xml') || lower.endsWith('/feed') || lower.includes('rss') || lower.includes('feed')) return 'rss';
-if (lower.startsWith('http://') || lower.startsWith('https://')) return 'rss';
+	const transport = parseFeedTransportUrl(url);
+	if (transport) return 'rss';
 return null;
 }
 
@@ -110,7 +112,7 @@ const treeRepo = createContentTreeStore();
 
 const validUrls = urls
 .map((u) => u.trim())
-.filter((u) => u && (u.startsWith('http://') || u.startsWith('https://')));
+		.filter((u) => u && isSupportedFeedUrl(u));
 
 if (validUrls.length === 0) {
 return {

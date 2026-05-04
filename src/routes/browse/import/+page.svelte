@@ -4,6 +4,7 @@
 	import { browse } from '$lib/stores/browse.svelte.js';
 	import { browseCategories } from '$lib/stores/browse-categories.svelte.js';
 	import { parseNotfeedJson, importTreeExport, importSimpleUrls } from '$lib/services/import.service.js';
+	import { isSupportedFeedUrl } from '$lib/ingestion/net/feed-url.js';
 	import type { TreeExport } from '$lib/domain/tree-export/index.js';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -34,7 +35,7 @@
 		return urlText
 			.split('\n')
 			.map((l) => l.trim())
-			.filter((l) => l.startsWith('http://') || l.startsWith('https://')).length;
+			.filter((l) => isSupportedFeedUrl(l)).length;
 	});
 
 	function handleFileSelect(e: Event) {

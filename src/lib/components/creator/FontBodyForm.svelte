@@ -164,7 +164,7 @@
 					<Label for="rss-url-{entry.id}">URL do Feed RSS *</Label>
 					<Input
 						id="rss-url-{entry.id}"
-						type="url"
+						type="text"
 						value={(entry.config as FontRssConfig).url}
 						oninput={(e) => updateConfig(idx, { url: (e.currentTarget as HTMLInputElement).value })}
 						placeholder={t('form.feed_url_placeholder')}
@@ -175,7 +175,7 @@
 					<Label for="atom-url-{entry.id}">URL do Feed Atom *</Label>
 					<Input
 						id="atom-url-{entry.id}"
-						type="url"
+						type="text"
 						value={(entry.config as FontAtomConfig).url}
 						oninput={(e) => updateConfig(idx, { url: (e.currentTarget as HTMLInputElement).value })}
 						placeholder={t('form.atom_url_placeholder')}
@@ -186,7 +186,7 @@
 					<Label for="jsonfeed-url-{entry.id}">{t('form.jsonfeed_url_label')}</Label>
 					<Input
 						id="jsonfeed-url-{entry.id}"
-						type="url"
+						type="text"
 						value={(entry.config as FontJsonfeedConfig).url}
 						oninput={(e) => updateConfig(idx, { url: (e.currentTarget as HTMLInputElement).value })}
 						placeholder={t('form.jsonfeed_url_placeholder')}

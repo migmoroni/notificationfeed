@@ -6,7 +6,12 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { activeUser } from '$lib/stores/active-user.svelte.js';
-	import { createIngestionSettings, type IngestionSettings, type ProxyConfig } from '$lib/domain/ingestion/ingestion-settings.js';
+	import {
+		createIngestionSettings,
+		type IngestionSettings,
+		type ProxyConfig,
+		type IpfsGatewayConfig
+	} from '$lib/domain/ingestion/ingestion-settings.js';
 	import { resetHttpAdapter } from '$lib/ingestion/net/index.js';
 	import { reloadSchedulerInterval } from '$lib/ingestion/scheduler.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
@@ -94,6 +99,29 @@
 		const list = settings.proxyServices.slice();
 		[list[i], list[j]] = [list[j], list[i]];
 		void persist({ ...settings, proxyServices: list });
+	}
+
+	function addIpfsGateway() {
+		const next: IpfsGatewayConfig = { url: '', label: '' };
+		void persist({ ...settings, ipfsGatewayServices: [...settings.ipfsGatewayServices, next] });
+	}
+
+	function updateIpfsGateway(i: number, patch: Partial<IpfsGatewayConfig>) {
+		const list = settings.ipfsGatewayServices.map((g, idx) => (idx === i ? { ...g, ...patch } : g));
+		void persist({ ...settings, ipfsGatewayServices: list });
+	}
+
+	function removeIpfsGateway(i: number) {
+		const list = settings.ipfsGatewayServices.filter((_, idx) => idx !== i);
+		void persist({ ...settings, ipfsGatewayServices: list });
+	}
+
+	function moveIpfsGateway(i: number, dir: -1 | 1) {
+		const j = i + dir;
+		if (j < 0 || j >= settings.ipfsGatewayServices.length) return;
+		const list = settings.ipfsGatewayServices.slice();
+		[list[i], list[j]] = [list[j], list[i]];
+		void persist({ ...settings, ipfsGatewayServices: list });
 	}
 
 	function restoreDefaults() {
@@ -429,6 +457,84 @@
 			{/each}
 
 			<p class="text-xs text-muted-foreground">{t('ingestion_settings.proxy_applies_to')}</p>
+		</div>
+	</section>
+
+	<Separator class="my-6" />
+
+	<section class="space-y-4">
+		<div class="flex items-center justify-between gap-4">
+			<div class="min-w-0">
+				<p class="text-sm font-medium">{t('ingestion_settings.ipfs_gateway_enabled')}</p>
+				<p class="text-xs text-muted-foreground">{t('ingestion_settings.ipfs_gateway_hint')}</p>
+			</div>
+			<Switch
+				checked={settings.ipfsGatewayEnabled}
+				onCheckedChange={(v) => update('ipfsGatewayEnabled', v)}
+			/>
+		</div>
+
+		<div class="space-y-2">
+			<div class="flex items-center justify-between">
+				<div class="min-w-0">
+					<p class="text-sm font-medium">{t('ingestion_settings.ipfs_gateway_list')}</p>
+					<p class="text-xs text-muted-foreground">{t('ingestion_settings.ipfs_gateway_order_hint')}</p>
+				</div>
+				<Button variant="outline" size="sm" onclick={addIpfsGateway}>
+					<Plus class="size-4" />
+					{t('ingestion_settings.add_ipfs_gateway')}
+				</Button>
+			</div>
+
+			{#each settings.ipfsGatewayServices as gateway, i (i)}
+				<div class="grid grid-cols-[auto_1fr_auto] gap-2 items-stretch p-3 border rounded-md">
+					<div class="flex flex-col items-center gap-1 pt-1">
+						<span
+							class="inline-flex items-center justify-center size-6 rounded-full bg-muted text-xs font-semibold tabular-nums"
+							aria-label={t('ingestion_settings.proxy_position')}
+						>{i + 1}</span>
+						<div class="flex flex-col">
+							<Button
+								variant="ghost"
+								size="icon"
+								class="size-6"
+								disabled={i === 0}
+								onclick={() => moveIpfsGateway(i, -1)}
+								aria-label={t('ingestion_settings.proxy_move_up')}
+							>
+								<ChevronUp class="size-4" />
+							</Button>
+							<Button
+								variant="ghost"
+								size="icon"
+								class="size-6"
+								disabled={i === settings.ipfsGatewayServices.length - 1}
+								onclick={() => moveIpfsGateway(i, 1)}
+								aria-label={t('ingestion_settings.proxy_move_down')}
+							>
+								<ChevronDown class="size-4" />
+							</Button>
+						</div>
+					</div>
+					<div class="space-y-2 min-w-0">
+						<Input
+							placeholder={t('ingestion_settings.ipfs_gateway_url_placeholder')}
+							value={gateway.url}
+							onchange={(e) => updateIpfsGateway(i, { url: (e.target as HTMLInputElement).value })}
+						/>
+						<Input
+							placeholder={t('ingestion_settings.ipfs_gateway_label_placeholder')}
+							value={gateway.label ?? ''}
+							onchange={(e) => updateIpfsGateway(i, { label: (e.target as HTMLInputElement).value })}
+						/>
+					</div>
+					<Button variant="ghost" size="icon" onclick={() => removeIpfsGateway(i)} aria-label={t('btn.remove')}>
+						<Trash2 class="size-4" />
+					</Button>
+				</div>
+			{/each}
+
+			<p class="text-xs text-muted-foreground">{t('ingestion_settings.ipfs_gateway_applies_to')}</p>
 		</div>
 	</section>
 

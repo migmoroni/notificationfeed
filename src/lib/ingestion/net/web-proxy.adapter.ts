@@ -1,19 +1,24 @@
 /**
- * Web/PWA HTTP adapter — fetches feeds through user-configured CORS proxies.
+ * Web/PWA HTTP adapter — resolves feed URLs and fetches through user-configured
+ * gateway/proxy chains.
  *
- * Tries each proxy in order; first 2xx (or 304) response wins. Supports the
- * `{url}` template token in the proxy URL. The response format (raw XML vs.
+ * Tries each resolved target in order; first 2xx (or 304) response wins.
+ * Supports the `{url}` template token in the proxy URL. The response format (raw XML vs.
  * pre-parsed JSON à la rss2json) is auto-detected from the response
  * `Content-Type` header and a body sniff — the user never has to declare it.
  */
 
-import type { ProxyConfig } from '$lib/domain/ingestion/ingestion-settings.js';
+import type { ProxyConfig, IpfsGatewayConfig } from '$lib/domain/ingestion/ingestion-settings.js';
 import type { HttpAdapter, HttpRequestOpts, HttpResponse } from './http-adapter.js';
+import { resolveFeedHttpTargets } from './feed-url.js';
+import { buildConditionalHeaders, createProxyTargets, detectParsedAs } from './http-utils.js';
 
 interface WebProxyOptions {
 	proxies: ProxyConfig[];
 	/** When false, requests go direct (used as last-resort or for already-CORS-friendly URLs). */
 	enabled: boolean;
+	ipfsGateways: IpfsGatewayConfig[];
+	ipfsGatewayEnabled: boolean;
 }
 
 /**
@@ -31,21 +36,23 @@ interface WebProxyOptions {
 export function createWebProxyAdapter(opts: WebProxyOptions): HttpAdapter {
 	return {
 		async fetchText(url: string, reqOpts: HttpRequestOpts = {}): Promise<HttpResponse> {
-			const candidates = opts.enabled && opts.proxies.length > 0
-				? opts.proxies.map((p) => ({ proxy: p, target: applyTemplate(p.url, url) }))
-				: [{ proxy: null, target: url }];
+			const baseTargets = resolveFeedHttpTargets(url, opts.ipfsGateways, opts.ipfsGatewayEnabled);
+			if (baseTargets.length === 0) {
+				throw new Error(`No HTTP targets available for ${url}`);
+			}
+
+			const candidates = createProxyTargets(baseTargets, opts.proxies, opts.enabled);
+			if (candidates.length === 0) {
+				throw new Error(`No proxy targets available for ${url}`);
+			}
 
 			let lastError: unknown = null;
 
-			for (const { target } of candidates) {
+			for (const target of candidates) {
 				try {
-					const headers: Record<string, string> = {};
-					if (reqOpts.etag) headers['If-None-Match'] = reqOpts.etag;
-					if (reqOpts.lastModified) headers['If-Modified-Since'] = reqOpts.lastModified;
-
 					const response = await fetch(target, {
 						method: 'GET',
-						headers,
+						headers: buildConditionalHeaders(reqOpts),
 						signal: reqOpts.signal
 					});
 
@@ -82,33 +89,4 @@ export function createWebProxyAdapter(opts: WebProxyOptions): HttpAdapter {
 			throw lastError ?? new Error(`All proxies failed for ${url}`);
 		}
 	};
-}
-
-/**
- * Decide whether a proxy response is raw XML or a pre-parsed RSS JSON
- * envelope (rss2json-style). Trusts the `Content-Type` first; falls
- * back to a one-character body sniff (`{` or `[`) when the header is
- * missing/ambiguous — enough to distinguish XML feeds (`<rss>`/`<feed>`/`<?xml`)
- * from JSON without a full parse.
- */
-function detectParsedAs(contentType: string | null, body: string): 'raw' | 'rss-json' {
-	const ct = (contentType ?? '').toLowerCase();
-	if (ct.includes('json')) return 'rss-json';
-	if (ct.includes('xml')) return 'raw';
-	const trimmed = body.trimStart();
-	if (trimmed.startsWith('{') || trimmed.startsWith('[')) return 'rss-json';
-	return 'raw';
-}
-
-/**
- * Substitute the target URL into a proxy template. The supported form
- * is `https://proxy.example/?{url}`; legacy proxies that simply
- * prepend the URL (no `{url}` token) are still accepted.
- */
-function applyTemplate(template: string, url: string): string {
-	if (template.includes('{url}')) {
-		return template.replace('{url}', encodeURIComponent(url));
-	}
-	// Legacy: prepend if no template token.
-	return template + encodeURIComponent(url);
 }

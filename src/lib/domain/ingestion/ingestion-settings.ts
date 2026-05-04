@@ -13,6 +13,13 @@ export interface ProxyConfig {
 	label: string;
 }
 
+export interface IpfsGatewayConfig {
+	/** Base gateway URL (e.g. https://w3s.link). */
+	url: string;
+	/** Display label shown in settings UI. */
+	label: string;
+}
+
 export interface IngestionSettings {
 	/** How often the foreground scheduler wakes up to evaluate due fonts (ms). */
 	schedulerTickIntervalMs: number;
@@ -79,11 +86,22 @@ export interface IngestionSettings {
 	proxyEnabled: boolean;
 	/** Ordered list; first 2xx response wins. */
 	proxyServices: ProxyConfig[];
+
+	/** Enable IPFS/IPNS gateway resolution for ipfs:// and ipns:// URLs. */
+	ipfsGatewayEnabled: boolean;
+	/** Ordered list; first successful gateway response wins. */
+	ipfsGatewayServices: IpfsGatewayConfig[];
 }
 
 export const DEFAULT_PROXIES: ProxyConfig[] = [
 	{ url: 'https://corsproxy.io/?{url}', label: 'corsproxy.io' },
 	{ url: 'https://api.rss2json.com/v1/api.json?rss_url={url}', label: 'rss2json' }
+];
+
+export const DEFAULT_IPFS_GATEWAYS: IpfsGatewayConfig[] = [
+	{ url: 'https://w3s.link', label: 'w3s.link' },
+	{ url: 'https://dweb.link', label: 'dweb.link' },
+	{ url: 'https://ipfs.io', label: 'ipfs.io' }
 ];
 
 export function createIngestionSettings(): IngestionSettings {
@@ -101,6 +119,8 @@ export function createIngestionSettings(): IngestionSettings {
 		trashAgeOrphanDays: 30,
 		purgeAfterTrashDays: 30,
 		proxyEnabled: true,
-		proxyServices: [...DEFAULT_PROXIES]
+		proxyServices: [...DEFAULT_PROXIES],
+		ipfsGatewayEnabled: true,
+		ipfsGatewayServices: [...DEFAULT_IPFS_GATEWAYS]
 	};
 }

@@ -41,7 +41,11 @@ import type { FetcherState, ProtocolFetcherState, PipelineState } from '$lib/dom
 import { emptyFetcherState, getOrCreateProtoState, transition } from '$lib/domain/ingestion/fetcher-state.js';
 import type { PipelineEvent, PipelineEventType } from '$lib/domain/ingestion/pipeline-event.js';
 import { defaultSeverityFor } from '$lib/domain/ingestion/pipeline-event.js';
-import type { IngestionSettings, ProxyConfig } from '$lib/domain/ingestion/ingestion-settings.js';
+import type {
+	IngestionSettings,
+	ProxyConfig,
+	IpfsGatewayConfig
+} from '$lib/domain/ingestion/ingestion-settings.js';
 import {
 	INGESTION_BACKOFF,
 	INGESTION_FETCH,
@@ -204,7 +208,14 @@ async function loadContext(): Promise<TickContext> {
 		consumers.find((u) => u.id === activeUserId) ?? consumers[0] ?? null;
 	const proxies: ProxyConfig[] = ctxUser?.settingsUser?.ingestion?.proxyServices ?? [];
 	const proxyEnabled: boolean = ctxUser?.settingsUser?.ingestion?.proxyEnabled ?? true;
-	const httpAdapter = await getHttpAdapter({ proxies, proxyEnabled });
+	const ipfsGateways: IpfsGatewayConfig[] = ctxUser?.settingsUser?.ingestion?.ipfsGatewayServices ?? [];
+	const ipfsGatewayEnabled: boolean = ctxUser?.settingsUser?.ingestion?.ipfsGatewayEnabled ?? true;
+	const httpAdapter = await getHttpAdapter({
+		proxies,
+		proxyEnabled,
+		ipfsGateways,
+		ipfsGatewayEnabled
+	});
 
 	return {
 		now: Date.now(),

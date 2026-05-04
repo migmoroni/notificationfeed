@@ -1,13 +1,15 @@
 /**
  * HTTP adapter interface — used by ingestion clients to fetch text-based
- * resources (RSS/Atom feeds) regardless of runtime.
+ * resources (RSS/Atom/JSON Feed documents) regardless of runtime.
  *
  * Two implementations exist:
- *  - `web-proxy.adapter` (browser/PWA/TWA): goes through user-configured
- *    CORS proxies; some proxies pre-parse RSS into JSON (e.g. rss2json),
- *    in which case the response is flagged with `parsedAs: 'rss-json'`.
- *  - `tauri-http.adapter` (Tauri desktop AppImage): uses `@tauri-apps/plugin-http`
- *    to bypass CORS entirely.
+ *  - `web-proxy.adapter` (browser/PWA/TWA): resolves http(s)/ipfs/ipns URL
+ *    transport via gateway + proxy chain. Some proxies pre-parse RSS into
+ *    JSON (e.g. rss2json), in which case the response is flagged with
+ *    `parsedAs: 'rss-json'`.
+ *  - `tauri-http.adapter` (Tauri desktop AppImage): uses Helia-first for
+ *    ipfs/ipns and falls back to gateway/proxy HTTP fetches via
+ *    `@tauri-apps/plugin-http`.
  *
  * The factory in `./index.ts` picks the right adapter at runtime.
  */

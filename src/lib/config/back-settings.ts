@@ -69,7 +69,11 @@ export const INGESTION_FETCH = {
 	nostrDefaultKinds: [1, 30023] as readonly number[],
 	/** ± fraction added to scheduled times to avoid synchronized bursts.
 	 *  0.1 = ±10% of the interval. Set to 0 to disable jitter entirely. */
-	jitterPct: 0.1
+	jitterPct: 0.1,
+	/** Timeout for Helia IPFS/IPNS resolution before falling back to gateways. */
+	ipfsResolveTimeoutMs: 15 * SECOND,
+	/** Hard cap to avoid loading unexpectedly huge feed bodies via Helia. */
+	ipfsMaxBodyBytes: 8 * 1024 * 1024
 } as const;
 
 /**
@@ -203,7 +207,7 @@ export const PERSISTENCE = {
 	/** Database name — change only if you intend a hard split. */
 	dbName: 'notfeed-v2',
 	/** Schema version. Bumping wipes data (destructive migration). */
-	dbSchemaVersion: 17,
+	dbSchemaVersion: 18,
 	/** Skip new activity events when the same targetId is among the last N. */
 	activityDedupRecentCount: 3,
 	/** Skip new activity events when the same targetId fired within this window. */
