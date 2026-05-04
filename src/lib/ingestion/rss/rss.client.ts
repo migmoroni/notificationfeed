@@ -42,6 +42,7 @@ export async function fetchRssFeed(
 ): Promise<FetchResult> {
 	const now = Date.now();
 	const response = await http.fetchText(config.url, {
+		feedKind: 'rss',
 		etag: prev?.etag ?? null,
 		lastModified: prev?.lastModified ?? null
 	});

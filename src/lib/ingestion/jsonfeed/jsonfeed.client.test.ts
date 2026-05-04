@@ -93,6 +93,7 @@ describe('fetchJsonfeedFeed', () => {
 
 		await fetchJsonfeedFeed(adapter, { url: URL }, NODE_ID, prev);
 
+		expect(captured.opts?.feedKind).toBe('jsonfeed');
 		expect(captured.opts?.etag).toBe('"old"');
 		expect(captured.opts?.lastModified).toBe('Tue, 31 Mar 2026 00:00:00 GMT');
 	});

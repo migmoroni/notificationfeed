@@ -38,6 +38,7 @@ export async function fetchJsonfeedFeed(
 ): Promise<FetchResult> {
 	const now = Date.now();
 	const response = await http.fetchText(config.url, {
+		feedKind: 'jsonfeed',
 		etag: prev?.etag ?? null,
 		lastModified: prev?.lastModified ?? null
 	});

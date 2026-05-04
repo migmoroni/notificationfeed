@@ -44,8 +44,10 @@ import { defaultSeverityFor } from '$lib/domain/ingestion/pipeline-event.js';
 import type {
 	IngestionSettings,
 	ProxyConfig,
-	IpfsGatewayConfig
+	IpfsGatewayConfig,
+	FeedTransportByKind
 } from '$lib/domain/ingestion/ingestion-settings.js';
+import { createIngestionSettings } from '$lib/domain/ingestion/ingestion-settings.js';
 import {
 	INGESTION_BACKOFF,
 	INGESTION_FETCH,
@@ -206,15 +208,16 @@ async function loadContext(): Promise<TickContext> {
 	const activeUserId = readActiveUserIdFromStorage();
 	const ctxUser =
 		consumers.find((u) => u.id === activeUserId) ?? consumers[0] ?? null;
-	const proxies: ProxyConfig[] = ctxUser?.settingsUser?.ingestion?.proxyServices ?? [];
-	const proxyEnabled: boolean = ctxUser?.settingsUser?.ingestion?.proxyEnabled ?? true;
-	const ipfsGateways: IpfsGatewayConfig[] = ctxUser?.settingsUser?.ingestion?.ipfsGatewayServices ?? [];
-	const ipfsGatewayEnabled: boolean = ctxUser?.settingsUser?.ingestion?.ipfsGatewayEnabled ?? true;
+	const ingest = ctxUser?.settingsUser?.ingestion ?? createIngestionSettings();
+	const proxies: ProxyConfig[] = ingest.proxyServices;
+	const ipfsGateways: IpfsGatewayConfig[] = ingest.ipfsGatewayServices;
+	const ipfsGatewayEnabled: boolean = ingest.ipfsGatewayEnabled;
+	const feedTransportByKind: FeedTransportByKind = ingest.feedTransportByKind;
 	const httpAdapter = await getHttpAdapter({
 		proxies,
-		proxyEnabled,
 		ipfsGateways,
-		ipfsGatewayEnabled
+		ipfsGatewayEnabled,
+		feedTransportByKind
 	});
 
 	return {

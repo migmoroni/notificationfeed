@@ -6,7 +6,11 @@
  */
 
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
-import type { ProxyConfig, IpfsGatewayConfig } from '$lib/domain/ingestion/ingestion-settings.js';
+import type {
+	ProxyConfig,
+	IpfsGatewayConfig,
+	FeedTransportByKind
+} from '$lib/domain/ingestion/ingestion-settings.js';
 import type { HttpAdapter, HttpRequestOpts, HttpResponse } from './http-adapter.js';
 import { parseFeedTransportUrl, resolveFeedHttpTargets } from './feed-url.js';
 import { buildConditionalHeaders, createProxyTargets, detectParsedAs } from './http-utils.js';
@@ -14,9 +18,9 @@ import { resolveTransportWithHelia } from './helia-resolver.js';
 
 interface TauriHttpOptions {
 	proxies: ProxyConfig[];
-	proxyEnabled: boolean;
 	ipfsGateways: IpfsGatewayConfig[];
 	ipfsGatewayEnabled: boolean;
+	feedTransportByKind: FeedTransportByKind;
 }
 
 /**
@@ -43,7 +47,12 @@ export function createTauriHttpAdapter(opts: TauriHttpOptions): HttpAdapter {
 				}
 
 				const baseTargets = resolveFeedHttpTargets(url, opts.ipfsGateways, opts.ipfsGatewayEnabled);
-				const targets = createProxyTargets(baseTargets, opts.proxies, opts.proxyEnabled);
+				const targets = createProxyTargets(
+					baseTargets,
+					opts.proxies,
+					reqOpts.feedKind,
+					opts.feedTransportByKind
+				);
 				try {
 					return await fetchFromTargets(tauriFetch, targets, reqOpts);
 				} catch (fallbackError) {

@@ -10,7 +10,9 @@
 		createIngestionSettings,
 		type IngestionSettings,
 		type ProxyConfig,
-		type IpfsGatewayConfig
+		type IpfsGatewayConfig,
+		type FeedKind,
+		type FeedTransportRule
 	} from '$lib/domain/ingestion/ingestion-settings.js';
 	import { resetHttpAdapter } from '$lib/ingestion/net/index.js';
 	import { reloadSchedulerInterval } from '$lib/ingestion/scheduler.js';
@@ -25,15 +27,19 @@
 	const SEC_MS = 1_000;
 	const MIN_MS = 60_000;
 	const HOUR_MS = 60 * MIN_MS;
+	const FEED_KINDS: FeedKind[] = ['rss', 'atom', 'jsonfeed'];
 
 	let settings = $state<IngestionSettings>(
 		activeUser.current?.settingsUser.ingestion ?? createIngestionSettings()
 	);
 
 	$effect(() => {
-		const next = activeUser.current?.settingsUser.ingestion;
-		if (next) settings = next;
+		settings = activeUser.current?.settingsUser.ingestion ?? createIngestionSettings();
 	});
+
+	let hasAnyProxyService = $derived(
+		settings.proxyServices.some((proxy) => proxy.url.trim().length > 0)
+	);
 
 	let tickSec = $derived(Math.round(settings.schedulerTickIntervalMs / SEC_MS));
 	let activeMin = $derived(Math.round(settings.activeFontIntervalMs / MIN_MS));
@@ -99,6 +105,28 @@
 		const list = settings.proxyServices.slice();
 		[list[i], list[j]] = [list[j], list[i]];
 		void persist({ ...settings, proxyServices: list });
+	}
+
+	function feedKindLabel(kind: FeedKind): string {
+		switch (kind) {
+			case 'rss':
+				return t('ingestion_settings.feed_transport_rss');
+			case 'atom':
+				return t('ingestion_settings.feed_transport_atom');
+			default:
+				return t('ingestion_settings.feed_transport_jsonfeed');
+		}
+	}
+
+	function updateFeedTransport(kind: FeedKind, patch: Partial<FeedTransportRule>) {
+		const next = {
+			...settings.feedTransportByKind,
+			[kind]: {
+				...settings.feedTransportByKind[kind],
+				...patch
+			}
+		} as IngestionSettings['feedTransportByKind'];
+		void persist({ ...settings, feedTransportByKind: next });
 	}
 
 	function addIpfsGateway() {
@@ -385,15 +413,48 @@
 	<Separator class="my-6" />
 
 	<section class="space-y-4">
-		<div class="flex items-center justify-between gap-4">
+		<h2 class="text-sm font-semibold">{t('ingestion_settings.network')}</h2>
+		<p class="text-xs text-muted-foreground">{t('ingestion_settings.network_hint')}</p>
+
+		<div class="space-y-2">
 			<div class="min-w-0">
-				<p class="text-sm font-medium">{t('ingestion_settings.proxy_enabled')}</p>
-				<p class="text-xs text-muted-foreground">{t('ingestion_settings.proxy_hint')}</p>
+				<p class="text-sm font-medium">{t('ingestion_settings.feed_transport_title')}</p>
+				<p class="text-xs text-muted-foreground">{t('ingestion_settings.feed_transport_hint')}</p>
 			</div>
-			<Switch
-				checked={settings.proxyEnabled}
-				onCheckedChange={(v) => update('proxyEnabled', v)}
-			/>
+
+			<div class="rounded-md border border-border overflow-hidden">
+				<div
+					class="grid grid-cols-[minmax(6rem,auto)_1fr_1fr] gap-x-3 gap-y-1 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground bg-muted/40"
+				>
+					<span>{t('ingestion_settings.feed_transport_kind_col')}</span>
+					<span class="text-center">{t('ingestion_settings.feed_transport_direct_col')}</span>
+					<span class="text-center">{t('ingestion_settings.feed_transport_proxy_fallback_col')}</span>
+				</div>
+
+				{#each FEED_KINDS as kind (kind)}
+					<div class="grid grid-cols-[minmax(6rem,auto)_1fr_1fr] gap-x-3 px-3 py-3 items-center border-t border-border">
+						<span class="text-sm font-medium">{feedKindLabel(kind)}</span>
+						<div class="flex justify-center">
+							<Switch
+								checked={settings.feedTransportByKind[kind].directEnabled}
+								onCheckedChange={(v) => updateFeedTransport(kind, { directEnabled: v })}
+							/>
+						</div>
+						<div class="flex justify-center">
+							<Switch
+								checked={settings.feedTransportByKind[kind].proxyFallbackEnabled}
+								onCheckedChange={(v) => updateFeedTransport(kind, { proxyFallbackEnabled: v })}
+							/>
+						</div>
+					</div>
+				{/each}
+			</div>
+
+			{#if hasAnyProxyService}
+				<p class="text-xs text-muted-foreground">{t('ingestion_settings.feed_transport_proxy_note')}</p>
+			{:else}
+				<p class="text-xs text-amber-700 dark:text-amber-400">{t('ingestion_settings.feed_transport_proxy_note_empty')}</p>
+			{/if}
 		</div>
 
 		<div class="space-y-2">

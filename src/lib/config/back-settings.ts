@@ -77,6 +77,18 @@ export const INGESTION_FETCH = {
 } as const;
 
 /**
+ * Runtime fallback transport policy per feed protocol.
+ *
+ * Applied whenever a caller does not pass explicit
+ * `feedTransportByKind` rules.
+ */
+export const INGESTION_FEED_TRANSPORT_DEFAULTS = {
+	rss: { directEnabled: false, proxyFallbackEnabled: true },
+	atom: { directEnabled: false, proxyFallbackEnabled: true },
+	jsonfeed: { directEnabled: true, proxyFallbackEnabled: true }
+} as const;
+
+/**
  * Foreground scheduler defaults / safety rails. The user can override
  * the tick interval per-user, but never below `minTickMs` — that's a
  * guard against accidentally melting the CPU.
@@ -92,6 +104,7 @@ export const INGESTION_SCHEDULER = {
 
 export type IngestionBackoff = typeof INGESTION_BACKOFF;
 export type IngestionFetch = typeof INGESTION_FETCH;
+export type IngestionFeedTransportDefaults = typeof INGESTION_FEED_TRANSPORT_DEFAULTS;
 export type IngestionScheduler = typeof INGESTION_SCHEDULER;
 
 /**

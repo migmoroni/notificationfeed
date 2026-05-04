@@ -16,6 +16,8 @@
  */
 
 export interface HttpRequestOpts {
+	/** Logical feed kind for proxy compatibility decisions. */
+	feedKind?: 'rss' | 'atom' | 'jsonfeed';
 	/** ETag from a prior response — sent as `If-None-Match`. */
 	etag?: string | null;
 	/** Last-Modified from a prior response — sent as `If-Modified-Since`. */

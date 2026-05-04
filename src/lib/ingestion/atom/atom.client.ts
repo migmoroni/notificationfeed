@@ -32,6 +32,7 @@ export async function fetchAtomFeed(
 ): Promise<FetchResult> {
 	const now = Date.now();
 	const response = await http.fetchText(config.url, {
+		feedKind: 'atom',
 		etag: prev?.etag ?? null,
 		lastModified: prev?.lastModified ?? null
 	});

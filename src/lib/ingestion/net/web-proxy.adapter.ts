@@ -3,7 +3,11 @@
  * fallback and plain HTTP support.
  */
 
-import type { ProxyConfig, IpfsGatewayConfig } from '$lib/domain/ingestion/ingestion-settings.js';
+import type {
+	ProxyConfig,
+	IpfsGatewayConfig,
+	FeedTransportByKind
+} from '$lib/domain/ingestion/ingestion-settings.js';
 import type { HttpAdapter, HttpRequestOpts, HttpResponse } from './http-adapter.js';
 import { parseFeedTransportUrl, resolveFeedHttpTargets } from './feed-url.js';
 import { buildConditionalHeaders, createProxyTargets, detectParsedAs } from './http-utils.js';
@@ -11,26 +15,15 @@ import { resolveTransportWithHelia } from './helia-resolver.js';
 
 interface WebProxyOptions {
 	proxies: ProxyConfig[];
-	/** When false, requests go direct (used as last-resort or for already-CORS-friendly URLs). */
-	enabled: boolean;
 	ipfsGateways: IpfsGatewayConfig[];
 	ipfsGatewayEnabled: boolean;
+	feedTransportByKind: FeedTransportByKind;
 }
 
 /**
  * Build a web/PWA HTTP adapter with a two-stage strategy:
  * 1) Helia-first for ipfs/ipns transports.
  * 2) Gateway + CORS proxy fallback for every HTTP target.
- *
- * In the fallback stage, the first target that returns a 2xx (or 304)
- * response wins. When
- * `enabled` is false (or the user has no proxies configured), the
- * adapter falls back to a direct `fetch` — useful in the rare cases
- * where the target already exposes permissive CORS headers.
- *
- * The response shape is sniffed automatically: a JSON `Content-Type`
- * (or a body that parses as JSON) is tagged `parsedAs: 'rss-json'`,
- * everything else stays `'raw'`. No per-proxy declaration required.
  */
 export function createWebProxyAdapter(opts: WebProxyOptions): HttpAdapter {
 	return {
@@ -58,7 +51,12 @@ export function createWebProxyAdapter(opts: WebProxyOptions): HttpAdapter {
 				throw new Error(`No HTTP targets available for ${url}`);
 			}
 
-			const candidates = createProxyTargets(baseTargets, opts.proxies, opts.enabled);
+			const candidates = createProxyTargets(
+				baseTargets,
+				opts.proxies,
+				reqOpts.feedKind,
+				opts.feedTransportByKind
+			);
 			if (candidates.length === 0) {
 				throw new Error(`No proxy targets available for ${url}`);
 			}
@@ -103,7 +101,7 @@ async function fetchFromCandidates(candidates: string[], reqOpts: HttpRequestOpt
 				continue;
 			}
 
-			const body = await response.text();
+			const body = await readResponseBody(response);
 			const contentType = response.headers.get('content-type');
 			return {
 				status: response.status,
@@ -118,6 +116,74 @@ async function fetchFromCandidates(candidates: string[], reqOpts: HttpRequestOpt
 	}
 
 	throw lastError ?? new Error('All HTTP targets failed');
+}
+
+async function readResponseBody(response: Response): Promise<string> {
+	const contentType = response.headers.get('content-type');
+	const bytes = new Uint8Array(await response.arrayBuffer());
+	let body = decodeUtf8(bytes);
+
+	if (!shouldTryDecompression(body, contentType)) return body;
+
+	const decompressed = await tryDecompression(bytes);
+	if (decompressed) return decompressed;
+	return body;
+}
+
+function decodeUtf8(data: Uint8Array): string {
+	return new TextDecoder().decode(data);
+}
+
+function shouldTryDecompression(body: string, contentType: string | null): boolean {
+	if (!body) return true;
+	if (isStructuredText(body)) return false;
+
+	const ct = (contentType ?? '').toLowerCase();
+	if (ct.includes('json') || ct.includes('xml') || ct.includes('text')) {
+		if (containsManyControlChars(body)) return true;
+		if (body.includes('\ufffd')) return true;
+	}
+
+	return false;
+}
+
+function isStructuredText(body: string): boolean {
+	const t = body.trimStart();
+	return t.startsWith('{') || t.startsWith('[') || t.startsWith('<');
+}
+
+function containsManyControlChars(body: string): boolean {
+	let controlCount = 0;
+	for (let i = 0; i < body.length; i++) {
+		const code = body.charCodeAt(i);
+		if (code < 32 && code !== 9 && code !== 10 && code !== 13) controlCount++;
+	}
+	return controlCount > Math.max(8, Math.floor(body.length * 0.01));
+}
+
+async function tryDecompression(data: Uint8Array): Promise<string | null> {
+	type DecompressionStreamCtor = new (
+		format: 'gzip' | 'deflate' | 'br'
+	) => TransformStream<Uint8Array, Uint8Array>;
+	const ctor = (globalThis as unknown as { DecompressionStream?: DecompressionStreamCtor })
+		.DecompressionStream;
+	if (!ctor) return null;
+
+	for (const format of ['br', 'gzip', 'deflate'] as const) {
+		try {
+			const payload = new Uint8Array(data.byteLength);
+			payload.set(data);
+			const stream = new Blob([payload]).stream().pipeThrough(new ctor(format));
+			const decoded = decodeUtf8(new Uint8Array(await new Response(stream).arrayBuffer()));
+			if (isStructuredText(decoded) && !containsManyControlChars(decoded)) {
+				return decoded;
+			}
+		} catch {
+			// try next format
+		}
+	}
+
+	return null;
 }
 
 function errorToString(err: unknown): string {

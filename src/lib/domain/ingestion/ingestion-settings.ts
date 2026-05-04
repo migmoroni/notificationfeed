@@ -6,6 +6,8 @@
  * by the web HTTP adapter (Tauri ignores it via `tauri-plugin-http`).
  */
 
+import { INGESTION_FEED_TRANSPORT_DEFAULTS } from '$lib/config/back-settings.js';
+
 export interface ProxyConfig {
 	/** Template URL with `{url}` placeholder for the encoded target. */
 	url: string;
@@ -18,6 +20,21 @@ export interface IpfsGatewayConfig {
 	url: string;
 	/** Display label shown in settings UI. */
 	label: string;
+}
+
+export type FeedKind = 'rss' | 'atom' | 'jsonfeed';
+
+export interface FeedTransportRule {
+	/** Try direct URL fetch before trying proxies. */
+	directEnabled: boolean;
+	/** Use configured proxies after a direct failure. */
+	proxyFallbackEnabled: boolean;
+}
+
+export interface FeedTransportByKind {
+	rss: FeedTransportRule;
+	atom: FeedTransportRule;
+	jsonfeed: FeedTransportRule;
 }
 
 export interface IngestionSettings {
@@ -82,8 +99,6 @@ export interface IngestionSettings {
 	/** Posts in trash for longer than this are physically purged (days). */
 	purgeAfterTrashDays: number;
 
-	/** Whether to use proxies for CORS-blocked feeds in web/PWA. */
-	proxyEnabled: boolean;
 	/** Ordered list; first 2xx response wins. */
 	proxyServices: ProxyConfig[];
 
@@ -91,6 +106,9 @@ export interface IngestionSettings {
 	ipfsGatewayEnabled: boolean;
 	/** Ordered list; first successful gateway response wins. */
 	ipfsGatewayServices: IpfsGatewayConfig[];
+
+	/** Per-feed transport order (direct/proxy fallback) for web HTTP fetches. */
+	feedTransportByKind: FeedTransportByKind;
 }
 
 export const DEFAULT_PROXIES: ProxyConfig[] = [
@@ -103,6 +121,12 @@ export const DEFAULT_IPFS_GATEWAYS: IpfsGatewayConfig[] = [
 	{ url: 'https://dweb.link', label: 'dweb.link' },
 	{ url: 'https://ipfs.io', label: 'ipfs.io' }
 ];
+
+export const DEFAULT_FEED_TRANSPORT_BY_KIND: FeedTransportByKind = {
+	rss: { ...INGESTION_FEED_TRANSPORT_DEFAULTS.rss },
+	atom: { ...INGESTION_FEED_TRANSPORT_DEFAULTS.atom },
+	jsonfeed: { ...INGESTION_FEED_TRANSPORT_DEFAULTS.jsonfeed }
+};
 
 export function createIngestionSettings(): IngestionSettings {
 	return {
@@ -118,9 +142,13 @@ export function createIngestionSettings(): IngestionSettings {
 		trashAgeActiveDays: 180,
 		trashAgeOrphanDays: 30,
 		purgeAfterTrashDays: 30,
-		proxyEnabled: true,
 		proxyServices: [...DEFAULT_PROXIES],
 		ipfsGatewayEnabled: true,
-		ipfsGatewayServices: [...DEFAULT_IPFS_GATEWAYS]
+		ipfsGatewayServices: [...DEFAULT_IPFS_GATEWAYS],
+		feedTransportByKind: {
+			rss: { ...DEFAULT_FEED_TRANSPORT_BY_KIND.rss },
+			atom: { ...DEFAULT_FEED_TRANSPORT_BY_KIND.atom },
+			jsonfeed: { ...DEFAULT_FEED_TRANSPORT_BY_KIND.jsonfeed }
+		}
 	};
 }
