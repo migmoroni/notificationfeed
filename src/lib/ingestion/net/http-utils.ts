@@ -3,8 +3,13 @@ import type {
 	FeedTransportByKind,
 	FeedTransportRule
 } from '$lib/domain/ingestion/ingestion-settings.js';
-import { INGESTION_FEED_TRANSPORT_DEFAULTS } from '$lib/config/back-settings.js';
+import { INGESTION_HTTP_FEED_TRANSPORT_DEFAULTS } from '$lib/config/back-settings.js';
 import type { HttpRequestOpts } from './http-adapter.js';
+
+export interface IpfsFallbackPhases {
+	gatewayEnabled: boolean;
+	proxyEnabled: boolean;
+}
 
 export function buildConditionalHeaders(reqOpts: HttpRequestOpts = {}): Record<string, string> {
 	const headers: Record<string, string> = {};
@@ -33,9 +38,9 @@ export function createProxyTargets(
 	baseTargets: string[],
 	proxies: ProxyConfig[],
 	feedKind?: HttpRequestOpts['feedKind'],
-	feedTransportByKind?: FeedTransportByKind
+	httpFeedTransportByKind?: FeedTransportByKind
 ): string[] {
-	const strategy = resolveFeedTransportRule(feedKind, feedTransportByKind);
+	const strategy = resolveHttpFeedTransportRule(feedKind, httpFeedTransportByKind);
 	const allowDirect = strategy.directEnabled;
 	const allowProxy = strategy.proxyFallbackEnabled && proxies.length > 0;
 	if (!allowDirect && !allowProxy) return [];
@@ -53,14 +58,45 @@ export function createProxyTargets(
 	return dedupe(out);
 }
 
-function resolveFeedTransportRule(
-	feedKind: HttpRequestOpts['feedKind'] | undefined,
-	feedTransportByKind?: FeedTransportByKind
-): FeedTransportRule {
-	const defaults = defaultFeedTransportRule(feedKind);
-	if (!feedTransportByKind || !feedKind) return defaults;
+export function createGatewayProxyFallbackTargets(baseTargets: string[], proxies: ProxyConfig[]): string[] {
+	const defaultPhases: IpfsFallbackPhases = {
+		gatewayEnabled: true,
+		proxyEnabled: true
+	};
 
-	const fromSettings = feedTransportByKind[feedKind];
+	return createGatewayProxyFallbackTargetsByPhase(baseTargets, proxies, defaultPhases);
+}
+
+export function createGatewayProxyFallbackTargetsByPhase(
+	baseTargets: string[],
+	proxies: ProxyConfig[],
+	phases: IpfsFallbackPhases
+): string[] {
+	const allowGateway = phases.gatewayEnabled;
+	const allowProxy = phases.proxyEnabled && proxies.length > 0;
+	if (!allowGateway && !allowProxy) return [];
+
+	const out: string[] = [];
+	for (const base of baseTargets) {
+		if (allowGateway) out.push(base);
+		if (allowProxy) {
+			for (const proxy of proxies) {
+				out.push(applyProxyTemplate(proxy.url, base));
+			}
+		}
+	}
+
+	return dedupe(out);
+}
+
+function resolveHttpFeedTransportRule(
+	feedKind: HttpRequestOpts['feedKind'] | undefined,
+	httpFeedTransportByKind?: FeedTransportByKind
+): FeedTransportRule {
+	const defaults = defaultHttpFeedTransportRule(feedKind);
+	if (!httpFeedTransportByKind || !feedKind) return defaults;
+
+	const fromSettings = httpFeedTransportByKind[feedKind];
 	if (!fromSettings) return defaults;
 	return {
 		directEnabled: fromSettings.directEnabled,
@@ -68,9 +104,9 @@ function resolveFeedTransportRule(
 	};
 }
 
-function defaultFeedTransportRule(feedKind: HttpRequestOpts['feedKind'] | undefined): FeedTransportRule {
+function defaultHttpFeedTransportRule(feedKind: HttpRequestOpts['feedKind'] | undefined): FeedTransportRule {
 	if (feedKind) {
-		const fromBackSettings = INGESTION_FEED_TRANSPORT_DEFAULTS[feedKind];
+		const fromBackSettings = INGESTION_HTTP_FEED_TRANSPORT_DEFAULTS[feedKind];
 		return {
 			directEnabled: fromBackSettings.directEnabled,
 			proxyFallbackEnabled: fromBackSettings.proxyFallbackEnabled
@@ -78,8 +114,8 @@ function defaultFeedTransportRule(feedKind: HttpRequestOpts['feedKind'] | undefi
 	}
 
 	return {
-		directEnabled: INGESTION_FEED_TRANSPORT_DEFAULTS.rss.directEnabled,
-		proxyFallbackEnabled: INGESTION_FEED_TRANSPORT_DEFAULTS.rss.proxyFallbackEnabled
+		directEnabled: INGESTION_HTTP_FEED_TRANSPORT_DEFAULTS.rss.directEnabled,
+		proxyFallbackEnabled: INGESTION_HTTP_FEED_TRANSPORT_DEFAULTS.rss.proxyFallbackEnabled
 	};
 }
 

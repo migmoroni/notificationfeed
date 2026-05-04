@@ -77,15 +77,28 @@ export const INGESTION_FETCH = {
 } as const;
 
 /**
- * Runtime fallback transport policy per feed protocol.
+ * Default transport policy for HTTP/HTTPS feed URLs.
  *
- * Applied whenever a caller does not pass explicit
- * `feedTransportByKind` rules.
+ * These rules apply to RSS / Atom / JSON Feed URLs over HTTP(S).
+ * Nostr is relay-driven and does not use this transport matrix.
  */
-export const INGESTION_FEED_TRANSPORT_DEFAULTS = {
+export const INGESTION_HTTP_FEED_TRANSPORT_DEFAULTS = {
 	rss: { directEnabled: false, proxyFallbackEnabled: true },
 	atom: { directEnabled: false, proxyFallbackEnabled: true },
 	jsonfeed: { directEnabled: true, proxyFallbackEnabled: true }
+} as const;
+
+/**
+ * Default transport policy for IPFS/IPNS feed URLs.
+ *
+ * `directEnabled` controls Helia direct resolution.
+ * `gatewayEnabled` controls direct HTTP gateway fallback.
+ * `proxyEnabled` controls proxy-wrapped gateway fallback.
+ */
+export const INGESTION_IPFS_FEED_TRANSPORT_DEFAULTS = {
+	rss: { directEnabled: true, gatewayEnabled: true, proxyEnabled: true },
+	atom: { directEnabled: true, gatewayEnabled: true, proxyEnabled: true },
+	jsonfeed: { directEnabled: true, gatewayEnabled: true, proxyEnabled: true }
 } as const;
 
 /**
@@ -104,7 +117,8 @@ export const INGESTION_SCHEDULER = {
 
 export type IngestionBackoff = typeof INGESTION_BACKOFF;
 export type IngestionFetch = typeof INGESTION_FETCH;
-export type IngestionFeedTransportDefaults = typeof INGESTION_FEED_TRANSPORT_DEFAULTS;
+export type IngestionHttpFeedTransportDefaults = typeof INGESTION_HTTP_FEED_TRANSPORT_DEFAULTS;
+export type IngestionIpfsFeedTransportDefaults = typeof INGESTION_IPFS_FEED_TRANSPORT_DEFAULTS;
 export type IngestionScheduler = typeof INGESTION_SCHEDULER;
 
 /**

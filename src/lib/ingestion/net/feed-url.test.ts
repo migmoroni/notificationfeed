@@ -71,7 +71,7 @@ describe('parseFeedTransportUrl', () => {
 
 describe('resolveFeedHttpTargets', () => {
 	it('resolves ipfs:// URL to gateway targets', () => {
-		const targets = resolveFeedHttpTargets('ipfs://bafycid/feed.xml', GATEWAYS, true);
+		const targets = resolveFeedHttpTargets('ipfs://bafycid/feed.xml', GATEWAYS);
 		expect(targets).toEqual([
 			'https://w3s.link/ipfs/bafycid/feed.xml',
 			'https://dweb.link/base/ipfs/bafycid/feed.xml'
@@ -79,13 +79,13 @@ describe('resolveFeedHttpTargets', () => {
 	});
 
 	it('keeps original gateway URL as first fallback target', () => {
-		const targets = resolveFeedHttpTargets('https://g.example/ipns/k51/feed.xml', GATEWAYS, true);
+		const targets = resolveFeedHttpTargets('https://g.example/ipns/k51/feed.xml', GATEWAYS);
 		expect(targets[0]).toBe('https://g.example/ipns/k51/feed.xml');
 		expect(targets[1]).toBe('https://w3s.link/ipns/k51/feed.xml');
 	});
 
-	it('returns no targets for ipfs:// when gateways are disabled', () => {
-		const targets = resolveFeedHttpTargets('ipfs://bafycid/feed.xml', GATEWAYS, false);
+	it('returns no targets for ipfs:// when no gateways are configured', () => {
+		const targets = resolveFeedHttpTargets('ipfs://bafycid/feed.xml', []);
 		expect(targets).toEqual([]);
 	});
 });

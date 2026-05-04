@@ -10,7 +10,8 @@
 import type {
 	ProxyConfig,
 	IpfsGatewayConfig,
-	FeedTransportByKind
+	FeedTransportByKind,
+	IpfsFeedTransportByKind
 } from '$lib/domain/ingestion/ingestion-settings.js';
 import type { HttpAdapter } from './http-adapter.js';
 import { createTauriHttpAdapter } from './tauri-http.adapter.js';
@@ -21,8 +22,8 @@ export type { HttpAdapter, HttpRequestOpts, HttpResponse } from './http-adapter.
 interface AdapterContext {
 	proxies: ProxyConfig[];
 	ipfsGateways: IpfsGatewayConfig[];
-	ipfsGatewayEnabled: boolean;
-	feedTransportByKind: FeedTransportByKind;
+	httpFeedTransportByKind: FeedTransportByKind;
+	ipfsFeedTransportByKind: IpfsFeedTransportByKind;
 }
 
 let cached: { ctx: AdapterContext; adapter: HttpAdapter } | null = null;
@@ -45,15 +46,15 @@ export async function getHttpAdapter(ctx: AdapterContext): Promise<HttpAdapter> 
 		adapter = createTauriHttpAdapter({
 			proxies: ctx.proxies,
 			ipfsGateways: ctx.ipfsGateways,
-			ipfsGatewayEnabled: ctx.ipfsGatewayEnabled,
-			feedTransportByKind: ctx.feedTransportByKind
+			httpFeedTransportByKind: ctx.httpFeedTransportByKind,
+			ipfsFeedTransportByKind: ctx.ipfsFeedTransportByKind
 		});
 	} else {
 		adapter = createWebProxyAdapter({
 			proxies: ctx.proxies,
 			ipfsGateways: ctx.ipfsGateways,
-			ipfsGatewayEnabled: ctx.ipfsGatewayEnabled,
-			feedTransportByKind: ctx.feedTransportByKind
+			httpFeedTransportByKind: ctx.httpFeedTransportByKind,
+			ipfsFeedTransportByKind: ctx.ipfsFeedTransportByKind
 		});
 	}
 
@@ -62,10 +63,15 @@ export async function getHttpAdapter(ctx: AdapterContext): Promise<HttpAdapter> 
 			...ctx,
 			proxies: [...ctx.proxies],
 			ipfsGateways: [...ctx.ipfsGateways],
-			feedTransportByKind: {
-				rss: { ...ctx.feedTransportByKind.rss },
-				atom: { ...ctx.feedTransportByKind.atom },
-				jsonfeed: { ...ctx.feedTransportByKind.jsonfeed }
+			httpFeedTransportByKind: {
+				rss: { ...ctx.httpFeedTransportByKind.rss },
+				atom: { ...ctx.httpFeedTransportByKind.atom },
+				jsonfeed: { ...ctx.httpFeedTransportByKind.jsonfeed }
+			},
+			ipfsFeedTransportByKind: {
+				rss: { ...ctx.ipfsFeedTransportByKind.rss },
+				atom: { ...ctx.ipfsFeedTransportByKind.atom },
+				jsonfeed: { ...ctx.ipfsFeedTransportByKind.jsonfeed }
 			}
 		},
 		adapter
@@ -88,7 +94,6 @@ export function resetHttpAdapter(): void {
  * cached adapter is still valid for an incoming request.
  */
 function sameCtx(a: AdapterContext, b: AdapterContext): boolean {
-	if (a.ipfsGatewayEnabled !== b.ipfsGatewayEnabled) return false;
 	if (a.proxies.length !== b.proxies.length) return false;
 	if (a.ipfsGateways.length !== b.ipfsGateways.length) return false;
 	for (let i = 0; i < a.proxies.length; i++) {
@@ -97,11 +102,21 @@ function sameCtx(a: AdapterContext, b: AdapterContext): boolean {
 	for (let i = 0; i < a.ipfsGateways.length; i++) {
 		if (a.ipfsGateways[i].url !== b.ipfsGateways[i].url) return false;
 	}
-	if (a.feedTransportByKind.rss.directEnabled !== b.feedTransportByKind.rss.directEnabled) return false;
-	if (a.feedTransportByKind.rss.proxyFallbackEnabled !== b.feedTransportByKind.rss.proxyFallbackEnabled) return false;
-	if (a.feedTransportByKind.atom.directEnabled !== b.feedTransportByKind.atom.directEnabled) return false;
-	if (a.feedTransportByKind.atom.proxyFallbackEnabled !== b.feedTransportByKind.atom.proxyFallbackEnabled) return false;
-	if (a.feedTransportByKind.jsonfeed.directEnabled !== b.feedTransportByKind.jsonfeed.directEnabled) return false;
-	if (a.feedTransportByKind.jsonfeed.proxyFallbackEnabled !== b.feedTransportByKind.jsonfeed.proxyFallbackEnabled) return false;
+	if (a.httpFeedTransportByKind.rss.directEnabled !== b.httpFeedTransportByKind.rss.directEnabled) return false;
+	if (a.httpFeedTransportByKind.rss.proxyFallbackEnabled !== b.httpFeedTransportByKind.rss.proxyFallbackEnabled) return false;
+	if (a.httpFeedTransportByKind.atom.directEnabled !== b.httpFeedTransportByKind.atom.directEnabled) return false;
+	if (a.httpFeedTransportByKind.atom.proxyFallbackEnabled !== b.httpFeedTransportByKind.atom.proxyFallbackEnabled) return false;
+	if (a.httpFeedTransportByKind.jsonfeed.directEnabled !== b.httpFeedTransportByKind.jsonfeed.directEnabled) return false;
+	if (a.httpFeedTransportByKind.jsonfeed.proxyFallbackEnabled !== b.httpFeedTransportByKind.jsonfeed.proxyFallbackEnabled) return false;
+
+	if (a.ipfsFeedTransportByKind.rss.directEnabled !== b.ipfsFeedTransportByKind.rss.directEnabled) return false;
+	if (a.ipfsFeedTransportByKind.rss.gatewayEnabled !== b.ipfsFeedTransportByKind.rss.gatewayEnabled) return false;
+	if (a.ipfsFeedTransportByKind.rss.proxyEnabled !== b.ipfsFeedTransportByKind.rss.proxyEnabled) return false;
+	if (a.ipfsFeedTransportByKind.atom.directEnabled !== b.ipfsFeedTransportByKind.atom.directEnabled) return false;
+	if (a.ipfsFeedTransportByKind.atom.gatewayEnabled !== b.ipfsFeedTransportByKind.atom.gatewayEnabled) return false;
+	if (a.ipfsFeedTransportByKind.atom.proxyEnabled !== b.ipfsFeedTransportByKind.atom.proxyEnabled) return false;
+	if (a.ipfsFeedTransportByKind.jsonfeed.directEnabled !== b.ipfsFeedTransportByKind.jsonfeed.directEnabled) return false;
+	if (a.ipfsFeedTransportByKind.jsonfeed.gatewayEnabled !== b.ipfsFeedTransportByKind.jsonfeed.gatewayEnabled) return false;
+	if (a.ipfsFeedTransportByKind.jsonfeed.proxyEnabled !== b.ipfsFeedTransportByKind.jsonfeed.proxyEnabled) return false;
 	return true;
 }

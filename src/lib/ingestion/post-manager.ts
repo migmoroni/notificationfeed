@@ -45,7 +45,8 @@ import type {
 	IngestionSettings,
 	ProxyConfig,
 	IpfsGatewayConfig,
-	FeedTransportByKind
+	FeedTransportByKind,
+	IpfsFeedTransportByKind
 } from '$lib/domain/ingestion/ingestion-settings.js';
 import { createIngestionSettings } from '$lib/domain/ingestion/ingestion-settings.js';
 import {
@@ -211,13 +212,13 @@ async function loadContext(): Promise<TickContext> {
 	const ingest = ctxUser?.settingsUser?.ingestion ?? createIngestionSettings();
 	const proxies: ProxyConfig[] = ingest.proxyServices;
 	const ipfsGateways: IpfsGatewayConfig[] = ingest.ipfsGatewayServices;
-	const ipfsGatewayEnabled: boolean = ingest.ipfsGatewayEnabled;
-	const feedTransportByKind: FeedTransportByKind = ingest.feedTransportByKind;
+	const httpFeedTransportByKind: FeedTransportByKind = ingest.httpFeedTransportByKind;
+	const ipfsFeedTransportByKind: IpfsFeedTransportByKind = ingest.ipfsFeedTransportByKind;
 	const httpAdapter = await getHttpAdapter({
 		proxies,
 		ipfsGateways,
-		ipfsGatewayEnabled,
-		feedTransportByKind
+		httpFeedTransportByKind,
+		ipfsFeedTransportByKind
 	});
 
 	return {

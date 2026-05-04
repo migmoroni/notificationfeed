@@ -6,7 +6,10 @@
  * by the web HTTP adapter (Tauri ignores it via `tauri-plugin-http`).
  */
 
-import { INGESTION_FEED_TRANSPORT_DEFAULTS } from '$lib/config/back-settings.js';
+import {
+	INGESTION_HTTP_FEED_TRANSPORT_DEFAULTS,
+	INGESTION_IPFS_FEED_TRANSPORT_DEFAULTS
+} from '$lib/config/back-settings.js';
 
 export interface ProxyConfig {
 	/** Template URL with `{url}` placeholder for the encoded target. */
@@ -31,10 +34,25 @@ export interface FeedTransportRule {
 	proxyFallbackEnabled: boolean;
 }
 
+export interface IpfsFeedTransportRule {
+	/** Try Helia direct resolution before HTTP fallback chain. */
+	directEnabled: boolean;
+	/** Allow direct HTTP gateway targets as fallback. */
+	gatewayEnabled: boolean;
+	/** Allow proxy-wrapped gateway targets as fallback. */
+	proxyEnabled: boolean;
+}
+
 export interface FeedTransportByKind {
 	rss: FeedTransportRule;
 	atom: FeedTransportRule;
 	jsonfeed: FeedTransportRule;
+}
+
+export interface IpfsFeedTransportByKind {
+	rss: IpfsFeedTransportRule;
+	atom: IpfsFeedTransportRule;
+	jsonfeed: IpfsFeedTransportRule;
 }
 
 export interface IngestionSettings {
@@ -102,13 +120,13 @@ export interface IngestionSettings {
 	/** Ordered list; first 2xx response wins. */
 	proxyServices: ProxyConfig[];
 
-	/** Enable IPFS/IPNS gateway resolution for ipfs:// and ipns:// URLs. */
-	ipfsGatewayEnabled: boolean;
 	/** Ordered list; first successful gateway response wins. */
 	ipfsGatewayServices: IpfsGatewayConfig[];
 
-	/** Per-feed transport order (direct/proxy fallback) for web HTTP fetches. */
-	feedTransportByKind: FeedTransportByKind;
+	/** Per-feed transport order (direct/proxy fallback) for HTTP(S) feed URLs. */
+	httpFeedTransportByKind: FeedTransportByKind;
+	/** Per-feed transport order for IPFS/IPNS URLs (Helia direct + gateway/proxy fallback). */
+	ipfsFeedTransportByKind: IpfsFeedTransportByKind;
 }
 
 export const DEFAULT_PROXIES: ProxyConfig[] = [
@@ -122,10 +140,16 @@ export const DEFAULT_IPFS_GATEWAYS: IpfsGatewayConfig[] = [
 	{ url: 'https://ipfs.io', label: 'ipfs.io' }
 ];
 
-export const DEFAULT_FEED_TRANSPORT_BY_KIND: FeedTransportByKind = {
-	rss: { ...INGESTION_FEED_TRANSPORT_DEFAULTS.rss },
-	atom: { ...INGESTION_FEED_TRANSPORT_DEFAULTS.atom },
-	jsonfeed: { ...INGESTION_FEED_TRANSPORT_DEFAULTS.jsonfeed }
+export const DEFAULT_HTTP_FEED_TRANSPORT_BY_KIND: FeedTransportByKind = {
+	rss: { ...INGESTION_HTTP_FEED_TRANSPORT_DEFAULTS.rss },
+	atom: { ...INGESTION_HTTP_FEED_TRANSPORT_DEFAULTS.atom },
+	jsonfeed: { ...INGESTION_HTTP_FEED_TRANSPORT_DEFAULTS.jsonfeed }
+};
+
+export const DEFAULT_IPFS_FEED_TRANSPORT_BY_KIND: IpfsFeedTransportByKind = {
+	rss: { ...INGESTION_IPFS_FEED_TRANSPORT_DEFAULTS.rss },
+	atom: { ...INGESTION_IPFS_FEED_TRANSPORT_DEFAULTS.atom },
+	jsonfeed: { ...INGESTION_IPFS_FEED_TRANSPORT_DEFAULTS.jsonfeed }
 };
 
 export function createIngestionSettings(): IngestionSettings {
@@ -143,12 +167,16 @@ export function createIngestionSettings(): IngestionSettings {
 		trashAgeOrphanDays: 30,
 		purgeAfterTrashDays: 30,
 		proxyServices: [...DEFAULT_PROXIES],
-		ipfsGatewayEnabled: true,
 		ipfsGatewayServices: [...DEFAULT_IPFS_GATEWAYS],
-		feedTransportByKind: {
-			rss: { ...DEFAULT_FEED_TRANSPORT_BY_KIND.rss },
-			atom: { ...DEFAULT_FEED_TRANSPORT_BY_KIND.atom },
-			jsonfeed: { ...DEFAULT_FEED_TRANSPORT_BY_KIND.jsonfeed }
+		httpFeedTransportByKind: {
+			rss: { ...DEFAULT_HTTP_FEED_TRANSPORT_BY_KIND.rss },
+			atom: { ...DEFAULT_HTTP_FEED_TRANSPORT_BY_KIND.atom },
+			jsonfeed: { ...DEFAULT_HTTP_FEED_TRANSPORT_BY_KIND.jsonfeed }
+		},
+		ipfsFeedTransportByKind: {
+			rss: { ...DEFAULT_IPFS_FEED_TRANSPORT_BY_KIND.rss },
+			atom: { ...DEFAULT_IPFS_FEED_TRANSPORT_BY_KIND.atom },
+			jsonfeed: { ...DEFAULT_IPFS_FEED_TRANSPORT_BY_KIND.jsonfeed }
 		}
 	};
 }

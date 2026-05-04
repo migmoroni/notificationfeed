@@ -74,8 +74,7 @@ export function getFeedUrlHeuristicHint(input: string): string {
 
 export function resolveFeedHttpTargets(
 	input: string,
-	ipfsGateways: IpfsGatewayConfig[],
-	ipfsGatewayEnabled: boolean
+	ipfsGateways: IpfsGatewayConfig[]
 ): string[] {
 	const parsed = parseFeedTransportUrl(input);
 	if (!parsed) return [];
@@ -85,11 +84,9 @@ export function resolveFeedHttpTargets(
 	const targets: string[] = [];
 	if (parsed.gatewaySourceUrl) targets.push(parsed.gatewaySourceUrl);
 
-	if (ipfsGatewayEnabled) {
-		for (const gateway of ipfsGateways) {
-			const target = buildGatewayUrl(gateway.url, parsed);
-			if (target) targets.push(target);
-		}
+	for (const gateway of ipfsGateways) {
+		const target = buildGatewayUrl(gateway.url, parsed);
+		if (target) targets.push(target);
 	}
 
 	return dedupe(targets);

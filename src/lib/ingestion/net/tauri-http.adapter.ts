@@ -9,18 +9,25 @@ import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
 import type {
 	ProxyConfig,
 	IpfsGatewayConfig,
-	FeedTransportByKind
+	FeedTransportByKind,
+	IpfsFeedTransportByKind,
+	FeedKind
 } from '$lib/domain/ingestion/ingestion-settings.js';
 import type { HttpAdapter, HttpRequestOpts, HttpResponse } from './http-adapter.js';
 import { parseFeedTransportUrl, resolveFeedHttpTargets } from './feed-url.js';
-import { buildConditionalHeaders, createProxyTargets, detectParsedAs } from './http-utils.js';
+import {
+	buildConditionalHeaders,
+	createProxyTargets,
+	createGatewayProxyFallbackTargetsByPhase,
+	detectParsedAs
+} from './http-utils.js';
 import { resolveTransportWithHelia } from './helia-resolver.js';
 
 interface TauriHttpOptions {
 	proxies: ProxyConfig[];
 	ipfsGateways: IpfsGatewayConfig[];
-	ipfsGatewayEnabled: boolean;
-	feedTransportByKind: FeedTransportByKind;
+	httpFeedTransportByKind: FeedTransportByKind;
+	ipfsFeedTransportByKind: IpfsFeedTransportByKind;
 }
 
 /**
@@ -32,39 +39,87 @@ export function createTauriHttpAdapter(opts: TauriHttpOptions): HttpAdapter {
 		async fetchText(url: string, reqOpts: HttpRequestOpts = {}): Promise<HttpResponse> {
 			const transport = parseFeedTransportUrl(url);
 			if (transport && transport.kind !== 'http') {
-				let heliaError: unknown = null;
-				try {
-					const body = await resolveTransportWithHelia(transport, reqOpts.signal);
-					return {
-						status: 200,
-						body,
-						etag: null,
-						lastModified: null,
-						parsedAs: detectParsedAs(null, body)
-					};
-				} catch (err) {
-					heliaError = err;
-				}
-
-				const baseTargets = resolveFeedHttpTargets(url, opts.ipfsGateways, opts.ipfsGatewayEnabled);
-				const targets = createProxyTargets(
-					baseTargets,
-					opts.proxies,
-					reqOpts.feedKind,
-					opts.feedTransportByKind
-				);
-				try {
-					return await fetchFromTargets(tauriFetch, targets, reqOpts);
-				} catch (fallbackError) {
-					throw new Error(
-						`IPFS/IPNS fetch failed via Helia and gateway/proxy fallback: ${errorToString(heliaError)} | ${errorToString(fallbackError)}`
-					);
-				}
+				return await fetchIpfsTransport(tauriFetch, url, reqOpts, transport, opts);
 			}
 
-			return fetchDirect(tauriFetch, url, reqOpts);
+			const targets = createProxyTargets(
+				resolveFeedHttpTargets(url, opts.ipfsGateways),
+				opts.proxies,
+				reqOpts.feedKind,
+				opts.httpFeedTransportByKind
+			);
+			if (targets.length === 0) {
+				throw new Error(`No HTTP/proxy targets available for ${url}`);
+			}
+
+			return fetchFromTargets(tauriFetch, targets, reqOpts);
 		}
 	};
+}
+
+async function fetchIpfsTransport(
+	tauriFetch: (input: string, init?: RequestInit) => Promise<Response>,
+	url: string,
+	reqOpts: HttpRequestOpts,
+	transport: Exclude<ReturnType<typeof parseFeedTransportUrl>, null | { kind: 'http' }>,
+	opts: TauriHttpOptions
+): Promise<HttpResponse> {
+	const ipfsRule = resolveIpfsFeedRule(reqOpts.feedKind, opts.ipfsFeedTransportByKind);
+	let heliaError: unknown = null;
+
+	if (ipfsRule.directEnabled) {
+		try {
+			const body = await resolveTransportWithHelia(transport, reqOpts.signal);
+			return {
+				status: 200,
+				body,
+				etag: null,
+				lastModified: null,
+				parsedAs: detectParsedAs(null, body)
+			};
+		} catch (err) {
+			heliaError = err;
+		}
+	}
+
+	if (!ipfsRule.gatewayEnabled && !ipfsRule.proxyEnabled) {
+		if (ipfsRule.directEnabled) {
+			throw new Error(`IPFS/IPNS direct fetch failed and gateway/proxy fallback is disabled: ${errorToString(heliaError)}`);
+		}
+		throw new Error('IPFS/IPNS direct, gateway and proxy phases are disabled by settings');
+	}
+
+	const baseTargets = resolveFeedHttpTargets(url, opts.ipfsGateways);
+	if (baseTargets.length === 0) {
+		throw new Error(`No gateway targets available for ${url}`);
+	}
+
+	const targets = createGatewayProxyFallbackTargetsByPhase(baseTargets, opts.proxies, {
+		gatewayEnabled: ipfsRule.gatewayEnabled,
+		proxyEnabled: ipfsRule.proxyEnabled
+	});
+	if (targets.length === 0) {
+		if (ipfsRule.proxyEnabled && !ipfsRule.gatewayEnabled && opts.proxies.length === 0) {
+			throw new Error('IPFS proxy phase is enabled but no proxy services are configured');
+		}
+		throw new Error(`No gateway/proxy fallback targets available for ${url}`);
+	}
+
+	try {
+		return await fetchFromTargets(tauriFetch, targets, reqOpts);
+	} catch (fallbackError) {
+		if (ipfsRule.directEnabled) {
+			throw new Error(
+				`IPFS/IPNS fetch failed via Helia and gateway/proxy fallback: ${errorToString(heliaError)} | ${errorToString(fallbackError)}`
+			);
+		}
+		throw fallbackError;
+	}
+}
+
+function resolveIpfsFeedRule(feedKind: HttpRequestOpts['feedKind'] | undefined, byKind: IpfsFeedTransportByKind) {
+	const key: FeedKind = feedKind ?? 'rss';
+	return byKind[key];
 }
 
 async function fetchDirect(

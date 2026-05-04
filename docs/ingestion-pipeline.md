@@ -46,13 +46,33 @@ O protocolo lógico de feed permanece inalterado (`rss`, `atom`,
 
 Estratégia de resolução por runtime:
 
-- **Web/PWA/TWA**: tenta Helia primeiro (com timeout/limite de bytes),
-  depois faz fallback para a cadeia de gateways IPFS configurada pelo
-  usuário (`ingestion.ipfsGatewayServices`) e por fim aplica a cadeia
-  de proxies quando `proxyEnabled=true`.
-- **Tauri desktop**: segue a mesma sequência (Helia first, depois
-  fallback gateway/proxy), usando `@tauri-apps/plugin-http` na etapa
-  HTTP de fallback.
+- **Web/PWA/TWA**: tenta Helia primeiro (com timeout/limite de bytes).
+  Se falhar, entra na matriz IPFS/IPNS por protocolo configurada pelo
+  usuário em `UserSettings.ingestion.ipfsFeedTransportByKind`, sempre na
+  ordem fixa: `direto (Helia) -> gateway -> proxy sobre gateway`.
+- **Tauri desktop**: segue a mesma sequência, usando
+  `@tauri-apps/plugin-http` na etapa HTTP de fallback.
+
+Matriz IPFS/IPNS por protocolo (`rss`, `atom`, `jsonfeed`):
+
+- `directEnabled`: permite a fase direta via Helia.
+- `gatewayEnabled`: permite a fase HTTP por gateway direto, usando a
+  lista `ingestion.ipfsGatewayServices` na ordem definida pelo usuário.
+- `proxyEnabled`: permite a fase HTTP via proxy, isto é, cada URL de
+  gateway encapsulada por cada entrada da lista `ingestion.proxyServices`.
+
+Exemplo para `ipfs://bafy.../feed.xml`:
+
+1. Direto: resolução via Helia.
+2. Gateway: `https://w3s.link/ipfs/bafy.../feed.xml`.
+3. Proxy: `https://corsproxy.io/?https%3A%2F%2Fw3s.link%2Fipfs%2Fbafy...%2Ffeed.xml`.
+
+Observações:
+
+- Se `gatewayEnabled=false`, a fase de gateway é pulada.
+- Se `proxyEnabled=false`, a fase de proxy é pulada.
+- Se ambas estiverem desligadas, não há fallback HTTP para IPFS/IPNS.
+- Nostr não usa essa matriz; continua usando relays diretamente.
 
 `Conditional GET` (`ETag`/`Last-Modified`) e detecção de formato do
 body continuam iguais para requisições HTTP/gateway. Conteúdo resolvido
