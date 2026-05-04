@@ -1,22 +1,22 @@
-# Ingestion Pipeline
+# Pipeline de Ingestão
 
-This document describes the explicit state machine that governs how
-Notfeed fetches posts from a font (a multi-protocol source).
+Este documento descreve a máquina de estados explícita que governa
+como o Notfeed busca posts de uma font (uma fonte multi-protocolo).
 
-## Per-font and per-source state
+## Estado por font e por source
 
-Each ingested font carries one `FetcherState` row in IDB
-(`fetcherStates` store, keyed by `nodeId`). Inside it, every protocol
-declared on the font (`FontBody.protocols[*]`) maintains its own
-`ProtocolFetcherState`. The font-level state machine summarizes the
-font as a whole; the source-level state machine governs each
-underlying protocol's circuit breaker.
+Cada font ingerida carrega um registro `FetcherState` no IDB
+(store `fetcherStates`, chave `nodeId`). Dentro dele, cada
+protocolo declarado na font (`FontBody.protocols[*]`) mantém seu
+próprio `ProtocolFetcherState`. A máquina de estados em nível de
+font resume a font como um todo; a máquina em nível de source
+governa o circuit breaker de cada protocolo subjacente.
 
 ```
 FetcherState
 ├── pipelineState        : HEALTHY | RECOVERING | UNSTABLE | DEGRADED | OFFLINE
-├── confidence           : 0..1   — derived from pipelineState (config table)
-├── effectivePrimaryEntryId  — runtime promoted source (or null = declared primary)
+├── confidence           : 0..1   — derivado do pipelineState (tabela de config)
+├── effectivePrimaryEntryId  — source promovida em runtime (ou null = primary declarada)
 ├── lastTransitionAt
 ├── recoveringTicksRemaining
 └── protocols
@@ -25,111 +25,114 @@ FetcherState
         ├── failureCount, consecutiveFailures
         ├── successRate (EWMA), avgLatencyMs (EWMA), lastLatencyMs
         ├── score
-        ├── backoffUntil  — epoch ms; null if eligible
+        ├── backoffUntil  — epoch ms; null se elegível
         └── etag, lastModified, nostrSince, lastFetchedAt, lastSuccessAt, lastAttemptAt
 ```
 
-All numeric configs live in `back-settings.ts` under
+Todas as configs numéricas vivem em `back-settings.ts` sob
 `INGESTION_PROTOCOL_SCORING`, `INGESTION_INSTABILITY`,
 `INGESTION_CIRCUIT_BREAKER`, `INGESTION_BACKOFF`,
 `INGESTION_CONFIDENCE`.
 
-## Feed URL transport (HTTP + IPFS/IPNS)
+## Transporte de URL de feed (HTTP + IPFS/IPNS)
 
-The logical feed protocol remains unchanged (`rss`, `atom`,
-`jsonfeed`). The transport is determined by the `config.url` scheme:
+O protocolo lógico de feed permanece inalterado (`rss`, `atom`,
+`jsonfeed`). O transporte é determinado pelo esquema da `config.url`:
 
 - `http://` / `https://`
 - `ipfs://<cid>[/path]`
-- `ipns://<name>[/path]` (including DNSLink names like domains)
-- HTTP gateway paths such as `/ipfs/<cid>/...` and `/ipns/<name>/...`
+- `ipns://<name>[/path]` (incluindo nomes DNSLink, como domínios)
+- URLs HTTP de gateway como `/ipfs/<cid>/...` e `/ipns/<name>/...`
 
-Resolution strategy by runtime:
+Estratégia de resolução por runtime:
 
-- **Web/PWA/TWA**: `ipfs://` and `ipns://` are mapped to the user's
-  configured IPFS gateway chain (`ingestion.ipfsGatewayServices`), then
-  the existing proxy chain is applied when `proxyEnabled=true`.
-- **Tauri desktop**: tries Helia first (with timeout/body cap), then
-  falls back to the same gateway chain, optionally wrapped by proxy
-  templates.
+- **Web/PWA/TWA**: tenta Helia primeiro (com timeout/limite de bytes),
+  depois faz fallback para a cadeia de gateways IPFS configurada pelo
+  usuário (`ingestion.ipfsGatewayServices`) e por fim aplica a cadeia
+  de proxies quando `proxyEnabled=true`.
+- **Tauri desktop**: segue a mesma sequência (Helia first, depois
+  fallback gateway/proxy), usando `@tauri-apps/plugin-http` na etapa
+  HTTP de fallback.
 
-Conditional GET (`ETag`/`Last-Modified`) and parsed-body detection
-remain unchanged for HTTP/gateway requests. Helia-resolved content is
-treated as a fresh `200` payload with no cache headers.
+`Conditional GET` (`ETag`/`Last-Modified`) e detecção de formato do
+body continuam iguais para requisições HTTP/gateway. Conteúdo resolvido
+via Helia é tratado como payload novo `200`, sem headers de cache.
 
-## Font-level state machine
+## Máquina de estados em nível de font
 
 ```
-                        ┌──────── success ─────────┐
+                        ┌──────── sucesso ────────┐
                         │                          │
                         v                          │
-   HEALTHY ──── failure ──> UNSTABLE              │
+   HEALTHY ──── falha ──> UNSTABLE                │
       ^                       │                    │
-      │                       │ all sources OPEN   │
+      │                       │ todas as sources OPEN
       │                       v                    │
       │                   OFFLINE                 │
       │                       │                    │
-      │                       │ probe success      │
+      │                       │ probe com sucesso  │
       │                       v                    │
-      └──── ticks elapsed ─ RECOVERING ←───────────┘
+      └── ticks decorridos ─ RECOVERING ←──────────┘
                               │
-                              │ probe failure
+                              │ falha de probe
                               v
                           UNSTABLE
-                          (or OFFLINE if all sources still OPEN)
+                          (ou OFFLINE se todas as sources continuam OPEN)
 ```
 
-`DEGRADED` is reserved for a future heuristic where some sources are
-healthy and others are not while the font as a whole is still
-delivering posts; the current implementation primarily uses
-`HEALTHY ↔ UNSTABLE ↔ OFFLINE` plus the `RECOVERING` hold.
+`DEGRADED` está reservado para uma heurística futura na qual algumas
+sources estão saudáveis e outras não, enquanto a font como um todo
+continua entregando posts; a implementação atual usa
+prioritariamente `HEALTHY ↔ UNSTABLE ↔ OFFLINE` mais a estadia em
+`RECOVERING`.
 
-Legal transitions are encoded in the `TRANSITIONS` map inside
-`fetcher-state.ts` and validated by the pure helper
+As transições legais estão codificadas no mapa `TRANSITIONS` dentro
+de `fetcher-state.ts` e validadas pelo helper puro
 `transition(state, to, now, confidenceFor)`.
 
-## Per-source state machine (circuit breaker)
+## Máquina de estados por source (circuit breaker)
 
 ```
    CLOSED ── failureCount >= openAfterFailures ──> OPEN
-     ^               OR backoffMs >= openAfterBackoffMs   │
+     ^               OU backoffMs >= openAfterBackoffMs   │
      │                                                    │
-     │                                            probe due (6h..24h)
+     │                                          probe disponível (6h..24h)
      │                                                    │
      │                                                    v
      │                                                HALF_OPEN
      │                                                    │
-     │ probe success                                       │ probe failure
+     │ probe com sucesso                                   │ probe com falha
      └────────────────────────────────────────────────────┘
                                                            │
                                                            v
                                                           OPEN
 ```
 
-Only one probe is allowed per probe window. The probe interval is
-randomized between `probeIntervalMin` and `probeIntervalMax` to
-avoid synchronizing recovery attempts across users.
+Apenas um probe é permitido por janela. O intervalo de probe é
+randomizado entre `probeIntervalMin` e `probeIntervalMax` para
+evitar sincronizar tentativas de recuperação entre usuários.
 
-## Three execution modes
+## Três modos de execução
 
-Each tick of the post-manager runs all three modes simultaneously —
-they are not switches but layered policies.
+Cada tick do post-manager executa os três modos simultaneamente —
+não são switches, são políticas em camadas.
 
-### 1. Adaptive Fallback (per-tick)
+### 1. Adaptive Fallback (por tick)
 
-The trial order is built from `getProtocolEntriesByPriority(body,
-scores, effectivePrimaryEntryId)`: declared (or runtime-promoted)
-primary first, then fallbacks ranked by score. The first source
-whose `circuitState !== 'OPEN'` and `backoffUntil <= now` is the
-"active" source. Fallbacks only run when the active source has
-crossed `failoverThreshold` consecutive failures within the same
-tick (so a single transient blip does NOT thrash to fallback).
+A ordem de tentativa é construída por
+`getProtocolEntriesByPriority(body, scores, effectivePrimaryEntryId)`:
+primary declarada (ou promovida em runtime) primeiro, depois os
+fallbacks ranqueados por score. A primeira source cujo
+`circuitState !== 'OPEN'` e `backoffUntil <= now` é a "ativa". Os
+fallbacks só rodam quando a source ativa cruza
+`failoverThreshold` falhas consecutivas no mesmo tick (assim, um
+único soluço transitório NÃO faz thrashing pro fallback).
 
-The first success in the trial order ends the tick.
+O primeiro sucesso na ordem encerra o tick.
 
-### 2. Exponential Backoff (per-source)
+### 2. Backoff Exponencial (por source)
 
-On failure:
+Em falha:
 
 ```
 backoffMs = min(
@@ -139,37 +142,38 @@ backoffMs = min(
 backoffUntil = now + backoffMs
 ```
 
-Eligibility checks (`backoffUntil > now`) naturally skip sources
-still serving their backoff. The font itself is rescheduled at
-`unstableSparseIntervalMs` (currently 1h) when at least one source
-is still alive.
+A checagem de elegibilidade (`backoffUntil > now`) naturalmente
+pula sources ainda no backoff. A própria font é reagendada em
+`unstableSparseIntervalMs` (atual 1h) quando ao menos uma source
+ainda está viva.
 
-### 3. Circuit Breaker (per-source, escalating)
+### 3. Circuit Breaker (por source, escalonante)
 
-A source flips from `CLOSED` to `OPEN` when either:
+Uma source vai de `CLOSED` para `OPEN` quando:
 
-- `failureCount >= openAfterFailures` (default 6), OR
+- `failureCount >= openAfterFailures` (default 6), OU
 - `backoffMs >= openAfterBackoffMs` (default 24h)
 
-While `OPEN`, the source's `backoffUntil` is set to
-`now + randBetween(probeIntervalMin, probeIntervalMax)`. When the
-window elapses the next tick promotes it to `HALF_OPEN`, fires one
-probe, and either:
+Enquanto `OPEN`, o `backoffUntil` da source é setado para
+`now + randBetween(probeIntervalMin, probeIntervalMax)`. Quando a
+janela expira, o próximo tick a promove para `HALF_OPEN`, dispara
+um probe, e:
 
-- closes the breaker (`CLOSED`) on success — counters reset, score
-  bumped, EWMA latency/successRate updated, and the font enters
-  `RECOVERING` for `recoveringHoldTicks` ticks before transitioning
-  back to `HEALTHY`.
-- re-opens the breaker on failure with a fresh probe window.
+- fecha o breaker (`CLOSED`) em sucesso — counters resetam, score
+  sobe, latência/successRate (EWMA) atualizam, e a font entra em
+  `RECOVERING` por `recoveringHoldTicks` ticks antes de transitar
+  de volta para `HEALTHY`.
+- reabre o breaker em falha com nova janela de probe.
 
-When **every** source on a font is `OPEN` the font is `OFFLINE`.
+Quando **todas** as sources de uma font estão `OPEN`, a font está
+`OFFLINE`.
 
 ## Confidence
 
-`FetcherState.confidence` is derived from `pipelineState` via
+`FetcherState.confidence` é derivada de `pipelineState` via
 `INGESTION_CONFIDENCE`:
 
-| State        | Confidence |
+| Estado       | Confidence |
 |--------------|------------|
 | HEALTHY      | 1.0        |
 | RECOVERING   | 0.7        |
@@ -177,31 +181,31 @@ When **every** source on a font is `OPEN` the font is `OFFLINE`.
 | DEGRADED     | 0.3        |
 | OFFLINE      | 0.0        |
 
-The UI surfaces this number where useful (badges, debug overlays).
+A UI exibe esse número onde for útil (badges, debug overlays).
 
 ## Pipeline events
 
-Every legal transition appends a `PipelineEvent` to the `pipelineEvents`
-store via `appendPipelineEvent`:
+Toda transição legal anexa um `PipelineEvent` ao store
+`pipelineEvents` via `appendPipelineEvent`:
 
-| Event type           | Severity | Default dedup |
-|----------------------|----------|---------------|
-| PIPELINE_UNSTABLE    | warning  | 30 min        |
-| PIPELINE_OFFLINE     | critical | 6 h           |
-| PIPELINE_RECOVERED   | info     | (never)       |
-| PIPELINE_DEGRADED    | warning  | 30 min        |
-| SOURCE_SWITCHED      | info     | 6 h           |
+| Tipo de evento       | Severidade | Dedup default |
+|----------------------|------------|---------------|
+| PIPELINE_UNSTABLE    | warning    | 30 min        |
+| PIPELINE_OFFLINE     | critical   | 6 h           |
+| PIPELINE_RECOVERED   | info       | (nunca)       |
+| PIPELINE_DEGRADED    | warning    | 30 min        |
+| SOURCE_SWITCHED      | info       | 6 h           |
 
-The consumer (`pipeline-event-consumer.ts`) reads these events,
-applies the user's per-channel settings (`mode`, `severityThreshold`,
-`batchIntervalMs`) plus the dedup window above, and writes inbox
-entries / OS notifications. See `docs/notification-system.md` for
-the consumer side of the contract.
+O consumer (`pipeline-event-consumer.ts`) lê esses eventos, aplica
+as configs por canal do usuário (`mode`, `severityThreshold`,
+`batchIntervalMs`) mais a janela de dedup acima, e escreve entradas
+de inbox / notificações de SO. Ver `docs/notification-system.pt-BR.md`
+para o lado consumidor do contrato.
 
 ## Reset
 
-`resetAllProtocolScoring()` returns every font to a pristine state:
-all per-source records are reset to `CLOSED` with zero counters;
-the font itself is moved back to `HEALTHY` with full confidence.
-Cache headers (etag/lastModified/nostrSince) and schedules are
-preserved so the next refresh can use cheap conditional requests.
+`resetAllProtocolScoring()` retorna toda font ao estado pristino:
+todos os registros por source vão para `CLOSED` com counters
+zerados; a própria font volta para `HEALTHY` com confidence cheia.
+Headers de cache (etag/lastModified/nostrSince) e schedules são
+preservados, então o próximo refresh pode usar conditional GETs.

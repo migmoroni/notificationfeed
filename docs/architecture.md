@@ -292,8 +292,8 @@ IDs de nós são compostos: `treeId:localUuid` para unicidade global. Utilitári
 - URLs HTTP de gateway com `/ipfs/...` e `/ipns/...`
 
 No runtime:
-- **Web/PWA/TWA**: `ipfs://`/`ipns://` resolvem para a cadeia de gateways configurada (`ingestion.ipfsGatewayServices`) e seguem a cadeia de proxies CORS quando habilitada.
-- **Tauri**: tenta Helia primeiro (`helia`, `@helia/unixfs`, `@helia/ipns`) com timeout e limite de bytes; em falha, usa fallback por gateways (e proxies, se habilitados).
+- **Web/PWA/TWA**: tenta Helia primeiro (`helia`, `@helia/unixfs`, `@helia/ipns`) com timeout e limite de bytes; em falha (ou bloqueio de rede/ambiente), usa fallback por gateways configurados e depois proxies CORS quando habilitados.
+- **Tauri**: segue o mesmo fluxo (Helia first → gateways/proxies), usando `@tauri-apps/plugin-http` para a etapa HTTP de fallback.
 
 Settings de ingestão ganharam seção avançada de gateways IPFS/IPNS (`ipfsGatewayEnabled`, `ipfsGatewayServices`). Importação e validação de formulário passaram a aceitar os novos esquemas. O schema IDB subiu de forma destrutiva para `dbSchemaVersion: 18` (pré-lançamento, sem legado/migração incremental).
-**Consequência**: Os fluxos de ingestão, fallback, circuit-breaker e normalização permanecem os mesmos. A superfície de configuração aumenta pouco, mantendo UX simples para casos comuns e controle avançado para cenários com gateways customizados. O bundle cliente cresce (principalmente SW/chunks) por incluir Helia no caminho desktop.
+**Consequência**: Os fluxos de ingestão, fallback, circuit-breaker e normalização permanecem os mesmos. A superfície de configuração aumenta pouco, mantendo UX simples para casos comuns e controle avançado para cenários com gateways customizados. O bundle cliente cresce (principalmente SW/chunks) por incluir Helia também no caminho web/PWA/TWA.

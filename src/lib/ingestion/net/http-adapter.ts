@@ -4,8 +4,9 @@
  *
  * Two implementations exist:
  *  - `web-proxy.adapter` (browser/PWA/TWA): resolves http(s)/ipfs/ipns URL
- *    transport via gateway + proxy chain. Some proxies pre-parse RSS into
- *    JSON (e.g. rss2json), in which case the response is flagged with
+ *    transport with Helia first for ipfs/ipns, then gateway + proxy fallback.
+ *    Some proxies pre-parse RSS into JSON (e.g. rss2json), in which case
+ *    the response is flagged with
  *    `parsedAs: 'rss-json'`.
  *  - `tauri-http.adapter` (Tauri desktop AppImage): uses Helia-first for
  *    ipfs/ipns and falls back to gateway/proxy HTTP fetches via

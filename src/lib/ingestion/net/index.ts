@@ -4,19 +4,12 @@
  * Picks the right adapter at runtime:
  * - Tauri desktop (window.__TAURI_INTERNALS__): Helia-first for ipfs/ipns,
  *   then gateway/proxy fallback over plugin-http.
- * - Web/PWA/TWA/SW: gateway + CORS proxy chain configured per-user.
- *
- * The Tauri adapter pulls in Helia + libp2p + @tauri-apps/plugin-http
- * (each megabytes of code that uses Tauri-only globals at runtime).
- * Importing it statically would force every web/PWA/SW bundle to
- * carry that graph, which breaks the offline-first hot path. We
- * therefore code-split it behind a single runtime branch — the
- * desktop bundle loads it once on the first tick, the web bundle
- * never loads it at all.
+ * - Web/PWA/TWA/SW: Helia-first for ipfs/ipns, then gateway/proxy fallback.
  */
 
 import type { ProxyConfig, IpfsGatewayConfig } from '$lib/domain/ingestion/ingestion-settings.js';
 import type { HttpAdapter } from './http-adapter.js';
+import { createTauriHttpAdapter } from './tauri-http.adapter.js';
 import { createWebProxyAdapter } from './web-proxy.adapter.js';
 
 export type { HttpAdapter, HttpRequestOpts, HttpResponse } from './http-adapter.js';
@@ -45,8 +38,6 @@ export async function getHttpAdapter(ctx: AdapterContext): Promise<HttpAdapter> 
 
 	let adapter: HttpAdapter;
 	if (isTauri()) {
-		// Lazy: keeps Helia/libp2p/plugin-http out of the web/PWA/SW bundle.
-		const { createTauriHttpAdapter } = await import('./tauri-http.adapter.js');
 		adapter = createTauriHttpAdapter({
 			proxies: ctx.proxies,
 			proxyEnabled: ctx.proxyEnabled,
