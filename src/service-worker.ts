@@ -111,7 +111,7 @@ self.addEventListener('notificationclick', (event) => {
 
 async function runTickInSW(trigger: string): Promise<void> {
         try {
-                const { createPostManager } = await import('$lib/ingestion/post-manager.js');
+                const { createPostManager } = await import('./lib/ingestion/post-manager.js');
                 const manager = createPostManager({ getActiveUserId: () => null });
                 const result = await manager.tick();
                 console.debug('[sw] tick done', trigger, result);
