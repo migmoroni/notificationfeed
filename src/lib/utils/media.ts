@@ -1,5 +1,5 @@
 export type EmbedInfo =
-	| { type: 'iframe'; provider: string; embedUrl: string; aspectClass: string; thumbnailUrl?: string }
+	| { type: 'iframe'; provider: string; embedUrl: string; aspectClass: string; thumbnailUrl?: string; videoId?: string }
 	| null;
 
 /**
@@ -17,6 +17,7 @@ export function parseEmbed(url: string | undefined | null): EmbedInfo {
 		return {
 			type: 'iframe',
 			provider: 'youtube',
+			videoId: id,
 			embedUrl: `https://www.youtube.com/embed/${id}`,
 			aspectClass: isShort ? 'aspect-[9/16] max-h-[600px] mx-auto' : 'aspect-video',
 			thumbnailUrl: `https://i.ytimg.com/vi/${id}/mqdefault.jpg`

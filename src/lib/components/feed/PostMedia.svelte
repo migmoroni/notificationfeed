@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { parseEmbed } from '$lib/utils/media.js';
+	import YoutubePlayer from '../shared/mediaPlayer/YoutubePlayer.svelte';
 
 	interface Props {
 		url?: string | null;
@@ -17,16 +18,20 @@
 {#if showMedia}
 	<div class="w-full border-t border-border/40 overflow-hidden bg-muted">
 		{#if embed?.type === 'iframe'}
-			<div class="{embed.aspectClass} w-full bg-black">
-				<iframe
-					class="w-full h-full"
-					src={embed.embedUrl}
-					title={title}
-					frameborder="0"
-					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-					allowfullscreen
-					loading="lazy"
-				></iframe>
+			<div class="{embed.aspectClass} w-full bg-black relative group">
+				{#if embed.provider === 'youtube'}
+					<YoutubePlayer title={title} embedUrl={embed.embedUrl} thumbnailUrl={embed.thumbnailUrl} />
+				{:else}
+					<iframe
+						class="w-full h-full"
+						src={embed.embedUrl}
+						title={title}
+						frameborder="0"
+						allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+						allowfullscreen
+						loading="lazy"
+					></iframe>
+				{/if}
 			</div>
 		{:else if imageUrl}
 			<!-- svelte-ignore a11y_click_events_have_key_events -->

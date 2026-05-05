@@ -102,7 +102,7 @@
 </script>
 
 {#snippet postGrid(posts: SortedPost<CanonicalPost>[])}
-	<div class="grid gap-3 mx-auto {layout.isExpanded ? (viewModeStore.mode === 'cards' ? 'grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3' : viewModeStore.mode === 'list' ? 'max-w-6xl grid-cols-1' : 'max-w-3xl grid-cols-1') : 'grid-cols-1'}">
+	<div class="grid gap-3 mx-auto {layout.isExpanded ? (viewModeStore.mode === 'cards' ? 'grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3' : viewModeStore.mode === 'list' ? 'grid-cols-1' : 'max-w-3xl grid-cols-1') : 'grid-cols-1'}">
 		{#each posts as sortedPost (sortedPost.post.id)}
 			<PostCard {sortedPost} />
 		{/each}
@@ -159,7 +159,7 @@
 		</div>
 	{/if}
 {:else}
-	<div class="grid gap-3 mx-auto {layout.isExpanded ? (viewModeStore.mode === 'cards' ? 'grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3' : viewModeStore.mode === 'list' ? 'max-w-6xl grid-cols-1' : 'max-w-3xl grid-cols-1') : 'grid-cols-1'}">
+	<div class="grid gap-3 mx-auto {layout.isExpanded ? (viewModeStore.mode === 'cards' ? 'grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3' : viewModeStore.mode === 'list' ? 'grid-cols-1' : 'max-w-3xl grid-cols-1') : 'grid-cols-1'}">
 		{#each visible as sortedPost (sortedPost.post.id)}
 			<PostCard {sortedPost} />
 		{/each}

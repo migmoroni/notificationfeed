@@ -290,7 +290,7 @@ export type ImageLimits = typeof IMAGE_LIMITS;
  */
 export const UI_LIMITS = {
 	/** Posts shown per "page" in the feed's infinite scroll. */
-	feedPageSize: 20,
+	feedPageSize: 12,
 	/** "Show more" threshold for grouped page lists in entity filters. */
 	entityFilterPageLimit: 5,
 	/** Delay before search input fires the actual query. */
