@@ -4,7 +4,7 @@ import type {
 	FeedTransportRule
 } from '$lib/domain/ingestion/ingestion-settings.js';
 import { INGESTION_HTTP_FEED_TRANSPORT_DEFAULTS } from '$lib/config/back-settings.js';
-import type { HttpRequestOpts } from './http-adapter.js';
+import type { HttpRequestOpts, HttpResponse } from './http-adapter.js';
 
 export interface IpfsFallbackPhases {
 	gatewayEnabled: boolean;
@@ -18,7 +18,7 @@ export function buildConditionalHeaders(reqOpts: HttpRequestOpts = {}): Record<s
 	return headers;
 }
 
-export function detectParsedAs(contentType: string | null, body: string): 'raw' | 'rss-json' {
+export function detectParsedAs(contentType: string | null, body: string): HttpResponse['parsedAs'] {
 	const ct = (contentType ?? '').toLowerCase();
 	if (ct.includes('json')) return 'rss-json';
 	if (ct.includes('xml')) return 'raw';
