@@ -2,6 +2,10 @@ import type { IpfsGatewayConfig } from '$lib/domain/ingestion/ingestion-settings
 
 export type FeedTransport = FeedHttpTransport | FeedIpfsTransport | FeedIpnsTransport;
 
+type GatewayFeedTransport = FeedIpfsTransport | FeedIpnsTransport;
+type GatewayNamespace = GatewayFeedTransport['kind'];
+type GatewayScheme = `${GatewayNamespace}:`;
+
 interface FeedTransportBase {
 	originalUrl: string;
 }
@@ -32,6 +36,32 @@ export interface FeedIpnsTransport extends FeedTransportBase {
 
 const HTTP_PROTOCOLS = new Set(['http:', 'https:']);
 
+const GATEWAY_SCHEMES: Record<GatewayScheme, GatewayNamespace> = {
+	'ipfs:': 'ipfs',
+	'ipns:': 'ipns'
+};
+
+const GATEWAY_TRANSPORT_FACTORIES: Record<
+	GatewayNamespace,
+	(id: string, path: string, originalUrl: string, gatewaySourceUrl: string | null) => GatewayFeedTransport
+> = {
+	ipfs: (id, path, originalUrl, gatewaySourceUrl) => ({
+		kind: 'ipfs',
+		cid: id,
+		path,
+		gatewaySourceUrl,
+		originalUrl
+	}),
+	ipns: (id, path, originalUrl, gatewaySourceUrl) => ({
+		kind: 'ipns',
+		name: id,
+		path,
+		dnsLink: looksLikeDomain(id),
+		gatewaySourceUrl,
+		originalUrl
+	})
+};
+
 export function parseFeedTransportUrl(input: string): FeedTransport | null {
 	const originalUrl = input.trim();
 	if (!originalUrl) return null;
@@ -44,8 +74,10 @@ export function parseFeedTransportUrl(input: string): FeedTransport | null {
 	}
 
 	const protocol = parsed.protocol.toLowerCase();
-	if (protocol === 'ipfs:') return parseIpfsScheme(parsed, originalUrl);
-	if (protocol === 'ipns:') return parseIpnsScheme(parsed, originalUrl);
+	const gatewayNamespace = GATEWAY_SCHEMES[protocol as GatewayScheme];
+	if (gatewayNamespace) {
+		return parseGatewayScheme(parsed, originalUrl, gatewayNamespace);
+	}
 	if (!HTTP_PROTOCOLS.has(protocol)) return null;
 
 	const fromGateway = parseGatewayPath(parsed.pathname, originalUrl);
@@ -96,10 +128,7 @@ export function joinFeedPath(...parts: Array<string | null | undefined>): string
 	const tokens: string[] = [];
 	for (const part of parts) {
 		if (!part) continue;
-		for (const token of part.split('/')) {
-			const trimmed = token.trim();
-			if (trimmed) tokens.push(trimmed);
-		}
+		tokens.push(...splitPathTokens(part, false));
 	}
 	return tokens.join('/');
 }
@@ -117,97 +146,73 @@ export function buildGatewayUrl(baseUrl: string, feed: FeedIpfsTransport | FeedI
 	if (!HTTP_PROTOCOLS.has(base.protocol.toLowerCase())) return null;
 
 	const namespace = feed.kind;
-	const id = encodeURIComponent(feed.kind === 'ipfs' ? feed.cid : feed.name);
+	const id = encodeURIComponent(getGatewayTransportId(feed));
 	const encodedPath = encodePath(feed.path);
 	const suffix = encodedPath ? `/${encodedPath}` : '';
 	const prefix = trimTrailingSlash(base.pathname);
 	base.pathname = `${prefix}/${namespace}/${id}${suffix}`;
 	base.search = '';
 	base.hash = '';
- 
+
 	return base.toString();
 }
 
-function parseIpfsScheme(parsed: URL, originalUrl: string): FeedIpfsTransport | null {
-	const cid = parsed.hostname.trim();
-	if (!cid) return null;
+function parseGatewayScheme(parsed: URL, originalUrl: string, namespace: GatewayNamespace): GatewayFeedTransport | null {
+	const id = parsed.hostname.trim();
+	if (!id) return null;
 
-	return {
-		kind: 'ipfs',
-		cid,
-		path: normalizePath(parsed.pathname),
-		gatewaySourceUrl: null,
-		originalUrl
-	};
+	return createGatewayTransport(namespace, id, normalizePath(parsed.pathname), originalUrl, null);
 }
 
-function parseIpnsScheme(parsed: URL, originalUrl: string): FeedIpnsTransport | null {
-	const name = parsed.hostname.trim();
-	if (!name) return null;
-
-	return {
-		kind: 'ipns',
-		name,
-		path: normalizePath(parsed.pathname),
-		dnsLink: looksLikeDomain(name),
-		gatewaySourceUrl: null,
-		originalUrl
-	};
-}
-
-function parseGatewayPath(pathname: string, originalUrl: string): FeedIpfsTransport | FeedIpnsTransport | null {
-	const tokens = normalizePath(pathname).split('/').filter(Boolean);
+function parseGatewayPath(pathname: string, originalUrl: string): GatewayFeedTransport | null {
+	const tokens = splitPathTokens(pathname, true);
 	if (tokens.length < 2) return null;
 
 	const namespace = tokens[0].toLowerCase();
-	const id = decodeToken(tokens[1]);
-	const path = tokens.slice(2).map(decodeToken).join('/');
-
+	if (!isGatewayNamespace(namespace)) return null;
+	const id = tokens[1];
 	if (!id) return null;
 
-	if (namespace === 'ipfs') {
-		return {
-			kind: 'ipfs',
-			cid: id,
-			path,
-			gatewaySourceUrl: originalUrl,
-			originalUrl
-		};
-	}
+	const path = tokens.slice(2).join('/');
+	return createGatewayTransport(namespace, id, path, originalUrl, originalUrl);
+}
 
-	if (namespace === 'ipns') {
-		return {
-			kind: 'ipns',
-			name: id,
-			path,
-			dnsLink: looksLikeDomain(id),
-			gatewaySourceUrl: originalUrl,
-			originalUrl
-		};
-	}
+function createGatewayTransport(
+	namespace: GatewayNamespace,
+	id: string,
+	path: string,
+	originalUrl: string,
+	gatewaySourceUrl: string | null
+): GatewayFeedTransport {
+	return GATEWAY_TRANSPORT_FACTORIES[namespace](id, path, originalUrl, gatewaySourceUrl);
+}
 
-	return null;
+function isGatewayNamespace(input: string): input is GatewayNamespace {
+	return input === 'ipfs' || input === 'ipns';
 }
 
 function normalizePath(pathname: string): string {
-	const parts = pathname
-		.split('/')
-		.map((token) => token.trim())
-		.filter(Boolean)
-		.map(decodeToken)
-		.filter(Boolean);
-
-	return parts.join('/');
+	return splitPathTokens(pathname, true).join('/');
 }
 
 function encodePath(path: string): string {
-	if (!path) return '';
-	return path
-		.split('/')
-		.map((token) => token.trim())
-		.filter(Boolean)
-		.map((token) => encodeURIComponent(token))
-		.join('/');
+	const tokens = splitPathTokens(path, false);
+	if (tokens.length === 0) return '';
+	return tokens.map((token) => encodeURIComponent(token)).join('/');
+}
+
+function splitPathTokens(pathname: string, decode: boolean): string[] {
+	const out: string[] = [];
+	for (const token of pathname.split('/')) {
+		const trimmed = token.trim();
+		if (!trimmed) continue;
+
+		const normalized = decode ? decodeToken(trimmed) : trimmed;
+		if (!normalized) continue;
+		out.push(normalized);
+	}
+
+	return out;
 }
 
 function trimTrailingSlash(path: string): string {
@@ -227,6 +232,10 @@ function decodeToken(token: string): string {
 function looksLikeDomain(input: string): boolean {
 	if (!input.includes('.')) return false;
 	return /^[a-z0-9.-]+$/i.test(input);
+}
+
+function getGatewayTransportId(feed: GatewayFeedTransport): string {
+	return feed.kind === 'ipfs' ? feed.cid : feed.name;
 }
 
 function dedupe(values: string[]): string[] {
