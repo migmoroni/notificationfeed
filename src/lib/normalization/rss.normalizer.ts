@@ -15,6 +15,7 @@ export interface RssItem {
 	pubDate: string;
 	guid?: string;
 	author?: string;
+	imageUrl?: string;
 }
 
 /**
@@ -45,6 +46,7 @@ export function normalizeRssItem(item: RssItem, nodeId: string): IngestedPost {
 		url: item.link,
 		author: htmlToPlainText(item.author ?? ''),
 		publishedAt: Number.isFinite(published) ? published : now,
-		ingestedAt: now
+		ingestedAt: now,
+		...(item.imageUrl ? { imageUrl: item.imageUrl } : {})
 	};
 }

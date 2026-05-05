@@ -19,7 +19,7 @@
 	import ShareMenu from '$lib/components/shared/share/ShareMenu.svelte';
 	import { t } from '$lib/i18n/t.js';
 	import PostMedia from './PostMedia.svelte';
-	import { hasMedia, getThumbnail } from '$lib/utils/media.js';
+	import { hasMedia, getThumbnail, getImageQualityCandidates, rememberWorkingImageCandidate } from '$lib/utils/media.js';
 
 	interface Props {
 		sortedPost: SortedPost<CanonicalPost & { imageUrl?: string }>;
@@ -34,6 +34,23 @@
 
 	let postHasMedia = $derived(hasMedia(sortedPost.post.url, sortedPost.post.imageUrl));
 	let postThumbnail = $derived(getThumbnail(sortedPost.post.url, sortedPost.post.imageUrl));
+	let postThumbnailCandidates = $derived(getImageQualityCandidates(postThumbnail));
+	let postThumbnailCandidateIndex = $state(0);
+	let activePostThumbnail = $derived(postThumbnailCandidates[postThumbnailCandidateIndex] ?? null);
+
+	$effect(() => {
+		postThumbnail;
+		postThumbnailCandidateIndex = 0;
+	});
+
+	function onPostThumbnailError() {
+		if (postThumbnailCandidateIndex >= postThumbnailCandidates.length - 1) return;
+		postThumbnailCandidateIndex += 1;
+	}
+
+	function onPostThumbnailLoad() {
+		rememberWorkingImageCandidate(postThumbnail, activePostThumbnail);
+	}
 
 	function handleClick() {
 		if (!sortedPost.post.read) {
@@ -216,9 +233,16 @@
 					{/if}
 				</div>
 				
-				{#if postThumbnail}
+				{#if activePostThumbnail}
 					<div class="shrink-0 mb-3">
-						<img src={postThumbnail} alt="" class="w-28 aspect-video object-cover rounded-md bg-muted border border-border/40 shadow-sm" loading="lazy" />
+						<img
+							src={activePostThumbnail}
+							alt=""
+							class="w-28 aspect-video object-cover rounded-md bg-muted border border-border/40 shadow-sm"
+							loading="lazy"
+							onerror={onPostThumbnailError}
+							onload={onPostThumbnailLoad}
+						/>
 					</div>
 				{/if}
 			</div>

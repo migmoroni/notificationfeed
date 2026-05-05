@@ -86,6 +86,7 @@ export async function fetchRssFeed(
 // even if the hosting domains went offline forever.
 const NS_DC = 'http://purl.org/dc/elements/1.1/';
 const NS_CONTENT = 'http://purl.org/rss/1.0/modules/content/';
+const NS_MEDIA = 'http://search.yahoo.com/mrss/';
 
 /**
  * Parse an RSS XML document into raw `RssItem`s. Tolerates RSS 2.0
@@ -124,6 +125,7 @@ function extractRssItem(item: Element): RssItem {
 		textOf(item, 'author') ||
 		nsTextOf(item, NS_DC, 'creator') ||
 		undefined;
+	const imageUrl = nsAttributeOf(item, NS_MEDIA, 'thumbnail', 'url') || undefined;
 
 	return {
 		title,
@@ -131,7 +133,8 @@ function extractRssItem(item: Element): RssItem {
 		description: contentEncoded || description,
 		pubDate,
 		guid,
-		author
+		author,
+		imageUrl
 	};
 }
 
@@ -160,6 +163,14 @@ function nsTextOf(parent: Element, ns: string, local: string): string {
 }
 
 /**
+ * Returns the attribute of a namespace-aware element.
+ * Especially useful for attributes like `url` in `<media:thumbnail url="...">`.
+ */
+function nsAttributeOf(parent: Element, ns: string, local: string, attr: string): string {
+	return parent.getElementsByTagNameNS(ns, local)[0]?.getAttribute(attr)?.trim() ?? '';
+}
+
+/**
  * Cheap sniff to decide whether the body is worth handing to
  * `DOMParser`. Avoids the synchronous "XML Parsing Error" console
  * noise that the browser writes for HTML / plain-text / empty bodies.
@@ -182,6 +193,7 @@ interface Rss2JsonItem {
 	author?: string;
 	description?: string;
 	content?: string;
+	thumbnail?: string;
 }
 
 interface Rss2JsonEnvelope {
@@ -208,6 +220,7 @@ function parseRss2JsonResponse(body: string): RssItem[] {
 		description: it.content || it.description || '',
 		pubDate: it.pubDate ?? '',
 		guid: it.guid ?? it.link ?? undefined,
-		author: it.author ?? undefined
+		author: it.author ?? undefined,
+		imageUrl: it.thumbnail ?? undefined
 	}));
 }

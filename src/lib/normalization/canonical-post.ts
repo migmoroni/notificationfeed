@@ -43,6 +43,9 @@ export interface CanonicalPost {
 	/** When this post was ingested locally (epoch ms). */
 	ingestedAt: number;
 
+	/** URL to a thumbnail or main image associated with the post. */
+	imageUrl?: string;
+
 	/** Whether the user has read this post. */
 	read: boolean;
 
