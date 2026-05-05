@@ -71,6 +71,7 @@
 	"aria.create_new_tab": "Criar nova tab",
 	"aria.tab_options": "Opções da tab {title}",
 	"aria.open_post": "Abrir post: {title}",
+	"aria.play_video": "Reproduzir vídeo: {title}",
 	"subscribe.subscribed": "Inscrito",
 	"subscribe.subscribe": "Inscrever-se",
 	"follow.following": "Segue",
@@ -555,5 +556,13 @@
 	"settings.ingestion.reset_scoring_row_action": "Redefinir",
 	"settings.ingestion.reset_scoring_row_loading": "Redefinindo...",
 	"settings.ingestion.reset_scoring_row_done": "Pontuação redefinida para {title}.",
-	"settings.ingestion.reset_scoring_row_aria": "Redefinir pontuação de protocolos para {title}"
+	"settings.ingestion.reset_scoring_row_aria": "Redefinir pontuação de protocolos para {title}",
+	"post.action.share": "Compartilhar",
+	"post.action.share_on": "Compartilhar em {platform}",
+	"post.action.share_message": "Mensagem",
+	"post.action.share_social": "Redes sociais",
+	"post.action.share_other": "Outros",
+	"post.action.share_email": "Email",
+	"post.action.share_copy": "Copiar link",
+	"post.action.share_copy_success": "Link copiado para a área de transferência"
 }

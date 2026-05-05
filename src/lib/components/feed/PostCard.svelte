@@ -16,6 +16,7 @@
 	import BookmarkCheck from '@lucide/svelte/icons/bookmark-check';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+	import ShareMenu from '$lib/components/shared/share/ShareMenu.svelte';
 	import { t } from '$lib/i18n/t.js';
 	import PostMedia from './PostMedia.svelte';
 	import { hasMedia, getThumbnail } from '$lib/utils/media.js';
@@ -73,6 +74,11 @@
 
 {#snippet actions()}
 	<div class="flex items-center gap-1">
+		<ShareMenu 
+			title={sortedPost.post.title} 
+			text={sortedPost.post.content ? truncate(sortedPost.post.content, 100) : undefined} 
+			url={sortedPost.post.url} 
+		/>
 		<button
 			type="button"
 			class="rounded p-1 hover:bg-sky-500/20 text-muted-foreground hover:text-sky-500 transition-colors"

@@ -71,6 +71,7 @@
 	"aria.create_new_tab": "Create new tab",
 	"aria.tab_options": "Tab options for {title}",
 	"aria.open_post": "Open post: {title}",
+	"aria.play_video": "Play video: {title}",
 	"subscribe.subscribed": "Subscribed",
 	"subscribe.subscribe": "Subscribe",
 	"follow.following": "Following",
@@ -555,5 +556,13 @@
 	"settings.ingestion.reset_scoring_row_action": "Reset",
 	"settings.ingestion.reset_scoring_row_loading": "Resetting...",
 	"settings.ingestion.reset_scoring_row_done": "Cleared scoring for {title}.",
-	"settings.ingestion.reset_scoring_row_aria": "Reset protocol scoring for {title}"
+	"settings.ingestion.reset_scoring_row_aria": "Reset protocol scoring for {title}",
+	"post.action.share": "Share",
+	"post.action.share_on": "Share on {platform}",
+	"post.action.share_message": "Message",
+	"post.action.share_social": "Social",
+	"post.action.share_other": "Other",
+	"post.action.share_email": "Email",
+	"post.action.share_copy": "Copy link",
+	"post.action.share_copy_success": "Link copied to clipboard"
 }
