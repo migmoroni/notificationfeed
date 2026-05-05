@@ -17,6 +17,8 @@
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import { t } from '$lib/i18n/t.js';
+	import PostMedia from './PostMedia.svelte';
+	import { hasMedia, getThumbnail } from '$lib/utils/media.js';
 
 	interface Props {
 		sortedPost: SortedPost<CanonicalPost & { imageUrl?: string }>;
@@ -28,6 +30,9 @@
 	let fontNode = $derived(feed.getNode(sortedPost.post.nodeId));
 	let fontTitle = $derived(fontNode?.data.header.title ?? '');
 	let fontHref = $derived(fontNode ? `/browse/node/${fontNode.metadata.id}` : null);
+
+	let postHasMedia = $derived(hasMedia(sortedPost.post.url, sortedPost.post.imageUrl));
+	let postThumbnail = $derived(getThumbnail(sortedPost.post.url, sortedPost.post.imageUrl));
 
 	function handleClick() {
 		if (!sortedPost.post.read) {
@@ -179,28 +184,36 @@
 		<div class="flex-1 min-w-0 flex flex-col {fontNode ? '' : 'pl-5'}">
 			<!-- svelte-ignore a11y_no_static_element_interactions, a11y_no_noninteractive_element_to_interactive_role -->
 			<div
-				class="flex-1 p-4 pb-0 flex flex-col cursor-pointer"
+				class="flex-1 p-4 pb-0 flex cursor-pointer"
 				onclick={handleClick}
 				onkeydown={handleKeydown}
 				tabindex="0"
 				role="button"
 				aria-label={t('aria.open_post', { title: sortedPost.post.title })}
 			>
-				<div class="flex items-start justify-between gap-2 mb-1.5">
-					<h3 class="text-sm font-semibold leading-snug line-clamp-2 flex-1 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
-						{sortedPost.post.title}
-					</h3>
-					{#if sortedPost.post.url}
-						<ExternalLink class="size-3.5 shrink-0 text-muted-foreground/60 mt-0.5" />
+				<div class="flex-1 flex flex-col pr-3">
+					<div class="flex items-start justify-between gap-2 mb-1.5">
+						<h3 class="text-sm font-semibold leading-snug line-clamp-2 flex-1 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+							{sortedPost.post.title}
+						</h3>
+						{#if sortedPost.post.url}
+							<ExternalLink class="size-3.5 shrink-0 text-muted-foreground/60 mt-0.5" />
+						{/if}
+					</div>
+
+					{#if sortedPost.post.content}
+						<p class="text-xs text-muted-foreground leading-relaxed mb-3 line-clamp-2 flex-1">
+							{truncate(sortedPost.post.content, 140)}
+						</p>
+					{:else}
+						<div class="flex-1 mb-3"></div>
 					{/if}
 				</div>
-
-				{#if sortedPost.post.content}
-					<p class="text-xs text-muted-foreground leading-relaxed mb-3 line-clamp-2 flex-1">
-						{truncate(sortedPost.post.content, 140)}
-					</p>
-				{:else}
-					<div class="flex-1 mb-3"></div>
+				
+				{#if postThumbnail}
+					<div class="shrink-0 mb-3">
+						<img src={postThumbnail} alt="" class="w-28 aspect-video object-cover rounded-md bg-muted border border-border/40 shadow-sm" loading="lazy" />
+					</div>
 				{/if}
 			</div>
 
@@ -224,40 +237,10 @@
 
 {:else if mode === 'posts'}
 	<article
-		class="group relative flex flex-col rounded-xl border border-border/80 bg-card shadow-sm text-card-foreground transition-all hover:shadow-md hover:border-sky-500/50 overflow-hidden {sortedPost.post.read ? 'opacity-70' : ''}"
+		class="group relative flex flex-col rounded-xl border border-border/80 bg-card shadow-sm text-card-foreground transition-all hover:shadow-md hover:border-sky-500/50 overflow-hidden"
 	>
-
-		<div class="flex flex-col flex-1">
-			{#if sortedPost.post.imageUrl}
-				<div class="w-full h-48 bg-muted border-b border-border/40 object-cover overflow-hidden">
-					<img src={sortedPost.post.imageUrl} alt={sortedPost.post.title} class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-				</div>
-			{/if}
-			
-			<div class="p-5 pb-5 flex flex-col flex-1">
-				<div class="flex items-start justify-between gap-4 mb-2 pt-2">
-					<h3 class="text-base font-bold leading-snug hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
-						{sortedPost.post.title}
-					</h3>
-					<button
-						class="text-xs font-medium px-3 py-1.5 rounded-md bg-sky-500 text-white flex items-center gap-1.5 hover:bg-sky-600 transition-colors shrink-0 shadow-sm mt-0.5 cursor-pointer"
-						onclick={handleClick}
-						title={t('aria.open_post', { title: sortedPost.post.title })}
-					>
-						{t('btn.read_more')}
-						<ExternalLink class="size-3.5" />
-					</button>
-				</div>
-
-				{#if sortedPost.post.content}
-					<p class="text-sm text-foreground/80 leading-relaxed mb-1 {sortedPost.post.imageUrl ? 'line-clamp-3' : 'line-clamp-6'}">
-						{truncate(sortedPost.post.content, 400)}
-					</p>
-				{/if}
-			</div>
-		</div>
 		<!-- Header (Safe Area) -->
-		<div class="px-5 pt-3 pb-3 flex items-center justify-between border-b border-border/30 bg-muted/10">
+		<div class="px-5 pt-3 pb-3 flex items-center justify-between border-b border-border/30 bg-muted/10 {sortedPost.post.read ? 'opacity-70' : ''}">
 			<div class="flex items-center gap-2 shrink-0">
 				{#if fontNode}
 					<a
@@ -281,6 +264,37 @@
 				{/if}
 				{@render actions()}
 			</div>
+		</div>
+
+		<div class="flex flex-col flex-1">
+			<div class="p-5 pb-4 flex flex-col {sortedPost.post.read ? 'opacity-70' : ''}">
+				<div class="flex items-start justify-between gap-4 mb-2">
+					<h3 class="text-base font-bold leading-snug hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
+						{sortedPost.post.title}
+					</h3>
+					<button
+						class="text-xs font-medium px-3 py-1.5 rounded-md bg-sky-500 text-white flex items-center gap-1.5 hover:bg-sky-600 transition-colors shrink-0 shadow-sm mt-0.5 cursor-pointer"
+						onclick={handleClick}
+						title={t('aria.open_post', { title: sortedPost.post.title })}
+					>
+						{t('btn.read_more')}
+						<ExternalLink class="size-3.5" />
+					</button>
+				</div>
+
+				{#if sortedPost.post.content}
+					<p class="text-sm text-foreground/80 leading-relaxed {postHasMedia ? 'mb-4 line-clamp-3' : 'mb-1 line-clamp-6'}">
+						{truncate(sortedPost.post.content, 400)}
+					</p>
+				{/if}
+			</div>
+
+			<PostMedia 
+				url={sortedPost.post.url} 
+				imageUrl={sortedPost.post.imageUrl} 
+				title={sortedPost.post.title} 
+				onclick={handleClick} 
+			/>
 		</div>
 	</article>
 {/if}

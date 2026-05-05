@@ -102,7 +102,7 @@
 </script>
 
 {#snippet postGrid(posts: SortedPost<CanonicalPost>[])}
-	<div class="grid gap-3 {layout.isExpanded && viewModeStore.mode === 'cards' ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'}">
+	<div class="grid gap-3 mx-auto {layout.isExpanded ? (viewModeStore.mode === 'cards' ? 'grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3' : viewModeStore.mode === 'list' ? 'max-w-6xl grid-cols-1' : 'max-w-3xl grid-cols-1') : 'grid-cols-1'}">
 		{#each posts as sortedPost (sortedPost.post.id)}
 			<PostCard {sortedPost} />
 		{/each}
@@ -110,7 +110,7 @@
 {/snippet}
 
 {#if feed.loading}
-	<div class="flex flex-col gap-3">
+	<div class="flex flex-col gap-3 mx-auto {layout.isExpanded ? (viewModeStore.mode === 'cards' ? 'w-full' : viewModeStore.mode === 'list' ? 'max-w-6xl' : 'max-w-3xl') : ''}">
 		{#each { length: 3 } as _}
 			<div class="rounded-lg border border-border bg-card p-4 space-y-3">
 				<div class="h-4 w-3/4 animate-pulse rounded bg-muted"></div>
@@ -159,13 +159,13 @@
 		</div>
 	{/if}
 {:else}
-	<div class="grid gap-3 {layout.isExpanded && viewModeStore.mode === 'cards' ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'}">
+	<div class="grid gap-3 mx-auto {layout.isExpanded ? (viewModeStore.mode === 'cards' ? 'grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3' : viewModeStore.mode === 'list' ? 'max-w-6xl grid-cols-1' : 'max-w-3xl grid-cols-1') : 'grid-cols-1'}">
 		{#each visible as sortedPost (sortedPost.post.id)}
 			<PostCard {sortedPost} />
 		{/each}
 
 		{#if hasMore}
-			<div bind:this={sentinel} class="h-10 flex items-center justify-center {layout.isExpanded && viewModeStore.mode === 'cards' ? 'lg:col-span-3' : ''}">
+			<div bind:this={sentinel} class="h-10 flex items-center justify-center {layout.isExpanded && viewModeStore.mode === 'cards' ? 'xl:col-span-2 2xl:col-span-3' : ''}">
 				<div class="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent"></div>
 			</div>
 		{/if}
