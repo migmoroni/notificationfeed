@@ -47,6 +47,38 @@ describe('media.resolver', () => {
 		expect(embed?.provider).toBe('youtube');
 	});
 
+	it('parses x.com status URL as iframe embed', () => {
+		const embed = parseEmbed('https://x.com/SpaceX/status/1918483180486459576?s=20');
+		expect(embed?.type).toBe('iframe');
+		expect(embed?.provider).toBe('x');
+		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
+		expect(embed.embedUrl).toBe(
+			'https://platform.twitter.com/embed/Tweet.html?id=1918483180486459576&dnt=true'
+		);
+	});
+
+	it('parses twitter.com status URL as iframe embed', () => {
+		const embed = parseEmbed('https://twitter.com/jack/status/20');
+		expect(embed?.type).toBe('iframe');
+		expect(embed?.provider).toBe('x');
+		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
+		expect(embed.embedUrl).toBe('https://platform.twitter.com/embed/Tweet.html?id=20&dnt=true');
+	});
+
+	it('parses twitter i/web/status URL as iframe embed', () => {
+		const embed = parseEmbed('https://twitter.com/i/web/status/1918483180486459576');
+		expect(embed?.type).toBe('iframe');
+		expect(embed?.provider).toBe('x');
+		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
+		expect(embed.embedUrl).toBe(
+			'https://platform.twitter.com/embed/Tweet.html?id=1918483180486459576&dnt=true'
+		);
+	});
+
+	it('does not treat x home URL as embeddable post', () => {
+		expect(parseEmbed('https://x.com/home')).toBeNull();
+	});
+
 	it('parses twitch VOD URL as iframe embed', () => {
 		const embed = parseEmbed('https://www.twitch.tv/videos/1987654321');
 		expect(embed?.type).toBe('iframe');
@@ -166,6 +198,26 @@ describe('media.resolver', () => {
 
 	it('does not treat internet archive listing URL as embeddable video', () => {
 		expect(parseEmbed('https://archive.org/details')).toBeNull();
+	});
+
+	it('parses odysee video URL as iframe embed', () => {
+		const embed = parseEmbed('https://odysee.com/@SomeChannel:4/my-video:7');
+		expect(embed?.type).toBe('iframe');
+		expect(embed?.provider).toBe('odysee');
+		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
+		expect(embed.embedUrl).toBe('https://odysee.com/$/embed/@SomeChannel:4/my-video:7');
+	});
+
+	it('parses odysee embed URL as iframe embed', () => {
+		const embed = parseEmbed('https://odysee.com/$/embed/@SomeChannel:4/my-video:7?r=abc123');
+		expect(embed?.type).toBe('iframe');
+		expect(embed?.provider).toBe('odysee');
+		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
+		expect(embed.embedUrl).toBe('https://odysee.com/$/embed/@SomeChannel:4/my-video:7');
+	});
+
+	it('does not treat odysee channel URL as embeddable video', () => {
+		expect(parseEmbed('https://odysee.com/@SomeChannel:4')).toBeNull();
 	});
 
 	it('parses direct video URL as video embed', () => {

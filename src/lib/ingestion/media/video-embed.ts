@@ -29,6 +29,51 @@ function normalizeTwitchVideoId(raw: string | undefined): string | null {
 	return /^\d+$/.test(candidate) ? candidate : null;
 }
 
+function normalizeXStatusId(raw: string | undefined): string | null {
+	if (!raw) return null;
+	const candidate = raw.trim();
+	if (!candidate) return null;
+	return /^\d+$/.test(candidate) ? candidate : null;
+}
+
+function parseXStatusId(url: string): string | null {
+	let parsed: URL;
+	try {
+		parsed = new URL(url);
+	} catch {
+		return null;
+	}
+
+	const host = parsed.hostname.toLowerCase();
+	const isXHost = host === 'x.com' || host === 'www.x.com' || host === 'mobile.x.com' || host.endsWith('.x.com');
+	const isTwitterHost =
+		host === 'twitter.com' ||
+		host === 'www.twitter.com' ||
+		host === 'mobile.twitter.com' ||
+		host.endsWith('.twitter.com');
+
+	if (!isXHost && !isTwitterHost) return null;
+
+	const segments = parsed.pathname.split('/').filter(Boolean);
+	if (segments.length < 2) return null;
+
+	const lowerSegments = segments.map((segment) => segment.toLowerCase());
+	const statusIndex = lowerSegments.indexOf('status');
+	if (statusIndex >= 0) {
+		return normalizeXStatusId(segments[statusIndex + 1]);
+	}
+
+	if (
+		lowerSegments[0] === 'i' &&
+		lowerSegments[1] === 'web' &&
+		lowerSegments[2] === 'status'
+	) {
+		return normalizeXStatusId(segments[3]);
+	}
+
+	return null;
+}
+
 function normalizeTwitchClipId(raw: string | undefined): string | null {
 	if (!raw) return null;
 	const candidate = raw.trim();
@@ -188,6 +233,62 @@ function parseInternetArchiveIdentifier(url: string): string | null {
 	return identifier;
 }
 
+function decodeUrlSegment(segment: string): string {
+	try {
+		return decodeURIComponent(segment);
+	} catch {
+		return segment;
+	}
+}
+
+function encodeOdyseeSegment(segment: string): string {
+	return encodeURIComponent(segment)
+		.replace(/%3A/gi, ':')
+		.replace(/%40/gi, '@');
+}
+
+function parseOdyseeClaimPath(url: string): string | null {
+	let parsed: URL;
+	try {
+		parsed = new URL(url);
+	} catch {
+		return null;
+	}
+
+	const host = parsed.hostname.toLowerCase();
+	if (host !== 'odysee.com' && host !== 'www.odysee.com' && !host.endsWith('.odysee.com')) {
+		return null;
+	}
+
+	const segments = parsed.pathname.split('/').filter(Boolean);
+	if (segments.length === 0) return null;
+
+	let claimSegments = segments;
+	if (segments[0] === '$') {
+		if (segments[1]?.toLowerCase() !== 'embed') return null;
+		claimSegments = segments.slice(2);
+	}
+
+	if (claimSegments.length === 0) return null;
+
+	const normalizedSegments = claimSegments
+		.map((segment) => decodeUrlSegment(segment).trim())
+		.filter(Boolean);
+	if (normalizedSegments.length === 0) return null;
+
+	const lastSegment = normalizedSegments[normalizedSegments.length - 1];
+	if (!/^[^/?#\s]+:[^/?#\s]+$/.test(lastSegment)) return null;
+
+	const firstSegment = normalizedSegments[0];
+	if (firstSegment.startsWith('@') && normalizedSegments.length < 2) return null;
+
+	for (const segment of normalizedSegments) {
+		if (segment.includes('/') || segment.includes('?') || segment.includes('#')) return null;
+	}
+
+	return normalizedSegments.map((segment) => encodeOdyseeSegment(segment)).join('/');
+}
+
 /**
  * Parses known media URLs into embeddable video metadata.
  */
@@ -206,6 +307,17 @@ export function parseEmbed(url: string | undefined | null): EmbedInfo {
 			embedUrl: `https://www.youtube.com/embed/${id}`,
 			aspectClass: isShort ? 'aspect-[9/16] max-h-[600px] mx-auto' : 'aspect-video',
 			thumbnailUrl: `https://i.ytimg.com/vi/${id}/mqdefault.jpg`
+		};
+	}
+
+	const xStatusId = parseXStatusId(url);
+	if (xStatusId) {
+		return {
+			type: 'iframe',
+			provider: 'x',
+			videoId: xStatusId,
+			embedUrl: `https://platform.twitter.com/embed/Tweet.html?id=${xStatusId}&dnt=true`,
+			aspectClass: 'aspect-[4/3]'
 		};
 	}
 
@@ -271,6 +383,17 @@ export function parseEmbed(url: string | undefined | null): EmbedInfo {
 			provider: 'internet-archive',
 			videoId: internetArchiveId,
 			embedUrl: `https://archive.org/embed/${encodeURIComponent(internetArchiveId)}`,
+			aspectClass: 'aspect-video'
+		};
+	}
+
+	const odyseeClaimPath = parseOdyseeClaimPath(url);
+	if (odyseeClaimPath) {
+		return {
+			type: 'iframe',
+			provider: 'odysee',
+			videoId: odyseeClaimPath,
+			embedUrl: `https://odysee.com/$/embed/${odyseeClaimPath}`,
 			aspectClass: 'aspect-video'
 		};
 	}

@@ -32,12 +32,18 @@ function isKnownVideoHost(hostname: string): boolean {
 		host.endsWith('.youtube.com') ||
 		host === 'youtu.be' ||
 		host.endsWith('.youtu.be') ||
+		host === 'x.com' ||
+		host.endsWith('.x.com') ||
+		host === 'twitter.com' ||
+		host.endsWith('.twitter.com') ||
 		host === 'dai.ly' ||
 		host.endsWith('.dai.ly') ||
 		host === 'vimeo.com' ||
 		host.endsWith('.vimeo.com') ||
 		host === 'dailymotion.com' ||
 		host.endsWith('.dailymotion.com') ||
+		host === 'odysee.com' ||
+		host.endsWith('.odysee.com') ||
 		host === 'twitch.tv' ||
 		host.endsWith('.twitch.tv') ||
 		host === 'streamable.com' ||

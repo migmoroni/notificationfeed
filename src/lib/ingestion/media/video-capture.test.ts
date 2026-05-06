@@ -11,6 +11,9 @@ import {
 describe('video-capture', () => {
 	it('detects known video URLs', () => {
 		expect(isLikelyVideoUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ')).toBe(true);
+		expect(isLikelyVideoUrl('https://x.com/SpaceX/status/1918483180486459576')).toBe(true);
+		expect(isLikelyVideoUrl('https://twitter.com/jack/status/20')).toBe(true);
+		expect(isLikelyVideoUrl('https://odysee.com/@SomeChannel:4/my-video:7')).toBe(true);
 		expect(isLikelyVideoUrl('https://www.twitch.tv/videos/1987654321')).toBe(true);
 		expect(isLikelyVideoUrl('https://clips.twitch.tv/IncredulousSpinelessGoatKreygasm')).toBe(true);
 		expect(isLikelyVideoUrl('https://www.dailymotion.com/video/x84sh87')).toBe(true);

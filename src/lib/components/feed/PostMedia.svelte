@@ -1,11 +1,6 @@
 <script lang="ts">
-	import DailymotionPlayer from '../shared/mediaPlayer/DailymotionPlayer.svelte';
-	import InternetArchivePlayer from '../shared/mediaPlayer/InternetArchivePlayer.svelte';
+	import UnifiedEmbedPlayer from '../shared/mediaPlayer/UnifiedEmbedPlayer.svelte';
 	import { parseEmbed } from '$lib/ingestion/media/media.resolver.js';
-	import RumblePlayer from '../shared/mediaPlayer/RumblePlayer.svelte';
-	import TwitchPlayer from '../shared/mediaPlayer/TwitchPlayer.svelte';
-	import YoutubePlayer from '../shared/mediaPlayer/YoutubePlayer.svelte';
-	import VimeoPlayer from '../shared/mediaPlayer/VimeoPlayer.svelte';
 
 	interface Props {
 		url?: string | null;
@@ -20,24 +15,20 @@
 	let mediaUrl = $derived(videoUrl ?? url);
 	let embed = $derived(parseEmbed(mediaUrl));
 	let showMedia = $derived(embed !== null || !!imageUrl);
+	const unifiedProviders = new Set(['youtube', 'x', 'twitch', 'dailymotion', 'vimeo', 'rumble', 'internet-archive', 'odysee']);
 </script>
 
 {#if showMedia}
 	<div class="w-full border-t border-border/40 overflow-hidden bg-muted">
 		{#if embed?.type === 'iframe'}
 			<div class="{embed.aspectClass} w-full bg-black relative group">
-				{#if embed.provider === 'youtube'}
-					<YoutubePlayer title={title} embedUrl={embed.embedUrl} thumbnailUrl={embed.thumbnailUrl} />
-				{:else if embed.provider === 'twitch'}
-					<TwitchPlayer title={title} embedUrl={embed.embedUrl} />
-				{:else if embed.provider === 'dailymotion'}
-					<DailymotionPlayer title={title} embedUrl={embed.embedUrl} thumbnailUrl={embed.thumbnailUrl} />
-				{:else if embed.provider === 'vimeo'}
-					<VimeoPlayer title={title} embedUrl={embed.embedUrl} />
-				{:else if embed.provider === 'rumble'}
-					<RumblePlayer title={title} embedUrl={embed.embedUrl} />
-				{:else if embed.provider === 'internet-archive'}
-					<InternetArchivePlayer title={title} embedUrl={embed.embedUrl} />
+				{#if unifiedProviders.has(embed.provider)}
+					<UnifiedEmbedPlayer
+						title={title}
+						embedUrl={embed.embedUrl}
+						provider={embed.provider}
+						thumbnailUrl={embed.thumbnailUrl}
+					/>
 				{:else}
 					<iframe
 						class="w-full h-full"
