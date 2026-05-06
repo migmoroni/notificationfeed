@@ -14,6 +14,10 @@ describe('media.resolver', () => {
 		expect(hasMedia(null, null, 'https://cdn.example.com/video.mp4')).toBe(true);
 	});
 
+	it('detects media when audioUrl is present', () => {
+		expect(hasMedia(null, null, null, 'https://cdn.example.com/audio.mp3')).toBe(true);
+	});
+
 	it('returns false when no media data is present', () => {
 		expect(hasMedia(null, null, null)).toBe(false);
 	});
@@ -111,7 +115,9 @@ describe('media.resolver', () => {
 		const embed = parseEmbed('https://www.dailymotion.com/video/x84sh87');
 		expect(embed?.type).toBe('iframe');
 		expect(embed?.provider).toBe('dailymotion');
-		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
+		if (!embed || embed.type !== 'iframe' || embed.provider !== 'dailymotion' || !('thumbnailUrl' in embed)) {
+			throw new Error('Expected dailymotion iframe embed');
+		}
 		expect(embed.embedUrl).toBe('https://www.dailymotion.com/embed/video/x84sh87');
 		expect(embed.thumbnailUrl).toBe('https://www.dailymotion.com/thumbnail/video/x84sh87');
 	});
@@ -266,6 +272,34 @@ describe('media.resolver', () => {
 
 	it('does not treat kick categories URL as embeddable stream', () => {
 		expect(parseEmbed('https://kick.com/categories')).toBeNull();
+	});
+
+	it('parses spotify track URL as iframe embed', () => {
+		const embed = parseEmbed('https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC');
+		expect(embed?.type).toBe('iframe');
+		expect(embed?.provider).toBe('spotify');
+		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
+		expect(embed.embedUrl).toBe('https://open.spotify.com/embed/track/4uLU6hMCjMI75M1A2tKUQC');
+	});
+
+	it('parses soundcloud track URL as iframe embed', () => {
+		const embed = parseEmbed('https://soundcloud.com/forss/flickermood');
+		expect(embed?.type).toBe('iframe');
+		expect(embed?.provider).toBe('soundcloud');
+		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
+		expect(embed.embedUrl).toBe(
+			'https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fforss%2Fflickermood'
+		);
+	});
+
+	it('parses direct audio URL as audio embed', () => {
+		const embed = parseEmbed('https://cdn.example.com/audio/episode-1.mp3');
+		expect(embed?.type).toBe('audio');
+		expect(embed?.provider).toBe('direct');
+	});
+
+	it('does not treat spotify root URL as embeddable audio', () => {
+		expect(parseEmbed('https://open.spotify.com/')).toBeNull();
 	});
 
 	it('parses direct video URL as video embed', () => {

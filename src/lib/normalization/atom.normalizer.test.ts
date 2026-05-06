@@ -65,4 +65,19 @@ describe('normalizeAtomEntry', () => {
 		const post = normalizeAtomEntry(entry, NODE_ID);
 		expect(post.videoUrl).toBe('https://cdn.example.com/media/clip.mp4');
 	});
+
+	it('keeps audioUrl when provided by parser', () => {
+		const entry: AtomEntry = {
+			id: 'entry-5',
+			title: 'Atom with audio',
+			link: 'https://example.com/entry-5',
+			summary: 'Summary',
+			content: 'Content',
+			updated: '2026-04-01T12:00:00Z',
+			audioUrl: 'https://cdn.example.com/media/clip.mp3'
+		};
+
+		const post = normalizeAtomEntry(entry, NODE_ID);
+		expect(post.audioUrl).toBe('https://cdn.example.com/media/clip.mp3');
+	});
 });

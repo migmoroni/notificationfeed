@@ -12,8 +12,13 @@ import {
 	extractFirstVideoUrlFromText,
 	pickFirstVideoUrl
 } from '$lib/ingestion/media/video-capture.js';
+import {
+	extractFirstAudioUrlFromText,
+	pickFirstAudioUrl
+} from '$lib/ingestion/media/audio-capture.js';
 import { resolveIngestionImageUrl } from '$lib/ingestion/media/image-quality.js';
 import { resolveIngestionVideoUrl } from '$lib/ingestion/media/video-quality.js';
+import { resolveIngestionAudioUrl } from '$lib/ingestion/media/audio-quality.js';
 
 /**
  * Convert a Nostr event into an `IngestedPost`.
@@ -43,6 +48,11 @@ export function normalizeNostrEvent(event: NostrEvent, nodeId: string): Ingested
 		extractFirstVideoUrlFromText(event.content)
 	);
 	const resolvedVideoUrl = resolveIngestionVideoUrl(videoUrl);
+	const audioUrl = pickFirstAudioUrl(
+		event.audioUrl,
+		extractFirstAudioUrlFromText(event.content)
+	);
+	const resolvedAudioUrl = resolveIngestionAudioUrl(audioUrl);
 
 	return {
 		id: event.id,
@@ -55,6 +65,7 @@ export function normalizeNostrEvent(event: NostrEvent, nodeId: string): Ingested
 		publishedAt: event.created_at * 1000,
 		ingestedAt: Date.now(),
 		...(resolvedImageUrl ? { imageUrl: resolvedImageUrl } : {}),
-		...(resolvedVideoUrl ? { videoUrl: resolvedVideoUrl } : {})
+		...(resolvedVideoUrl ? { videoUrl: resolvedVideoUrl } : {}),
+		...(resolvedAudioUrl ? { audioUrl: resolvedAudioUrl } : {})
 	};
 }

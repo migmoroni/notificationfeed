@@ -49,6 +49,9 @@ export interface CanonicalPost {
 	/** URL to a primary video associated with the post. */
 	videoUrl?: string;
 
+	/** URL to a primary audio associated with the post. */
+	audioUrl?: string;
+
 	/** Whether the user has read this post. */
 	read: boolean;
 

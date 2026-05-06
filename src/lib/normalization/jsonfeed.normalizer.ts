@@ -17,8 +17,15 @@ import {
 	extractFirstVideoUrlFromText,
 	pickFirstVideoUrl
 } from '$lib/ingestion/media/video-capture.js';
+import {
+	extractFirstAudioUrlFromHtml,
+	extractFirstAudioUrlFromText,
+	isLikelyAudioUrl,
+	pickFirstAudioUrl
+} from '$lib/ingestion/media/audio-capture.js';
 import { resolveIngestionImageUrl } from '$lib/ingestion/media/image-quality.js';
 import { resolveIngestionVideoUrl } from '$lib/ingestion/media/video-quality.js';
+import { resolveIngestionAudioUrl } from '$lib/ingestion/media/audio-quality.js';
 import { htmlToPlainText } from './content-text.js';
 
 /** v1.1 author shape (also reused as v1 single-author fallback). */
@@ -55,12 +62,15 @@ export interface JsonfeedItem {
 	image?: string;
 	/** Optional item-level video URL (common extension). */
 	video?: string;
+	/** Optional item-level audio URL (common extension). */
+	audio?: string;
 	/** Legacy field from some generators. */
 	banner_image?: string;
 	attachments?: JsonfeedAttachment[];
 	/** Protocol-specific media hints captured in the JSON Feed client. */
 	imageUrl?: string;
 	videoUrl?: string;
+	audioUrl?: string;
 }
 
 /** Top-level document shape (only the field we consume). */
@@ -115,6 +125,16 @@ export function normalizeJsonfeedItem(item: JsonfeedItem, nodeId: string): Inges
 		extractFirstVideoUrlFromText(item.summary)
 	);
 	const resolvedVideoUrl = resolveIngestionVideoUrl(videoUrl);
+	const audioUrl = pickFirstAudioUrl(
+		item.audioUrl,
+		item.audio,
+		isLikelyAudioUrl(url) ? url : undefined,
+		extractFirstAudioUrlFromHtml(item.content_html),
+		extractFirstAudioUrlFromText(item.content_text),
+		extractFirstAudioUrlFromHtml(item.summary),
+		extractFirstAudioUrlFromText(item.summary)
+	);
+	const resolvedAudioUrl = resolveIngestionAudioUrl(audioUrl);
 
 	return {
 		id,
@@ -127,6 +147,7 @@ export function normalizeJsonfeedItem(item: JsonfeedItem, nodeId: string): Inges
 		publishedAt,
 		ingestedAt: now,
 		...(resolvedImageUrl ? { imageUrl: resolvedImageUrl } : {}),
-		...(resolvedVideoUrl ? { videoUrl: resolvedVideoUrl } : {})
+		...(resolvedVideoUrl ? { videoUrl: resolvedVideoUrl } : {}),
+		...(resolvedAudioUrl ? { audioUrl: resolvedAudioUrl } : {})
 	};
 }

@@ -66,4 +66,35 @@ describe('normalizeNostrEvent', () => {
 		const post = normalizeNostrEvent(event, NODE_ID);
 		expect(post.videoUrl).toBe('https://videos.example.com/note-4.webm');
 	});
+
+	it('uses audioUrl captured by client from nostr tags', () => {
+		const event: NostrEvent = {
+			id: 'event-5',
+			pubkey: 'pubkey-5',
+			created_at: 1777004000,
+			kind: 1,
+			tags: [['audio', 'https://cdn.example.com/nostr/audio.mp3']],
+			content: 'post content',
+			sig: 'sig-5',
+			audioUrl: 'https://cdn.example.com/nostr/audio.mp3'
+		};
+
+		const post = normalizeNostrEvent(event, NODE_ID);
+		expect(post.audioUrl).toBe('https://cdn.example.com/nostr/audio.mp3');
+	});
+
+	it('falls back to audio URL in content text', () => {
+		const event: NostrEvent = {
+			id: 'event-6',
+			pubkey: 'pubkey-6',
+			created_at: 1777005000,
+			kind: 1,
+			tags: [['p', 'someone']],
+			content: 'listen https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC now',
+			sig: 'sig-6'
+		};
+
+		const post = normalizeNostrEvent(event, NODE_ID);
+		expect(post.audioUrl).toBe('https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC');
+	});
 });

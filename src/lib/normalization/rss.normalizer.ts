@@ -16,8 +16,15 @@ import {
 	extractFirstVideoUrlFromText,
 	pickFirstVideoUrl
 } from '$lib/ingestion/media/video-capture.js';
+import {
+	extractFirstAudioUrlFromHtml,
+	extractFirstAudioUrlFromText,
+	isLikelyAudioUrl,
+	pickFirstAudioUrl
+} from '$lib/ingestion/media/audio-capture.js';
 import { resolveIngestionImageUrl } from '$lib/ingestion/media/image-quality.js';
 import { resolveIngestionVideoUrl } from '$lib/ingestion/media/video-quality.js';
+import { resolveIngestionAudioUrl } from '$lib/ingestion/media/audio-quality.js';
 import { htmlToPlainText } from './content-text.js';
 
 export interface RssItem {
@@ -29,6 +36,7 @@ export interface RssItem {
 	author?: string;
 	imageUrl?: string;
 	videoUrl?: string;
+	audioUrl?: string;
 }
 
 /**
@@ -64,6 +72,14 @@ export function normalizeRssItem(item: RssItem, nodeId: string): IngestedPost {
 			extractFirstVideoUrlFromText(item.description)
 		)
 	);
+	const audioUrl = resolveIngestionAudioUrl(
+		pickFirstAudioUrl(
+			item.audioUrl,
+			isLikelyAudioUrl(item.link) ? item.link : undefined,
+			extractFirstAudioUrlFromHtml(item.description),
+			extractFirstAudioUrlFromText(item.description)
+		)
+	);
 	return {
 		id: item.guid ?? item.link,
 		nodeId,
@@ -75,6 +91,7 @@ export function normalizeRssItem(item: RssItem, nodeId: string): IngestedPost {
 		publishedAt: Number.isFinite(published) ? published : now,
 		ingestedAt: now,
 		...(imageUrl ? { imageUrl } : {}),
-		...(videoUrl ? { videoUrl } : {})
+		...(videoUrl ? { videoUrl } : {}),
+		...(audioUrl ? { audioUrl } : {})
 	};
 }

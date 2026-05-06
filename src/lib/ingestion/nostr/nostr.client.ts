@@ -17,6 +17,7 @@ import { normalizeNostrEvent } from '$lib/normalization/nostr.normalizer.js';
 import { INGESTION_FETCH } from '$lib/config/back-settings.js';
 import { extractImageUrlFromNostrTags } from '$lib/ingestion/media/image-capture.js';
 import { extractVideoUrlFromNostrTags } from '$lib/ingestion/media/video-capture.js';
+import { extractAudioUrlFromNostrTags } from '$lib/ingestion/media/audio-capture.js';
 import { npubToHex } from './bech32.js';
 import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
 
@@ -30,6 +31,7 @@ export interface NostrEvent {
 	sig: string;
 	imageUrl?: string;
 	videoUrl?: string;
+	audioUrl?: string;
 }
 
 const DEFAULT_KINDS = INGESTION_FETCH.nostrDefaultKinds;
@@ -109,10 +111,12 @@ export async function fetchNostrFeed(
 		seen.add(ev.id);
 		const imageUrl = extractImageUrlFromNostrTags(ev.tags);
 		const videoUrl = extractVideoUrlFromNostrTags(ev.tags);
+		const audioUrl = extractAudioUrlFromNostrTags(ev.tags);
 		unique.push({
 			...ev,
 			...(imageUrl ? { imageUrl } : {}),
-			...(videoUrl ? { videoUrl } : {})
+			...(videoUrl ? { videoUrl } : {}),
+			...(audioUrl ? { audioUrl } : {})
 		});
 		if (ev.created_at > maxCreatedAt) maxCreatedAt = ev.created_at;
 	}

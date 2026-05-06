@@ -32,8 +32,12 @@
 	let fontTitle = $derived(fontNode?.data.header.title ?? '');
 	let fontHref = $derived(fontNode ? `/browse/node/${fontNode.metadata.id}` : null);
 
-	let postHasMedia = $derived(hasMedia(sortedPost.post.url, sortedPost.post.imageUrl, sortedPost.post.videoUrl));
-	let postThumbnail = $derived(getThumbnail(sortedPost.post.url, sortedPost.post.imageUrl, sortedPost.post.videoUrl));
+	let postHasMedia = $derived(
+		hasMedia(sortedPost.post.url, sortedPost.post.imageUrl, sortedPost.post.videoUrl, sortedPost.post.audioUrl)
+	);
+	let postThumbnail = $derived(
+		getThumbnail(sortedPost.post.url, sortedPost.post.imageUrl, sortedPost.post.videoUrl, sortedPost.post.audioUrl)
+	);
 
 	function handleClick() {
 		if (!sortedPost.post.read) {
@@ -304,6 +308,7 @@
 				url={sortedPost.post.url} 
 				imageUrl={sortedPost.post.imageUrl} 
 				videoUrl={sortedPost.post.videoUrl} 
+				audioUrl={sortedPost.post.audioUrl}
 				title={sortedPost.post.title} 
 				onclick={handleClick} 
 			/>

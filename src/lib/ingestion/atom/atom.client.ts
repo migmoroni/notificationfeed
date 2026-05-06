@@ -19,6 +19,10 @@ import {
 	isLikelyVideoUrl,
 	pickFirstVideoUrl
 } from '$lib/ingestion/media/video-capture.js';
+import {
+	isLikelyAudioUrl,
+	pickFirstAudioUrl
+} from '$lib/ingestion/media/audio-capture.js';
 import type { HttpAdapter } from '$lib/ingestion/net/index.js';
 
 const NS_MEDIA = 'http://search.yahoo.com/mrss/';
@@ -106,6 +110,11 @@ function parseAtomXml(xml: string): AtomEntry[] {
 				pickMediaContentVideo(entry),
 				pickEnclosureVideo(entry),
 				pickMediaPlayerVideo(entry)
+			),
+			audioUrl: pickFirstAudioUrl(
+				pickMediaContentAudio(entry),
+				pickEnclosureAudio(entry),
+				pickMediaPlayerAudio(entry)
 			)
 		};
 	});
@@ -150,6 +159,19 @@ function pickEnclosureVideo(entry: Element): string {
 	return enclosure?.getAttribute('href')?.trim() ?? '';
 }
 
+function pickEnclosureAudio(entry: Element): string {
+	const links = Array.from(entry.getElementsByTagName('link'));
+	const enclosure = links.find((link) => {
+		const rel = (link.getAttribute('rel') ?? '').toLowerCase();
+		const type = (link.getAttribute('type') ?? '').toLowerCase();
+		if (rel !== 'enclosure') return false;
+		if (type.startsWith('audio/')) return true;
+		const href = link.getAttribute('href') ?? '';
+		return isLikelyAudioUrl(href);
+	});
+	return enclosure?.getAttribute('href')?.trim() ?? '';
+}
+
 function pickMediaContentImage(entry: Element): string {
 	const mediaContents = Array.from(entry.getElementsByTagNameNS(NS_MEDIA, 'content'));
 	for (const mediaContent of mediaContents) {
@@ -178,8 +200,28 @@ function pickMediaContentVideo(entry: Element): string {
 	return '';
 }
 
+function pickMediaContentAudio(entry: Element): string {
+	const mediaContents = Array.from(entry.getElementsByTagNameNS(NS_MEDIA, 'content'));
+	for (const mediaContent of mediaContents) {
+		const url = mediaContent.getAttribute('url')?.trim() ?? '';
+		if (!url) continue;
+		const medium = (mediaContent.getAttribute('medium') ?? '').toLowerCase();
+		const type = (mediaContent.getAttribute('type') ?? '').toLowerCase();
+		if (medium === 'audio' || type.startsWith('audio/') || isLikelyAudioUrl(url)) {
+			return url;
+		}
+	}
+	return '';
+}
+
 function pickMediaPlayerVideo(entry: Element): string {
 	return nsAttributeOf(entry, NS_MEDIA, 'player', 'url');
+}
+
+function pickMediaPlayerAudio(entry: Element): string {
+	const playerUrl = nsAttributeOf(entry, NS_MEDIA, 'player', 'url');
+	if (!playerUrl) return '';
+	return isLikelyAudioUrl(playerUrl) ? playerUrl : '';
 }
 
 function nsAttributeOf(parent: Element, ns: string, local: string, attr: string): string {

@@ -126,6 +126,15 @@ describe('normalizeJsonfeedItem', () => {
 		expect(post.videoUrl).toBe('https://cdn.example.com/clip.mp4');
 	});
 
+	it('uses audioUrl captured by client when present', () => {
+		const item: JsonfeedItem = {
+			id: 'aud-1',
+			audioUrl: 'https://cdn.example.com/clip.mp3'
+		};
+		const post = normalizeJsonfeedItem(item, NODE_ID);
+		expect(post.audioUrl).toBe('https://cdn.example.com/clip.mp3');
+	});
+
 	it('extracts imageUrl from content_html when no explicit image exists', () => {
 		const item: JsonfeedItem = {
 			id: 'img-3',
@@ -142,5 +151,14 @@ describe('normalizeJsonfeedItem', () => {
 		};
 		const post = normalizeJsonfeedItem(item, NODE_ID);
 		expect(post.videoUrl).toBe('https://videos.example.com/ep1.m3u8');
+	});
+
+	it('extracts audioUrl from content_text when no explicit audio exists', () => {
+		const item: JsonfeedItem = {
+			id: 'aud-2',
+			content_text: 'listen https://soundcloud.com/forss/flickermood now'
+		};
+		const post = normalizeJsonfeedItem(item, NODE_ID);
+		expect(post.audioUrl).toBe('https://soundcloud.com/forss/flickermood');
 	});
 });

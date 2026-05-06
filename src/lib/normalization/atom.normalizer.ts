@@ -13,8 +13,15 @@ import {
 	extractFirstVideoUrlFromText,
 	pickFirstVideoUrl
 } from '$lib/ingestion/media/video-capture.js';
+import {
+	extractFirstAudioUrlFromHtml,
+	extractFirstAudioUrlFromText,
+	isLikelyAudioUrl,
+	pickFirstAudioUrl
+} from '$lib/ingestion/media/audio-capture.js';
 import { resolveIngestionImageUrl } from '$lib/ingestion/media/image-quality.js';
 import { resolveIngestionVideoUrl } from '$lib/ingestion/media/video-quality.js';
+import { resolveIngestionAudioUrl } from '$lib/ingestion/media/audio-quality.js';
 import { htmlToPlainText } from './content-text.js';
 
 export interface AtomEntry {
@@ -27,6 +34,7 @@ export interface AtomEntry {
 	authorName?: string;
 	imageUrl?: string;
 	videoUrl?: string;
+	audioUrl?: string;
 }
 
 /**
@@ -63,6 +71,15 @@ export function normalizeAtomEntry(entry: AtomEntry, nodeId: string): IngestedPo
 		extractFirstVideoUrlFromText(entry.summary)
 	);
 	const resolvedVideoUrl = resolveIngestionVideoUrl(videoUrl);
+	const audioUrl = pickFirstAudioUrl(
+		entry.audioUrl,
+		isLikelyAudioUrl(entry.link) ? entry.link : undefined,
+		extractFirstAudioUrlFromHtml(entry.content),
+		extractFirstAudioUrlFromHtml(entry.summary),
+		extractFirstAudioUrlFromText(entry.content),
+		extractFirstAudioUrlFromText(entry.summary)
+	);
+	const resolvedAudioUrl = resolveIngestionAudioUrl(audioUrl);
 	return {
 		id: entry.id,
 		nodeId,
@@ -74,6 +91,7 @@ export function normalizeAtomEntry(entry: AtomEntry, nodeId: string): IngestedPo
 		publishedAt: Number.isFinite(published) ? published : now,
 		ingestedAt: now,
 		...(resolvedImageUrl ? { imageUrl: resolvedImageUrl } : {}),
-		...(resolvedVideoUrl ? { videoUrl: resolvedVideoUrl } : {})
+		...(resolvedVideoUrl ? { videoUrl: resolvedVideoUrl } : {}),
+		...(resolvedAudioUrl ? { audioUrl: resolvedAudioUrl } : {})
 	};
 }

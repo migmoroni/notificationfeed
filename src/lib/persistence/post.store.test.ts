@@ -156,7 +156,7 @@ describe('backfillPostsForUserNode media copy', () => {
 		dbMock.put.mockClear();
 	});
 
-	it('copies imageUrl and videoUrl from sibling user records', async () => {
+	it('copies imageUrl, videoUrl and audioUrl from sibling user records', async () => {
 		dbMock.records = [
 			post({
 				_pk: `user-2|${NODE_ID}|post-1`,
@@ -166,6 +166,7 @@ describe('backfillPostsForUserNode media copy', () => {
 				url: 'https://example.com/post-1',
 				imageUrl: 'https://cdn.example.com/post-1.jpg',
 				videoUrl: 'https://cdn.example.com/post-1.mp4',
+				audioUrl: 'https://cdn.example.com/post-1.mp3',
 				ingestedAt: 10
 			})
 		];
@@ -176,5 +177,6 @@ describe('backfillPostsForUserNode media copy', () => {
 		const copied = dbMock.records.find((r) => r._pk === `${USER_ID}|${NODE_ID}|post-1`);
 		expect(copied?.imageUrl).toBe('https://cdn.example.com/post-1.jpg');
 		expect(copied?.videoUrl).toBe('https://cdn.example.com/post-1.mp4');
+		expect(copied?.audioUrl).toBe('https://cdn.example.com/post-1.mp3');
 	});
 });

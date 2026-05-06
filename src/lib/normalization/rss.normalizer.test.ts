@@ -70,4 +70,30 @@ describe('normalizeRssItem', () => {
 		const post = normalizeRssItem(item, NODE_ID);
 		expect(post.videoUrl).toBe('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 	});
+
+	it('keeps audioUrl when present in parsed item', () => {
+		const item: RssItem = {
+			title: 'Post with audio',
+			link: 'https://example.com/post-with-audio',
+			description: 'Body',
+			pubDate: '2026-04-01T12:00:00Z',
+			audioUrl: 'https://cdn.example.com/post-with-audio.mp3'
+		};
+
+		const post = normalizeRssItem(item, NODE_ID);
+		expect(post.audioUrl).toBe('https://cdn.example.com/post-with-audio.mp3');
+	});
+
+	it('normalizes spotify audioUrl to canonical open.spotify URL', () => {
+		const item: RssItem = {
+			title: 'Post with spotify audio',
+			link: 'https://example.com/post-with-spotify',
+			description: 'Body',
+			pubDate: '2026-04-01T12:00:00Z',
+			audioUrl: 'https://open.spotify.com/embed/track/4uLU6hMCjMI75M1A2tKUQC'
+		};
+
+		const post = normalizeRssItem(item, NODE_ID);
+		expect(post.audioUrl).toBe('https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC');
+	});
 });

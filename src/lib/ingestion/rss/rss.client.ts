@@ -27,6 +27,10 @@ import {
 	isLikelyVideoUrl,
 	pickFirstVideoUrl
 } from '$lib/ingestion/media/video-capture.js';
+import {
+	isLikelyAudioUrl,
+	pickFirstAudioUrl
+} from '$lib/ingestion/media/audio-capture.js';
 import type { HttpAdapter } from '$lib/ingestion/net/index.js';
 
 export interface FetchResult {
@@ -143,6 +147,11 @@ function extractRssItem(item: Element): RssItem {
 		nsAttributeOf(item, NS_MEDIA, 'player', 'url'),
 		pickEnclosureVideo(item)
 	);
+	const audioUrl = pickFirstAudioUrl(
+		pickMediaContentAudio(item),
+		nsAttributeOf(item, NS_MEDIA, 'player', 'url'),
+		pickEnclosureAudio(item)
+	);
 
 	return {
 		title,
@@ -152,7 +161,8 @@ function extractRssItem(item: Element): RssItem {
 		guid,
 		author,
 		imageUrl,
-		videoUrl
+		videoUrl,
+		audioUrl
 	};
 }
 
@@ -182,6 +192,19 @@ function pickEnclosureVideo(item: Element): string {
 	return '';
 }
 
+function pickEnclosureAudio(item: Element): string {
+	const enclosures = Array.from(item.getElementsByTagName('enclosure'));
+	for (const enclosure of enclosures) {
+		const url = enclosure.getAttribute('url')?.trim() ?? '';
+		if (!url) continue;
+		const type = (enclosure.getAttribute('type') ?? '').toLowerCase();
+		if (type.startsWith('audio/') || isLikelyAudioUrl(url)) {
+			return url;
+		}
+	}
+	return '';
+}
+
 function pickMediaContentImage(item: Element): string {
 	const mediaContents = Array.from(item.getElementsByTagNameNS(NS_MEDIA, 'content'));
 	for (const mediaContent of mediaContents) {
@@ -204,6 +227,20 @@ function pickMediaContentVideo(item: Element): string {
 		const medium = (mediaContent.getAttribute('medium') ?? '').toLowerCase();
 		const type = (mediaContent.getAttribute('type') ?? '').toLowerCase();
 		if (medium === 'video' || type.startsWith('video/') || isLikelyVideoUrl(url)) {
+			return url;
+		}
+	}
+	return '';
+}
+
+function pickMediaContentAudio(item: Element): string {
+	const mediaContents = Array.from(item.getElementsByTagNameNS(NS_MEDIA, 'content'));
+	for (const mediaContent of mediaContents) {
+		const url = mediaContent.getAttribute('url')?.trim() ?? '';
+		if (!url) continue;
+		const medium = (mediaContent.getAttribute('medium') ?? '').toLowerCase();
+		const type = (mediaContent.getAttribute('type') ?? '').toLowerCase();
+		if (medium === 'audio' || type.startsWith('audio/') || isLikelyAudioUrl(url)) {
 			return url;
 		}
 	}
@@ -268,6 +305,7 @@ interface Rss2JsonItem {
 	thumbnail?: string;
 	image?: string;
 	video?: string;
+	audio?: string;
 	enclosure?: Rss2JsonEnclosure | string;
 }
 
@@ -313,6 +351,10 @@ function parseRss2JsonResponse(body: string): RssItem[] {
 			videoUrl: pickFirstVideoUrl(
 				it.video,
 				pickRss2JsonEnclosureVideo(it.enclosure)
+			),
+			audioUrl: pickFirstAudioUrl(
+				it.audio,
+				pickRss2JsonEnclosureAudio(it.enclosure)
 			)
 		};
 	});
@@ -351,6 +393,25 @@ function pickRss2JsonEnclosureVideo(enclosure: Rss2JsonEnclosure | string | unde
 	const rawUrl = enclosure.url ?? enclosure.link ?? enclosure.thumbnail;
 	if (rawUrl && isLikelyVideoUrl(rawUrl)) {
 		return pickFirstVideoUrl(rawUrl);
+	}
+
+	return undefined;
+}
+
+function pickRss2JsonEnclosureAudio(enclosure: Rss2JsonEnclosure | string | undefined): string | undefined {
+	if (!enclosure) return undefined;
+	if (typeof enclosure === 'string') {
+		return isLikelyAudioUrl(enclosure) ? enclosure : undefined;
+	}
+
+	const type = enclosure.type?.toLowerCase() ?? '';
+	if (type.startsWith('audio/')) {
+		return pickFirstAudioUrl(enclosure.url, enclosure.link, enclosure.thumbnail);
+	}
+
+	const rawUrl = enclosure.url ?? enclosure.link ?? enclosure.thumbnail;
+	if (rawUrl && isLikelyAudioUrl(rawUrl)) {
+		return pickFirstAudioUrl(rawUrl);
 	}
 
 	return undefined;

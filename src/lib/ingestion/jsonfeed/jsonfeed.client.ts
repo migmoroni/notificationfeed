@@ -23,6 +23,7 @@ import {
 } from '$lib/normalization/jsonfeed.normalizer.js';
 import { isLikelyImageUrl, pickFirstImageUrl } from '$lib/ingestion/media/image-capture.js';
 import { isLikelyVideoUrl, pickFirstVideoUrl } from '$lib/ingestion/media/video-capture.js';
+import { isLikelyAudioUrl, pickFirstAudioUrl } from '$lib/ingestion/media/audio-capture.js';
 import type { HttpAdapter } from '$lib/ingestion/net/index.js';
 
 export interface FetchResult {
@@ -123,6 +124,23 @@ function pickAttachmentVideo(attachments: JsonfeedAttachment[] | undefined): str
 	return undefined;
 }
 
+function pickAttachmentAudio(attachments: JsonfeedAttachment[] | undefined): string | undefined {
+	if (!attachments || attachments.length === 0) return undefined;
+	for (const attachment of attachments) {
+		const mimeType = attachment.mime_type?.toLowerCase();
+		if (mimeType?.startsWith('audio/')) {
+			const audio = pickFirstAudioUrl(attachment.url);
+			if (audio) return audio;
+			continue;
+		}
+		if (attachment.url && isLikelyAudioUrl(attachment.url)) {
+			const audio = pickFirstAudioUrl(attachment.url);
+			if (audio) return audio;
+		}
+	}
+	return undefined;
+}
+
 /**
  * Capture JSON Feed-specific media hints so the normalizer can stay
  * focused on canonicalization and generic content fallback extraction.
@@ -139,10 +157,16 @@ function enrichProtocolMediaHints(item: JsonfeedItem): JsonfeedItem {
 		item.video,
 		pickAttachmentVideo(item.attachments)
 	);
+	const audioUrl = pickFirstAudioUrl(
+		item.audioUrl,
+		item.audio,
+		pickAttachmentAudio(item.attachments)
+	);
 
 	return {
 		...item,
 		...(imageUrl ? { imageUrl } : {}),
-		...(videoUrl ? { videoUrl } : {})
+		...(videoUrl ? { videoUrl } : {}),
+		...(audioUrl ? { audioUrl } : {})
 	};
 }
