@@ -28,6 +28,7 @@ import type { UserCreator } from '$lib/domain/user/user-creator.js';
 import { createUserSettings } from '$lib/domain/user/user.js';
 import type { TreePublication } from '$lib/domain/tree-export/tree-publication.js';
 import { getStorageBackend } from '$lib/persistence/db.js';
+import { savePostsForUser, type IngestedPost } from '$lib/persistence/post.store.js';
 
 // ── Stable IDs ─────────────────────────────────────────────────────────
 
@@ -45,6 +46,9 @@ treeProfileFrontend: '00000000-0000-0000-0000-000000003014',
 treeProfileNewsDraft: '00000000-0000-0000-0000-000000003015',
 // Profile tree dedicated to ingestion testing — one font per protocol.
 treeProfileTest: '00000000-0000-0000-0000-000000003016',
+// Profile trees dedicated to media rendering tests.
+treeProfileTestVideo: '00000000-0000-0000-0000-000000003017',
+treeProfileTestAudio: '00000000-0000-0000-0000-000000003018',
 
 // Creator trees (aggregate profile trees via tree-link nodes)
 treeTechBlog: '00000000-0000-0000-0000-000000003001',
@@ -71,6 +75,22 @@ localFontTestRss: '00000000-0000-0000-0000-00000000500b',
 localFontTestAtom: '00000000-0000-0000-0000-00000000500c',
 localFontTestNostr: '00000000-0000-0000-0000-00000000500d',
 localFontTestJsonfeed: '00000000-0000-0000-0000-00000000500e',
+localFontVideoAtom1: '00000000-0000-0000-0000-00000000500f',
+localFontVideoRss1: '00000000-0000-0000-0000-000000005010',
+localFontAudioRss1: '00000000-0000-0000-0000-000000005011',
+localFontAudioRss2: '00000000-0000-0000-0000-000000005012',
+localFontVideoRss2: '00000000-0000-0000-0000-000000005013',
+localFontVideoRss3: '00000000-0000-0000-0000-000000005014',
+localFontVideoRss4: '00000000-0000-0000-0000-000000005015',
+localFontVideoRss5: '00000000-0000-0000-0000-000000005016',
+localFontVideoRss6: '00000000-0000-0000-0000-000000005017',
+localFontVideoRss7: '00000000-0000-0000-0000-000000005018',
+localFontVideoRss8: '00000000-0000-0000-0000-000000005019',
+localFontVideoRss9: '00000000-0000-0000-0000-00000000501a',
+localFontVideoRss10: '00000000-0000-0000-0000-00000000501b',
+localFontAudioRss3: '00000000-0000-0000-0000-00000000501c',
+localFontAudioRss4: '00000000-0000-0000-0000-00000000501d',
+localFontAudioRss5: '00000000-0000-0000-0000-00000000501e',
 } as const;
 
 // ── Composite nodeIds ───────────────────────────────────────────────────
@@ -124,6 +144,32 @@ fontNostr: generateNodeId(IDS.treeProfileTest, IDS.localFontTestNostr),
 fontJsonfeed: generateNodeId(IDS.treeProfileTest, IDS.localFontTestJsonfeed),
 };
 
+// Profile tree: Test Video Sources
+const PV = {
+root: generateNodeId(IDS.treeProfileTestVideo, IDS.localRoot),
+fontAtom1: generateNodeId(IDS.treeProfileTestVideo, IDS.localFontVideoAtom1),
+fontRss1: generateNodeId(IDS.treeProfileTestVideo, IDS.localFontVideoRss1),
+fontRss2: generateNodeId(IDS.treeProfileTestVideo, IDS.localFontVideoRss2),
+fontRss3: generateNodeId(IDS.treeProfileTestVideo, IDS.localFontVideoRss3),
+fontRss4: generateNodeId(IDS.treeProfileTestVideo, IDS.localFontVideoRss4),
+fontRss5: generateNodeId(IDS.treeProfileTestVideo, IDS.localFontVideoRss5),
+fontRss6: generateNodeId(IDS.treeProfileTestVideo, IDS.localFontVideoRss6),
+fontRss7: generateNodeId(IDS.treeProfileTestVideo, IDS.localFontVideoRss7),
+fontRss8: generateNodeId(IDS.treeProfileTestVideo, IDS.localFontVideoRss8),
+fontRss9: generateNodeId(IDS.treeProfileTestVideo, IDS.localFontVideoRss9),
+fontRss10: generateNodeId(IDS.treeProfileTestVideo, IDS.localFontVideoRss10),
+};
+
+// Profile tree: Test Audio Sources
+const PA = {
+root: generateNodeId(IDS.treeProfileTestAudio, IDS.localRoot),
+fontRss1: generateNodeId(IDS.treeProfileTestAudio, IDS.localFontAudioRss1),
+fontRss2: generateNodeId(IDS.treeProfileTestAudio, IDS.localFontAudioRss2),
+fontRss3: generateNodeId(IDS.treeProfileTestAudio, IDS.localFontAudioRss3),
+fontRss4: generateNodeId(IDS.treeProfileTestAudio, IDS.localFontAudioRss4),
+fontRss5: generateNodeId(IDS.treeProfileTestAudio, IDS.localFontAudioRss5),
+};
+
 // Creator tree: TechBlog (links to PT + PS)
 const TB = {
 root: generateNodeId(IDS.treeTechBlog, IDS.localRoot),
@@ -158,6 +204,12 @@ const users = await db.users.getAll<{ id: string }>();
 if (!users.some((u) => u.id === IDS.creator)) return false;
 const trees = await db.contentTrees.getAll<{ metadata: { id: string } }>();
 if (!trees.some((t) => t.metadata.id === IDS.treeTechBlog)) return false;
+if (!trees.some((t) => t.metadata.id === IDS.treeProfileTestVideo)) return false;
+if (!trees.some((t) => t.metadata.id === IDS.treeProfileTestAudio)) return false;
+
+const xPosts = await db.posts.query<{ id: string }>('byUserNode', `${IDS.consumer}|${PV.fontRss2}`);
+if (!xPosts.some((p) => p.id === 'mock-video-x-direct-001')) return false;
+
 return true;
 }
 
@@ -203,10 +255,80 @@ metadata: { id, versionSchema: 1, createdAt: now, updatedAt: now, author }
 };
 }
 
+async function seedDirectPlatformMockPosts(nowMs: number): Promise<void> {
+const directPlatformPosts: IngestedPost[] = [
+{
+id: 'mock-video-x-direct-001',
+nodeId: PV.fontRss2,
+protocol: 'rss',
+title: 'X Direct Post (Mock)',
+content: 'Link direto para teste de embed: https://twitter.com/SpaceX/status/1732824684683784516?ref_src=twsrc%5Etfw',
+url: 'https://twitter.com/SpaceX/status/1732824684683784516?ref_src=twsrc%5Etfw',
+author: 'Mock Seed',
+videoUrl: 'https://twitter.com/SpaceX/status/1732824684683784516?ref_src=twsrc%5Etfw',
+publishedAt: nowMs - 5 * 60_000,
+ingestedAt: nowMs,
+},
+{
+id: 'mock-video-twitch-direct-001',
+nodeId: PV.fontRss3,
+protocol: 'rss',
+title: 'Twitch Direct Post (Mock)',
+content: 'Link direto para teste de embed: https://www.twitch.tv',
+url: '',
+author: 'Mock Seed',
+videoUrl: '',
+publishedAt: nowMs - 4 * 60_000,
+ingestedAt: nowMs,
+},
+{
+id: 'mock-video-rumble-direct-001',
+nodeId: PV.fontRss5,
+protocol: 'rss',
+title: 'Rumble Direct Post (Mock)',
+content: 'Link direto para teste de embed: https://rumble.com',
+url: '',
+author: 'Mock Seed',
+videoUrl: '',
+publishedAt: nowMs - 3 * 60_000,
+ingestedAt: nowMs,
+},
+{
+id: 'mock-video-kick-direct-001',
+nodeId: PV.fontRss9,
+protocol: 'rss',
+title: 'Kick Direct Post (Mock)',
+content: 'Link direto para teste de embed: https://kick.com/',
+url: '',
+author: 'Mock Seed',
+videoUrl: '',
+publishedAt: nowMs - 2 * 60_000,
+ingestedAt: nowMs,
+},
+{
+id: 'mock-audio-spotify-direct-001',
+nodeId: PA.fontRss3,
+protocol: 'rss',
+title: 'Spotify Direct Post (Mock)',
+content: 'Link direto para teste de embed: https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC',
+url: 'https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC',
+author: 'Mock Seed',
+audioUrl: 'https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC',
+publishedAt: nowMs - 1 * 60_000,
+ingestedAt: nowMs,
+},
+];
+
+await savePostsForUser(IDS.consumer, directPlatformPosts);
+}
+
 // ── Seed function ──────────────────────────────────────────────────────
 
 export async function seedMockData(): Promise<void> {
-if (await hasMockData()) return;
+if (await hasMockData()) {
+await seedDirectPlatformMockPosts(Date.now());
+return;
+}
 
 const db = await getStorageBackend();
 const now = new Date();
@@ -299,9 +421,9 @@ categoryAssignments: [
 }, { role: 'profile', links: [] }),
 
 [PS.fontRss3]: makeNode(PS.fontRss3, 'font', {
-title: 'Krebs on Security',
+title: 'Tech Crunch Security RSS',
 categoryAssignments: [{ treeId: 'content', categoryIds: ['baaac'] }]
-}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: 'https://krebsonsecurity.com/feed/' }, primary: true }], defaultEnabled: true }),
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'atom', config: { url: 'https://techcrunch.com/feed/' }, primary: true }], defaultEnabled: true }),
 },
 { '/': PS.root, '*': [PS.fontRss3] },
 [],
@@ -426,6 +548,114 @@ subtitle: 'jsonfeed',
 IDS.consumer
 );
 
+const treeProfileTestVideo = makeTree(
+IDS.treeProfileTestVideo,
+{
+[PV.root]: makeNode(PV.root, 'profile', {
+title: 'Test Video Sources',
+summary: 'Media test bench focused on directly supported video platforms.',
+categoryAssignments: []
+}, { role: 'profile', links: [] }),
+
+[PV.fontAtom1]: makeNode(PV.fontAtom1, 'font', {
+title: 'Test Video — YouTube',
+subtitle: 'youtube',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'atom', config: { url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCBR8-60-B28hp2BmDPdntcQ' }, primary: true }], defaultEnabled: true }),
+
+[PV.fontRss1]: makeNode(PV.fontRss1, 'font', {
+title: 'Test Video — Vimeo',
+subtitle: 'vimeo',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: 'https://vimeo.com/channels/staff/videos/rss' }, primary: true }], defaultEnabled: true }),
+
+[PV.fontRss2]: makeNode(PV.fontRss2, 'font', {
+title: 'Test Video — X',
+subtitle: 'x',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: '' }, primary: true }], defaultEnabled: false }),
+
+[PV.fontRss3]: makeNode(PV.fontRss3, 'font', {
+title: 'Test Video — Twitch',
+subtitle: 'twitch',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: '' }, primary: true }], defaultEnabled: false }),
+
+[PV.fontRss4]: makeNode(PV.fontRss4, 'font', {
+title: 'Test Video — Dailymotion',
+subtitle: 'dailymotion',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: '' }, primary: true }], defaultEnabled: true }),
+
+[PV.fontRss5]: makeNode(PV.fontRss5, 'font', {
+title: 'Test Video — Rumble',
+subtitle: 'rumble',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: '' }, primary: true }], defaultEnabled: false }),
+
+[PV.fontRss6]: makeNode(PV.fontRss6, 'font', {
+title: 'Test Video — Internet Archive',
+subtitle: 'internet-archive',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: 'https://archive.org/services/collection-rss.php?collection=TV-BBCNEWS' }, primary: true }], defaultEnabled: true }),
+
+[PV.fontRss7]: makeNode(PV.fontRss7, 'font', {
+title: 'Test Video — Odysee',
+subtitle: 'odysee',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: '' }, primary: true }], defaultEnabled: true }),
+
+[PV.fontRss8]: makeNode(PV.fontRss8, 'font', {
+title: 'Test Video — PeerTube',
+subtitle: 'peertube',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: '' }, primary: true }], defaultEnabled: true }),
+
+[PV.fontRss9]: makeNode(PV.fontRss9, 'font', {
+title: 'Test Video — Kick',
+subtitle: 'kick',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: '' }, primary: true }], defaultEnabled: false }),
+
+[PV.fontRss10]: makeNode(PV.fontRss10, 'font', {
+title: 'Test Video — Direct Asset',
+subtitle: 'direct',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: '' }, primary: true }], defaultEnabled: true }),
+},
+{ '/': PV.root, '*': [PV.fontAtom1, PV.fontRss1, PV.fontRss2, PV.fontRss3, PV.fontRss4, PV.fontRss5, PV.fontRss6, PV.fontRss7, PV.fontRss8, PV.fontRss9, PV.fontRss10] },
+[],
+IDS.consumer
+);
+
+const treeProfileTestAudio = makeTree(
+IDS.treeProfileTestAudio,
+{
+[PA.root]: makeNode(PA.root, 'profile', {
+title: 'Test Audio Sources',
+summary: 'Media test bench focused on directly supported audio platforms.',
+categoryAssignments: []
+}, { role: 'profile', links: [] }),
+
+[PA.fontRss1]: makeNode(PA.fontRss1, 'font', {
+title: 'Test Audio — Syntax FM',
+subtitle: 'podcast-rss',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: 'https://feeds.simplecast.com/54nAGcIl' }, primary: true }], defaultEnabled: true }),
+
+[PA.fontRss2]: makeNode(PA.fontRss2, 'font', {
+title: 'Test Audio — Planet Money',
+subtitle: 'podcast-rss',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: 'https://feeds.npr.org/510289/podcast.xml' }, primary: true }], defaultEnabled: true }),
+
+[PA.fontRss3]: makeNode(PA.fontRss3, 'font', {
+title: 'Test Audio — Spotify',
+subtitle: 'spotify',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: '' }, primary: true }], defaultEnabled: false }),
+
+[PA.fontRss4]: makeNode(PA.fontRss4, 'font', {
+title: 'Test Audio — SoundCloud',
+subtitle: 'soundcloud',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: '' }, primary: true }], defaultEnabled: true }),
+
+[PA.fontRss5]: makeNode(PA.fontRss5, 'font', {
+title: 'Test Audio — Direct Asset',
+subtitle: 'direct',
+}, { role: 'font', protocols: [{ id: 'p1', protocol: 'rss', config: { url: '' }, primary: true }], defaultEnabled: true }),
+},
+{ '/': PA.root, '*': [PA.fontRss1, PA.fontRss2, PA.fontRss3, PA.fontRss4, PA.fontRss5] },
+[],
+IDS.consumer
+);
+
 // ── Collection Trees (root=collection + tree-link nodes) ──────────────
 
 const techSourcesSectionId = 'sec-tech';
@@ -544,7 +774,7 @@ IDS.creator
 
 const allTrees = [
 treeProfileTech, treeProfileSecurity, treeProfileNews, treeProfileScience,
-treeProfileFrontend, treeProfileNewsDraft, treeProfileTest,
+	treeProfileFrontend, treeProfileNewsDraft, treeProfileTest, treeProfileTestVideo, treeProfileTestAudio,
 treeTechBlog, treeNewsDaily, treeCreatorPublished, treeCreatorDraft
 ];
 for (const tree of allTrees) {
@@ -573,7 +803,8 @@ exportedAt: now
 publishedAt: now
 };
 await db.treePublications.put(publication);
+await seedDirectPlatformMockPosts(now.getTime());
 }
 
 /** Exported IDs for use in tests */
-export const MOCK_NODES = { PT, PS, PN, PH, PF, PD, PX, TB, ND, CP, CD };
+export const MOCK_NODES = { PT, PS, PN, PH, PF, PD, PX, PV, PA, TB, ND, CP, CD };

@@ -29,7 +29,7 @@
 						title={title}
 						embedUrl={videoEmbed.embedUrl}
 						provider={videoEmbed.provider}
-						thumbnailUrl={videoEmbed.thumbnailUrl}
+						thumbnailUrl={videoEmbed.thumbnailUrl ?? imageUrl ?? undefined}
 					/>
 				{:else}
 					<iframe

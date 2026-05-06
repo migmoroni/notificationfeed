@@ -219,9 +219,9 @@
 	iframeLazy={spec.iframeLazy}
 >
 	{#snippet background()}
-		{#if activeProvider === 'youtube' && youtubeThumbnail}
-			<img src={youtubeThumbnail} alt={title} class="absolute inset-0 w-full h-full object-cover z-0" loading="lazy" />
-		{:else if activeProvider === 'dailymotion' && thumbnailUrl}
+		{#if activeProvider === 'youtube' && (youtubeThumbnail || thumbnailUrl)}
+			<img src={youtubeThumbnail ?? thumbnailUrl} alt={title} class="absolute inset-0 w-full h-full object-cover z-0" loading="lazy" />
+		{:else if thumbnailUrl}
 			<img src={thumbnailUrl} alt={title} class="absolute inset-0 w-full h-full object-cover z-0" loading="lazy" />
 		{:else}
 			<div class="absolute inset-0 z-0 {spec.backgroundClass}"></div>

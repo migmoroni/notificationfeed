@@ -40,6 +40,24 @@ describe('media.resolver', () => {
 		expect(thumb).toBe('https://cdn.example.com/fallback.jpg');
 	});
 
+	it('falls back to imageUrl for embeddable providers without native thumbnail', () => {
+		const thumb = getThumbnail(
+			'https://vimeo.com/148751763',
+			'https://cdn.example.com/fallback-vimeo.jpg',
+			null
+		);
+		expect(thumb).toBe('https://cdn.example.com/fallback-vimeo.jpg');
+	});
+
+	it('falls back to imageUrl when videoUrl points to provider without native thumbnail', () => {
+		const thumb = getThumbnail(
+			'https://example.com/article',
+			'https://cdn.example.com/fallback-x.jpg',
+			'https://x.com/SpaceX/status/1918483180486459576?s=20'
+		);
+		expect(thumb).toBe('https://cdn.example.com/fallback-x.jpg');
+	});
+
 	it('returns null thumbnail for direct videos without poster', () => {
 		const thumb = getThumbnail(null, null, 'https://cdn.example.com/fallback-video.mp4');
 		expect(thumb).toBe(null);
