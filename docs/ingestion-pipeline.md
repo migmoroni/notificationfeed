@@ -34,6 +34,20 @@ Todas as configs numéricas vivem em `back-settings.ts` sob
 `INGESTION_CIRCUIT_BREAKER`, `INGESTION_BACKOFF`,
 `INGESTION_CONFIDENCE`.
 
+## Do feed ao post salvo
+
+Este documento foca na máquina de estados, eleição de source,
+backoff e circuit-breaker. O fluxo de dados completo — client do
+protocolo, normalizer, `CanonicalPost`, persistência por usuário,
+renderização e cache de mídia — está em
+`docs/ingestion-to-post-flow.md`.
+
+Regra de mídia: a ingestão baixa o payload do feed/evento e salva
+`imageUrl`/`videoUrl` como URLs do post. Ela não baixa os arquivos
+de imagem/vídeo apontados por essas URLs. Imagens e vídeos são
+requisitados quando a UI renderiza a mídia; imagens vistas podem ser
+servidas depois pelo cache runtime do service worker.
+
 ## Transporte de URL de feed (HTTP + IPFS/IPNS)
 
 O protocolo lógico de feed permanece inalterado (`rss`, `atom`,

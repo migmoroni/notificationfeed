@@ -19,10 +19,10 @@
 	import ShareMenu from '$lib/components/shared/share/ShareMenu.svelte';
 	import { t } from '$lib/i18n/t.js';
 	import PostMedia from './PostMedia.svelte';
-	import { hasMedia, getThumbnail, getImageQualityCandidates, rememberWorkingImageCandidate } from '$lib/utils/media.js';
+	import { hasMedia, getThumbnail } from '$lib/ingestion/media/media.resolver.js';
 
 	interface Props {
-		sortedPost: SortedPost<CanonicalPost & { imageUrl?: string }>;
+		sortedPost: SortedPost<CanonicalPost>;
 	}
 
 	let { sortedPost }: Props = $props();
@@ -32,25 +32,8 @@
 	let fontTitle = $derived(fontNode?.data.header.title ?? '');
 	let fontHref = $derived(fontNode ? `/browse/node/${fontNode.metadata.id}` : null);
 
-	let postHasMedia = $derived(hasMedia(sortedPost.post.url, sortedPost.post.imageUrl));
-	let postThumbnail = $derived(getThumbnail(sortedPost.post.url, sortedPost.post.imageUrl));
-	let postThumbnailCandidates = $derived(getImageQualityCandidates(postThumbnail));
-	let postThumbnailCandidateIndex = $state(0);
-	let activePostThumbnail = $derived(postThumbnailCandidates[postThumbnailCandidateIndex] ?? null);
-
-	$effect(() => {
-		postThumbnail;
-		postThumbnailCandidateIndex = 0;
-	});
-
-	function onPostThumbnailError() {
-		if (postThumbnailCandidateIndex >= postThumbnailCandidates.length - 1) return;
-		postThumbnailCandidateIndex += 1;
-	}
-
-	function onPostThumbnailLoad() {
-		rememberWorkingImageCandidate(postThumbnail, activePostThumbnail);
-	}
+	let postHasMedia = $derived(hasMedia(sortedPost.post.url, sortedPost.post.imageUrl, sortedPost.post.videoUrl));
+	let postThumbnail = $derived(getThumbnail(sortedPost.post.url, sortedPost.post.imageUrl, sortedPost.post.videoUrl));
 
 	function handleClick() {
 		if (!sortedPost.post.read) {
@@ -233,15 +216,13 @@
 					{/if}
 				</div>
 				
-				{#if activePostThumbnail}
+				{#if postThumbnail}
 					<div class="shrink-0 mb-3">
 						<img
-							src={activePostThumbnail}
+							src={postThumbnail}
 							alt=""
 							class="w-28 aspect-video object-cover rounded-md bg-muted border border-border/40 shadow-sm"
 							loading="lazy"
-							onerror={onPostThumbnailError}
-							onload={onPostThumbnailLoad}
 						/>
 					</div>
 				{/if}
@@ -322,6 +303,7 @@
 			<PostMedia 
 				url={sortedPost.post.url} 
 				imageUrl={sortedPost.post.imageUrl} 
+				videoUrl={sortedPost.post.videoUrl} 
 				title={sortedPost.post.title} 
 				onclick={handleClick} 
 			/>

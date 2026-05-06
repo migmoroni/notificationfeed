@@ -11,7 +11,17 @@ import type { FontAtomConfig } from '$lib/domain/content-tree/content-tree.js';
 import type { ProtocolFetcherState } from '$lib/domain/ingestion/fetcher-state.js';
 import type { IngestedPost } from '$lib/persistence/post.store.js';
 import { normalizeAtomEntry, type AtomEntry } from '$lib/normalization/atom.normalizer.js';
+import {
+	isLikelyImageUrl,
+	pickFirstImageUrl
+} from '$lib/ingestion/media/image-capture.js';
+import {
+	isLikelyVideoUrl,
+	pickFirstVideoUrl
+} from '$lib/ingestion/media/video-capture.js';
 import type { HttpAdapter } from '$lib/ingestion/net/index.js';
+
+const NS_MEDIA = 'http://search.yahoo.com/mrss/';
 
 export interface FetchResult {
 	posts: IngestedPost[];
@@ -76,15 +86,29 @@ function parseAtomXml(xml: string): AtomEntry[] {
 	const doc = parser.parseFromString(xml, 'text/xml');
 	if (doc.querySelector('parsererror')) return [];
 
-	return Array.from(doc.getElementsByTagName('entry')).map((entry) => ({
-		id: textOf(entry, 'id'),
-		title: textOf(entry, 'title'),
-		link: pickAlternateLink(entry),
-		summary: textOf(entry, 'summary'),
-		content: textOf(entry, 'content'),
-		updated: textOf(entry, 'updated') || textOf(entry, 'published'),
-		authorName: textOfPath(entry, 'author', 'name') || undefined
-	}));
+	return Array.from(doc.getElementsByTagName('entry')).map((entry) => {
+		const summary = textOf(entry, 'summary');
+		const content = textOf(entry, 'content');
+		return {
+			id: textOf(entry, 'id'),
+			title: textOf(entry, 'title'),
+			link: pickAlternateLink(entry),
+			summary,
+			content,
+			updated: textOf(entry, 'updated') || textOf(entry, 'published'),
+			authorName: textOfPath(entry, 'author', 'name') || undefined,
+			imageUrl: pickFirstImageUrl(
+				nsAttributeOf(entry, NS_MEDIA, 'thumbnail', 'url'),
+				pickMediaContentImage(entry),
+				pickEnclosureImage(entry)
+			),
+			videoUrl: pickFirstVideoUrl(
+				pickMediaContentVideo(entry),
+				pickEnclosureVideo(entry),
+				pickMediaPlayerVideo(entry)
+			)
+		};
+	});
 }
 
 /**
@@ -98,6 +122,68 @@ function pickAlternateLink(entry: Element): string {
 	const links = Array.from(entry.getElementsByTagName('link'));
 	const alt = links.find((l) => (l.getAttribute('rel') ?? 'alternate') === 'alternate');
 	return alt?.getAttribute('href') ?? links[0]?.getAttribute('href') ?? '';
+}
+
+function pickEnclosureImage(entry: Element): string {
+	const links = Array.from(entry.getElementsByTagName('link'));
+	const enclosure = links.find((link) => {
+		const rel = (link.getAttribute('rel') ?? '').toLowerCase();
+		const type = (link.getAttribute('type') ?? '').toLowerCase();
+		if (rel !== 'enclosure') return false;
+		if (type.startsWith('image/')) return true;
+		const href = link.getAttribute('href') ?? '';
+		return isLikelyImageUrl(href);
+	});
+	return enclosure?.getAttribute('href')?.trim() ?? '';
+}
+
+function pickEnclosureVideo(entry: Element): string {
+	const links = Array.from(entry.getElementsByTagName('link'));
+	const enclosure = links.find((link) => {
+		const rel = (link.getAttribute('rel') ?? '').toLowerCase();
+		const type = (link.getAttribute('type') ?? '').toLowerCase();
+		if (rel !== 'enclosure') return false;
+		if (type.startsWith('video/')) return true;
+		const href = link.getAttribute('href') ?? '';
+		return isLikelyVideoUrl(href);
+	});
+	return enclosure?.getAttribute('href')?.trim() ?? '';
+}
+
+function pickMediaContentImage(entry: Element): string {
+	const mediaContents = Array.from(entry.getElementsByTagNameNS(NS_MEDIA, 'content'));
+	for (const mediaContent of mediaContents) {
+		const url = mediaContent.getAttribute('url')?.trim() ?? '';
+		if (!url) continue;
+		const medium = (mediaContent.getAttribute('medium') ?? '').toLowerCase();
+		const type = (mediaContent.getAttribute('type') ?? '').toLowerCase();
+		if (medium === 'image' || type.startsWith('image/') || isLikelyImageUrl(url)) {
+			return url;
+		}
+	}
+	return '';
+}
+
+function pickMediaContentVideo(entry: Element): string {
+	const mediaContents = Array.from(entry.getElementsByTagNameNS(NS_MEDIA, 'content'));
+	for (const mediaContent of mediaContents) {
+		const url = mediaContent.getAttribute('url')?.trim() ?? '';
+		if (!url) continue;
+		const medium = (mediaContent.getAttribute('medium') ?? '').toLowerCase();
+		const type = (mediaContent.getAttribute('type') ?? '').toLowerCase();
+		if (medium === 'video' || type.startsWith('video/') || isLikelyVideoUrl(url)) {
+			return url;
+		}
+	}
+	return '';
+}
+
+function pickMediaPlayerVideo(entry: Element): string {
+	return nsAttributeOf(entry, NS_MEDIA, 'player', 'url');
+}
+
+function nsAttributeOf(parent: Element, ns: string, local: string, attr: string): string {
+	return parent.getElementsByTagNameNS(ns, local)[0]?.getAttribute(attr)?.trim() ?? '';
 }
 
 /** Return the trimmed text of the first `<tag>` child, or `''`. */

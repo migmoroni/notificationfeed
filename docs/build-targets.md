@@ -7,8 +7,8 @@ Este documento descreve os alvos de build do Notfeed, suas características e co
 | Alvo | Comando | Bundle / Output | Storage | Service Worker | Status |
 |---|---|---|---|---|---|
 | **web (dev)** | `npm run dev` | servidor Vite local (`http://localhost:5173`) | IndexedDB | não emitido em dev | ativo |
-| **web (build)** | `npm run build` | `build/` (estáticos `adapter-static`) com `service-worker.js` | IndexedDB | sim — SW nativo do SvelteKit + Workbox precaching | ativo |
-| **PWA instalável** | `npm run build` + `npm run preview` | `build/` servido sobre HTTPS, com `manifest.webmanifest` + SW | IndexedDB | sim — SW nativo do SvelteKit (`src/service-worker.ts`) + Workbox precaching | ativo |
+| **web (build)** | `npm run build` | `build/` (estáticos `adapter-static`) com `service-worker.js` | IndexedDB | sim — app shell precache, navegação SPA, runtime image cache, sync handlers | ativo |
+| **PWA instalável** | `npm run build` + `npm run preview` | `build/` servido sobre HTTPS, com `manifest.webmanifest` + SW | IndexedDB | sim — `src/service-worker.ts` com Workbox precache, cache de imagens e ingestão via sync | ativo |
 | **Tauri Linux AppImage** | `npm run tauri:appimage` | `src-tauri/target/release/bundle/appimage/Notfeed_<version>_amd64.AppImage` | IndexedDB | **não** (gating por `capabilities.platform === 'desktop'` em `+layout.svelte`) | ativo |
 
 ## Future targets (Plano C)

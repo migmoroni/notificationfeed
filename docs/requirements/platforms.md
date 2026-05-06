@@ -10,7 +10,9 @@ O Notfeed roda a mesma base de código SvelteKit (SPA) em todas as plataformas. 
 **Deploy**: Qualquer CDN ou host estático  
 
 ### Funcionalidades
-- [ ] Service Worker com cache stale-while-revalidate
+- [x] Service Worker com precache do app shell e fallback de navegação SPA
+- [x] Runtime cache cache-first para imagens vistas, com expiração por 30 dias sem uso
+- [x] Background Sync / Periodic Background Sync acionando a ingestão quando suportado
 - [ ] Web App Manifest para instalação (A2HS)
 - [ ] Interceptação do prompt de instalação
 - [ ] Web Push notifications (permissão + exibição)

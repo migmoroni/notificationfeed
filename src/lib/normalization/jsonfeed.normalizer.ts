@@ -7,6 +7,18 @@
  */
 
 import type { IngestedPost } from '$lib/persistence/post.store.js';
+import {
+	extractFirstImageUrlFromHtml,
+	extractFirstImageUrlFromText,
+	pickFirstImageUrl
+} from '$lib/ingestion/media/image-capture.js';
+import {
+	extractFirstVideoUrlFromHtml,
+	extractFirstVideoUrlFromText,
+	pickFirstVideoUrl
+} from '$lib/ingestion/media/video-capture.js';
+import { resolveIngestionImageUrl } from '$lib/ingestion/media/image-quality.js';
+import { resolveIngestionVideoUrl } from '$lib/ingestion/media/video-quality.js';
 import { htmlToPlainText } from './content-text.js';
 
 /** v1.1 author shape (also reused as v1 single-author fallback). */
@@ -14,6 +26,14 @@ export interface JsonfeedAuthor {
 	name?: string;
 	url?: string;
 	avatar?: string;
+}
+
+export interface JsonfeedAttachment {
+	url?: string;
+	mime_type?: string;
+	title?: string;
+	size_in_bytes?: number;
+	duration_in_seconds?: number;
 }
 
 /** Single item from a JSON Feed document (subset relevant to ingestion). */
@@ -31,6 +51,16 @@ export interface JsonfeedItem {
 	authors?: JsonfeedAuthor[];
 	/** v1 (single author) */
 	author?: JsonfeedAuthor;
+	/** Optional item-level image (v1.1). */
+	image?: string;
+	/** Optional item-level video URL (common extension). */
+	video?: string;
+	/** Legacy field from some generators. */
+	banner_image?: string;
+	attachments?: JsonfeedAttachment[];
+	/** Protocol-specific media hints captured in the JSON Feed client. */
+	imageUrl?: string;
+	videoUrl?: string;
 }
 
 /** Top-level document shape (only the field we consume). */
@@ -69,6 +99,22 @@ export function normalizeJsonfeedItem(item: JsonfeedItem, nodeId: string): Inges
 	const dateRaw = item.date_published ?? item.date_modified ?? '';
 	const parsed = dateRaw ? Date.parse(dateRaw) : NaN;
 	const publishedAt = Number.isFinite(parsed) ? parsed : now;
+	const imageUrl = pickFirstImageUrl(
+		item.imageUrl,
+		extractFirstImageUrlFromHtml(item.content_html),
+		extractFirstImageUrlFromText(item.content_text),
+		extractFirstImageUrlFromHtml(item.summary),
+		extractFirstImageUrlFromText(item.summary)
+	);
+	const resolvedImageUrl = resolveIngestionImageUrl(imageUrl);
+	const videoUrl = pickFirstVideoUrl(
+		item.videoUrl,
+		extractFirstVideoUrlFromHtml(item.content_html),
+		extractFirstVideoUrlFromText(item.content_text),
+		extractFirstVideoUrlFromHtml(item.summary),
+		extractFirstVideoUrlFromText(item.summary)
+	);
+	const resolvedVideoUrl = resolveIngestionVideoUrl(videoUrl);
 
 	return {
 		id,
@@ -79,6 +125,8 @@ export function normalizeJsonfeedItem(item: JsonfeedItem, nodeId: string): Inges
 		url,
 		author: htmlToPlainText(authorName),
 		publishedAt,
-		ingestedAt: now
+		ingestedAt: now,
+		...(resolvedImageUrl ? { imageUrl: resolvedImageUrl } : {}),
+		...(resolvedVideoUrl ? { videoUrl: resolvedVideoUrl } : {})
 	};
 }

@@ -35,7 +35,7 @@ recém-ativada.
 
 O post-manager emite um `PipelineEvent` para toda transição legal
 da máquina de estados de ingestão (ver
-`docs/ingestion-pipeline.pt-BR.md`). Esses eventos são persistidos
+`docs/ingestion-pipeline.md`). Esses eventos são persistidos
 no store durável `pipelineEvents` no IDB e consumidos por usuário
 em `pipeline-event-consumer.ts`.
 

@@ -1,7 +1,3 @@
-export type EmbedInfo =
-	| { type: 'iframe'; provider: string; embedUrl: string; aspectClass: string; thumbnailUrl?: string; videoId?: string }
-	| null;
-
 const IMAGE_PATH_RE = /\.(?:avif|webp|png|jpe?g|gif)$/i;
 const DIMENSION_SEGMENT_RE = /^(\d{2,4})([x_-])(\d{2,4})$/i;
 const NUMERIC_SEGMENT_RE = /^\d{2,4}$/;
@@ -30,8 +26,6 @@ const DIMENSION_CONTEXT_SEGMENTS = new Set([
 	'size',
 	'resize'
 ]);
-
-const imageQualityMemory = new Map<string, string>();
 
 function pushUnique(target: string[], value: string | null | undefined): void {
 	if (!value) return;
@@ -181,31 +175,16 @@ function getQueryDimensionCandidates(url: string): string[] {
 }
 
 /**
- * Keeps an in-memory hint for the best candidate that actually loaded
- * for a given original image URL during this app session.
- */
-export function rememberWorkingImageCandidate(
-	originalUrl: string | undefined | null,
-	loadedUrl: string | undefined | null
-): void {
-	const original = originalUrl?.trim();
-	const loaded = loadedUrl?.trim();
-	if (!original || !loaded) return;
-	imageQualityMemory.set(original, loaded);
-}
-
-/**
- * Builds a local fallback chain that prefers higher quality image URLs.
+ * Builds a deterministic quality preference chain from a source URL.
  *
- * We never mutate feed payloads in storage; the UI simply attempts better
- * candidates first and falls back to the original URL when unavailable.
+ * Intended for ingestion-time canonicalization, where the first candidate
+ * becomes the stored `imageUrl` and consumers render it directly.
  */
 export function getImageQualityCandidates(imageUrl: string | undefined | null): string[] {
 	const source = imageUrl?.trim();
 	if (!source) return [];
 
 	const candidates: string[] = [];
-	pushUnique(candidates, imageQualityMemory.get(source));
 
 	for (const candidate of getPathDimensionCandidates(source)) {
 		pushUnique(candidates, candidate);
@@ -221,44 +200,9 @@ export function getImageQualityCandidates(imageUrl: string | undefined | null): 
 }
 
 /**
- * Extensible media parser. 
- * Examines URLs to detect playable embeds so the UI isn't hardcoded.
+ * Resolve the single URL to persist during ingestion.
  */
-export function parseEmbed(url: string | undefined | null): EmbedInfo {
-	if (!url) return null;
-
-	// YouTube (covers shorts, youtu.be, standard watch links)
-	const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
-	if (ytMatch) {
-		const isShort = url.toLowerCase().includes('/shorts/');
-		const id = ytMatch[1];
-		return {
-			type: 'iframe',
-			provider: 'youtube',
-			videoId: id,
-			embedUrl: `https://www.youtube.com/embed/${id}`,
-			aspectClass: isShort ? 'aspect-[9/16] max-h-[600px] mx-auto' : 'aspect-video',
-			thumbnailUrl: `https://i.ytimg.com/vi/${id}/mqdefault.jpg`
-		};
-	}
-
-	// Vimeo, Spotify, etc can be added here...
-
-	return null;
-}
-
-/**
- * Helper to determine if a post has media that will visually render.
- */
-export function hasMedia(url: string | undefined | null, imageUrl: string | undefined | null): boolean {
-	return parseEmbed(url) !== null || !!imageUrl;
-}
-
-/**
- * Helper to extract a fallback thumbnail image URL for lists and grid cards.
- */
-export function getThumbnail(url: string | undefined | null, imageUrl: string | undefined | null): string | null | undefined {
-	const embed = parseEmbed(url);
-	if (embed?.thumbnailUrl) return embed.thumbnailUrl;
-	return imageUrl;
+export function resolveIngestionImageUrl(imageUrl: string | undefined | null): string | undefined {
+	const candidates = getImageQualityCandidates(imageUrl);
+	return candidates[0];
 }

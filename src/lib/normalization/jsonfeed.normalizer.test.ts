@@ -107,4 +107,40 @@ describe('normalizeJsonfeedItem', () => {
 		const post = normalizeJsonfeedItem(item, NODE_ID);
 		expect(post.publishedAt).toBe(Date.parse('2026-04-01T00:00:00Z'));
 	});
+
+	it('uses imageUrl captured by client when present', () => {
+		const item: JsonfeedItem = {
+			id: 'img-1',
+			imageUrl: 'https://cdn.example.com/covers/hero.jpg'
+		};
+		const post = normalizeJsonfeedItem(item, NODE_ID);
+		expect(post.imageUrl).toBe('https://cdn.example.com/covers/hero.jpg');
+	});
+
+	it('uses videoUrl captured by client when present', () => {
+		const item: JsonfeedItem = {
+			id: 'vid-1',
+			videoUrl: 'https://cdn.example.com/clip.mp4'
+		};
+		const post = normalizeJsonfeedItem(item, NODE_ID);
+		expect(post.videoUrl).toBe('https://cdn.example.com/clip.mp4');
+	});
+
+	it('extracts imageUrl from content_html when no explicit image exists', () => {
+		const item: JsonfeedItem = {
+			id: 'img-3',
+			content_html: '<div><img src="https://images.example.com/story.avif" /></div>'
+		};
+		const post = normalizeJsonfeedItem(item, NODE_ID);
+		expect(post.imageUrl).toBe('https://images.example.com/story.avif');
+	});
+
+	it('extracts videoUrl from content_text when no explicit video exists', () => {
+		const item: JsonfeedItem = {
+			id: 'vid-2',
+			content_text: 'watch https://videos.example.com/ep1.m3u8 now'
+		};
+		const post = normalizeJsonfeedItem(item, NODE_ID);
+		expect(post.videoUrl).toBe('https://videos.example.com/ep1.m3u8');
+	});
 });

@@ -29,6 +29,7 @@ vi.mock('./db.js', () => ({
 
 import { trashOldPostsForUser } from './post.store.js';
 import { savePostsForUser } from './post.store.js';
+import { backfillPostsForUserNode } from './post.store.js';
 
 const DAY_MS = 86_400_000;
 const USER_ID = 'user-1';
@@ -146,5 +147,34 @@ describe('savePostsForUser cross-protocol dedup', () => {
 		expect(res.updated).toBe(1);
 		expect(res.inserted).toBe(0);
 		expect(dbMock.records[0].title).toBe('new');
+	});
+});
+
+describe('backfillPostsForUserNode media copy', () => {
+	beforeEach(() => {
+		dbMock.records = [];
+		dbMock.put.mockClear();
+	});
+
+	it('copies imageUrl and videoUrl from sibling user records', async () => {
+		dbMock.records = [
+			post({
+				_pk: `user-2|${NODE_ID}|post-1`,
+				_userNode: `user-2|${NODE_ID}`,
+				userId: 'user-2',
+				id: 'post-1',
+				url: 'https://example.com/post-1',
+				imageUrl: 'https://cdn.example.com/post-1.jpg',
+				videoUrl: 'https://cdn.example.com/post-1.mp4',
+				ingestedAt: 10
+			})
+		];
+
+		const res = await backfillPostsForUserNode(USER_ID, NODE_ID);
+
+		expect(res.inserted).toBe(1);
+		const copied = dbMock.records.find((r) => r._pk === `${USER_ID}|${NODE_ID}|post-1`);
+		expect(copied?.imageUrl).toBe('https://cdn.example.com/post-1.jpg');
+		expect(copied?.videoUrl).toBe('https://cdn.example.com/post-1.mp4');
 	});
 });

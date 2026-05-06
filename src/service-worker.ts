@@ -7,6 +7,8 @@
  * - Precaches the SvelteKit-built app shell + static files using Workbox.
  * - Serves a SPA navigation fallback (the precached `/` document) for any
  *   in-scope navigation, so deep links work offline once visited.
+ * - Runtime-caches requested images (cache-first) so viewed media can be
+ *   reopened without downloading again.
  * - Stub listeners for `sync` / `periodicsync` / `message` will be filled
  *   in by Plan B (ingestion pipeline).
  */
@@ -35,18 +37,143 @@ const manifest = [
 ];
 precacheAndRoute(manifest);
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+const RUNTIME_IMAGE_CACHE = 'notfeed-runtime-images-v2';
+const RUNTIME_IMAGE_META_CACHE = 'notfeed-runtime-images-meta-v2';
+const RUNTIME_IMAGE_CACHE_LEGACY = 'notfeed-runtime-images-v1';
+const RUNTIME_IMAGE_META_CACHE_LEGACY = 'notfeed-runtime-images-meta-v1';
+const RUNTIME_IMAGE_CACHE_MAX_ENTRIES = 500;
+const RUNTIME_IMAGE_CACHE_MAX_UNUSED_MS = 30 * DAY_MS;
+const RUNTIME_IMAGE_CACHE_PRUNE_INTERVAL_MS = 6 * 60 * 60 * 1000;
+let lastRuntimeImagePruneAt = 0;
+
 // SPA navigation fallback — serve the precached app shell for any nav.
 // adapter-static with fallback: 'index.html' emits a precached document at
 // the root scope; createHandlerBoundToURL returns it as the response.
 const navHandler = createHandlerBoundToURL('/');
 registerRoute(new NavigationRoute(navHandler));
 
+// Runtime cache for external and dynamic images. We intentionally use a
+// cache-first strategy to avoid redownloading images the user has already
+// seen, while keeping media loading on-demand at render time.
+registerRoute(
+        ({ request, url }) => isRuntimeImageRequest(request, url),
+        async ({ request }) => {
+                const now = Date.now();
+                const cache = await caches.open(RUNTIME_IMAGE_CACHE);
+                const meta = await caches.open(RUNTIME_IMAGE_META_CACHE);
+
+                await maybePruneRuntimeImages(cache, meta, now);
+
+                const cached = await cache.match(request);
+                if (cached) {
+                        await touchRuntimeImage(meta, request.url, now);
+                        return cached;
+                }
+
+                try {
+                        const network = await fetch(request);
+                        if (isCacheableImageResponse(network)) {
+                                await cache.put(request, network.clone());
+                                await touchRuntimeImage(meta, request.url, now);
+                        }
+                        return network;
+                } catch (err) {
+                        void err;
+                        return Response.error();
+                }
+        }
+);
+
+function isRuntimeImageRequest(request: Request, url: URL): boolean {
+        if (request.method !== 'GET') return false;
+        if (request.destination !== 'image') return false;
+        return url.protocol === 'http:' || url.protocol === 'https:';
+}
+
+function isCacheableImageResponse(response: Response): boolean {
+        return response.ok || response.type === 'opaque';
+}
+
+function runtimeMetaRequest(url: string): Request {
+        return new Request(url);
+}
+
+async function touchRuntimeImage(meta: Cache, url: string, now: number): Promise<void> {
+        await meta.put(runtimeMetaRequest(url), new Response(String(now)));
+}
+
+async function readRuntimeImageLastUsed(meta: Cache, url: string): Promise<number | null> {
+        const record = await meta.match(runtimeMetaRequest(url));
+        if (!record) return null;
+        const text = await record.text();
+        const value = Number(text);
+        return Number.isFinite(value) ? value : null;
+}
+
+async function deleteRuntimeImage(cache: Cache, meta: Cache, request: Request): Promise<void> {
+        await cache.delete(request);
+        await meta.delete(runtimeMetaRequest(request.url));
+}
+
+async function maybePruneRuntimeImages(cache: Cache, meta: Cache, now: number): Promise<void> {
+        if (now - lastRuntimeImagePruneAt < RUNTIME_IMAGE_CACHE_PRUNE_INTERVAL_MS) return;
+        lastRuntimeImagePruneAt = now;
+        await pruneRuntimeImages(cache, meta, now);
+}
+
+async function pruneRuntimeImages(cache: Cache, meta: Cache, now: number): Promise<void> {
+        const keys = await cache.keys();
+        const active: Array<{ request: Request; lastUsed: number }> = [];
+
+        for (const request of keys) {
+                const lastUsed = await readRuntimeImageLastUsed(meta, request.url);
+                const resolvedLastUsed = lastUsed ?? now;
+
+                if (lastUsed == null) {
+                        await touchRuntimeImage(meta, request.url, resolvedLastUsed);
+                }
+
+                if (now - resolvedLastUsed > RUNTIME_IMAGE_CACHE_MAX_UNUSED_MS) {
+                        await deleteRuntimeImage(cache, meta, request);
+                        continue;
+                }
+
+                active.push({ request, lastUsed: resolvedLastUsed });
+        }
+
+        if (active.length <= RUNTIME_IMAGE_CACHE_MAX_ENTRIES) return;
+
+        active.sort((a, b) => a.lastUsed - b.lastUsed);
+        const overflow = active.length - RUNTIME_IMAGE_CACHE_MAX_ENTRIES;
+        for (let i = 0; i < overflow; i++) {
+                await deleteRuntimeImage(cache, meta, active[i].request);
+        }
+}
+
+async function cleanupLegacyRuntimeImageCaches(): Promise<void> {
+        const names = await caches.keys();
+        const legacy = names.filter(
+                (name) => name === RUNTIME_IMAGE_CACHE_LEGACY || name === RUNTIME_IMAGE_META_CACHE_LEGACY
+        );
+        if (legacy.length === 0) return;
+        await Promise.all(legacy.map((name) => caches.delete(name)));
+}
+
 // Activation: take control immediately so updates are picked up on first nav.
 self.addEventListener('install', () => {
 	self.skipWaiting();
 });
 self.addEventListener('activate', (event) => {
-	event.waitUntil(self.clients.claim());
+        event.waitUntil(
+                (async () => {
+                        await cleanupLegacyRuntimeImageCaches();
+                        const cache = await caches.open(RUNTIME_IMAGE_CACHE);
+                        const meta = await caches.open(RUNTIME_IMAGE_META_CACHE);
+                        await pruneRuntimeImages(cache, meta, Date.now());
+                        await self.clients.claim();
+                })()
+        );
 });
 
 // Background-sync handler. Browser flushes a queued `notfeed-fetch` tag

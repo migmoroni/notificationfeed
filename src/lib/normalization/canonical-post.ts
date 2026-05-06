@@ -46,6 +46,9 @@ export interface CanonicalPost {
 	/** URL to a thumbnail or main image associated with the post. */
 	imageUrl?: string;
 
+	/** URL to a primary video associated with the post. */
+	videoUrl?: string;
+
 	/** Whether the user has read this post. */
 	read: boolean;
 

@@ -19,6 +19,14 @@ import type { FontRssConfig } from '$lib/domain/content-tree/content-tree.js';
 import type { ProtocolFetcherState } from '$lib/domain/ingestion/fetcher-state.js';
 import type { IngestedPost } from '$lib/persistence/post.store.js';
 import { normalizeRssItem, type RssItem } from '$lib/normalization/rss.normalizer.js';
+import {
+	isLikelyImageUrl,
+	pickFirstImageUrl
+} from '$lib/ingestion/media/image-capture.js';
+import {
+	isLikelyVideoUrl,
+	pickFirstVideoUrl
+} from '$lib/ingestion/media/video-capture.js';
 import type { HttpAdapter } from '$lib/ingestion/net/index.js';
 
 export interface FetchResult {
@@ -125,7 +133,16 @@ function extractRssItem(item: Element): RssItem {
 		textOf(item, 'author') ||
 		nsTextOf(item, NS_DC, 'creator') ||
 		undefined;
-	const imageUrl = nsAttributeOf(item, NS_MEDIA, 'thumbnail', 'url') || undefined;
+	const imageUrl = pickFirstImageUrl(
+		nsAttributeOf(item, NS_MEDIA, 'thumbnail', 'url'),
+		pickMediaContentImage(item),
+		pickEnclosureImage(item)
+	);
+	const videoUrl = pickFirstVideoUrl(
+		pickMediaContentVideo(item),
+		nsAttributeOf(item, NS_MEDIA, 'player', 'url'),
+		pickEnclosureVideo(item)
+	);
 
 	return {
 		title,
@@ -134,8 +151,63 @@ function extractRssItem(item: Element): RssItem {
 		pubDate,
 		guid,
 		author,
-		imageUrl
+		imageUrl,
+		videoUrl
 	};
+}
+
+function pickEnclosureImage(item: Element): string {
+	const enclosures = Array.from(item.getElementsByTagName('enclosure'));
+	for (const enclosure of enclosures) {
+		const url = enclosure.getAttribute('url')?.trim() ?? '';
+		if (!url) continue;
+		const type = (enclosure.getAttribute('type') ?? '').toLowerCase();
+		if (type.startsWith('image/') || isLikelyImageUrl(url)) {
+			return url;
+		}
+	}
+	return '';
+}
+
+function pickEnclosureVideo(item: Element): string {
+	const enclosures = Array.from(item.getElementsByTagName('enclosure'));
+	for (const enclosure of enclosures) {
+		const url = enclosure.getAttribute('url')?.trim() ?? '';
+		if (!url) continue;
+		const type = (enclosure.getAttribute('type') ?? '').toLowerCase();
+		if (type.startsWith('video/') || isLikelyVideoUrl(url)) {
+			return url;
+		}
+	}
+	return '';
+}
+
+function pickMediaContentImage(item: Element): string {
+	const mediaContents = Array.from(item.getElementsByTagNameNS(NS_MEDIA, 'content'));
+	for (const mediaContent of mediaContents) {
+		const url = mediaContent.getAttribute('url')?.trim() ?? '';
+		if (!url) continue;
+		const medium = (mediaContent.getAttribute('medium') ?? '').toLowerCase();
+		const type = (mediaContent.getAttribute('type') ?? '').toLowerCase();
+		if (medium === 'image' || type.startsWith('image/') || isLikelyImageUrl(url)) {
+			return url;
+		}
+	}
+	return '';
+}
+
+function pickMediaContentVideo(item: Element): string {
+	const mediaContents = Array.from(item.getElementsByTagNameNS(NS_MEDIA, 'content'));
+	for (const mediaContent of mediaContents) {
+		const url = mediaContent.getAttribute('url')?.trim() ?? '';
+		if (!url) continue;
+		const medium = (mediaContent.getAttribute('medium') ?? '').toLowerCase();
+		const type = (mediaContent.getAttribute('type') ?? '').toLowerCase();
+		if (medium === 'video' || type.startsWith('video/') || isLikelyVideoUrl(url)) {
+			return url;
+		}
+	}
+	return '';
 }
 
 /**
@@ -194,6 +266,16 @@ interface Rss2JsonItem {
 	description?: string;
 	content?: string;
 	thumbnail?: string;
+	image?: string;
+	video?: string;
+	enclosure?: Rss2JsonEnclosure | string;
+}
+
+interface Rss2JsonEnclosure {
+	link?: string;
+	url?: string;
+	type?: string;
+	thumbnail?: string;
 }
 
 interface Rss2JsonEnvelope {
@@ -214,13 +296,62 @@ function parseRss2JsonResponse(body: string): RssItem[] {
 		return [];
 	}
 	if (parsed.status && parsed.status !== 'ok') return [];
-	return (parsed.items ?? []).map((it) => ({
-		title: it.title ?? '',
-		link: it.link ?? '',
-		description: it.content || it.description || '',
-		pubDate: it.pubDate ?? '',
-		guid: it.guid ?? it.link ?? undefined,
-		author: it.author ?? undefined,
-		imageUrl: it.thumbnail ?? undefined
-	}));
+	return (parsed.items ?? []).map((it) => {
+		const richContent = it.content || it.description || '';
+		return {
+			title: it.title ?? '',
+			link: it.link ?? '',
+			description: richContent,
+			pubDate: it.pubDate ?? '',
+			guid: it.guid ?? it.link ?? undefined,
+			author: it.author ?? undefined,
+			imageUrl: pickFirstImageUrl(
+				it.thumbnail,
+				it.image,
+				pickRss2JsonEnclosureImage(it.enclosure)
+			),
+			videoUrl: pickFirstVideoUrl(
+				it.video,
+				pickRss2JsonEnclosureVideo(it.enclosure)
+			)
+		};
+	});
+}
+
+function pickRss2JsonEnclosureImage(enclosure: Rss2JsonEnclosure | string | undefined): string | undefined {
+	if (!enclosure) return undefined;
+	if (typeof enclosure === 'string') {
+		return isLikelyImageUrl(enclosure) ? enclosure : undefined;
+	}
+
+	const type = enclosure.type?.toLowerCase() ?? '';
+	if (type.startsWith('image/')) {
+		return pickFirstImageUrl(enclosure.url, enclosure.link, enclosure.thumbnail);
+	}
+
+	const rawUrl = enclosure.url ?? enclosure.link ?? enclosure.thumbnail;
+	if (rawUrl && isLikelyImageUrl(rawUrl)) {
+		return pickFirstImageUrl(rawUrl);
+	}
+
+	return undefined;
+}
+
+function pickRss2JsonEnclosureVideo(enclosure: Rss2JsonEnclosure | string | undefined): string | undefined {
+	if (!enclosure) return undefined;
+	if (typeof enclosure === 'string') {
+		return isLikelyVideoUrl(enclosure) ? enclosure : undefined;
+	}
+
+	const type = enclosure.type?.toLowerCase() ?? '';
+	if (type.startsWith('video/')) {
+		return pickFirstVideoUrl(enclosure.url, enclosure.link, enclosure.thumbnail);
+	}
+
+	const rawUrl = enclosure.url ?? enclosure.link ?? enclosure.thumbnail;
+	if (rawUrl && isLikelyVideoUrl(rawUrl)) {
+		return pickFirstVideoUrl(rawUrl);
+	}
+
+	return undefined;
 }

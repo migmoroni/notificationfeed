@@ -15,6 +15,8 @@ import type { ProtocolFetcherState } from '$lib/domain/ingestion/fetcher-state.j
 import type { IngestedPost } from '$lib/persistence/post.store.js';
 import { normalizeNostrEvent } from '$lib/normalization/nostr.normalizer.js';
 import { INGESTION_FETCH } from '$lib/config/back-settings.js';
+import { extractImageUrlFromNostrTags } from '$lib/ingestion/media/image-capture.js';
+import { extractVideoUrlFromNostrTags } from '$lib/ingestion/media/video-capture.js';
 import { npubToHex } from './bech32.js';
 import { uuidv7 } from '$lib/domain/shared/uuidv7.js';
 
@@ -26,6 +28,8 @@ export interface NostrEvent {
 	tags: string[][];
 	content: string;
 	sig: string;
+	imageUrl?: string;
+	videoUrl?: string;
 }
 
 const DEFAULT_KINDS = INGESTION_FETCH.nostrDefaultKinds;
@@ -103,7 +107,13 @@ export async function fetchNostrFeed(
 	for (const ev of events) {
 		if (seen.has(ev.id)) continue;
 		seen.add(ev.id);
-		unique.push(ev);
+		const imageUrl = extractImageUrlFromNostrTags(ev.tags);
+		const videoUrl = extractVideoUrlFromNostrTags(ev.tags);
+		unique.push({
+			...ev,
+			...(imageUrl ? { imageUrl } : {}),
+			...(videoUrl ? { videoUrl } : {})
+		});
 		if (ev.created_at > maxCreatedAt) maxCreatedAt = ev.created_at;
 	}
 

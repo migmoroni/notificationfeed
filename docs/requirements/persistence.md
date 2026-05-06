@@ -17,7 +17,7 @@ Seleção em runtime via `capabilities.storageBackend` (`'indexeddb' | 'sqlite'`
 ## Database (IndexedDB)
 
 - **Nome**: `notfeed-v2`
-- **Versão atual**: `17`
+- **Versão atual**: `18`
 - **Migração**: Destrutiva. Ao incrementar a versão, todos os stores são deletados e recriados a partir de `STORE_SPECS`. Aceitável em pré-lançamento.
 
 ## Stores (13 totais)
@@ -58,6 +58,12 @@ Todos os usuários (consumer e creator).
 - Index `byUserNode`: `_userNode` — chave sintética `${userId}|${nodeId}`, para listar uma fonte de um usuário
 
 Cada registro carrega `read`, `savedAt`, `trashedAt`, `ingestedAt` per-usuário. Posts da mesma fonte ativados por N usuários ocupam N registros independentes.
+
+O conteúdo canonical do post inclui `imageUrl` e `videoUrl` quando a ingestão
+consegue descobri-los. Esses campos são URLs persistidas no registro do post;
+os bytes da imagem ou do vídeo não são armazenados no store `posts`. Imagens
+vistas podem ser mantidas separadamente no Cache Storage pelo service worker.
+Ver `docs/ingestion-to-post-flow.md`.
 
 ### fetcherStates
 **Per-source ingestion state**. Um registro por `nodeId`, compartilhado entre todos os usuários que ativaram a fonte. Carrega o estado da máquina de pipeline (`pipelineState`, `confidence`, `effectivePrimaryEntryId`) e um sub-mapa `protocols` com circuit-breaker / backoff / EWMA por entrada de protocolo. Ver `docs/ingestion-pipeline.md`.
@@ -143,18 +149,20 @@ Publicar copia o `TreeExport` snapshot de `editorTrees` para `contentTrees`. `me
 - Writes em IndexedDB devem usar `$state.snapshot()` para evitar "Proxy object could not be cloned" (ADR-019).
 - Soft-delete: usuários e árvores usam campo `removedAt` (mantidos no banco, filtrados na UI).
 - Posts isolam estado per-usuário (read/saved/trashed); apenas o conteúdo é compartilhado via backfill.
+- Backfill preserva `imageUrl` e `videoUrl` ao copiar conteúdo canonical entre caixas de usuário.
 - FetcherState é compartilhado por todos os usuários — o PostManager faz a coalescência no nível de rede.
 - Migração destrutiva: incrementar versão = perda total de dados locais. Aceitável em pré-lançamento.
 
 ## Funcionalidades
 
 - [x] StorageBackend abstrato (IndexedDB + stub SQLite)
-- [x] Inicialização do banco com schema versionado (v17)
+- [x] Inicialização do banco com schema versionado (v18)
 - [x] Migração destrutiva (delete + recreate stores)
 - [x] contentTrees / contentMedias / editorTrees / editorMedias: CRUD com index por author
 - [x] treePublications: save/get/delete por treeId
 - [x] users: CRUD com index por role
 - [x] posts: per-user boxes com `byUser` / `byUserNode`
+- [x] posts: persistência de `imageUrl` / `videoUrl` como URLs canonicalizadas
 - [x] fetcherStates: estado da pipeline com máquina de estados por font + por source
 - [x] categories: CRUD com indexes parentId e treeId; seed automático
 - [x] activityData: agregados de atividade

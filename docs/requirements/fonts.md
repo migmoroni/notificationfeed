@@ -112,6 +112,11 @@ Quando uma fallback entrega sucesso enquanto a primary está em backoff/`OPEN`, 
 
 Quando **todas** as entries estão `OPEN`, a font transita para `OFFLINE` (emite `PIPELINE_OFFLINE`). O retorno de qualquer probe leva para `RECOVERING` e depois `HEALTHY` (emite `PIPELINE_RECOVERED`).
 
+Clients de protocolo podem descobrir `imageUrl` e `videoUrl` durante essa
+execução, mas a font não pré-carrega os arquivos de mídia. O post salvo guarda
+apenas as URLs; imagem/vídeo são carregados sob demanda quando a UI renderiza a
+mídia. Ver `docs/ingestion-to-post-flow.md`.
+
 ## Detecção de protocolo (import)
 
 Na importação por URL simples, o protocolo é detectado heuristicamente:

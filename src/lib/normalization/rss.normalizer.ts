@@ -6,6 +6,18 @@
  */
 
 import type { IngestedPost } from '$lib/persistence/post.store.js';
+import {
+	extractFirstImageUrlFromHtml,
+	extractFirstImageUrlFromText,
+	pickFirstImageUrl
+} from '$lib/ingestion/media/image-capture.js';
+import {
+	extractFirstVideoUrlFromHtml,
+	extractFirstVideoUrlFromText,
+	pickFirstVideoUrl
+} from '$lib/ingestion/media/video-capture.js';
+import { resolveIngestionImageUrl } from '$lib/ingestion/media/image-quality.js';
+import { resolveIngestionVideoUrl } from '$lib/ingestion/media/video-quality.js';
 import { htmlToPlainText } from './content-text.js';
 
 export interface RssItem {
@@ -16,6 +28,7 @@ export interface RssItem {
 	guid?: string;
 	author?: string;
 	imageUrl?: string;
+	videoUrl?: string;
 }
 
 /**
@@ -37,6 +50,20 @@ export interface RssItem {
 export function normalizeRssItem(item: RssItem, nodeId: string): IngestedPost {
 	const now = Date.now();
 	const published = item.pubDate ? Date.parse(item.pubDate) : NaN;
+	const imageUrl = resolveIngestionImageUrl(
+		pickFirstImageUrl(
+			item.imageUrl,
+			extractFirstImageUrlFromHtml(item.description),
+			extractFirstImageUrlFromText(item.description)
+		)
+	);
+	const videoUrl = resolveIngestionVideoUrl(
+		pickFirstVideoUrl(
+			item.videoUrl,
+			extractFirstVideoUrlFromHtml(item.description),
+			extractFirstVideoUrlFromText(item.description)
+		)
+	);
 	return {
 		id: item.guid ?? item.link,
 		nodeId,
@@ -47,6 +74,7 @@ export function normalizeRssItem(item: RssItem, nodeId: string): IngestedPost {
 		author: htmlToPlainText(item.author ?? ''),
 		publishedAt: Number.isFinite(published) ? published : now,
 		ingestedAt: now,
-		...(item.imageUrl ? { imageUrl: item.imageUrl } : {})
+		...(imageUrl ? { imageUrl } : {}),
+		...(videoUrl ? { videoUrl } : {})
 	};
 }

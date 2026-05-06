@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { getImageQualityCandidates, rememberWorkingImageCandidate } from './media.js';
+import { getImageQualityCandidates, resolveIngestionImageUrl } from './image-quality.js';
 
-describe('getImageQualityCandidates', () => {
+describe('image-quality', () => {
 	it('upgrades a numeric dimension segment in image path', () => {
 		const source = 'https://cdn.portal.com/media/standard/240/world/photo.jpg';
 		const candidates = getImageQualityCandidates(source);
@@ -34,14 +34,8 @@ describe('getImageQualityCandidates', () => {
 		expect(candidates).toEqual([source]);
 	});
 
-	it('prioritizes locally remembered successful candidate', () => {
-		const source = 'https://example.com/image.jpg?w=320';
-		const remembered = 'https://example.com/image.jpg?w=1600';
-
-		rememberWorkingImageCandidate(source, remembered);
-		const candidates = getImageQualityCandidates(source);
-
-		expect(candidates[0]).toBe(remembered);
-		expect(candidates[candidates.length - 1]).toBe(source);
+	it('resolves ingestion image to best candidate', () => {
+		const source = 'https://example.com/image.jpg?w=320&h=180&q=60';
+		expect(resolveIngestionImageUrl(source)).toBe('https://example.com/image.jpg?w=2048&h=1152&q=90');
 	});
 });

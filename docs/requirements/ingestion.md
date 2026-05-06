@@ -21,6 +21,10 @@ Font (config) ──► Ingestion Client ──► Raw bytes ──► Normalize
 Uma fetch física → uma normalização → broadcast para cada caixa de usuário interessada.
 Estado per-fonte (etag/backoff) é compartilhado; estado per-usuário (read/saved/trashed) é isolado.
 
+O fluxo detalhado do payload ingerido até o post renderizado, incluindo
+`imageUrl`, `videoUrl`, renderização sob demanda e cache runtime de imagens,
+está em `docs/ingestion-to-post-flow.md`.
+
 ## Componentes
 
 ### PostManager (`$lib/ingestion/post-manager.ts`)
@@ -69,6 +73,21 @@ Funções **puras** que produzem `IngestedPost` (mesmo shape do `CanonicalPost` 
 | `normalizeAtomEntry(entry, nodeId)` | IngestedPost | id = `entry.id`; prefere `<content>` sobre `<summary>` |
 | `normalizeJsonfeedItem(item, nodeId)` | IngestedPost | id = `item.id ?? item.url`; conteúdo: `content_html` → `content_text` → `summary`; autor v1.1 (`authors[0].name`) → v1 (`author.name`); data: `date_published` → `date_modified` → `now` |
 | `normalizeNostrEvent(event, nodeId)` | IngestedPost | id = `event.id`; URL = `nostr:{id}` (NIP-21); `created_at` em segundos → ms |
+
+### Mídia de posts
+
+Clients e normalizers extraem `imageUrl` e `videoUrl` durante a ingestão, mas
+apenas como strings persistidas no post. A fronteira é:
+
+- clients capturam hints específicos do protocolo (RSS/Atom media namespace,
+  enclosures, JSON Feed fields/attachments, tags Nostr);
+- normalizers escolhem/canonicalizam a mídia final e aplicam fallback genérico
+  sobre HTML/texto já presente no payload do feed/evento;
+- `savePostsForUser` persiste `imageUrl` e `videoUrl` no post;
+- nenhum client/normalizer baixa o arquivo de imagem ou vídeo final;
+- a UI baixa mídia apenas ao renderizar `<img>`, `<video>` ou iframe;
+- imagens vistas entram no runtime cache do service worker e expiram após 30
+  dias sem uso.
 
 ## Configuração per-usuário
 
@@ -169,6 +188,8 @@ Fila durável de eventos emitidos a cada transição legítima da máquina (`PIP
 - Settings de cadência são per-usuário; o intervalo efetivo de uma fonte é o **menor** entre os usuários interessados (coalescência no nível de rede).
 - A primary declarada no `FontBody` não muta; a promoção de fallback acontece apenas no campo runtime `effectivePrimaryEntryId` do `FetcherState`.
 - Toda transição legítima emite `PipelineEvent`; loops auto-permitidos (e.g. UNSTABLE → UNSTABLE) não emitem.
+- Ingestão e normalização não pré-carregam bytes de mídia; elas persistem URLs
+  canônicas (`imageUrl`/`videoUrl`) para renderização sob demanda.
 
 ## Funcionalidades
 
@@ -189,5 +210,6 @@ Fila durável de eventos emitidos a cada transição legítima da máquina (`PIP
 - [x] Retenção de órfãos per-usuário
 - [x] Cliente Nostr via WebSocket (REQ + EOSE)
 - [x] Fila durável `pipelineEvents` com poda em 7 dias
-- [ ] Periodic Background Sync handler completo (stub atual)
-- [ ] Background Sync handler completo (stub atual)
+- [x] Captura e normalização de `imageUrl` / `videoUrl` por protocolo
+- [x] Periodic Background Sync handler chamando `PostManager.tick()`
+- [x] Background Sync handler chamando `PostManager.tick()`

@@ -3,6 +3,18 @@
  */
 
 import type { IngestedPost } from '$lib/persistence/post.store.js';
+import {
+	extractFirstImageUrlFromHtml,
+	extractFirstImageUrlFromText,
+	pickFirstImageUrl
+} from '$lib/ingestion/media/image-capture.js';
+import {
+	extractFirstVideoUrlFromHtml,
+	extractFirstVideoUrlFromText,
+	pickFirstVideoUrl
+} from '$lib/ingestion/media/video-capture.js';
+import { resolveIngestionImageUrl } from '$lib/ingestion/media/image-quality.js';
+import { resolveIngestionVideoUrl } from '$lib/ingestion/media/video-quality.js';
 import { htmlToPlainText } from './content-text.js';
 
 export interface AtomEntry {
@@ -13,6 +25,8 @@ export interface AtomEntry {
 	content: string;
 	updated: string;
 	authorName?: string;
+	imageUrl?: string;
+	videoUrl?: string;
 }
 
 /**
@@ -33,6 +47,22 @@ export interface AtomEntry {
 export function normalizeAtomEntry(entry: AtomEntry, nodeId: string): IngestedPost {
 	const now = Date.now();
 	const published = entry.updated ? Date.parse(entry.updated) : NaN;
+	const imageUrl = pickFirstImageUrl(
+		entry.imageUrl,
+		extractFirstImageUrlFromHtml(entry.content),
+		extractFirstImageUrlFromHtml(entry.summary),
+		extractFirstImageUrlFromText(entry.content),
+		extractFirstImageUrlFromText(entry.summary)
+	);
+	const resolvedImageUrl = resolveIngestionImageUrl(imageUrl);
+	const videoUrl = pickFirstVideoUrl(
+		entry.videoUrl,
+		extractFirstVideoUrlFromHtml(entry.content),
+		extractFirstVideoUrlFromHtml(entry.summary),
+		extractFirstVideoUrlFromText(entry.content),
+		extractFirstVideoUrlFromText(entry.summary)
+	);
+	const resolvedVideoUrl = resolveIngestionVideoUrl(videoUrl);
 	return {
 		id: entry.id,
 		nodeId,
@@ -42,6 +72,8 @@ export function normalizeAtomEntry(entry: AtomEntry, nodeId: string): IngestedPo
 		url: entry.link,
 		author: htmlToPlainText(entry.authorName ?? ''),
 		publishedAt: Number.isFinite(published) ? published : now,
-		ingestedAt: now
+		ingestedAt: now,
+		...(resolvedImageUrl ? { imageUrl: resolvedImageUrl } : {}),
+		...(resolvedVideoUrl ? { videoUrl: resolvedVideoUrl } : {})
 	};
 }

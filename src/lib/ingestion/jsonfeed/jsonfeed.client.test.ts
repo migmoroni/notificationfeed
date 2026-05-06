@@ -153,4 +153,60 @@ describe('fetchJsonfeedFeed', () => {
 		const result = await fetchJsonfeedFeed(adapter, { url: URL }, NODE_ID, null);
 		expect(result.posts).toEqual([]);
 	});
+
+	it('captures media from JSON Feed-specific item fields', async () => {
+		const body = JSON.stringify({
+			version: 'https://jsonfeed.org/version/1.1',
+			items: [
+				{
+					id: 'm1',
+					url: 'https://example.com/m1',
+					image: 'https://cdn.example.com/covers/m1.jpg',
+					video: 'https://cdn.example.com/videos/m1.mp4'
+				}
+			]
+		});
+
+		const adapter = makeAdapter({
+			status: 200,
+			body,
+			etag: null,
+			lastModified: null,
+			parsedAs: 'raw'
+		});
+
+		const result = await fetchJsonfeedFeed(adapter, { url: URL }, NODE_ID, null);
+		expect(result.posts).toHaveLength(1);
+		expect(result.posts[0].imageUrl).toBe('https://cdn.example.com/covers/m1.jpg');
+		expect(result.posts[0].videoUrl).toBe('https://cdn.example.com/videos/m1.mp4');
+	});
+
+	it('captures media from JSON Feed attachments when content has no media URLs', async () => {
+		const body = JSON.stringify({
+			version: 'https://jsonfeed.org/version/1.1',
+			items: [
+				{
+					id: 'm2',
+					url: 'https://example.com/m2',
+					attachments: [
+						{ url: 'https://cdn.example.com/assets/m2.mp4', mime_type: 'video/mp4' },
+						{ url: 'https://cdn.example.com/assets/m2.webp', mime_type: 'image/webp' }
+					]
+				}
+			]
+		});
+
+		const adapter = makeAdapter({
+			status: 200,
+			body,
+			etag: null,
+			lastModified: null,
+			parsedAs: 'raw'
+		});
+
+		const result = await fetchJsonfeedFeed(adapter, { url: URL }, NODE_ID, null);
+		expect(result.posts).toHaveLength(1);
+		expect(result.posts[0].imageUrl).toBe('https://cdn.example.com/assets/m2.webp');
+		expect(result.posts[0].videoUrl).toBe('https://cdn.example.com/assets/m2.mp4');
+	});
 });

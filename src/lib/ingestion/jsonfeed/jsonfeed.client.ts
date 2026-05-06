@@ -17,9 +17,12 @@ import type { ProtocolFetcherState } from '$lib/domain/ingestion/fetcher-state.j
 import type { IngestedPost } from '$lib/persistence/post.store.js';
 import {
 	normalizeJsonfeedItem,
+	type JsonfeedAttachment,
 	type JsonfeedDocument,
 	type JsonfeedItem
 } from '$lib/normalization/jsonfeed.normalizer.js';
+import { isLikelyImageUrl, pickFirstImageUrl } from '$lib/ingestion/media/image-capture.js';
+import { isLikelyVideoUrl, pickFirstVideoUrl } from '$lib/ingestion/media/video-capture.js';
 import type { HttpAdapter } from '$lib/ingestion/net/index.js';
 
 export interface FetchResult {
@@ -55,7 +58,7 @@ export async function fetchJsonfeedFeed(
 		};
 	}
 
-	const items = parseJsonfeedBody(response.body);
+	const items = parseJsonfeedBody(response.body).map(enrichProtocolMediaHints);
 	const posts = items.map((item) => normalizeJsonfeedItem(item, nodeId));
 
 	return {
@@ -84,4 +87,62 @@ function parseJsonfeedBody(body: string): JsonfeedItem[] {
 	const items = (doc as JsonfeedDocument).items;
 	if (!Array.isArray(items)) return [];
 	return items;
+}
+
+function pickAttachmentImage(attachments: JsonfeedAttachment[] | undefined): string | undefined {
+	if (!attachments || attachments.length === 0) return undefined;
+	for (const attachment of attachments) {
+		const mimeType = attachment.mime_type?.toLowerCase();
+		if (mimeType?.startsWith('image/')) {
+			const image = pickFirstImageUrl(attachment.url);
+			if (image) return image;
+			continue;
+		}
+		if (attachment.url && isLikelyImageUrl(attachment.url)) {
+			const image = pickFirstImageUrl(attachment.url);
+			if (image) return image;
+		}
+	}
+	return undefined;
+}
+
+function pickAttachmentVideo(attachments: JsonfeedAttachment[] | undefined): string | undefined {
+	if (!attachments || attachments.length === 0) return undefined;
+	for (const attachment of attachments) {
+		const mimeType = attachment.mime_type?.toLowerCase();
+		if (mimeType?.startsWith('video/')) {
+			const video = pickFirstVideoUrl(attachment.url);
+			if (video) return video;
+			continue;
+		}
+		if (attachment.url && isLikelyVideoUrl(attachment.url)) {
+			const video = pickFirstVideoUrl(attachment.url);
+			if (video) return video;
+		}
+	}
+	return undefined;
+}
+
+/**
+ * Capture JSON Feed-specific media hints so the normalizer can stay
+ * focused on canonicalization and generic content fallback extraction.
+ */
+function enrichProtocolMediaHints(item: JsonfeedItem): JsonfeedItem {
+	const imageUrl = pickFirstImageUrl(
+		item.imageUrl,
+		item.image,
+		item.banner_image,
+		pickAttachmentImage(item.attachments)
+	);
+	const videoUrl = pickFirstVideoUrl(
+		item.videoUrl,
+		item.video,
+		pickAttachmentVideo(item.attachments)
+	);
+
+	return {
+		...item,
+		...(imageUrl ? { imageUrl } : {}),
+		...(videoUrl ? { videoUrl } : {})
+	};
 }

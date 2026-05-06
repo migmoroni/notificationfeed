@@ -4,6 +4,16 @@
 
 import type { NostrEvent } from '$lib/ingestion/nostr/nostr.client.js';
 import type { IngestedPost } from '$lib/persistence/post.store.js';
+import {
+	extractFirstImageUrlFromText,
+	pickFirstImageUrl
+} from '$lib/ingestion/media/image-capture.js';
+import {
+	extractFirstVideoUrlFromText,
+	pickFirstVideoUrl
+} from '$lib/ingestion/media/video-capture.js';
+import { resolveIngestionImageUrl } from '$lib/ingestion/media/image-quality.js';
+import { resolveIngestionVideoUrl } from '$lib/ingestion/media/video-quality.js';
 
 /**
  * Convert a Nostr event into an `IngestedPost`.
@@ -23,6 +33,17 @@ import type { IngestedPost } from '$lib/persistence/post.store.js';
  * PostManager fans the post out to each interested user's box.
  */
 export function normalizeNostrEvent(event: NostrEvent, nodeId: string): IngestedPost {
+	const imageUrl = pickFirstImageUrl(
+		event.imageUrl,
+		extractFirstImageUrlFromText(event.content)
+	);
+	const resolvedImageUrl = resolveIngestionImageUrl(imageUrl);
+	const videoUrl = pickFirstVideoUrl(
+		event.videoUrl,
+		extractFirstVideoUrlFromText(event.content)
+	);
+	const resolvedVideoUrl = resolveIngestionVideoUrl(videoUrl);
+
 	return {
 		id: event.id,
 		nodeId,
@@ -32,6 +53,8 @@ export function normalizeNostrEvent(event: NostrEvent, nodeId: string): Ingested
 		url: `nostr:${event.id}`,
 		author: event.pubkey,
 		publishedAt: event.created_at * 1000,
-		ingestedAt: Date.now()
+		ingestedAt: Date.now(),
+		...(resolvedImageUrl ? { imageUrl: resolvedImageUrl } : {}),
+		...(resolvedVideoUrl ? { videoUrl: resolvedVideoUrl } : {})
 	};
 }

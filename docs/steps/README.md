@@ -173,7 +173,7 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 
 > Primeiro target de distribuição.
 
-- [ ] Service Worker com cache strategies (cache-first para assets, network-first para dados)
+- [x] Service Worker com precache do app shell, fallback SPA e cache runtime de imagens
 - [ ] Web App Manifest (ícones, display: standalone, theme_color)
 - [ ] Install prompt na UI
 - [x] Notificações de novos posts (pipeline de 3 etapas referenciando feed-macros, ADR-040)
@@ -257,12 +257,13 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 
 > Conectar a fontes reais.
 
-- [ ] Ingestion clients (Nostr WebSocket, RSS fetch, Atom fetch, JSON Feed fetch)
-- [ ] Normalizers (Nostr, RSS, Atom, JSON Feed → CanonicalPost)
-- [ ] Ingestion scheduler (polling + WebSocket)
-- [ ] Timeline com scroll infinito usando posts reais
-- [ ] Marcar posts como lidos
-- [ ] Deduplicação de posts
+- [x] Ingestion clients (Nostr WebSocket, RSS fetch, Atom fetch, JSON Feed fetch)
+- [x] Normalizers (Nostr, RSS, Atom, JSON Feed → CanonicalPost)
+- [x] Ingestion scheduler (foreground + Service Worker sync)
+- [x] Timeline usando posts reais persistidos por usuário
+- [x] Marcar posts como lidos
+- [x] Deduplicação de posts
+- [x] Captura de `imageUrl` / `videoUrl` sem pré-carregar arquivos de mídia
 
 ---
 
