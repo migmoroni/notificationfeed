@@ -9,10 +9,9 @@
 		videoUrl?: string | null;
 		audioUrl?: string | null;
 		title?: string;
-		onclick?: () => void;
 	}
 
-	let { url, imageUrl, videoUrl, audioUrl, title = '', onclick }: Props = $props();
+	let { url, imageUrl, videoUrl, audioUrl, title = '' }: Props = $props();
 
 	let videoEmbed = $derived(parseVideoEmbed(videoUrl ?? url));
 	let audioEmbed = $derived(videoEmbed ? null : parseAudioEmbed(audioUrl ?? url));
@@ -56,42 +55,66 @@
 				></video>
 			</div>
 		{:else if audioEmbed?.type === 'iframe'}
-			<div class="{audioEmbed.aspectClass} w-full bg-black relative group">
-				{#if unifiedAudioProviders.has(audioEmbed.provider)}
-					<UnifiedAudioPlayer
-						title={title}
-						embedUrl={audioEmbed.embedUrl}
-						provider={audioEmbed.provider}
-					/>
-				{:else}
-					<iframe
-						class="w-full h-full"
-						src={audioEmbed.embedUrl}
-						title={title}
-						frameborder="0"
-						allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
-						loading="lazy"
-					></iframe>
+			<div class="w-full bg-muted">
+				{#if imageUrl}
+					<div class="w-full bg-muted">
+						<img
+							src={imageUrl}
+							alt={title}
+							class="w-full max-h-150 object-contain"
+							loading="lazy"
+						/>
+					</div>
 				{/if}
+
+				<div class="{audioEmbed.aspectClass} w-full bg-black relative group">
+					{#if unifiedAudioProviders.has(audioEmbed.provider)}
+						<UnifiedAudioPlayer
+							title={title}
+							embedUrl={audioEmbed.embedUrl}
+							provider={audioEmbed.provider}
+						/>
+					{:else}
+						<iframe
+							class="w-full h-full"
+							src={audioEmbed.embedUrl}
+							title={title}
+							frameborder="0"
+							allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
+							loading="lazy"
+						></iframe>
+					{/if}
+				</div>
 			</div>
 		{:else if audioEmbed?.type === 'audio'}
-			<div class="w-full bg-muted px-4 py-3">
-				<!-- svelte-ignore a11y_media_has_caption -->
-				<audio
-					class="w-full"
-					src={audioEmbed.audioUrl}
-					controls
-					preload="metadata"
-				></audio>
+			<div class="w-full bg-muted">
+				{#if imageUrl}
+					<div class="w-full bg-muted">
+						<img
+							src={imageUrl}
+							alt={title}
+							class="w-full max-h-150 object-contain"
+							loading="lazy"
+						/>
+					</div>
+				{/if}
+
+				<div class="w-full bg-muted px-4 py-3">
+					<!-- svelte-ignore a11y_media_has_caption -->
+					<audio
+						class="w-full"
+						src={audioEmbed.audioUrl}
+						controls
+						preload="metadata"
+					></audio>
+				</div>
 			</div>
 		{:else if imageUrl}
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="w-full cursor-pointer bg-muted" {onclick} aria-hidden="true">
+			<div class="w-full bg-muted">
 				<img
 					src={imageUrl}
 					alt={title}
-					class="w-full max-h-150 object-contain hover:opacity-95 transition-opacity"
+					class="w-full max-h-150 object-contain"
 					loading="lazy"
 				/>
 			</div>
