@@ -310,7 +310,6 @@
 				videoUrl={sortedPost.post.videoUrl} 
 				audioUrl={sortedPost.post.audioUrl}
 				title={sortedPost.post.title} 
-				onclick={handleClick} 
 			/>
 		</div>
 	</article>
