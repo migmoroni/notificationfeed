@@ -15,7 +15,7 @@
 	let mediaUrl = $derived(videoUrl ?? url);
 	let embed = $derived(parseEmbed(mediaUrl));
 	let showMedia = $derived(embed !== null || !!imageUrl);
-	const unifiedProviders = new Set(['youtube', 'x', 'twitch', 'dailymotion', 'vimeo', 'rumble', 'internet-archive', 'odysee']);
+	const unifiedProviders = new Set(['youtube', 'x', 'twitch', 'dailymotion', 'vimeo', 'rumble', 'internet-archive', 'odysee', 'peertube', 'kick']);
 </script>
 
 {#if showMedia}

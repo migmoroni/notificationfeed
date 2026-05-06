@@ -220,6 +220,54 @@ describe('media.resolver', () => {
 		expect(parseEmbed('https://odysee.com/@SomeChannel:4')).toBeNull();
 	});
 
+	it('parses peertube watch URL as iframe embed', () => {
+		const embed = parseEmbed('https://peertube.tv/videos/watch/9c9de5e8-0a1e-484a-b099-e80766180a6d');
+		expect(embed?.type).toBe('iframe');
+		expect(embed?.provider).toBe('peertube');
+		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
+		expect(embed.embedUrl).toBe('https://peertube.tv/videos/embed/9c9de5e8-0a1e-484a-b099-e80766180a6d');
+	});
+
+	it('parses peertube embed URL as iframe embed', () => {
+		const embed = parseEmbed('https://peertube.tv/videos/embed/9c9de5e8-0a1e-484a-b099-e80766180a6d?autoplay=1');
+		expect(embed?.type).toBe('iframe');
+		expect(embed?.provider).toBe('peertube');
+		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
+		expect(embed.embedUrl).toBe('https://peertube.tv/videos/embed/9c9de5e8-0a1e-484a-b099-e80766180a6d');
+	});
+
+	it('parses peertube short URL as iframe embed', () => {
+		const embed = parseEmbed('https://videos.example.org/w/AbCdEf12');
+		expect(embed?.type).toBe('iframe');
+		expect(embed?.provider).toBe('peertube');
+		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
+		expect(embed.embedUrl).toBe('https://videos.example.org/videos/embed/AbCdEf12');
+	});
+
+	it('does not treat peertube browse URL as embeddable video', () => {
+		expect(parseEmbed('https://peertube.tv/videos/browse')).toBeNull();
+	});
+
+	it('parses kick channel URL as iframe embed', () => {
+		const embed = parseEmbed('https://kick.com/trainwreckstv');
+		expect(embed?.type).toBe('iframe');
+		expect(embed?.provider).toBe('kick');
+		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
+		expect(embed.embedUrl).toBe('https://player.kick.com/trainwreckstv');
+	});
+
+	it('parses kick player URL as iframe embed', () => {
+		const embed = parseEmbed('https://player.kick.com/trainwreckstv?autoplay=true&muted=true');
+		expect(embed?.type).toBe('iframe');
+		expect(embed?.provider).toBe('kick');
+		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
+		expect(embed.embedUrl).toBe('https://player.kick.com/trainwreckstv');
+	});
+
+	it('does not treat kick categories URL as embeddable stream', () => {
+		expect(parseEmbed('https://kick.com/categories')).toBeNull();
+	});
+
 	it('parses direct video URL as video embed', () => {
 		const embed = parseEmbed('https://videos.example.com/highlights.webm');
 		expect(embed?.type).toBe('video');

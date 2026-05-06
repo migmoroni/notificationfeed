@@ -40,14 +40,18 @@ function isKnownVideoHost(hostname: string): boolean {
 		host.endsWith('.dai.ly') ||
 		host === 'vimeo.com' ||
 		host.endsWith('.vimeo.com') ||
+		host === 'rumble.com' ||
+		host.endsWith('.rumble.com') ||
 		host === 'dailymotion.com' ||
 		host.endsWith('.dailymotion.com') ||
+		host === 'peertube.tv' ||
+		host.endsWith('.peertube.tv') ||
 		host === 'odysee.com' ||
 		host.endsWith('.odysee.com') ||
+		host === 'kick.com' ||
+		host.endsWith('.kick.com') ||
 		host === 'twitch.tv' ||
-		host.endsWith('.twitch.tv') ||
-		host === 'streamable.com' ||
-		host.endsWith('.streamable.com')
+		host.endsWith('.twitch.tv')
 	);
 }
 

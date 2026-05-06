@@ -289,6 +289,113 @@ function parseOdyseeClaimPath(url: string): string | null {
 	return normalizedSegments.map((segment) => encodeOdyseeSegment(segment)).join('/');
 }
 
+function normalizePeerTubeVideoId(raw: string | undefined): string | null {
+	if (!raw) return null;
+
+	const decoded = decodeUrlSegment(raw).trim();
+	if (!decoded) return null;
+	if (decoded.includes('/') || decoded.includes('?') || decoded.includes('#')) return null;
+
+	const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(decoded);
+	const isShortId = /^[A-Za-z0-9_-]{8,}$/.test(decoded);
+
+	return isUuid || isShortId ? decoded : null;
+}
+
+function parsePeerTubeTarget(url: string): { origin: string; videoId: string } | null {
+	let parsed: URL;
+	try {
+		parsed = new URL(url);
+	} catch {
+		return null;
+	}
+
+	const segments = parsed.pathname.split('/').filter(Boolean);
+	if (segments.length < 2) return null;
+
+	const first = segments[0].toLowerCase();
+	if (first === 'videos') {
+		const second = segments[1]?.toLowerCase();
+		if ((second === 'watch' || second === 'embed') && segments[2]) {
+			const videoId = normalizePeerTubeVideoId(segments[2]);
+			if (videoId) {
+				return {
+					origin: `${parsed.protocol}//${parsed.host}`,
+					videoId,
+				};
+			}
+		}
+	}
+
+	if (first === 'w' && segments[1]) {
+		const videoId = normalizePeerTubeVideoId(segments[1]);
+		if (videoId) {
+			return {
+				origin: `${parsed.protocol}//${parsed.host}`,
+				videoId,
+			};
+		}
+	}
+
+	return null;
+}
+
+const KICK_RESERVED_ROUTES = new Set([
+	'about',
+	'browse',
+	'categories',
+	'community-guidelines',
+	'contacts',
+	'dashboard',
+	'discover',
+	'following',
+	'help',
+	'home',
+	'login',
+	'privacy',
+	'register',
+	'search',
+	'settings',
+	'signup',
+	'subscriptions',
+	'support',
+	'terms',
+]);
+
+function parseKickChannel(url: string): string | null {
+	let parsed: URL;
+	try {
+		parsed = new URL(url);
+	} catch {
+		return null;
+	}
+
+	const host = parsed.hostname.toLowerCase();
+	const isPlayerHost = host === 'player.kick.com' || host.endsWith('.player.kick.com');
+	const isSiteHost = host === 'kick.com' || host === 'www.kick.com' || host === 'm.kick.com';
+	if (!isPlayerHost && !isSiteHost) return null;
+
+	const segments = parsed.pathname.split('/').filter(Boolean);
+	if (segments.length === 0) return null;
+
+	let rawChannel: string | undefined;
+	if (isPlayerHost) {
+		rawChannel = segments[0];
+	} else {
+		if (segments.length !== 1) return null;
+		rawChannel = segments[0];
+	}
+
+	const decoded = decodeUrlSegment(rawChannel).trim();
+	if (!decoded) return null;
+
+	const normalized = decoded.toLowerCase();
+	if (KICK_RESERVED_ROUTES.has(normalized)) return null;
+	if (!/^[A-Za-z0-9_]{3,}$/i.test(decoded)) return null;
+
+	return decoded;
+}
+
 /**
  * Parses known media URLs into embeddable video metadata.
  */
@@ -394,6 +501,28 @@ export function parseEmbed(url: string | undefined | null): EmbedInfo {
 			provider: 'odysee',
 			videoId: odyseeClaimPath,
 			embedUrl: `https://odysee.com/$/embed/${odyseeClaimPath}`,
+			aspectClass: 'aspect-video'
+		};
+	}
+
+	const peerTubeTarget = parsePeerTubeTarget(url);
+	if (peerTubeTarget) {
+		return {
+			type: 'iframe',
+			provider: 'peertube',
+			videoId: peerTubeTarget.videoId,
+			embedUrl: `${peerTubeTarget.origin}/videos/embed/${encodeURIComponent(peerTubeTarget.videoId)}`,
+			aspectClass: 'aspect-video'
+		};
+	}
+
+	const kickChannel = parseKickChannel(url);
+	if (kickChannel) {
+		return {
+			type: 'iframe',
+			provider: 'kick',
+			videoId: kickChannel,
+			embedUrl: `https://player.kick.com/${encodeURIComponent(kickChannel)}`,
 			aspectClass: 'aspect-video'
 		};
 	}

@@ -13,6 +13,8 @@ describe('video-capture', () => {
 		expect(isLikelyVideoUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ')).toBe(true);
 		expect(isLikelyVideoUrl('https://x.com/SpaceX/status/1918483180486459576')).toBe(true);
 		expect(isLikelyVideoUrl('https://twitter.com/jack/status/20')).toBe(true);
+		expect(isLikelyVideoUrl('https://kick.com/trainwreckstv')).toBe(true);
+		expect(isLikelyVideoUrl('https://peertube.tv/videos/watch/9c9de5e8-0a1e-484a-b099-e80766180a6d')).toBe(true);
 		expect(isLikelyVideoUrl('https://odysee.com/@SomeChannel:4/my-video:7')).toBe(true);
 		expect(isLikelyVideoUrl('https://www.twitch.tv/videos/1987654321')).toBe(true);
 		expect(isLikelyVideoUrl('https://clips.twitch.tv/IncredulousSpinelessGoatKreygasm')).toBe(true);

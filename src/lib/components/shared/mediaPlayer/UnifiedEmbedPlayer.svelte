@@ -10,7 +10,9 @@
 		| 'vimeo'
 		| 'rumble'
 		| 'internet-archive'
-		| 'odysee';
+		| 'odysee'
+		| 'peertube'
+		| 'kick';
 
 	interface ProviderSpec {
 		preconnectUrls: string[];
@@ -23,6 +25,7 @@
 		iframeScrolling?: string;
 		iframeLazy?: boolean;
 		appendAutoplay?: boolean;
+		appendAutoplayValue?: string;
 	}
 
 	// Keep class names static for Tailwind extraction.
@@ -95,6 +98,25 @@
 			buttonClass: 'bg-black/15 hover:bg-black/5 focus-visible:ring-orange-400',
 			iconBgClass: 'bg-orange-500',
 			iframeAllow: 'autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media',
+		},
+		peertube: {
+			preconnectUrls: [],
+			label: 'PeerTube',
+			backgroundClass: 'bg-linear-to-br from-teal-900 via-cyan-800 to-slate-900',
+			buttonClass: 'bg-black/15 hover:bg-black/5 focus-visible:ring-teal-400',
+			iconBgClass: 'bg-teal-500',
+			iframeAllow: 'autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media',
+		},
+		kick: {
+			preconnectUrls: ['https://player.kick.com', 'https://kick.com'],
+			label: 'Kick',
+			backgroundClass: 'bg-linear-to-br from-lime-900 via-emerald-800 to-slate-900',
+			buttonClass: 'bg-black/15 hover:bg-black/5 focus-visible:ring-lime-400',
+			iconBgClass: 'bg-lime-500',
+			iframeAllow: 'autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media',
+			iframeScrolling: 'no',
+			appendAutoplay: true,
+			appendAutoplayValue: 'true',
 		},
 	};
 
@@ -177,7 +199,7 @@
 		}
 
 		if (spec.appendAutoplay) {
-			return withParam(source, 'autoplay', '1');
+			return withParam(source, 'autoplay', spec.appendAutoplayValue ?? '1');
 		}
 
 		return source;
