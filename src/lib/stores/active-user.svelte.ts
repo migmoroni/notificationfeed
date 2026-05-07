@@ -13,6 +13,7 @@ import type { UserConsumer } from '$lib/domain/user/user-consumer.js';
 import type { UserCreator } from '$lib/domain/user/user-creator.js';
 import type { ImageAsset } from '$lib/domain/shared/image-asset.js';
 import { createUserSettings } from '$lib/domain/user/user.js';
+import { normalizeIngestionSettings } from '$lib/domain/ingestion/ingestion-settings.js';
 import { getStorageBackend } from '$lib/persistence/db.js';
 import { DEFAULT_LANGUAGE } from '$lib/i18n/types.js';
 import { setLanguage, initLanguage } from '$lib/i18n/store.svelte.js';
@@ -319,9 +320,11 @@ export const activeUser = {
 		const user = state.allUsers.find(u => u.id === userId);
 		if (!user) return;
 
+		const normalizedIngestion = normalizeIngestionSettings(ingestion);
+
 		const updated: UserBase = {
 			...user,
-			settingsUser: { ...user.settingsUser, ingestion },
+			settingsUser: { ...user.settingsUser, ingestion: normalizedIngestion },
 			updatedAt: new Date()
 		};
 		await persistUser(updated);

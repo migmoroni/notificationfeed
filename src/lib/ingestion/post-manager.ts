@@ -48,7 +48,7 @@ import type {
 	FeedTransportByKind,
 	IpfsFeedTransportByKind
 } from '$lib/domain/ingestion/ingestion-settings.js';
-import { createIngestionSettings } from '$lib/domain/ingestion/ingestion-settings.js';
+import { createIngestionSettings, normalizeIngestionSettings } from '$lib/domain/ingestion/ingestion-settings.js';
 import {
 	INGESTION_BACKOFF,
 	INGESTION_FETCH,
@@ -67,6 +67,9 @@ import { fetchRssFeed } from '$lib/ingestion/rss/rss.client.js';
 import { fetchAtomFeed } from '$lib/ingestion/atom/atom.client.js';
 import { fetchNostrFeed } from '$lib/ingestion/nostr/nostr.client.js';
 import { fetchJsonfeedFeed } from '$lib/ingestion/jsonfeed/jsonfeed.client.js';
+import { resolveIngestionImageUrl } from '$lib/ingestion/media/image-quality.js';
+import { resolveIngestionVideoUrl } from '$lib/ingestion/media/video-quality.js';
+import { resolveMediaIngestionRuntimeDefinitions } from '$lib/ingestion/media/runtime-context.js';
 import { runRetention } from './retention.js';
 import { runNotificationPipeline } from '$lib/notifications/notification-engine.js';
 
@@ -181,6 +184,7 @@ async function loadContext(): Promise<TickContext> {
 	for (const user of consumers) {
 		const settings = user.settingsUser?.ingestion;
 		if (!settings) continue;
+		const normalizedSettings = normalizeIngestionSettings(settings);
 		const interactedAt = user.interactedAt ? new Date(user.interactedAt).getTime() : 0;
 		for (const act of user.activateNodes) {
 			if (act.enabled === false) continue;
@@ -198,7 +202,7 @@ async function loadContext(): Promise<TickContext> {
 				fontByNodeId.set(act.nodeId, entry);
 			}
 			entry.userIds.push(user.id);
-			entry.settingsByUser.set(user.id, settings);
+			entry.settingsByUser.set(user.id, normalizedSettings);
 			entry.interactedAtByUser.set(user.id, interactedAt);
 			entry.langByUser.set(user.id, user.settingsUser?.language ?? '');
 		}
@@ -209,7 +213,7 @@ async function loadContext(): Promise<TickContext> {
 	const activeUserId = readActiveUserIdFromStorage();
 	const ctxUser =
 		consumers.find((u) => u.id === activeUserId) ?? consumers[0] ?? null;
-	const ingest = ctxUser?.settingsUser?.ingestion ?? createIngestionSettings();
+	const ingest = normalizeIngestionSettings(ctxUser?.settingsUser?.ingestion ?? createIngestionSettings());
 	const proxies: ProxyConfig[] = ingest.proxyServices;
 	const ipfsGateways: IpfsGatewayConfig[] = ingest.ipfsGatewayServices;
 	const httpFeedTransportByKind: FeedTransportByKind = ingest.httpFeedTransportByKind;
@@ -271,6 +275,35 @@ async function runTick(deps: PostManagerDeps): Promise<TickResult> {
 	}
 
 	return { fetched, skipped, failed, postsInserted };
+}
+
+function applyMediaIngestionPolicy(posts: IngestedPost[], settings: IngestionSettings): IngestedPost[] {
+	const definitions = resolveMediaIngestionRuntimeDefinitions({ settings });
+
+	return posts.map((post) => {
+		const resolvedImageUrl = resolveIngestionImageUrl(post.imageUrl, {
+			maxWidth: definitions.imageMaxWidth
+		});
+		const resolvedVideoUrl = resolveIngestionVideoUrl(post.videoUrl, {
+			initialHeight: definitions.videoInitialHeight
+		});
+		if (resolvedImageUrl === post.imageUrl && resolvedVideoUrl === post.videoUrl) return post;
+
+		const next: IngestedPost = { ...post };
+		if (resolvedImageUrl) {
+			next.imageUrl = resolvedImageUrl;
+		} else {
+			delete next.imageUrl;
+		}
+
+		if (resolvedVideoUrl) {
+			next.videoUrl = resolvedVideoUrl;
+		} else {
+			delete next.videoUrl;
+		}
+
+		return next;
+	});
 }
 
 type ProcessResult = 'skipped' | 'failed' | number;
@@ -401,7 +434,9 @@ async function processFont(
 		const usersWithNew = new Set<string>();
 		for (const userId of entry.userIds) {
 			if (postsResult.posts.length === 0) continue;
-			const result = await savePostsForUser(userId, postsResult.posts);
+			const settings = entry.settingsByUser.get(userId) ?? createIngestionSettings();
+			const postsForUser = applyMediaIngestionPolicy(postsResult.posts, settings);
+			const result = await savePostsForUser(userId, postsForUser);
 			totalInserted += result.inserted;
 			if (result.inserted > 0) usersWithNew.add(userId);
 		}

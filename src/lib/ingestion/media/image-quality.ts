@@ -1,7 +1,10 @@
+import type { IngestionImageMaxWidth } from '$lib/domain/ingestion/ingestion-settings.js';
+
 const IMAGE_PATH_RE = /\.(?:avif|webp|png|jpe?g|gif)$/i;
 const DIMENSION_SEGMENT_RE = /^(\d{2,4})([x_-])(\d{2,4})$/i;
 const NUMERIC_SEGMENT_RE = /^\d{2,4}$/;
-const TARGET_WIDTHS = [2048, 1600, 1280, 1024, 800, 640];
+const BASE_TARGET_WIDTHS = [2048, 1600, 1280, 1024, 800, 640] as const;
+const DEFAULT_MAX_WIDTH: IngestionImageMaxWidth = BASE_TARGET_WIDTHS[0];
 const WIDTH_PARAMS = ['w', 'width', 'maxwidth', 'imgmax', 'size', 's', 'mw'];
 const HEIGHT_PARAMS = ['h', 'height', 'maxheight', 'imgh', 'mh'];
 const QUALITY_PARAMS = ['q', 'quality', 'imgq', 'jpegquality', 'jpgq', 'compression'];
@@ -27,6 +30,14 @@ const DIMENSION_CONTEXT_SEGMENTS = new Set([
 	'resize'
 ]);
 
+export interface ImageQualityCandidateOptions {
+	maxWidth?: IngestionImageMaxWidth;
+}
+
+export interface ResolveIngestionImageOptions {
+	maxWidth?: IngestionImageMaxWidth;
+}
+
 function pushUnique(target: string[], value: string | null | undefined): void {
 	if (!value) return;
 	if (!target.includes(value)) target.push(value);
@@ -50,6 +61,19 @@ function getNumericParam(params: URLSearchParams, names: string[]): number | nul
 	return null;
 }
 
+function setNumericParams(params: URLSearchParams, names: string[], value: number): boolean {
+	let changed = false;
+	for (const name of names) {
+		const raw = params.get(name);
+		if (!raw) continue;
+		const current = Number.parseInt(raw, 10);
+		if (Number.isFinite(current) && current === value) continue;
+		params.set(name, String(value));
+		changed = true;
+	}
+	return changed;
+}
+
 function setNumericParamsIfLower(params: URLSearchParams, names: string[], value: number): boolean {
 	let changed = false;
 	for (const name of names) {
@@ -63,6 +87,18 @@ function setNumericParamsIfLower(params: URLSearchParams, names: string[], value
 	return changed;
 }
 
+function buildTargetWidths(maxWidth: IngestionImageMaxWidth): number[] {
+	if (maxWidth == null) return [];
+
+	const target = new Set<number>();
+	for (const width of BASE_TARGET_WIDTHS) {
+		if (width <= maxWidth) target.add(width);
+	}
+	target.add(maxWidth);
+
+	return [...target].sort((a, b) => b - a);
+}
+
 function hasLikelyImagePath(url: URL): boolean {
 	return IMAGE_PATH_RE.test(url.pathname);
 }
@@ -73,7 +109,7 @@ function isLikelyDimensionSegment(segments: string[], index: number): boolean {
 	return DIMENSION_CONTEXT_SEGMENTS.has(prev) || DIMENSION_CONTEXT_SEGMENTS.has(next);
 }
 
-function getPathDimensionCandidates(url: string): string[] {
+function getPathDimensionCandidates(url: string, targetWidths: number[]): string[] {
 	let parsed: URL;
 	try {
 		parsed = new URL(url);
@@ -96,8 +132,8 @@ function getPathDimensionCandidates(url: string): string[] {
 		const currentH = Number.parseInt(pairMatch[3], 10);
 		if (!Number.isFinite(currentW) || !Number.isFinite(currentH) || currentW <= 0 || currentH <= 0) continue;
 
-		for (const targetW of TARGET_WIDTHS) {
-			if (targetW <= currentW) continue;
+		for (const targetW of targetWidths) {
+			if (targetW === currentW) continue;
 			const targetH = Math.max(1, Math.round((currentH / currentW) * targetW));
 			pushUnique(candidates, cloneWithPathSegment(parsed, i, `${targetW}${separator}${targetH}`));
 		}
@@ -116,8 +152,8 @@ function getPathDimensionCandidates(url: string): string[] {
 		const contextual = numericSegments.filter((entry) => isLikelyDimensionSegment(segments, entry.index));
 		const picked = contextual.length === 1 ? contextual[0] : numericSegments.length === 1 ? numericSegments[0] : null;
 		if (picked) {
-			for (const targetW of TARGET_WIDTHS) {
-				if (targetW <= picked.value) continue;
+			for (const targetW of targetWidths) {
+				if (targetW === picked.value) continue;
 				pushUnique(candidates, cloneWithPathSegment(parsed, picked.index, String(targetW)));
 			}
 		}
@@ -126,7 +162,9 @@ function getPathDimensionCandidates(url: string): string[] {
 	return candidates;
 }
 
-function getQueryDimensionCandidates(url: string): string[] {
+function getQueryDimensionCandidates(url: string, targetWidths: number[]): string[] {
+	if (targetWidths.length === 0) return [];
+
 	let parsed: URL;
 	try {
 		parsed = new URL(url);
@@ -143,17 +181,17 @@ function getQueryDimensionCandidates(url: string): string[] {
 
 	const candidates: string[] = [];
 
-	for (const targetW of TARGET_WIDTHS.slice(0, 3)) {
+	for (const targetW of targetWidths.slice(0, 3)) {
 		const next = new URL(parsed.toString());
 		let changed = false;
 
-		if (setNumericParamsIfLower(next.searchParams, WIDTH_PARAMS, targetW)) {
+		if (setNumericParams(next.searchParams, WIDTH_PARAMS, targetW)) {
 			changed = true;
 		}
 
 		if (originalWidth && originalHeight && originalWidth > 0) {
 			const scaledHeight = Math.max(1, Math.round((originalHeight / originalWidth) * targetW));
-			if (setNumericParamsIfLower(next.searchParams, HEIGHT_PARAMS, scaledHeight)) {
+			if (setNumericParams(next.searchParams, HEIGHT_PARAMS, scaledHeight)) {
 				changed = true;
 			}
 		}
@@ -180,17 +218,25 @@ function getQueryDimensionCandidates(url: string): string[] {
  * Intended for ingestion-time canonicalization, where the first candidate
  * becomes the stored `imageUrl` and consumers render it directly.
  */
-export function getImageQualityCandidates(imageUrl: string | undefined | null): string[] {
+export function getImageQualityCandidates(
+	imageUrl: string | undefined | null,
+	options: ImageQualityCandidateOptions = {}
+): string[] {
 	const source = imageUrl?.trim();
 	if (!source) return [];
 
+	const maxWidth = options.maxWidth === undefined ? DEFAULT_MAX_WIDTH : options.maxWidth;
+	if (maxWidth == null) return [];
+	const targetWidths = buildTargetWidths(maxWidth);
+	if (targetWidths.length === 0) return [];
+
 	const candidates: string[] = [];
 
-	for (const candidate of getPathDimensionCandidates(source)) {
+	for (const candidate of getPathDimensionCandidates(source, targetWidths)) {
 		pushUnique(candidates, candidate);
 	}
 
-	for (const candidate of getQueryDimensionCandidates(source)) {
+	for (const candidate of getQueryDimensionCandidates(source, targetWidths)) {
 		pushUnique(candidates, candidate);
 	}
 
@@ -202,7 +248,12 @@ export function getImageQualityCandidates(imageUrl: string | undefined | null): 
 /**
  * Resolve the single URL to persist during ingestion.
  */
-export function resolveIngestionImageUrl(imageUrl: string | undefined | null): string | undefined {
-	const candidates = getImageQualityCandidates(imageUrl);
+export function resolveIngestionImageUrl(
+	imageUrl: string | undefined | null,
+	options: ResolveIngestionImageOptions = {}
+): string | undefined {
+	const maxWidth = options.maxWidth === undefined ? DEFAULT_MAX_WIDTH : options.maxWidth;
+
+	const candidates = getImageQualityCandidates(imageUrl, { maxWidth });
 	return candidates[0];
 }

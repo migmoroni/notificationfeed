@@ -55,6 +55,38 @@ export interface IpfsFeedTransportByKind {
 	jsonfeed: IpfsFeedTransportRule;
 }
 
+export type IngestionImageMaxWidth = 2048 | 1600 | 1280 | 1024 | 800 | 640 | null;
+export type IngestionVideoInitialHeight = 1080 | 720 | 480 | 360 | 240 | null;
+export type IngestionImageNetworkMode = 'default' | 'wifi' | 'mobile';
+export type IngestionImagePowerMode = 'default' | 'charging' | 'battery' | 'lowBattery';
+
+export interface IngestionMediaProfile {
+	/** Max target width for image ingestion. Null disables image ingestion. */
+	imageMaxWidth: IngestionImageMaxWidth;
+	/** Initial video resolution hint (in p). Null = keep provider/default behavior. */
+	videoInitialHeight: IngestionVideoInitialHeight;
+}
+
+export interface IngestionMediaByNetwork {
+	wifi: IngestionMediaProfile;
+	mobile: IngestionMediaProfile;
+}
+
+export interface IngestionMediaByPower {
+	charging: IngestionMediaProfile;
+	battery: IngestionMediaProfile;
+	lowBattery: IngestionMediaProfile;
+}
+
+export interface IngestionMediaSettings {
+	/** Shared global cap profile applied to both network and power profiles. */
+	general: IngestionMediaProfile;
+	/** Context-specific profile selected by current network condition. */
+	byNetwork: IngestionMediaByNetwork;
+	/** Context-specific profile selected by current power condition. */
+	byPower: IngestionMediaByPower;
+}
+
 export interface IngestionSettings {
 	/** How often the foreground scheduler wakes up to evaluate due fonts (ms). */
 	schedulerTickIntervalMs: number;
@@ -127,6 +159,15 @@ export interface IngestionSettings {
 	httpFeedTransportByKind: FeedTransportByKind;
 	/** Per-feed transport order for IPFS/IPNS URLs (Helia direct + gateway/proxy fallback). */
 	ipfsFeedTransportByKind: IpfsFeedTransportByKind;
+
+	/**
+	 * Media URL quality policy used during ingestion.
+	 *
+	 * Final profile is computed as the most restrictive value between
+	 * the active general profile, active network profile and active
+	 * power profile.
+	 */
+	mediaIngestion: IngestionMediaSettings;
 }
 
 export const DEFAULT_PROXIES: ProxyConfig[] = [
@@ -151,6 +192,92 @@ export const DEFAULT_IPFS_FEED_TRANSPORT_BY_KIND: IpfsFeedTransportByKind = {
 	atom: { ...INGESTION_IPFS_FEED_TRANSPORT_DEFAULTS.atom },
 	jsonfeed: { ...INGESTION_IPFS_FEED_TRANSPORT_DEFAULTS.jsonfeed }
 };
+
+export const DEFAULT_MEDIA_INGESTION_SETTINGS: IngestionMediaSettings = {
+	general: {
+		imageMaxWidth: 2048,
+		videoInitialHeight: 1080
+	},
+	byNetwork: {
+		wifi: {
+			imageMaxWidth: 2048,
+			videoInitialHeight: 1080
+		},
+		mobile: {
+			imageMaxWidth: 2048,
+			videoInitialHeight: 1080
+		}
+	},
+	byPower: {
+		charging: {
+			imageMaxWidth: 2048,
+			videoInitialHeight: 1080
+		},
+		battery: {
+			imageMaxWidth: 2048,
+			videoInitialHeight: 1080
+		},
+		lowBattery: {
+			imageMaxWidth: 2048,
+			videoInitialHeight: 1080
+		}
+	}
+};
+
+function capImageWidthByGeneral(
+	value: IngestionImageMaxWidth,
+	general: IngestionImageMaxWidth
+): IngestionImageMaxWidth {
+	if (general == null) return null;
+	if (value == null) return null;
+	return value > general ? general : value;
+}
+
+function capVideoInitialHeightByGeneral(
+	value: IngestionVideoInitialHeight,
+	general: IngestionVideoInitialHeight
+): IngestionVideoInitialHeight {
+	if (general == null) return null;
+	if (value == null) return null;
+	return value > general ? general : value;
+}
+
+function capMediaProfileByGeneral(
+	profile: IngestionMediaProfile,
+	general: IngestionMediaProfile
+): IngestionMediaProfile {
+	return {
+		imageMaxWidth: capImageWidthByGeneral(profile.imageMaxWidth, general.imageMaxWidth),
+		videoInitialHeight: capVideoInitialHeightByGeneral(profile.videoInitialHeight, general.videoInitialHeight)
+	};
+}
+
+function normalizeMediaIngestionSettings(mediaIngestion: IngestionMediaSettings): IngestionMediaSettings {
+	const general = mediaIngestion.general;
+
+	const byNetwork = {
+		...mediaIngestion.byNetwork
+	};
+	byNetwork.wifi = capMediaProfileByGeneral(byNetwork.wifi, general);
+	byNetwork.mobile = capMediaProfileByGeneral(byNetwork.mobile, general);
+
+	const byPower = {
+		...mediaIngestion.byPower
+	};
+	byPower.charging = capMediaProfileByGeneral(byPower.charging, general);
+	byPower.battery = capMediaProfileByGeneral(byPower.battery, general);
+	byPower.lowBattery = capMediaProfileByGeneral(byPower.lowBattery, general);
+
+	return {
+		general,
+		byNetwork,
+		byPower
+	};
+}
+
+function pickDefined<T>(value: T | undefined, fallback: T): T {
+	return value === undefined ? fallback : value;
+}
 
 export function createIngestionSettings(): IngestionSettings {
 	return {
@@ -177,6 +304,126 @@ export function createIngestionSettings(): IngestionSettings {
 			rss: { ...DEFAULT_IPFS_FEED_TRANSPORT_BY_KIND.rss },
 			atom: { ...DEFAULT_IPFS_FEED_TRANSPORT_BY_KIND.atom },
 			jsonfeed: { ...DEFAULT_IPFS_FEED_TRANSPORT_BY_KIND.jsonfeed }
+		},
+		mediaIngestion: {
+			general: {
+				...DEFAULT_MEDIA_INGESTION_SETTINGS.general
+			},
+			byNetwork: {
+				wifi: { ...DEFAULT_MEDIA_INGESTION_SETTINGS.byNetwork.wifi },
+				mobile: { ...DEFAULT_MEDIA_INGESTION_SETTINGS.byNetwork.mobile }
+			},
+			byPower: {
+				charging: { ...DEFAULT_MEDIA_INGESTION_SETTINGS.byPower.charging },
+				battery: { ...DEFAULT_MEDIA_INGESTION_SETTINGS.byPower.battery },
+				lowBattery: { ...DEFAULT_MEDIA_INGESTION_SETTINGS.byPower.lowBattery }
+			}
 		}
+	};
+}
+
+export function normalizeIngestionSettings(settings: IngestionSettings | null | undefined): IngestionSettings {
+	const defaults = createIngestionSettings();
+	if (!settings) return defaults;
+
+	return {
+		...defaults,
+		...settings,
+		proxyServices: settings.proxyServices ? [...settings.proxyServices] : [...defaults.proxyServices],
+		ipfsGatewayServices: settings.ipfsGatewayServices ? [...settings.ipfsGatewayServices] : [...defaults.ipfsGatewayServices],
+		httpFeedTransportByKind: {
+			rss: {
+				...defaults.httpFeedTransportByKind.rss,
+				...(settings.httpFeedTransportByKind?.rss ?? {})
+			},
+			atom: {
+				...defaults.httpFeedTransportByKind.atom,
+				...(settings.httpFeedTransportByKind?.atom ?? {})
+			},
+			jsonfeed: {
+				...defaults.httpFeedTransportByKind.jsonfeed,
+				...(settings.httpFeedTransportByKind?.jsonfeed ?? {})
+			}
+		},
+		ipfsFeedTransportByKind: {
+			rss: {
+				...defaults.ipfsFeedTransportByKind.rss,
+				...(settings.ipfsFeedTransportByKind?.rss ?? {})
+			},
+			atom: {
+				...defaults.ipfsFeedTransportByKind.atom,
+				...(settings.ipfsFeedTransportByKind?.atom ?? {})
+			},
+			jsonfeed: {
+				...defaults.ipfsFeedTransportByKind.jsonfeed,
+				...(settings.ipfsFeedTransportByKind?.jsonfeed ?? {})
+			}
+		},
+		mediaIngestion: normalizeMediaIngestionSettings({
+			general: {
+				imageMaxWidth: pickDefined(
+					settings.mediaIngestion?.general?.imageMaxWidth,
+					defaults.mediaIngestion.general.imageMaxWidth
+				),
+				videoInitialHeight: pickDefined(
+					settings.mediaIngestion?.general?.videoInitialHeight,
+					defaults.mediaIngestion.general.videoInitialHeight
+				)
+			},
+			byNetwork: {
+				wifi: {
+					imageMaxWidth: pickDefined(
+						settings.mediaIngestion?.byNetwork?.wifi?.imageMaxWidth,
+						defaults.mediaIngestion.byNetwork.wifi.imageMaxWidth
+					),
+					videoInitialHeight: pickDefined(
+						settings.mediaIngestion?.byNetwork?.wifi?.videoInitialHeight,
+						defaults.mediaIngestion.byNetwork.wifi.videoInitialHeight
+					)
+				},
+				mobile: {
+					imageMaxWidth: pickDefined(
+						settings.mediaIngestion?.byNetwork?.mobile?.imageMaxWidth,
+						defaults.mediaIngestion.byNetwork.mobile.imageMaxWidth
+					),
+					videoInitialHeight: pickDefined(
+						settings.mediaIngestion?.byNetwork?.mobile?.videoInitialHeight,
+						defaults.mediaIngestion.byNetwork.mobile.videoInitialHeight
+					)
+				}
+			},
+			byPower: {
+				charging: {
+					imageMaxWidth: pickDefined(
+						settings.mediaIngestion?.byPower?.charging?.imageMaxWidth,
+						defaults.mediaIngestion.byPower.charging.imageMaxWidth
+					),
+					videoInitialHeight: pickDefined(
+						settings.mediaIngestion?.byPower?.charging?.videoInitialHeight,
+						defaults.mediaIngestion.byPower.charging.videoInitialHeight
+					)
+				},
+				battery: {
+					imageMaxWidth: pickDefined(
+						settings.mediaIngestion?.byPower?.battery?.imageMaxWidth,
+						defaults.mediaIngestion.byPower.battery.imageMaxWidth
+					),
+					videoInitialHeight: pickDefined(
+						settings.mediaIngestion?.byPower?.battery?.videoInitialHeight,
+						defaults.mediaIngestion.byPower.battery.videoInitialHeight
+					)
+				},
+				lowBattery: {
+					imageMaxWidth: pickDefined(
+						settings.mediaIngestion?.byPower?.lowBattery?.imageMaxWidth,
+						defaults.mediaIngestion.byPower.lowBattery.imageMaxWidth
+					),
+					videoInitialHeight: pickDefined(
+						settings.mediaIngestion?.byPower?.lowBattery?.videoInitialHeight,
+						defaults.mediaIngestion.byPower.lowBattery.videoInitialHeight
+					)
+				}
+			}
+		})
 	};
 }

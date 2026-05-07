@@ -22,6 +22,92 @@ function parseVimeoId(url: string): string | null {
 	return null;
 }
 
+function buildYouTubeEmbedUrl(sourceUrl: string, videoId: string): string {
+	const embed = new URL(`https://www.youtube.com/embed/${videoId}`);
+
+	try {
+		const source = new URL(sourceUrl);
+		const vq = source.searchParams.get('vq') ?? source.searchParams.get('quality');
+		if (vq) embed.searchParams.set('vq', vq);
+
+		const height =
+			source.searchParams.get('height') ??
+			source.searchParams.get('h') ??
+			source.searchParams.get('resolution') ??
+			source.searchParams.get('res');
+		if (height && /^\d{2,4}$/.test(height)) {
+			embed.searchParams.set('height', height);
+		}
+	} catch {
+		// Ignore malformed source URL and keep canonical embed URL.
+	}
+
+	return embed.toString();
+}
+
+function buildVimeoEmbedUrl(sourceUrl: string, videoId: string): string {
+	const embed = new URL(`https://player.vimeo.com/video/${videoId}`);
+
+	try {
+		const source = new URL(sourceUrl);
+		let quality = source.searchParams.get('quality') ?? source.searchParams.get('q');
+
+		const height =
+			source.searchParams.get('height') ??
+			source.searchParams.get('h') ??
+			source.searchParams.get('resolution') ??
+			source.searchParams.get('res');
+		if (height && /^\d{2,4}$/.test(height)) {
+			embed.searchParams.set('height', height);
+			if (!quality) quality = `${height}p`;
+		}
+
+		if (quality) {
+			const normalized = /^\d{2,4}$/.test(quality) ? `${quality}p` : quality;
+			if (/^\d{2,4}p$/i.test(normalized)) {
+				embed.searchParams.set('quality', normalized.toLowerCase());
+			}
+		}
+	} catch {
+		// Ignore malformed source URL and keep canonical embed URL.
+	}
+
+	return embed.toString();
+}
+
+function buildDailymotionEmbedUrl(sourceUrl: string, videoId: string): string {
+	const embed = new URL(`https://www.dailymotion.com/embed/video/${videoId}`);
+
+	try {
+		const source = new URL(sourceUrl);
+		let quality =
+			source.searchParams.get('quality') ??
+			source.searchParams.get('q') ??
+			source.searchParams.get('vq');
+
+		const height =
+			source.searchParams.get('height') ??
+			source.searchParams.get('h') ??
+			source.searchParams.get('resolution') ??
+			source.searchParams.get('res');
+		if (height && /^\d{2,4}$/.test(height)) {
+			embed.searchParams.set('height', height);
+			if (!quality) quality = height;
+		}
+
+		if (quality) {
+			const normalized = /^\d{2,4}p$/i.test(quality) ? quality.slice(0, -1) : quality;
+			if (/^\d{2,4}$/.test(normalized)) {
+				embed.searchParams.set('quality', normalized);
+			}
+		}
+	} catch {
+		// Ignore malformed source URL and keep canonical embed URL.
+	}
+
+	return embed.toString();
+}
+
 function normalizeTwitchVideoId(raw: string | undefined): string | null {
 	if (!raw) return null;
 	const candidate = raw.trim().toLowerCase().replace(/^v/, '');
@@ -197,40 +283,6 @@ function parseRumbleId(url: string): string | null {
 	const first = segments[0].replace(/\.html?$/i, '');
 	const watchId = first.split('-')[0]?.toLowerCase() ?? '';
 	return /^v[0-9a-z]+$/i.test(watchId) ? watchId : null;
-}
-
-function parseInternetArchiveIdentifier(url: string): string | null {
-	let parsed: URL;
-	try {
-		parsed = new URL(url);
-	} catch {
-		return null;
-	}
-
-	const host = parsed.hostname.toLowerCase();
-	if (host !== 'archive.org' && host !== 'www.archive.org') return null;
-
-	const segments = parsed.pathname.split('/').filter(Boolean);
-	if (segments.length < 2) return null;
-
-	const route = segments[0].toLowerCase();
-	if (route !== 'details' && route !== 'embed') return null;
-
-	const rawIdentifier = segments[1]?.trim();
-	if (!rawIdentifier) return null;
-
-	let decodedIdentifier: string;
-	try {
-		decodedIdentifier = decodeURIComponent(rawIdentifier);
-	} catch {
-		decodedIdentifier = rawIdentifier;
-	}
-
-	const identifier = decodedIdentifier.trim();
-	if (!identifier) return null;
-	if (identifier.includes('/') || identifier.includes('?') || identifier.includes('#')) return null;
-
-	return identifier;
 }
 
 function decodeUrlSegment(segment: string): string {
@@ -411,7 +463,7 @@ export function parseEmbed(url: string | undefined | null): EmbedInfo {
 			type: 'iframe',
 			provider: 'youtube',
 			videoId: id,
-			embedUrl: `https://www.youtube.com/embed/${id}`,
+			embedUrl: buildYouTubeEmbedUrl(url, id),
 			aspectClass: isShort ? 'aspect-[9/16] max-h-[600px] mx-auto' : 'aspect-video',
 			thumbnailUrl: `https://i.ytimg.com/vi/${id}/mqdefault.jpg`
 		};
@@ -455,7 +507,7 @@ export function parseEmbed(url: string | undefined | null): EmbedInfo {
 			type: 'iframe',
 			provider: 'dailymotion',
 			videoId: dailymotionId,
-			embedUrl: `https://www.dailymotion.com/embed/video/${dailymotionId}`,
+			embedUrl: buildDailymotionEmbedUrl(url, dailymotionId),
 			thumbnailUrl: `https://www.dailymotion.com/thumbnail/video/${dailymotionId}`,
 			aspectClass: 'aspect-video'
 		};
@@ -467,7 +519,7 @@ export function parseEmbed(url: string | undefined | null): EmbedInfo {
 			type: 'iframe',
 			provider: 'vimeo',
 			videoId: vimeoId,
-			embedUrl: `https://player.vimeo.com/video/${vimeoId}`,
+			embedUrl: buildVimeoEmbedUrl(url, vimeoId),
 			aspectClass: 'aspect-video'
 		};
 	}
@@ -479,17 +531,6 @@ export function parseEmbed(url: string | undefined | null): EmbedInfo {
 			provider: 'rumble',
 			videoId: rumbleId,
 			embedUrl: `https://rumble.com/embed/${rumbleId}`,
-			aspectClass: 'aspect-video'
-		};
-	}
-
-	const internetArchiveId = parseInternetArchiveIdentifier(url);
-	if (internetArchiveId) {
-		return {
-			type: 'iframe',
-			provider: 'internet-archive',
-			videoId: internetArchiveId,
-			embedUrl: `https://archive.org/embed/${encodeURIComponent(internetArchiveId)}`,
 			aspectClass: 'aspect-video'
 		};
 	}

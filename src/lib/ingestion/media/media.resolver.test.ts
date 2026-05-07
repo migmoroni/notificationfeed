@@ -63,6 +63,15 @@ describe('media.resolver', () => {
 		expect(thumb).toBe(null);
 	});
 
+	it('falls back to imageUrl for internet archive URLs', () => {
+		const thumb = getThumbnail(
+			'https://archive.org/details/bigbuckbunny_328',
+			'https://cdn.example.com/fallback-archive.jpg',
+			null
+		);
+		expect(thumb).toBe('https://cdn.example.com/fallback-archive.jpg');
+	});
+
 	it('parses youtube shorts as iframe embed', () => {
 		const embed = parseEmbed('https://www.youtube.com/shorts/dQw4w9WgXcQ');
 		expect(embed?.type).toBe('iframe');
@@ -156,6 +165,14 @@ describe('media.resolver', () => {
 		expect(embed.embedUrl).toBe('https://www.dailymotion.com/embed/video/x84sh87');
 	});
 
+	it('preserves dailymotion quality and height hints into embed URL', () => {
+		const embed = parseEmbed('https://www.dailymotion.com/video/x84sh87?quality=720&height=720');
+		expect(embed?.type).toBe('iframe');
+		expect(embed?.provider).toBe('dailymotion');
+		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
+		expect(embed.embedUrl).toBe('https://www.dailymotion.com/embed/video/x84sh87?height=720&quality=720');
+	});
+
 	it('does not treat dailymotion listing URL as embeddable video', () => {
 		expect(parseEmbed('https://www.dailymotion.com/us')).toBeNull();
 	});
@@ -184,6 +201,14 @@ describe('media.resolver', () => {
 		expect(embed.embedUrl).toBe('https://player.vimeo.com/video/357274789');
 	});
 
+	it('preserves vimeo quality and height hints into embed URL', () => {
+		const embed = parseEmbed('https://vimeo.com/148751763?quality=720p&height=720');
+		expect(embed?.type).toBe('iframe');
+		expect(embed?.provider).toBe('vimeo');
+		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
+		expect(embed.embedUrl).toBe('https://player.vimeo.com/video/148751763?height=720&quality=720p');
+	});
+
 	it('parses rumble watch URL as iframe embed', () => {
 		const embed = parseEmbed('https://rumble.com/v5m8w0x-wildlife-walkthrough.html');
 		expect(embed?.type).toBe('iframe');
@@ -204,20 +229,12 @@ describe('media.resolver', () => {
 		expect(parseEmbed('https://rumble.com/c/LongFormTalks')).toBeNull();
 	});
 
-	it('parses internet archive details URL as iframe embed', () => {
-		const embed = parseEmbed('https://archive.org/details/bigbuckbunny_328');
-		expect(embed?.type).toBe('iframe');
-		expect(embed?.provider).toBe('internet-archive');
-		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
-		expect(embed.embedUrl).toBe('https://archive.org/embed/bigbuckbunny_328');
+	it('does not treat internet archive details URL as embeddable video', () => {
+		expect(parseEmbed('https://archive.org/details/bigbuckbunny_328')).toBeNull();
 	});
 
-	it('parses internet archive embed URL as iframe embed', () => {
-		const embed = parseEmbed('https://archive.org/embed/bigbuckbunny_328?autoplay=1');
-		expect(embed?.type).toBe('iframe');
-		expect(embed?.provider).toBe('internet-archive');
-		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
-		expect(embed.embedUrl).toBe('https://archive.org/embed/bigbuckbunny_328');
+	it('does not treat internet archive embed URL as embeddable video', () => {
+		expect(parseEmbed('https://archive.org/embed/bigbuckbunny_328?autoplay=1')).toBeNull();
 	});
 
 	it('does not treat internet archive listing URL as embeddable video', () => {

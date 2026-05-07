@@ -5,17 +5,23 @@
 	import { Switch } from '$lib/components/ui/switch/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import { onMount, tick } from 'svelte';
 	import { layout } from '$lib/stores/layout.svelte.js';
 	import { activeUser } from '$lib/stores/active-user.svelte.js';
 	import {
 		createIngestionSettings,
+		normalizeIngestionSettings,
 		type IngestionSettings,
 		type ProxyConfig,
 		type IpfsGatewayConfig,
 		type FeedKind,
 		type FeedTransportRule,
-		type IpfsFeedTransportRule
+		type IpfsFeedTransportRule,
+		type IngestionImageMaxWidth,
+		type IngestionVideoInitialHeight,
+		type IngestionImageNetworkMode,
+		type IngestionImagePowerMode
 	} from '$lib/domain/ingestion/ingestion-settings.js';
 	import type { PipelineState } from '$lib/domain/ingestion/fetcher-state.js';
 	import { resetHttpAdapter } from '$lib/ingestion/net/index.js';
@@ -36,6 +42,12 @@
 	const MIN_MS = 60_000;
 	const HOUR_MS = 60 * MIN_MS;
 	const FEED_KINDS: FeedKind[] = ['rss', 'atom', 'jsonfeed'];
+	type ImageNetworkProfileMode = Exclude<IngestionImageNetworkMode, 'default'>;
+	type ImagePowerProfileMode = Exclude<IngestionImagePowerMode, 'default'>;
+	const IMAGE_NETWORK_MODES: ImageNetworkProfileMode[] = ['wifi', 'mobile'];
+	const IMAGE_POWER_MODES: ImagePowerProfileMode[] = ['charging', 'battery', 'lowBattery'];
+	const IMAGE_WIDTH_OPTIONS: IngestionImageMaxWidth[] = [2048, 1600, 1280, 1024, 800, 640, null];
+	const VIDEO_INITIAL_HEIGHT_OPTIONS: IngestionVideoInitialHeight[] = [1080, 720, 480, 360, 240, null];
 
 	interface ProtocolScoringStateRow {
 		nodeId: string;
@@ -46,11 +58,11 @@
 	}
 
 	let settings = $state<IngestionSettings>(
-		activeUser.current?.settingsUser.ingestion ?? createIngestionSettings()
+		normalizeIngestionSettings(activeUser.current?.settingsUser.ingestion ?? createIngestionSettings())
 	);
 
 	$effect(() => {
-		settings = activeUser.current?.settingsUser.ingestion ?? createIngestionSettings();
+		settings = normalizeIngestionSettings(activeUser.current?.settingsUser.ingestion ?? createIngestionSettings());
 	});
 
 	let hasAnyProxyService = $derived(
@@ -82,16 +94,113 @@
 	let protocolScoringScrollEl = $state<HTMLDivElement | null>(null);
 
 	async function persist(next: IngestionSettings): Promise<void> {
-		settings = next;
+		const normalized = normalizeIngestionSettings(next);
+		settings = normalized;
 		const userId = activeUser.current?.id;
 		if (!userId) return;
-		await activeUser.setIngestionSettings(userId, next);
+		await activeUser.setIngestionSettings(userId, normalized);
 		resetHttpAdapter();
 		reloadSchedulerInterval();
 	}
 
 	function update<K extends keyof IngestionSettings>(key: K, value: IngestionSettings[K]) {
 		void persist({ ...settings, [key]: value });
+	}
+
+	function encodeImageMaxWidth(value: IngestionImageMaxWidth): string {
+		return value == null ? 'off' : String(value);
+	}
+
+	function decodeImageMaxWidth(value: string): IngestionImageMaxWidth {
+		if (value === 'off') return null;
+		const parsed = Number.parseInt(value, 10);
+		if (!Number.isFinite(parsed)) return null;
+		return parsed as IngestionImageMaxWidth;
+	}
+
+	function imageWidthLabel(value: IngestionImageMaxWidth): string {
+		if (value == null) return t('ingestion_settings.media_quality_image_disabled');
+		return t('ingestion_settings.media_quality_image_px', { px: String(value) });
+	}
+
+	function encodeVideoInitialHeight(value: IngestionVideoInitialHeight): string {
+		return value == null ? 'auto' : String(value);
+	}
+
+	function decodeVideoInitialHeight(value: string): IngestionVideoInitialHeight {
+		if (value === 'auto') return null;
+		const parsed = Number.parseInt(value, 10);
+		if (!Number.isFinite(parsed)) return null;
+		return parsed as IngestionVideoInitialHeight;
+	}
+
+	function videoInitialHeightLabel(value: IngestionVideoInitialHeight): string {
+		if (value == null) return t('ingestion_settings.media_quality_video_auto');
+		return t('ingestion_settings.media_quality_video_p', { p: String(value) });
+	}
+
+	function imageNetworkLabel(mode: ImageNetworkProfileMode): string {
+		switch (mode) {
+			case 'wifi':
+				return t('ingestion_settings.media_quality_network_wifi');
+			default:
+				return t('ingestion_settings.media_quality_network_mobile');
+		}
+	}
+
+	function imagePowerLabel(mode: ImagePowerProfileMode): string {
+		switch (mode) {
+			case 'charging':
+				return t('ingestion_settings.media_quality_power_charging');
+			case 'battery':
+				return t('ingestion_settings.media_quality_power_battery');
+			default:
+				return t('ingestion_settings.media_quality_power_low_battery');
+		}
+	}
+
+	type MediaProfilePatch = {
+		imageMaxWidth?: IngestionImageMaxWidth;
+		videoInitialHeight?: IngestionVideoInitialHeight;
+	};
+
+	function updateMediaGeneral(patch: MediaProfilePatch) {
+		const next = {
+			...settings.mediaIngestion,
+			general: {
+				...settings.mediaIngestion.general,
+				...patch
+			}
+		};
+		update('mediaIngestion', next);
+	}
+
+	function updateMediaByNetwork(mode: ImageNetworkProfileMode, patch: MediaProfilePatch) {
+		const next = {
+			...settings.mediaIngestion,
+			byNetwork: {
+				...settings.mediaIngestion.byNetwork,
+				[mode]: {
+					...settings.mediaIngestion.byNetwork[mode],
+					...patch
+				}
+			}
+		};
+		update('mediaIngestion', next);
+	}
+
+	function updateMediaByPower(mode: ImagePowerProfileMode, patch: MediaProfilePatch) {
+		const next = {
+			...settings.mediaIngestion,
+			byPower: {
+				...settings.mediaIngestion.byPower,
+				[mode]: {
+					...settings.mediaIngestion.byPower[mode],
+					...patch
+				}
+			}
+		};
+		update('mediaIngestion', next);
 	}
 
 	function setTickSeconds(v: number) {
@@ -520,6 +629,139 @@
 				onchange={(e) => update('purgeAfterTrashDays', Math.max(1, Number((e.target as HTMLInputElement).value)))}
 			/>
 		</div>
+	</section>
+
+	<Separator class="my-6" />
+
+	<section class="space-y-4">
+		<h2 class="text-sm font-semibold">{t('ingestion_settings.media_quality_title')}</h2>
+		<p class="text-xs text-muted-foreground">{t('ingestion_settings.media_quality_hint')}</p>
+		<p class="text-xs text-muted-foreground">{t('ingestion_settings.media_quality_rule')}</p>
+
+		<div class="space-y-2">
+			<p class="text-sm font-medium">{t('ingestion_settings.media_quality_general_label')}</p>
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+				<div class="space-y-1">
+					<p class="text-xs text-muted-foreground">{t('ingestion_settings.media_quality_image_col')}</p>
+					<Select.Root
+						type="single"
+						value={encodeImageMaxWidth(settings.mediaIngestion.general.imageMaxWidth)}
+						onValueChange={(v) => v && updateMediaGeneral({ imageMaxWidth: decodeImageMaxWidth(v) })}
+					>
+						<Select.Trigger class="w-full">{imageWidthLabel(settings.mediaIngestion.general.imageMaxWidth)}</Select.Trigger>
+						<Select.Content>
+							{#each IMAGE_WIDTH_OPTIONS as option (encodeImageMaxWidth(option))}
+								<Select.Item value={encodeImageMaxWidth(option)}>{imageWidthLabel(option)}</Select.Item>
+							{/each}
+						</Select.Content>
+					</Select.Root>
+				</div>
+				<div class="space-y-1">
+					<p class="text-xs text-muted-foreground">{t('ingestion_settings.media_quality_video_col')}</p>
+					<Select.Root
+						type="single"
+						value={encodeVideoInitialHeight(settings.mediaIngestion.general.videoInitialHeight)}
+						onValueChange={(v) => v && updateMediaGeneral({ videoInitialHeight: decodeVideoInitialHeight(v) })}
+					>
+						<Select.Trigger class="w-full">{videoInitialHeightLabel(settings.mediaIngestion.general.videoInitialHeight)}</Select.Trigger>
+						<Select.Content>
+							{#each VIDEO_INITIAL_HEIGHT_OPTIONS as option (encodeVideoInitialHeight(option))}
+								<Select.Item value={encodeVideoInitialHeight(option)}>{videoInitialHeightLabel(option)}</Select.Item>
+							{/each}
+						</Select.Content>
+					</Select.Root>
+				</div>
+			</div>
+		</div>
+
+		<div class="space-y-2">
+			<p class="text-sm font-medium">{t('ingestion_settings.media_quality_network_title')}</p>
+			<div class="rounded-md border border-border overflow-hidden">
+				<div
+					class="grid grid-cols-[minmax(9rem,auto)_minmax(10rem,1fr)_minmax(10rem,1fr)] gap-x-3 gap-y-1 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground bg-muted/40"
+				>
+					<span>{t('ingestion_settings.media_quality_context_col')}</span>
+					<span>{t('ingestion_settings.media_quality_image_col')}</span>
+					<span>{t('ingestion_settings.media_quality_video_col')}</span>
+				</div>
+
+				{#each IMAGE_NETWORK_MODES as mode (mode)}
+					<div class="grid grid-cols-[minmax(9rem,auto)_minmax(10rem,1fr)_minmax(10rem,1fr)] gap-x-3 px-3 py-3 items-center border-t border-border">
+						<span class="text-sm font-medium">{imageNetworkLabel(mode)}</span>
+						<Select.Root
+							type="single"
+							value={encodeImageMaxWidth(settings.mediaIngestion.byNetwork[mode].imageMaxWidth)}
+							onValueChange={(v) => v && updateMediaByNetwork(mode, { imageMaxWidth: decodeImageMaxWidth(v) })}
+						>
+							<Select.Trigger class="w-full">{imageWidthLabel(settings.mediaIngestion.byNetwork[mode].imageMaxWidth)}</Select.Trigger>
+							<Select.Content>
+								{#each IMAGE_WIDTH_OPTIONS as option (encodeImageMaxWidth(option))}
+									<Select.Item value={encodeImageMaxWidth(option)}>{imageWidthLabel(option)}</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+						<Select.Root
+							type="single"
+							value={encodeVideoInitialHeight(settings.mediaIngestion.byNetwork[mode].videoInitialHeight)}
+							onValueChange={(v) => v && updateMediaByNetwork(mode, { videoInitialHeight: decodeVideoInitialHeight(v) })}
+						>
+							<Select.Trigger class="w-full">{videoInitialHeightLabel(settings.mediaIngestion.byNetwork[mode].videoInitialHeight)}</Select.Trigger>
+							<Select.Content>
+								{#each VIDEO_INITIAL_HEIGHT_OPTIONS as option (encodeVideoInitialHeight(option))}
+									<Select.Item value={encodeVideoInitialHeight(option)}>{videoInitialHeightLabel(option)}</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					</div>
+				{/each}
+			</div>
+		</div>
+
+		<div class="space-y-2">
+			<p class="text-sm font-medium">{t('ingestion_settings.media_quality_power_title')}</p>
+			<div class="rounded-md border border-border overflow-hidden">
+				<div
+					class="grid grid-cols-[minmax(9rem,auto)_minmax(10rem,1fr)_minmax(10rem,1fr)] gap-x-3 gap-y-1 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground bg-muted/40"
+				>
+					<span>{t('ingestion_settings.media_quality_context_col')}</span>
+					<span>{t('ingestion_settings.media_quality_image_col')}</span>
+					<span>{t('ingestion_settings.media_quality_video_col')}</span>
+				</div>
+
+				{#each IMAGE_POWER_MODES as mode (mode)}
+					<div class="grid grid-cols-[minmax(9rem,auto)_minmax(10rem,1fr)_minmax(10rem,1fr)] gap-x-3 px-3 py-3 items-center border-t border-border">
+						<span class="text-sm font-medium">{imagePowerLabel(mode)}</span>
+						<Select.Root
+							type="single"
+							value={encodeImageMaxWidth(settings.mediaIngestion.byPower[mode].imageMaxWidth)}
+							onValueChange={(v) => v && updateMediaByPower(mode, { imageMaxWidth: decodeImageMaxWidth(v) })}
+						>
+							<Select.Trigger class="w-full">{imageWidthLabel(settings.mediaIngestion.byPower[mode].imageMaxWidth)}</Select.Trigger>
+							<Select.Content>
+								{#each IMAGE_WIDTH_OPTIONS as option (encodeImageMaxWidth(option))}
+									<Select.Item value={encodeImageMaxWidth(option)}>{imageWidthLabel(option)}</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+						<Select.Root
+							type="single"
+							value={encodeVideoInitialHeight(settings.mediaIngestion.byPower[mode].videoInitialHeight)}
+							onValueChange={(v) => v && updateMediaByPower(mode, { videoInitialHeight: decodeVideoInitialHeight(v) })}
+						>
+							<Select.Trigger class="w-full">{videoInitialHeightLabel(settings.mediaIngestion.byPower[mode].videoInitialHeight)}</Select.Trigger>
+							<Select.Content>
+								{#each VIDEO_INITIAL_HEIGHT_OPTIONS as option (encodeVideoInitialHeight(option))}
+									<Select.Item value={encodeVideoInitialHeight(option)}>{videoInitialHeightLabel(option)}</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					</div>
+				{/each}
+			</div>
+		</div>
+
+		<p class="text-xs text-muted-foreground">{t('ingestion_settings.media_quality_image_disabled_hint')}</p>
+		<p class="text-xs text-muted-foreground">{t('ingestion_settings.media_quality_video_auto_hint')}</p>
 	</section>
 
 	<Separator class="my-6" />
