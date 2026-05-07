@@ -104,4 +104,12 @@ describe('runtime-context', () => {
 			expect(definitions.context.network).toBe('mobile');
 		});
 	});
+
+	it('falls back to mobile network and battery power when runtime APIs are unavailable', () => {
+		withNavigatorConnection(undefined, () => {
+			const definitions = resolveMediaIngestionRuntimeDefinitions();
+			expect(definitions.context.network).toBe('mobile');
+			expect(definitions.context.power).toBe('battery');
+		});
+	});
 });
