@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "scope": "stage-1-structural-migration",
+  "executionStarted": false,
+  "packageManager": "npm",
+  "nodeReference": "22.21.1",
+  "npmReference": "11.11.1",
+  "workspaces": ["apps/web", "apps/desktop", "packages/notfeed"],
+  "packages": {
+    "apps/web": "@notfeed/web",
+    "apps/desktop": "@notfeed/desktop",
+    "packages/notfeed": "@notfeed/product"
+  },
+  "sourceEdges": [
+    { "from": "apps/web", "to": "packages/notfeed" }
+  ],
+  "artifactEdges": [
+    { "from": "apps/desktop", "to": "apps/web/build" }
+  ],
+  "frameworkImportsAlreadyPresent": ["$app/navigation", "$app/environment"],
+  "approvedNewDevDependencies": ["@playwright/test"],
+  "protected": {
+    "databaseName": "notfeed-v2",
+    "databaseVersion": 18,
+    "desktopIdentifier": "app.notfeed.desktop",
+    "desktopVersion": "0.1.0",
+    "desktopRustPackage": "notfeed",
+    "desktopBundleTargets": ["appimage"],
+    "treeExportExtension": ".notfeed.json",
+    "spaFallback": "index.html",
+    "assetPathsRelative": false,
+    "automaticServiceWorkerRegistration": false,
+    "storageBackend": "indexeddb"
+  },
+  "finalForbiddenSourceRoots": ["src", "static", "src-tauri"],
+  "phaseOrder": ["P0", "P1", "P2", "P3", "P4", "P5", "P6"],
+  "phasePredecessors": {
+    "P0": null,
+    "P1": "P0",
+    "P2": "P1",
+    "P3": "P2",
+    "P4": "P3",
+    "P5": "P4",
+    "P6": "P5"
+  },
+  "phaseCycle": ["specification", "contract", "test", "implementation", "quality-gate"],
+  "gateSuccessExitCode": 0,
+  "allowSkippedRequiredChecks": false,
+  "allowFailedBaselineTests": false,
+  "allowNewBusinessModules": false,
+  "allowCompatibilityWrappers": false
+}
