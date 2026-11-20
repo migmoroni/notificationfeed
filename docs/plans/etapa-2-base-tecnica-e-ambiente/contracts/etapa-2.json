@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "scope": "stage-2-technical-foundation-and-development-environment",
+  "executionStarted": false,
+  "phaseOrder": ["2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7"],
+  "phasePredecessors": {
+    "2.1": null,
+    "2.2": "2.1",
+    "2.3": "2.2",
+    "2.4": "2.3",
+    "2.5": "2.4",
+    "2.6": "2.5",
+    "2.7": "2.6"
+  },
+  "fixedUnits": {
+    "2.1": ["bootstrap", "diagnosis"],
+    "2.3": [],
+    "2.5": ["checks", "lint", "format", "dev", "doctor"],
+    "2.6": ["configuration", "execution"],
+    "2.7": []
+  },
+  "registeredUnits": {
+    "2.2": {"source": "updates.json", "alternativeWhenEmpty": "no-urgent"},
+    "2.4": {"source": "updates.json", "requireExactVersionsBeforeStart": true}
+  },
+  "phaseDocuments": {
+    "2.1": "fases/2.1-diagnostico-e-contratos.md",
+    "2.2": "fases/2.2-correcoes-prioritarias.md",
+    "2.3": "fases/2.3-pnpm.md",
+    "2.4": "fases/2.4-atualizacoes.md",
+    "2.5": "fases/2.5-ambiente-e-checks.md",
+    "2.6": "fases/2.6-ci.md",
+    "2.7": "fases/2.7-consolidacao.md"
+  },
+  "cycle": ["specification", "contract", "test", "minimal-implementation", "quality-gate"],
+  "workspacePackages": {
+    "apps/web": "@notfeed/web",
+    "apps/desktop": "@notfeed/desktop",
+    "packages/notfeed": "@notfeed/product"
+  },
+  "sourceEdges": [{"from": "apps/web", "to": "packages/notfeed"}],
+  "artifactEdges": [{"from": "apps/desktop", "to": "apps/web/build"}],
+  "frameworkImportsAlreadyPresent": ["$app/navigation", "$app/environment"],
+  "packageManagerByPhase": {
+    "2.1": "npm",
+    "2.2": "npm",
+    "2.3": "pnpm",
+    "2.4": "pnpm",
+    "2.5": "pnpm",
+    "2.6": "pnpm",
+    "2.7": "pnpm"
+  },
+  "targetJsLockfile": "pnpm-lock.yaml",
+  "rustLockfile": "apps/desktop/src-tauri/Cargo.lock",
+  "localProductSpecifier": "workspace:*",
+  "approvedDevelopmentTools": [
+    "pnpm", "eslint", "@eslint/js", "globals", "typescript-eslint",
+    "eslint-plugin-svelte", "eslint-config-prettier", "prettier",
+    "prettier-plugin-svelte", "rustfmt", "clippy", "cargo-audit"
+  ],
+  "existingBrowserTestTool": "@playwright/test",
+  "additionalToolsAuthorizationDate": "2026-11-20",
+  "versionSelectionUnit": "2.1/diagnosis",
+  "requiredRealizedRecords": [
+    "baseline.json", "toolchain.json", "security.json", "updates.json",
+    "lint-policy.json", "ci-policy.json"
+  ],
+  "protected": {
+    "databaseName": "notfeed-v2",
+    "databaseVersion": 18,
+    "desktopIdentifier": "app.notfeed.desktop",
+    "desktopVersion": "0.1.0",
+    "desktopRustPackage": "notfeed",
+    "desktopRustLibrary": "notfeed_lib",
+    "desktopDefaultFeatures": ["backend-indexeddb"],
+    "desktopBundleTargets": ["appimage"],
+    "desktopFrontendDist": "../../web/build",
+    "treeExportExtension": ".notfeed.json",
+    "storageBackend": "indexeddb",
+    "spaFallback": "index.html",
+    "strictTypeScript": true,
+    "checkJs": true
+  },
+  "servers": {
+    "dev": "http://localhost:5173",
+    "preview": "http://localhost:4173",
+    "e2eProductionAndUpgrade": "http://127.0.0.1:4173",
+    "e2eDev": "http://127.0.0.1:4175",
+    "strictPort": true,
+    "reuseUnknownServer": false
+  },
+  "browser": {
+    "engine": "chromium",
+    "locale": "en-US",
+    "timezone": "UTC",
+    "serviceWorkers": "allow",
+    "retries": 0,
+    "upgradeSameOriginAndContext": true,
+    "clearStorageOnUpgrade": false,
+    "reimportAfterUpgrade": false
+  },
+  "securityPolicy": {
+    "2.1": "complete-current-inventory-and-classification",
+    "2.2": "no-pending-urgent-finding",
+    "2.3": "no-pending-urgent-or-new-risk",
+    "2.4": "group-targets-resolved-and-no-blocking-risk-at-phase-close",
+    "2.5": "no-blocking-risk",
+    "2.6": "no-blocking-risk",
+    "2.7": "no-blocking-risk"
+  },
+  "gateEntry": "node tooling/maintenance/gate.mjs",
+  "evidenceRoot": ".artifacts/maintenance",
+  "gateSuccessExitCode": 0,
+  "allowSkippedRequiredChecks": false,
+  "allowFailedBaselineTests": false,
+  "allowRelaxedRulesToPass": false,
+  "allowNewBusinessModules": false,
+  "allowCompatibilityWrappers": false,
+  "requireRealCiAtPhaseClose": ["2.6", "2.7"],
+  "historicalEvidencePolicy": "preserve-stage-1-without-reusing-as-current-proof",
+  "nextStage": "3-business-module-organization"
+}

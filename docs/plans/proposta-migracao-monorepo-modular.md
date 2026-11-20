@@ -2,13 +2,13 @@
 
 **Data:** 18 de novembro de 2026
 
-**Atualização:** 19 de novembro de 2026
+**Atualização:** 20 de novembro de 2026
 
-**Status:** Proposta arquitetural com etapas, fases e gates de validação. O detalhamento operacional será definido separadamente.
+**Status:** Etapa 1 concluída. Etapa 2 com plano de engenharia preparado, execução não iniciada. Etapa 3 proposta, com detalhamento próprio posterior.
 
-A proposta é reorganizar o `notfeed-app` em um monorepo limpo, com foco na web/PWA e em recuperar velocidade de desenvolvimento. O trabalho inicial compreende duas etapas: migração estrutural com os agrupamentos existentes e organização dos módulos por meio de refatorações. Etapas posteriores de refatorações mais profundas e novas funcionalidades ficam fora deste escopo.
+A proposta é reorganizar o `notfeed-app` em um monorepo limpo, com foco na web/PWA e em recuperar velocidade de desenvolvimento. O trabalho inicial compreende três etapas: migração estrutural com os agrupamentos existentes; manutenção da base técnica e padronização do ambiente de desenvolvimento; organização dos módulos por meio de refatorações. Etapas posteriores de refatorações mais profundas e novas funcionalidades ficam fora deste escopo.
 
-O escopo deve permanecer enxuto: aproveitar a lógica atual onde o encaixe for simples e fazer apenas as adaptações necessárias para operar na nova estrutura. O uso maior de Rust e a eventual integração de bibliotecas C++ orientam a organização do repositório, sem acrescentar integrações agora.
+O escopo deve permanecer enxuto: aproveitar a lógica atual onde o encaixe for simples e fazer as adaptações necessárias ao objetivo de cada etapa. O uso maior de Rust e a eventual integração de bibliotecas C++ orientam a organização do repositório, sem acrescentar integrações agora.
 
 ## Problema atual
 
@@ -20,7 +20,7 @@ A migração deve aproveitar os modelos, protocolos, normalizadores e adaptadore
 
 ## Modelo proposto
 
-Adotar um **monorepo preparado para múltiplas linguagens**, mantendo o código atual agrupado e estabelecendo apenas as separações necessárias para organizar e executar os aplicativos existentes. O monólito modular permanece como direção de evolução; a divisão do negócio em módulos será definida na etapa 2.
+Adotar um **monorepo preparado para múltiplas linguagens**, mantendo o código atual agrupado e estabelecendo apenas as separações necessárias para organizar e executar os aplicativos existentes. O monólito modular permanece como direção de evolução; a divisão do negócio em módulos será definida na etapa 3.
 
 O monorepo reúne aplicativos e bibliotecas no mesmo repositório, mantendo a execução local e o funcionamento offline, sem exigir um backend próprio. Nesta migração, é aceitável manter toda a lógica atual em um único pacote, respeitando sua organização interna existente.
 
@@ -28,7 +28,7 @@ Os contratos e adaptadores existentes podem ser mantidos. A criação de novas i
 
 ## Organização do repositório
 
-Estrutura proposta para acomodar o código existente:
+Estrutura implantada na etapa 1 e preservada durante a manutenção da base técnica na etapa 2:
 
 ```text
 notfeed-app/
@@ -49,11 +49,11 @@ Se mover uma parte para esse pacote exigir uma refatoração extensa, ela pode p
 
 ## Profundidade da modularização atual
 
-A migração não define novos módulos de negócio. As divisões anteriormente sugeridas, como identidade, conteúdo, biblioteca, leitura, ingestão e notificações, deixam de orientar a organização desta etapa.
+A migração estrutural e a manutenção da base técnica não definem novos módulos de negócio. As divisões anteriormente sugeridas, como identidade, conteúdo, biblioteca, leitura, ingestão e notificações, não orientam a organização dessas etapas. Os limites serão acordados na etapa 3.
 
 Devem ser mantidos os agrupamentos que já existem ou reunidos em um único pacote quando isso simplificar a migração. A movimentação de código não exige redefinir responsabilidades de negócio ou distribuir os dados entre novos módulos.
 
-Stores, serviços e o PostManager podem continuar com suas responsabilidades atuais. Os ajustes agora se limitam ao que for necessário para o código funcionar na nova localização e com a configuração do workspace. O banco IndexedDB e o schema atuais podem permanecer.
+Stores, serviços e o PostManager podem continuar com suas responsabilidades atuais até a etapa 3. Na etapa 1, os ajustes se limitaram ao funcionamento na nova localização e às correções pontuais autorizadas. A etapa 2 admite adaptações necessárias à atualização das ferramentas e dependências, preservando comportamento, dados locais e schema do IndexedDB.
 
 ## Migração limpa sem camadas de legado
 
@@ -79,7 +79,7 @@ Não se exige que todos os acessos à persistência passem por novos casos de us
 
 A organização de `apps/` e `packages/` deve comportar código JS/TS, Rust ou C++, com as ferramentas de cada ecossistema coordenadas pelos comandos do repositório quando houver necessidade. Essa capacidade não depende de definir os módulos de negócio agora.
 
-Na migração atual, o TypeScript permanece em TypeScript e o Rust existente permanece integrado ao Tauri. A organização não pressupõe troca de gerenciador de pacotes nem adoção de uma ferramenta específica de orquestração.
+Na etapa 1, o TypeScript permaneceu em TypeScript, o Rust existente continuou integrado ao Tauri e o workspace foi organizado com npm. A etapa 2 prevê a migração para pnpm no ecossistema JS/TS, mantendo Cargo para o Rust existente. Essa escolha não exige outra organização de diretórios nem a adoção de uma ferramenta adicional de orquestração.
 
 Futuras bibliotecas poderão ser encapsuladas por adaptadores ou substituir implementações internas, preservando os contratos dos consumidores quando possível. A compatibilidade de cada biblioteca com web, desktop ou mobile e suas pontes de integração será avaliada nesse momento.
 
@@ -91,15 +91,47 @@ A migração abrange a organização do workspace, a movimentação do código e
 
 O comportamento útil do produto e sua lógica devem ser preservados onde isso for plausível, sem exigir uma refatoração extensa para reproduzir todos os detalhes internos. Simplificações que afetem o comportamento devem ter seu impacto explicitado. Os dados locais, identificadores e formatos de importação e exportação continuam sendo referências de compatibilidade; a reorganização não deve provocar apagamento do banco.
 
-Ficam fora da etapa 1 a definição de novos módulos de negócio e a refatoração interna para esses limites. Novas regras, novos aplicativos, novas bibliotecas Rust/C++, WebAssembly, substituição do IndexedDB, criação de backend e expansão das plataformas suportadas ficam fora das duas etapas iniciais.
+Ficam fora da etapa 1 a definição de novos módulos de negócio e a refatoração interna para esses limites. Novas regras, novos aplicativos, reescritas ou novas integrações Rust/C++, WebAssembly, substituição do IndexedDB, criação de backend e expansão das plataformas suportadas ficam fora das três etapas iniciais. A manutenção das dependências Rust já utilizadas pelo Tauri faz parte da etapa 2.
+
+## Escopo da etapa 2
+
+Estabilizar a base técnica e tornar previsível o ciclo de editar, executar e validar antes da refatoração modular: auditar dependências JS/TS e Rust existentes, migrar npm para pnpm, atualizar bibliotecas e ferramentas em grupos compatíveis e padronizar o ambiente de desenvolvimento. A auditoria distingue exposição na web/PWA, no desktop e no ambiente de desenvolvimento; alertas do gerenciador precisam ser avaliados no contexto de uso. Correções de riscos relevantes que não possam aguardar têm prioridade sobre a troca de gerenciador.
+
+A migração para pnpm constitui uma fase própria. Deve partir do lockfile atual, comparar as versões resolvidas e justificar qualquer diferença, sem acumular atualizações deliberadas de bibliotecas nessa mesma fase. Inclui configuração dos workspaces, dependências internas, versão do gerenciador, scripts, instalação reproduzível, comandos Tauri, verificações automatizadas e documentação. Ao final, haverá um único lockfile ativo para JS/TS, além do `Cargo.lock` existente.
+
+As atualizações seguintes priorizam segurança e versões mantidas, com adaptações mínimas de compatibilidade. Não se exige colocar todas as bibliotecas na versão mais recente. Atualizações de versão principal entram nesta etapa quando necessárias para segurança, suporte ou preparação da modularização. Substituições e atualizações que exijam redesenho amplo, sem essa necessidade, ficam para etapas posteriores. Tauri e seus plugins devem ser avaliados em conjunto nos lados JS e Rust.
+
+Os contratos da etapa 2 devem distinguir as provas históricas da migração das verificações permanentes de arquitetura e comportamento. As evidências aprovadas da etapa 1 permanecem preservadas; os novos contratos passam a representar pnpm e as versões selecionadas, mantendo tipos estritos, cobertura de testes, fronteiras, preservação de dados e validação PWA/desktop. Não se deve relaxar verificações apenas para aceitar a troca de ferramentas.
+
+Esta etapa não reorganiza módulos de negócio nem acrescenta plataformas ou integrações futuras. Seu encerramento entrega uma referência validada para iniciar a refatoração da etapa 3.
+
+### Ambiente de desenvolvimento e verificações permanentes
+
+Manter SvelteKit/Vite com HMR, Vitest, Playwright e Tauri/Cargo como base, atualizando suas versões conforme os grupos de compatibilidade. A padronização deve atender ao desenvolvimento web/PWA e ao desktop existente, sem antecipar ferramentas para plataformas futuras.
+
+| Frente | Resultado previsto na etapa 2 |
+| --- | --- |
+| Versões e instalação | Fixar versões de referência compatíveis e mantidas de Node, pnpm e Rust, incluindo `rust-toolchain.toml`; alinhar `@types/node` ao runtime escolhido. Usar as mesmas versões no ambiente local e na CI, com lockfiles respeitados e navegador Playwright correspondente à versão adotada. |
+| Lint e formatação | Adotar ESLint com suporte a TypeScript/Svelte e Prettier como dependências de desenvolvimento; incorporar `rustfmt` e Clippy para o Rust existente. Definir regras e cobertura antes da aplicação, mantendo alterações de formatação isoladas das mudanças funcionais. |
+| Comandos cotidianos | Disponibilizar comandos da raiz para desenvolvimento, tipos, lint, verificação de formatação, testes e fronteiras, além de uma verificação rápida agregada. As verificações permanentes devem funcionar sem depender da cadeia de fases ou dos hashes de preservação da migração histórica. |
+| Consistência dos testes | Unificar as condições de execução em watch e em lote, incluindo UTC e controle de idioma quando pertinente. Manter dados sintéticos e cenários locais reproduzíveis para os fluxos de navegador, sem depender de feeds externos para provar comportamento. |
+| Servidores e PWA | Definir portas previsíveis para desenvolvimento, preview e testes, alinhadas ao `devUrl` do Tauri, com falha explícita em caso de ocupação. Manter HMR no desenvolvimento e validar service worker/offline no build servido localmente, com comando documentado e perfis de teste isolados dos dados pessoais. |
+| Preparação do ambiente | Consolidar instruções e fornecer um comando de diagnóstico dos pré-requisitos, com mensagens acionáveis e saída diferente de zero quando faltar um requisito do alvo escolhido. O desenvolvimento web não deve exigir a instalação das dependências nativas do desktop. |
+| Integração contínua | Automatizar a instalação reproduzível e os checks em alterações propostas, usando os mesmos comandos locais. Executar verificações rápidas primeiro e testes completos de PWA/desktop conforme critérios de impacto definidos previamente; publicar resultados e evidências de falhas. |
+
+A adoção de lint e formatação deve ter escopo delimitado, sem converter esta etapa em uma refatoração geral do produto. As regras acordadas precisam passar sem supressões ou redução de cobertura para obter aprovação. Problemas cuja correção ultrapasse o recorte autorizado acionam o protocolo de consulta. Bibliotecas de suporte dessas ferramentas e suas versões serão declaradas no plano de engenharia antes da instalação.
+
+O fluxo cotidiano combina tipos, lint, formatação, testes pertinentes e fronteiras. A validação de integração acrescenta build, navegador real, atualização/offline da PWA, preservação dos dados e verificações nativas aplicáveis. Mudanças em dependências, configuração ou código compartilhado exigem validação dos consumidores afetados; o encerramento da etapa exige o conjunto completo, mesmo quando os checks cotidianos forem menores. Formatação e lint Rust complementam compilação e testes, sem representar cobertura E2E da interface nativa.
 
 ## Etapas e fases do trabalho inicial
 
 Cada etapa é dividida em fases de escopo delimitado. Os gates são critérios objetivos de entrada e saída, verificados antes de avançar. As fases abaixo estabelecem os resultados esperados; tarefas, comandos e alterações por arquivo pertencem ao detalhamento operacional.
 
+O detalhamento de cada fase segue o ciclo Especificação → Contrato/Schema → Teste → Implementação Mínima → Quality Gate. Os planos de engenharia definem os comandos de terminal, o `state.md` e os ADRs correspondentes antes da execução.
+
 ### Etapa 1 Migração estrutural
 
-Entregar o produto na nova organização do repositório, mantendo os agrupamentos existentes ou um único pacote para o código atual. A conclusão desta etapa independe da definição dos módulos de negócio.
+Etapa concluída, com as fases operacionais P0–P6 aprovadas conforme o [estado vivo da etapa 1](etapa-1-migracao-estrutural/state.md). O produto foi entregue na nova organização do repositório, mantendo os agrupamentos existentes no pacote único. Sua conclusão independeu da definição dos módulos de negócio. As fases abaixo resumem o escopo executado.
 
 | Fase | Escopo | Gate de saída |
 | --- | --- | --- |
@@ -108,21 +140,37 @@ Entregar o produto na nova organização do repositório, mantendo os agrupament
 | 1.3 Integrações existentes | Verificar os caminhos de assets e rotas, o service worker, o armazenamento local e a integração com o Tauri após a movimentação. | Fluxos afetados validados em execução, dados preservados e nenhuma regressão introduzida pela mudança de estrutura. |
 | 1.4 Consolidação | Remover estruturas substituídas, atualizar a documentação e verificar o conjunto dos aplicativos existentes. | Gate de encerramento da etapa aprovado e checkpoint de referência da nova estrutura registrado. |
 
-### Etapa 2 Organização modular
+### Etapa 2 Manutenção da base técnica e ambiente de desenvolvimento
+
+Preparar ferramentas, dependências e a rotina de desenvolvimento para a organização modular, preservando a estrutura e o comportamento validados na etapa 1. A troca de gerenciador, as atualizações e a padronização dos checks passam por gates separados para permitir identificar a causa de uma regressão.
+
+| Fase | Escopo | Gate de saída |
+| --- | --- | --- |
+| 2.1 Diagnóstico e contratos | Inventariar versões, suporte, alertas JS/Rust, exposição efetiva e lacunas do ambiente; definir grupos de atualização, ferramentas, regras, contratos e critérios de execução na CI. | Inventário e classificação verificáveis, contratos validados com saída zero e referência funcional registrada; nenhum alerta descartado apenas por ser preexistente. |
+| 2.2 Correções prioritárias | Tratar riscos relevantes que não possam aguardar a migração para pnpm, com mudanças delimitadas. | Auditoria confirma a remoção ou mitigação validada dos riscos selecionados e testes afetados retornam zero. Se não houver correção urgente, a classificação da fase 2.1 deve demonstrar isso. |
+| 2.3 Migração para pnpm | Migrar workspace, lockfile, instalação, scripts, comandos Tauri e verificações, comparando as versões resolvidas. | Instalação limpa com lockfile congelado, dependências internas resolvidas localmente e verificações de tipos, testes, build e integrações afetadas com saída zero. |
+| 2.4 Atualizações por grupo | Atualizar dependências e ferramentas em conjuntos compatíveis, incluindo o Rust existente; fixar as versões de referência e alinhar os tipos ao runtime. | Para cada grupo, auditoria comparada à entrada, critérios de segurança atendidos e verificações do comportamento afetado retornando zero antes do próximo grupo. |
+| 2.5 Ambiente e verificações permanentes | Configurar ESLint/Prettier, rustfmt/Clippy, comandos cotidianos, condições dos testes, portas, fluxo PWA e diagnóstico de pré-requisitos; separar os checks permanentes das provas históricas. | Diagnóstico do ambiente preparado, tipos, lint, formatação, testes e fronteiras retornam zero; execução em watch/lote e servidores são verificadas nas condições acordadas, incluindo os casos de porta ocupada e pré-requisito ausente. |
+| 2.6 Integração contínua | Automatizar os comandos validados em alterações propostas, com instalação limpa, verificações por impacto e registro de evidências. | Execução real da CI com checks obrigatórios aprovados, versões e comandos equivalentes aos locais e nenhuma verificação exigida omitida; configuração criada sem execução não conta como aprovação. |
+| 2.7 Consolidação técnica | Validar o conjunto, concluir a documentação de preparação e desenvolvimento e registrar a referência para a etapa 3. | Gate completo aprovado, incluindo instalação reproduzível, diagnóstico, tipos, lint, formatação, testes, fronteiras, PWA com preservação de dados, build/empacotamento desktop e CI; nenhum risco bloqueante pendente conforme os critérios definidos na fase 2.1. |
+
+As fases 2.4 e 2.5 devem ser divididas em unidades menores conforme os grupos e ajustes identificados no diagnóstico, cada uma com seu ciclo de contrato, teste, implementação e gate. Os critérios de segurança são definidos antes das correções, sem alterar limites ou suprimir alertas para obter aprovação. Qualquer risco residual deve ter justificativa verificável; um risco bloqueante não pode ser convertido em aprovação por mera documentação.
+
+### Etapa 3 Organização modular
 
 Definir com o usuário os módulos que fazem sentido para o produto e realizar as refatorações necessárias para organizar responsabilidades e dependências. As regras e a visão do produto orientam esses limites, sem antecipar novas funcionalidades ou revisões funcionais profundas.
 
 | Fase | Escopo | Gate de saída |
 | --- | --- | --- |
-| 2.1 Definição dos módulos | Estabelecer com o usuário as responsabilidades, os limites, os contratos e as dependências pretendidos. | Organização acordada antes de iniciar a extração; nenhuma lista de módulos é imposta pela etapa 1. |
-| 2.2 Refatoração por módulo | Reorganizar uma unidade delimitada por vez conforme a definição acordada, mantendo uma única implementação ativa. | Build, tipagem, testes do comportamento afetado e verificações de dependências aprovados para a unidade alterada. |
-| 2.3 Consolidação modular | Validar as integrações entre módulos, remover estruturas substituídas e atualizar a documentação. | Gate de encerramento da etapa aprovado, com responsabilidades implementadas e fronteiras verificáveis. |
+| 3.1 Definição dos módulos | Estabelecer com o usuário as responsabilidades, os limites, os contratos e as dependências pretendidos. | Organização acordada antes de iniciar a extração; nenhuma lista de módulos é imposta pelas etapas anteriores. |
+| 3.2 Refatoração por módulo | Reorganizar uma unidade delimitada por vez conforme a definição acordada, mantendo uma única implementação ativa. | Build, tipagem, testes do comportamento afetado e verificações de dependências aprovados para a unidade alterada. |
+| 3.3 Consolidação modular | Validar as integrações entre módulos, remover estruturas substituídas e atualizar a documentação. | Gate de encerramento da etapa aprovado, com responsabilidades implementadas e fronteiras verificáveis. |
 
-A fase 2.2 pode conter várias fases menores conforme os módulos definidos. Cada uma passa por seu próprio gate, evitando acumular refatorações extensas antes de verificar o resultado.
+A definição dos módulos pode avançar durante a manutenção técnica, mas a refatoração da fase 3.2 começa após a aprovação da etapa 2 e dos contratos da fase 3.1. A fase 3.2 pode conter várias fases menores conforme os módulos definidos. Cada uma passa por seu próprio gate, evitando acumular refatorações extensas antes de verificar o resultado.
 
 ### Etapas posteriores
 
-Refatorações mais profundas, alterações amplas das regras de negócio, novas funcionalidades e expansão das tecnologias serão tratadas depois, com escopo próprio. O trabalho inicial se encerra com a migração estrutural e a organização modular validadas.
+Refatorações mais profundas, alterações amplas das regras de negócio, novas funcionalidades e expansão das tecnologias serão tratadas após a etapa 3, com escopo próprio. O trabalho inicial se encerra com a migração estrutural, a manutenção da base técnica e a organização modular validadas.
 
 ## Processo de gates e testes
 
@@ -133,11 +181,11 @@ Cada fase deve registrar de forma breve:
 - Verificações exigidas e seus resultados.
 - Estado de saída, eventuais limitações e checkpoint para recuperação.
 
-Os gates técnicos não exigem confirmação manual a cada fase. A decisão sobre quais módulos existirão pertence à fase 2.1 e deve ser alinhada com o usuário antes da refatoração correspondente.
+Os gates técnicos não exigem confirmação manual a cada fase. A decisão sobre quais módulos existirão pertence à fase 3.1 e deve ser alinhada com o usuário antes da refatoração correspondente.
 
 ### Critérios para avançar
 
-Uma fase avança quando todas as verificações obrigatórias retornarem zero. Regressões introduzidas devem ser resolvidas antes de acumular outras alterações. Falhas preexistentes são registradas e não recebem aprovação por serem antigas. Quando sua correção ultrapassar o escopo estrutural ou a configuração de testes, o protocolo exige consulta antes de avançar.
+Uma fase avança quando todas as verificações obrigatórias retornarem zero. Regressões introduzidas devem ser resolvidas antes de acumular outras alterações. Falhas preexistentes são registradas e não recebem aprovação por serem antigas. Quando sua correção ultrapassar o escopo autorizado da fase, o protocolo exige consulta antes de avançar.
 
 Uma verificação obrigatória que não pôde ser executada fica pendente, com o motivo registrado. Ela não conta como aprovada. Simplificações que alterem comportamento devem ter o impacto registrado, sem redefinir o resultado esperado apenas para fazer um teste passar.
 
@@ -157,6 +205,6 @@ Checkpoints no Git permitem retornar a um estado validado quando necessário. A 
 
 O produto deve continuar utilizável na web/PWA e no desktop atual. Build, tipagem, testes e os fluxos essenciais existentes servem para verificar a nova organização e identificar regressões, considerando os problemas preexistentes e eventuais simplificações explicitadas.
 
-A etapa 1 entrega uma única estrutura ativa, com o workspace funcionando, os aplicativos existentes integrados e o código organizado conforme os agrupamentos atuais, podendo permanecer em um único pacote. A etapa 2 entrega os módulos acordados, com suas responsabilidades implementadas e dependências verificáveis. Ambas preservam a ausência de camadas para sustentar a organização substituída.
+A etapa 1 entregou uma única estrutura ativa, com o workspace funcionando, os aplicativos existentes integrados e o código organizado conforme os agrupamentos atuais no pacote único. A etapa 2 entrega essa base com pnpm, dependências revisadas, correções de segurança, ambiente reproduzível, comandos cotidianos padronizados e verificações permanentes executadas localmente e na CI. A etapa 3 entrega os módulos acordados, com suas responsabilidades implementadas e dependências verificáveis. As três etapas preservam a ausência de camadas para sustentar a organização substituída.
 
-O [plano de engenharia da etapa 1](etapa-1-migracao-estrutural/README.md) detalha invariantes, contratos, fases P0–P6, comandos de gate, estado vivo e ADRs segundo o protocolo Meta-Harness. Playwright está previsto somente para desenvolvimento, conforme autorização do usuário. A execução da migração não foi iniciada. A etapa 2 será detalhada depois, com os módulos definidos em conjunto.
+O [plano de engenharia da etapa 1](etapa-1-migracao-estrutural/README.md) registra invariantes, contratos, fases P0–P6, comandos de gate, estado vivo e ADRs segundo o protocolo Meta-Harness. Sua execução está concluída; Playwright foi incorporado somente para desenvolvimento, conforme autorização do usuário. O [plano de engenharia da etapa 2](etapa-2-base-tecnica-e-ambiente/README.md) detalha a manutenção da base técnica e a padronização do ambiente, com fases 2.1–2.7, unidades atômicas, contratos, gates, estado vivo e ADRs; sua execução ainda não começou. A organização modular passa a ser a etapa 3 nesta proposta; referências anteriores à etapa 2 nos registros da migração estrutural correspondem à numeração original e não autorizam antecipar essa refatoração.
