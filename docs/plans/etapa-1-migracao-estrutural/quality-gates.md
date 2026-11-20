@@ -6,7 +6,7 @@ O árbitro é um comando reproduzível que compara a entrega com contratos fixad
 
 **Todos os comandos e testes obrigatórios precisam retornar zero.** Uma referência com testes falhos não autoriza avançar. P0 corrige a causa das falhas de configuração conhecidas; uma correção que exija mudar o produto além do escopo aciona Stop & Ask. A regra é mais estrita que a mera comparação de quantidade de falhas.
 
-Os novos comandos desta página são contratos para scripts a criar em P0/P1; `check`, `test:run` e `build` já existem. Documentar um comando não significa que seu gate foi executado ou aprovado. O estado inicial está em [state.md](state.md).
+Os comandos desta página foram implementados ao executar as fases. A existência de um comando não significa aprovação do gate; os resultados reais e checkpoints estão em [state.md](state.md).
 
 ## Interface dos comandos
 
@@ -38,7 +38,7 @@ Todos incluem contrato realizado, linter de arquitetura e testes do árbitro. Os
 | P3 | Check abrangendo pacote inteiro, Vitest com identidades conservadas, build incluindo SW; Playwright; prova de resolução dos subpaths e comparação da lógica movida. |
 | P4 | Check, Vitest, build; todos os cenários PWA, inclusive atualização com dados persistentes; comparações de schema, rotas e formatos. |
 | P5 | Build web; `cargo check --locked --manifest-path apps/desktop/src-tauri/Cargo.toml`; `cargo test --locked --manifest-path apps/desktop/src-tauri/Cargo.toml`; `npm run tauri:appimage`; inspeção automatizada do artefato e de suas referências. |
-| P6 | `npm ci`; todos os checks web, de tipos, arquitetura, testes e PWA; os checks nativos de P5; auditoria final de fontes únicas e `git diff --check`. |
+| P6 | `npm ci`; reconstrução isolada do checkpoint Git P1; todos os checks web/tipos/arquitetura/unitários; Chromium dev; checks nativos P5; Chromium produção/atualização após o hook Tauri; auditoria de fontes únicas e `git diff --check`. |
 
 O gate final executa novamente os checks completos sobre a mesma revisão de código. `npm ci` não pode mudar o lockfile nem depender de arquivos locais não versionados. Não exigir reinstalação ou build nativo completo a cada ajuste pequeno das fases anteriores.
 
@@ -89,3 +89,5 @@ Playwright no Chromium não valida automaticamente a WebView do Tauri ou notific
 ## Registro de aprovação
 
 O Auditor registra fase, revisão/hash, comandos, códigos de saída, evidências e limites. Somente então atualiza `state.md`. Alterar testes, contratos ou código depois do resultado obriga a repetir as verificações afetadas. Não aprovar por inspeção visual do log, screenshot ou relato do Builder.
+
+A reprodução e os recibos históricos seguem a ADR 006. O AppImage é inspecionado segundo a ADR 005: código e recursos são comparados por seções, com somente o marcador Tauri previsto e RPATH de empacotamento aceitos.

@@ -1,5 +1,15 @@
 # Notfeed — Decisões Arquiteturais
 
+## Localização atual após a migração estrutural
+
+| Unidade | Caminho e dependência |
+| --- | --- |
+| Web/PWA | `apps/web`, consome `@notfeed/product` e gera `apps/web/build`. |
+| Produto | `packages/notfeed/src`, conserva os agrupamentos anteriores de lib; não importa arquivos dos aplicativos. |
+| Desktop | `apps/desktop/src-tauri`, conserva a crate Rust e empacota `../../web/build`. |
+
+As decisões abaixo são registros históricos e podem citar os caminhos originais. Os [contratos da migração](plans/etapa-1-migracao-estrutural/contratos.md) e o [estado vivo](plans/etapa-1-migracao-estrutural/state.md) descrevem a estrutura vigente. A reorganização dos módulos de negócio será definida na etapa 2.
+
 ## ADR-001: Client-side first (SPA)
 
 **Contexto**: Notfeed é um agregador pessoal; não há necessidade de SEO ou SSR.  

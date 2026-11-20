@@ -1,0 +1,1730 @@
+[
+  {
+    "from": "src-tauri/.gitignore",
+    "to": "apps/desktop/src-tauri/.gitignore"
+  },
+  {
+    "from": "src-tauri/build.rs",
+    "to": "apps/desktop/src-tauri/build.rs"
+  },
+  {
+    "from": "src-tauri/capabilities/default.json",
+    "to": "apps/desktop/src-tauri/capabilities/default.json"
+  },
+  {
+    "from": "src-tauri/Cargo.lock",
+    "to": "apps/desktop/src-tauri/Cargo.lock"
+  },
+  {
+    "from": "src-tauri/Cargo.toml",
+    "to": "apps/desktop/src-tauri/Cargo.toml"
+  },
+  {
+    "from": "src-tauri/icons/128x128.png",
+    "to": "apps/desktop/src-tauri/icons/128x128.png"
+  },
+  {
+    "from": "src-tauri/icons/128x128@2x.png",
+    "to": "apps/desktop/src-tauri/icons/128x128@2x.png"
+  },
+  {
+    "from": "src-tauri/icons/32x32.png",
+    "to": "apps/desktop/src-tauri/icons/32x32.png"
+  },
+  {
+    "from": "src-tauri/icons/64x64.png",
+    "to": "apps/desktop/src-tauri/icons/64x64.png"
+  },
+  {
+    "from": "src-tauri/icons/android/mipmap-anydpi-v26/ic_launcher.xml",
+    "to": "apps/desktop/src-tauri/icons/android/mipmap-anydpi-v26/ic_launcher.xml"
+  },
+  {
+    "from": "src-tauri/icons/android/mipmap-hdpi/ic_launcher_foreground.png",
+    "to": "apps/desktop/src-tauri/icons/android/mipmap-hdpi/ic_launcher_foreground.png"
+  },
+  {
+    "from": "src-tauri/icons/android/mipmap-hdpi/ic_launcher_round.png",
+    "to": "apps/desktop/src-tauri/icons/android/mipmap-hdpi/ic_launcher_round.png"
+  },
+  {
+    "from": "src-tauri/icons/android/mipmap-hdpi/ic_launcher.png",
+    "to": "apps/desktop/src-tauri/icons/android/mipmap-hdpi/ic_launcher.png"
+  },
+  {
+    "from": "src-tauri/icons/android/mipmap-mdpi/ic_launcher_foreground.png",
+    "to": "apps/desktop/src-tauri/icons/android/mipmap-mdpi/ic_launcher_foreground.png"
+  },
+  {
+    "from": "src-tauri/icons/android/mipmap-mdpi/ic_launcher_round.png",
+    "to": "apps/desktop/src-tauri/icons/android/mipmap-mdpi/ic_launcher_round.png"
+  },
+  {
+    "from": "src-tauri/icons/android/mipmap-mdpi/ic_launcher.png",
+    "to": "apps/desktop/src-tauri/icons/android/mipmap-mdpi/ic_launcher.png"
+  },
+  {
+    "from": "src-tauri/icons/android/mipmap-xhdpi/ic_launcher_foreground.png",
+    "to": "apps/desktop/src-tauri/icons/android/mipmap-xhdpi/ic_launcher_foreground.png"
+  },
+  {
+    "from": "src-tauri/icons/android/mipmap-xhdpi/ic_launcher_round.png",
+    "to": "apps/desktop/src-tauri/icons/android/mipmap-xhdpi/ic_launcher_round.png"
+  },
+  {
+    "from": "src-tauri/icons/android/mipmap-xhdpi/ic_launcher.png",
+    "to": "apps/desktop/src-tauri/icons/android/mipmap-xhdpi/ic_launcher.png"
+  },
+  {
+    "from": "src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_foreground.png",
+    "to": "apps/desktop/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_foreground.png"
+  },
+  {
+    "from": "src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_round.png",
+    "to": "apps/desktop/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_round.png"
+  },
+  {
+    "from": "src-tauri/icons/android/mipmap-xxhdpi/ic_launcher.png",
+    "to": "apps/desktop/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher.png"
+  },
+  {
+    "from": "src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_foreground.png",
+    "to": "apps/desktop/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_foreground.png"
+  },
+  {
+    "from": "src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_round.png",
+    "to": "apps/desktop/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_round.png"
+  },
+  {
+    "from": "src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher.png",
+    "to": "apps/desktop/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher.png"
+  },
+  {
+    "from": "src-tauri/icons/android/values/ic_launcher_background.xml",
+    "to": "apps/desktop/src-tauri/icons/android/values/ic_launcher_background.xml"
+  },
+  {
+    "from": "src-tauri/icons/icon.icns",
+    "to": "apps/desktop/src-tauri/icons/icon.icns"
+  },
+  {
+    "from": "src-tauri/icons/icon.ico",
+    "to": "apps/desktop/src-tauri/icons/icon.ico"
+  },
+  {
+    "from": "src-tauri/icons/icon.png",
+    "to": "apps/desktop/src-tauri/icons/icon.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-20x20@1x.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-20x20@1x.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-20x20@2x-1.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-20x20@2x-1.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-20x20@2x.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-20x20@2x.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-20x20@3x.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-20x20@3x.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-29x29@1x.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-29x29@1x.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-29x29@2x-1.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-29x29@2x-1.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-29x29@2x.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-29x29@2x.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-29x29@3x.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-29x29@3x.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-40x40@1x.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-40x40@1x.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-40x40@2x-1.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-40x40@2x-1.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-40x40@2x.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-40x40@2x.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-40x40@3x.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-40x40@3x.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-512@2x.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-512@2x.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-60x60@2x.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-60x60@2x.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-60x60@3x.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-60x60@3x.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-76x76@1x.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-76x76@1x.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-76x76@2x.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-76x76@2x.png"
+  },
+  {
+    "from": "src-tauri/icons/ios/AppIcon-83.5x83.5@2x.png",
+    "to": "apps/desktop/src-tauri/icons/ios/AppIcon-83.5x83.5@2x.png"
+  },
+  {
+    "from": "src-tauri/icons/Square107x107Logo.png",
+    "to": "apps/desktop/src-tauri/icons/Square107x107Logo.png"
+  },
+  {
+    "from": "src-tauri/icons/Square142x142Logo.png",
+    "to": "apps/desktop/src-tauri/icons/Square142x142Logo.png"
+  },
+  {
+    "from": "src-tauri/icons/Square150x150Logo.png",
+    "to": "apps/desktop/src-tauri/icons/Square150x150Logo.png"
+  },
+  {
+    "from": "src-tauri/icons/Square284x284Logo.png",
+    "to": "apps/desktop/src-tauri/icons/Square284x284Logo.png"
+  },
+  {
+    "from": "src-tauri/icons/Square30x30Logo.png",
+    "to": "apps/desktop/src-tauri/icons/Square30x30Logo.png"
+  },
+  {
+    "from": "src-tauri/icons/Square310x310Logo.png",
+    "to": "apps/desktop/src-tauri/icons/Square310x310Logo.png"
+  },
+  {
+    "from": "src-tauri/icons/Square44x44Logo.png",
+    "to": "apps/desktop/src-tauri/icons/Square44x44Logo.png"
+  },
+  {
+    "from": "src-tauri/icons/Square71x71Logo.png",
+    "to": "apps/desktop/src-tauri/icons/Square71x71Logo.png"
+  },
+  {
+    "from": "src-tauri/icons/Square89x89Logo.png",
+    "to": "apps/desktop/src-tauri/icons/Square89x89Logo.png"
+  },
+  {
+    "from": "src-tauri/icons/StoreLogo.png",
+    "to": "apps/desktop/src-tauri/icons/StoreLogo.png"
+  },
+  {
+    "from": "src-tauri/src/lib.rs",
+    "to": "apps/desktop/src-tauri/src/lib.rs"
+  },
+  {
+    "from": "src-tauri/src/main.rs",
+    "to": "apps/desktop/src-tauri/src/main.rs"
+  },
+  {
+    "from": "src-tauri/tauri.conf.json",
+    "to": "apps/desktop/src-tauri/tauri.conf.json"
+  },
+  {
+    "from": "src/app.css",
+    "to": "apps/web/src/app.css"
+  },
+  {
+    "from": "src/app.d.ts",
+    "to": "apps/web/src/app.d.ts"
+  },
+  {
+    "from": "src/app.html",
+    "to": "apps/web/src/app.html"
+  },
+  {
+    "from": "src/lib/assets/favicon.svg",
+    "to": "apps/web/src/lib/assets/favicon.svg"
+  },
+  {
+    "from": "src/lib/components/browse/index.ts",
+    "to": "apps/web/src/lib/components/browse/index.ts"
+  },
+  {
+    "from": "src/lib/components/browse/SearchBar.svelte",
+    "to": "apps/web/src/lib/components/browse/SearchBar.svelte"
+  },
+  {
+    "from": "src/lib/components/creator/AvatarPicker.svelte",
+    "to": "apps/web/src/lib/components/creator/AvatarPicker.svelte"
+  },
+  {
+    "from": "src/lib/components/creator/CategoryPicker.svelte",
+    "to": "apps/web/src/lib/components/creator/CategoryPicker.svelte"
+  },
+  {
+    "from": "src/lib/components/creator/CategoryTreePicker.svelte",
+    "to": "apps/web/src/lib/components/creator/CategoryTreePicker.svelte"
+  },
+  {
+    "from": "src/lib/components/creator/CollectionBodyForm.svelte",
+    "to": "apps/web/src/lib/components/creator/CollectionBodyForm.svelte"
+  },
+  {
+    "from": "src/lib/components/creator/CopyFromConsumerDialog.svelte",
+    "to": "apps/web/src/lib/components/creator/CopyFromConsumerDialog.svelte"
+  },
+  {
+    "from": "src/lib/components/creator/ExportButton.svelte",
+    "to": "apps/web/src/lib/components/creator/ExportButton.svelte"
+  },
+  {
+    "from": "src/lib/components/creator/FontBodyForm.svelte",
+    "to": "apps/web/src/lib/components/creator/FontBodyForm.svelte"
+  },
+  {
+    "from": "src/lib/components/creator/index.ts",
+    "to": "apps/web/src/lib/components/creator/index.ts"
+  },
+  {
+    "from": "src/lib/components/creator/MediaUpload.svelte",
+    "to": "apps/web/src/lib/components/creator/MediaUpload.svelte"
+  },
+  {
+    "from": "src/lib/components/creator/NodeForm.svelte",
+    "to": "apps/web/src/lib/components/creator/NodeForm.svelte"
+  },
+  {
+    "from": "src/lib/components/creator/NodeHeaderForm.svelte",
+    "to": "apps/web/src/lib/components/creator/NodeHeaderForm.svelte"
+  },
+  {
+    "from": "src/lib/components/creator/ProfileBodyForm.svelte",
+    "to": "apps/web/src/lib/components/creator/ProfileBodyForm.svelte"
+  },
+  {
+    "from": "src/lib/components/creator/PublishButton.svelte",
+    "to": "apps/web/src/lib/components/creator/PublishButton.svelte"
+  },
+  {
+    "from": "src/lib/components/creator/TagInput.svelte",
+    "to": "apps/web/src/lib/components/creator/TagInput.svelte"
+  },
+  {
+    "from": "src/lib/components/creator/TreeEditor.svelte",
+    "to": "apps/web/src/lib/components/creator/TreeEditor.svelte"
+  },
+  {
+    "from": "src/lib/components/creator/TreeLinkBodyForm.svelte",
+    "to": "apps/web/src/lib/components/creator/TreeLinkBodyForm.svelte"
+  },
+  {
+    "from": "src/lib/components/feed/CategoryFilter.svelte",
+    "to": "apps/web/src/lib/components/feed/CategoryFilter.svelte"
+  },
+  {
+    "from": "src/lib/components/feed/FeedList.svelte",
+    "to": "apps/web/src/lib/components/feed/FeedList.svelte"
+  },
+  {
+    "from": "src/lib/components/feed/FeedMacros.svelte",
+    "to": "apps/web/src/lib/components/feed/FeedMacros.svelte"
+  },
+  {
+    "from": "src/lib/components/feed/index.ts",
+    "to": "apps/web/src/lib/components/feed/index.ts"
+  },
+  {
+    "from": "src/lib/components/feed/PostCard.svelte",
+    "to": "apps/web/src/lib/components/feed/PostCard.svelte"
+  },
+  {
+    "from": "src/lib/components/feed/PostMedia.svelte",
+    "to": "apps/web/src/lib/components/feed/PostMedia.svelte"
+  },
+  {
+    "from": "src/lib/components/feed/PriorityFilter.svelte",
+    "to": "apps/web/src/lib/components/feed/PriorityFilter.svelte"
+  },
+  {
+    "from": "src/lib/components/feed/ViewModeToggle.svelte",
+    "to": "apps/web/src/lib/components/feed/ViewModeToggle.svelte"
+  },
+  {
+    "from": "src/lib/components/font/.gitkeep",
+    "to": "apps/web/src/lib/components/font/.gitkeep"
+  },
+  {
+    "from": "src/lib/components/library/index.ts",
+    "to": "apps/web/src/lib/components/library/index.ts"
+  },
+  {
+    "from": "src/lib/components/library/LibraryHome.svelte",
+    "to": "apps/web/src/lib/components/library/LibraryHome.svelte"
+  },
+  {
+    "from": "src/lib/components/library/LibraryItemList.svelte",
+    "to": "apps/web/src/lib/components/library/LibraryItemList.svelte"
+  },
+  {
+    "from": "src/lib/components/library/LibrarySearchBar.svelte",
+    "to": "apps/web/src/lib/components/library/LibrarySearchBar.svelte"
+  },
+  {
+    "from": "src/lib/components/library/SelectionBar.svelte",
+    "to": "apps/web/src/lib/components/library/SelectionBar.svelte"
+  },
+  {
+    "from": "src/lib/components/library/TabAssignmentDialog.svelte",
+    "to": "apps/web/src/lib/components/library/TabAssignmentDialog.svelte"
+  },
+  {
+    "from": "src/lib/components/library/TabSidebar.svelte",
+    "to": "apps/web/src/lib/components/library/TabSidebar.svelte"
+  },
+  {
+    "from": "src/lib/components/notifications/NotificationBell.svelte",
+    "to": "apps/web/src/lib/components/notifications/NotificationBell.svelte"
+  },
+  {
+    "from": "src/lib/components/profile/.gitkeep",
+    "to": "apps/web/src/lib/components/profile/.gitkeep"
+  },
+  {
+    "from": "src/lib/components/shared/ActiveCategoryBadges.svelte",
+    "to": "apps/web/src/lib/components/shared/ActiveCategoryBadges.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/activeContent/ActiveButton.svelte",
+    "to": "apps/web/src/lib/components/shared/activeContent/ActiveButton.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/activeContent/FollowButton.svelte",
+    "to": "apps/web/src/lib/components/shared/activeContent/FollowButton.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/activeContent/SubscribeButton.svelte",
+    "to": "apps/web/src/lib/components/shared/activeContent/SubscribeButton.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/ActiveLibraryTabBadges.svelte",
+    "to": "apps/web/src/lib/components/shared/ActiveLibraryTabBadges.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/CategoryTree.svelte",
+    "to": "apps/web/src/lib/components/shared/CategoryTree.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/dialog/ConfirmDeactivateDialog.svelte",
+    "to": "apps/web/src/lib/components/shared/dialog/ConfirmDeactivateDialog.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/dialog/ConfirmDeletePageDialog.svelte",
+    "to": "apps/web/src/lib/components/shared/dialog/ConfirmDeletePageDialog.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/dialog/ConfirmDialog.svelte",
+    "to": "apps/web/src/lib/components/shared/dialog/ConfirmDialog.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/dialog/ConfirmRemoveMediaDialog.svelte",
+    "to": "apps/web/src/lib/components/shared/dialog/ConfirmRemoveMediaDialog.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/dialog/ConfirmRemoveUserDialog.svelte",
+    "to": "apps/web/src/lib/components/shared/dialog/ConfirmRemoveUserDialog.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte",
+    "to": "apps/web/src/lib/components/shared/dialog/ConfirmUnfavoriteDialog.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/dialog/ConfirmUnfollowDialog.svelte",
+    "to": "apps/web/src/lib/components/shared/dialog/ConfirmUnfollowDialog.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/dialog/ConfirmUnpinDialog.svelte",
+    "to": "apps/web/src/lib/components/shared/dialog/ConfirmUnpinDialog.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/dialog/ConfirmUnsubscribeDialog.svelte",
+    "to": "apps/web/src/lib/components/shared/dialog/ConfirmUnsubscribeDialog.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/dialog/MediaPickerDialog.svelte",
+    "to": "apps/web/src/lib/components/shared/dialog/MediaPickerDialog.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/dialog/TabDialog.svelte",
+    "to": "apps/web/src/lib/components/shared/dialog/TabDialog.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/EmojiPicker.svelte",
+    "to": "apps/web/src/lib/components/shared/EmojiPicker.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/emojis/activities.ts",
+    "to": "apps/web/src/lib/components/shared/emojis/activities.ts"
+  },
+  {
+    "from": "src/lib/components/shared/emojis/animals.ts",
+    "to": "apps/web/src/lib/components/shared/emojis/animals.ts"
+  },
+  {
+    "from": "src/lib/components/shared/emojis/drinks.ts",
+    "to": "apps/web/src/lib/components/shared/emojis/drinks.ts"
+  },
+  {
+    "from": "src/lib/components/shared/emojis/faces.ts",
+    "to": "apps/web/src/lib/components/shared/emojis/faces.ts"
+  },
+  {
+    "from": "src/lib/components/shared/emojis/flags.ts",
+    "to": "apps/web/src/lib/components/shared/emojis/flags.ts"
+  },
+  {
+    "from": "src/lib/components/shared/emojis/food.ts",
+    "to": "apps/web/src/lib/components/shared/emojis/food.ts"
+  },
+  {
+    "from": "src/lib/components/shared/emojis/gestures.ts",
+    "to": "apps/web/src/lib/components/shared/emojis/gestures.ts"
+  },
+  {
+    "from": "src/lib/components/shared/emojis/index.ts",
+    "to": "apps/web/src/lib/components/shared/emojis/index.ts"
+  },
+  {
+    "from": "src/lib/components/shared/emojis/nature.ts",
+    "to": "apps/web/src/lib/components/shared/emojis/nature.ts"
+  },
+  {
+    "from": "src/lib/components/shared/emojis/objects.ts",
+    "to": "apps/web/src/lib/components/shared/emojis/objects.ts"
+  },
+  {
+    "from": "src/lib/components/shared/emojis/people.ts",
+    "to": "apps/web/src/lib/components/shared/emojis/people.ts"
+  },
+  {
+    "from": "src/lib/components/shared/emojis/symbols.ts",
+    "to": "apps/web/src/lib/components/shared/emojis/symbols.ts"
+  },
+  {
+    "from": "src/lib/components/shared/emojis/travel.ts",
+    "to": "apps/web/src/lib/components/shared/emojis/travel.ts"
+  },
+  {
+    "from": "src/lib/components/shared/emojis/types.ts",
+    "to": "apps/web/src/lib/components/shared/emojis/types.ts"
+  },
+  {
+    "from": "src/lib/components/shared/entity/EntityCard.svelte",
+    "to": "apps/web/src/lib/components/shared/entity/EntityCard.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/entity/EntityList.svelte",
+    "to": "apps/web/src/lib/components/shared/entity/EntityList.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/entity/index.ts",
+    "to": "apps/web/src/lib/components/shared/entity/index.ts"
+  },
+  {
+    "from": "src/lib/components/shared/entity/NodeDetailPage.svelte",
+    "to": "apps/web/src/lib/components/shared/entity/NodeDetailPage.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/EntityTreeFilter.svelte",
+    "to": "apps/web/src/lib/components/shared/EntityTreeFilter.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/FavoriteButton.svelte",
+    "to": "apps/web/src/lib/components/shared/FavoriteButton.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/FilterSidebar.svelte",
+    "to": "apps/web/src/lib/components/shared/FilterSidebar.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/InstallButton.svelte",
+    "to": "apps/web/src/lib/components/shared/InstallButton.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/LibraryTabFilter.svelte",
+    "to": "apps/web/src/lib/components/shared/LibraryTabFilter.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/mediaPlayer/EmbedFacade.svelte",
+    "to": "apps/web/src/lib/components/shared/mediaPlayer/EmbedFacade.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/mediaPlayer/UnifiedAudioPlayer.svelte",
+    "to": "apps/web/src/lib/components/shared/mediaPlayer/UnifiedAudioPlayer.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/mediaPlayer/UnifiedEmbedPlayer.svelte",
+    "to": "apps/web/src/lib/components/shared/mediaPlayer/UnifiedEmbedPlayer.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/PageHeader.svelte",
+    "to": "apps/web/src/lib/components/shared/PageHeader.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/priority/priority.ts",
+    "to": "apps/web/src/lib/components/shared/priority/priority.ts"
+  },
+  {
+    "from": "src/lib/components/shared/priority/PriorityBadge.svelte",
+    "to": "apps/web/src/lib/components/shared/priority/PriorityBadge.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/share/ShareButtons.svelte",
+    "to": "apps/web/src/lib/components/shared/share/ShareButtons.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/share/ShareMenu.svelte",
+    "to": "apps/web/src/lib/components/shared/share/ShareMenu.svelte"
+  },
+  {
+    "from": "src/lib/components/shared/TreeSelector.svelte",
+    "to": "apps/web/src/lib/components/shared/TreeSelector.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/badge/badge.svelte",
+    "to": "apps/web/src/lib/components/ui/badge/badge.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/badge/index.ts",
+    "to": "apps/web/src/lib/components/ui/badge/index.ts"
+  },
+  {
+    "from": "src/lib/components/ui/button/button.svelte",
+    "to": "apps/web/src/lib/components/ui/button/button.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/button/index.ts",
+    "to": "apps/web/src/lib/components/ui/button/index.ts"
+  },
+  {
+    "from": "src/lib/components/ui/card/card-action.svelte",
+    "to": "apps/web/src/lib/components/ui/card/card-action.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/card/card-content.svelte",
+    "to": "apps/web/src/lib/components/ui/card/card-content.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/card/card-description.svelte",
+    "to": "apps/web/src/lib/components/ui/card/card-description.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/card/card-footer.svelte",
+    "to": "apps/web/src/lib/components/ui/card/card-footer.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/card/card-header.svelte",
+    "to": "apps/web/src/lib/components/ui/card/card-header.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/card/card-title.svelte",
+    "to": "apps/web/src/lib/components/ui/card/card-title.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/card/card.svelte",
+    "to": "apps/web/src/lib/components/ui/card/card.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/card/index.ts",
+    "to": "apps/web/src/lib/components/ui/card/index.ts"
+  },
+  {
+    "from": "src/lib/components/ui/collapsible/collapsible-content.svelte",
+    "to": "apps/web/src/lib/components/ui/collapsible/collapsible-content.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/collapsible/collapsible-trigger.svelte",
+    "to": "apps/web/src/lib/components/ui/collapsible/collapsible-trigger.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/collapsible/collapsible.svelte",
+    "to": "apps/web/src/lib/components/ui/collapsible/collapsible.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/collapsible/index.ts",
+    "to": "apps/web/src/lib/components/ui/collapsible/index.ts"
+  },
+  {
+    "from": "src/lib/components/ui/dialog/dialog-close.svelte",
+    "to": "apps/web/src/lib/components/ui/dialog/dialog-close.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/dialog/dialog-content.svelte",
+    "to": "apps/web/src/lib/components/ui/dialog/dialog-content.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/dialog/dialog-description.svelte",
+    "to": "apps/web/src/lib/components/ui/dialog/dialog-description.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/dialog/dialog-footer.svelte",
+    "to": "apps/web/src/lib/components/ui/dialog/dialog-footer.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/dialog/dialog-header.svelte",
+    "to": "apps/web/src/lib/components/ui/dialog/dialog-header.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/dialog/dialog-overlay.svelte",
+    "to": "apps/web/src/lib/components/ui/dialog/dialog-overlay.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/dialog/dialog-portal.svelte",
+    "to": "apps/web/src/lib/components/ui/dialog/dialog-portal.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/dialog/dialog-title.svelte",
+    "to": "apps/web/src/lib/components/ui/dialog/dialog-title.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/dialog/dialog-trigger.svelte",
+    "to": "apps/web/src/lib/components/ui/dialog/dialog-trigger.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/dialog/dialog.svelte",
+    "to": "apps/web/src/lib/components/ui/dialog/dialog.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/dialog/index.ts",
+    "to": "apps/web/src/lib/components/ui/dialog/index.ts"
+  },
+  {
+    "from": "src/lib/components/ui/input/index.ts",
+    "to": "apps/web/src/lib/components/ui/input/index.ts"
+  },
+  {
+    "from": "src/lib/components/ui/input/input.svelte",
+    "to": "apps/web/src/lib/components/ui/input/input.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/label/index.ts",
+    "to": "apps/web/src/lib/components/ui/label/index.ts"
+  },
+  {
+    "from": "src/lib/components/ui/label/label.svelte",
+    "to": "apps/web/src/lib/components/ui/label/label.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/select/index.ts",
+    "to": "apps/web/src/lib/components/ui/select/index.ts"
+  },
+  {
+    "from": "src/lib/components/ui/select/select-content.svelte",
+    "to": "apps/web/src/lib/components/ui/select/select-content.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/select/select-group-heading.svelte",
+    "to": "apps/web/src/lib/components/ui/select/select-group-heading.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/select/select-group.svelte",
+    "to": "apps/web/src/lib/components/ui/select/select-group.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/select/select-item.svelte",
+    "to": "apps/web/src/lib/components/ui/select/select-item.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/select/select-label.svelte",
+    "to": "apps/web/src/lib/components/ui/select/select-label.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/select/select-portal.svelte",
+    "to": "apps/web/src/lib/components/ui/select/select-portal.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/select/select-scroll-down-button.svelte",
+    "to": "apps/web/src/lib/components/ui/select/select-scroll-down-button.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/select/select-scroll-up-button.svelte",
+    "to": "apps/web/src/lib/components/ui/select/select-scroll-up-button.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/select/select-separator.svelte",
+    "to": "apps/web/src/lib/components/ui/select/select-separator.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/select/select-trigger.svelte",
+    "to": "apps/web/src/lib/components/ui/select/select-trigger.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/select/select.svelte",
+    "to": "apps/web/src/lib/components/ui/select/select.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/separator/index.ts",
+    "to": "apps/web/src/lib/components/ui/separator/index.ts"
+  },
+  {
+    "from": "src/lib/components/ui/separator/separator.svelte",
+    "to": "apps/web/src/lib/components/ui/separator/separator.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/sheet/index.ts",
+    "to": "apps/web/src/lib/components/ui/sheet/index.ts"
+  },
+  {
+    "from": "src/lib/components/ui/sheet/sheet-close.svelte",
+    "to": "apps/web/src/lib/components/ui/sheet/sheet-close.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/sheet/sheet-content.svelte",
+    "to": "apps/web/src/lib/components/ui/sheet/sheet-content.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/sheet/sheet-description.svelte",
+    "to": "apps/web/src/lib/components/ui/sheet/sheet-description.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/sheet/sheet-footer.svelte",
+    "to": "apps/web/src/lib/components/ui/sheet/sheet-footer.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/sheet/sheet-header.svelte",
+    "to": "apps/web/src/lib/components/ui/sheet/sheet-header.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/sheet/sheet-overlay.svelte",
+    "to": "apps/web/src/lib/components/ui/sheet/sheet-overlay.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/sheet/sheet-portal.svelte",
+    "to": "apps/web/src/lib/components/ui/sheet/sheet-portal.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/sheet/sheet-title.svelte",
+    "to": "apps/web/src/lib/components/ui/sheet/sheet-title.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/sheet/sheet-trigger.svelte",
+    "to": "apps/web/src/lib/components/ui/sheet/sheet-trigger.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/sheet/sheet.svelte",
+    "to": "apps/web/src/lib/components/ui/sheet/sheet.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/switch/index.ts",
+    "to": "apps/web/src/lib/components/ui/switch/index.ts"
+  },
+  {
+    "from": "src/lib/components/ui/switch/switch.svelte",
+    "to": "apps/web/src/lib/components/ui/switch/switch.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/tabs/index.ts",
+    "to": "apps/web/src/lib/components/ui/tabs/index.ts"
+  },
+  {
+    "from": "src/lib/components/ui/tabs/tabs-content.svelte",
+    "to": "apps/web/src/lib/components/ui/tabs/tabs-content.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/tabs/tabs-list.svelte",
+    "to": "apps/web/src/lib/components/ui/tabs/tabs-list.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/tabs/tabs-trigger.svelte",
+    "to": "apps/web/src/lib/components/ui/tabs/tabs-trigger.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/tabs/tabs.svelte",
+    "to": "apps/web/src/lib/components/ui/tabs/tabs.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/textarea/index.ts",
+    "to": "apps/web/src/lib/components/ui/textarea/index.ts"
+  },
+  {
+    "from": "src/lib/components/ui/textarea/textarea.svelte",
+    "to": "apps/web/src/lib/components/ui/textarea/textarea.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/toggle-group/index.ts",
+    "to": "apps/web/src/lib/components/ui/toggle-group/index.ts"
+  },
+  {
+    "from": "src/lib/components/ui/toggle-group/toggle-group-item.svelte",
+    "to": "apps/web/src/lib/components/ui/toggle-group/toggle-group-item.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/toggle-group/toggle-group.svelte",
+    "to": "apps/web/src/lib/components/ui/toggle-group/toggle-group.svelte"
+  },
+  {
+    "from": "src/lib/components/ui/toggle/index.ts",
+    "to": "apps/web/src/lib/components/ui/toggle/index.ts"
+  },
+  {
+    "from": "src/lib/components/ui/toggle/toggle.svelte",
+    "to": "apps/web/src/lib/components/ui/toggle/toggle.svelte"
+  },
+  {
+    "from": "src/lib/config/back-settings.ts",
+    "to": "apps/web/src/lib/config/back-settings.ts"
+  },
+  {
+    "from": "src/lib/domain/category/category-data.ts",
+    "to": "apps/web/src/lib/domain/category/category-data.ts"
+  },
+  {
+    "from": "src/lib/domain/category/category-seed.ts",
+    "to": "apps/web/src/lib/domain/category/category-seed.ts"
+  },
+  {
+    "from": "src/lib/domain/category/category.ts",
+    "to": "apps/web/src/lib/domain/category/category.ts"
+  },
+  {
+    "from": "src/lib/domain/category/data/content.json",
+    "to": "apps/web/src/lib/domain/category/data/content.json"
+  },
+  {
+    "from": "src/lib/domain/category/data/language.json",
+    "to": "apps/web/src/lib/domain/category/data/language.json"
+  },
+  {
+    "from": "src/lib/domain/category/data/media.json",
+    "to": "apps/web/src/lib/domain/category/data/media.json"
+  },
+  {
+    "from": "src/lib/domain/category/data/region.json",
+    "to": "apps/web/src/lib/domain/category/data/region.json"
+  },
+  {
+    "from": "src/lib/domain/category/data/subject.json",
+    "to": "apps/web/src/lib/domain/category/data/subject.json"
+  },
+  {
+    "from": "src/lib/domain/category/seed-content.ts",
+    "to": "apps/web/src/lib/domain/category/seed-content.ts"
+  },
+  {
+    "from": "src/lib/domain/category/seed-language.ts",
+    "to": "apps/web/src/lib/domain/category/seed-language.ts"
+  },
+  {
+    "from": "src/lib/domain/category/seed-media.ts",
+    "to": "apps/web/src/lib/domain/category/seed-media.ts"
+  },
+  {
+    "from": "src/lib/domain/category/seed-region.ts",
+    "to": "apps/web/src/lib/domain/category/seed-region.ts"
+  },
+  {
+    "from": "src/lib/domain/category/seed-subject.ts",
+    "to": "apps/web/src/lib/domain/category/seed-subject.ts"
+  },
+  {
+    "from": "src/lib/domain/content-media/content-media.ts",
+    "to": "apps/web/src/lib/domain/content-media/content-media.ts"
+  },
+  {
+    "from": "src/lib/domain/content-media/index.ts",
+    "to": "apps/web/src/lib/domain/content-media/index.ts"
+  },
+  {
+    "from": "src/lib/domain/content-tree/content-tree.ts",
+    "to": "apps/web/src/lib/domain/content-tree/content-tree.ts"
+  },
+  {
+    "from": "src/lib/domain/content-tree/index.ts",
+    "to": "apps/web/src/lib/domain/content-tree/index.ts"
+  },
+  {
+    "from": "src/lib/domain/content-tree/multiproto.test.ts",
+    "to": "apps/web/src/lib/domain/content-tree/multiproto.test.ts"
+  },
+  {
+    "from": "src/lib/domain/feed-macro/feed-macro.ts",
+    "to": "apps/web/src/lib/domain/feed-macro/feed-macro.ts"
+  },
+  {
+    "from": "src/lib/domain/feed-macro/macro-evaluator.ts",
+    "to": "apps/web/src/lib/domain/feed-macro/macro-evaluator.ts"
+  },
+  {
+    "from": "src/lib/domain/ingestion/fetcher-state.ts",
+    "to": "apps/web/src/lib/domain/ingestion/fetcher-state.ts"
+  },
+  {
+    "from": "src/lib/domain/ingestion/ingestion-settings.test.ts",
+    "to": "apps/web/src/lib/domain/ingestion/ingestion-settings.test.ts"
+  },
+  {
+    "from": "src/lib/domain/ingestion/ingestion-settings.ts",
+    "to": "apps/web/src/lib/domain/ingestion/ingestion-settings.ts"
+  },
+  {
+    "from": "src/lib/domain/ingestion/pipeline-event.ts",
+    "to": "apps/web/src/lib/domain/ingestion/pipeline-event.ts"
+  },
+  {
+    "from": "src/lib/domain/notifications/inbox.ts",
+    "to": "apps/web/src/lib/domain/notifications/inbox.ts"
+  },
+  {
+    "from": "src/lib/domain/notifications/meta.ts",
+    "to": "apps/web/src/lib/domain/notifications/meta.ts"
+  },
+  {
+    "from": "src/lib/domain/notifications/pipeline.ts",
+    "to": "apps/web/src/lib/domain/notifications/pipeline.ts"
+  },
+  {
+    "from": "src/lib/domain/shared/category-aggregation.ts",
+    "to": "apps/web/src/lib/domain/shared/category-aggregation.ts"
+  },
+  {
+    "from": "src/lib/domain/shared/category-assignment.ts",
+    "to": "apps/web/src/lib/domain/shared/category-assignment.ts"
+  },
+  {
+    "from": "src/lib/domain/shared/feed-sorter.ts",
+    "to": "apps/web/src/lib/domain/shared/feed-sorter.ts"
+  },
+  {
+    "from": "src/lib/domain/shared/image-asset.ts",
+    "to": "apps/web/src/lib/domain/shared/image-asset.ts"
+  },
+  {
+    "from": "src/lib/domain/shared/uuidv7.ts",
+    "to": "apps/web/src/lib/domain/shared/uuidv7.ts"
+  },
+  {
+    "from": "src/lib/domain/tree-export/index.ts",
+    "to": "apps/web/src/lib/domain/tree-export/index.ts"
+  },
+  {
+    "from": "src/lib/domain/tree-export/tree-export.ts",
+    "to": "apps/web/src/lib/domain/tree-export/tree-export.ts"
+  },
+  {
+    "from": "src/lib/domain/tree-export/tree-publication.ts",
+    "to": "apps/web/src/lib/domain/tree-export/tree-publication.ts"
+  },
+  {
+    "from": "src/lib/domain/user/activity.ts",
+    "to": "apps/web/src/lib/domain/user/activity.ts"
+  },
+  {
+    "from": "src/lib/domain/user/priority-level.ts",
+    "to": "apps/web/src/lib/domain/user/priority-level.ts"
+  },
+  {
+    "from": "src/lib/domain/user/user-consumer.ts",
+    "to": "apps/web/src/lib/domain/user/user-consumer.ts"
+  },
+  {
+    "from": "src/lib/domain/user/user-creator.ts",
+    "to": "apps/web/src/lib/domain/user/user-creator.ts"
+  },
+  {
+    "from": "src/lib/domain/user/user.ts",
+    "to": "apps/web/src/lib/domain/user/user.ts"
+  },
+  {
+    "from": "src/lib/i18n/category.ts",
+    "to": "apps/web/src/lib/i18n/category.ts"
+  },
+  {
+    "from": "src/lib/i18n/index.ts",
+    "to": "apps/web/src/lib/i18n/index.ts"
+  },
+  {
+    "from": "src/lib/i18n/languages/category/en-US/content.json",
+    "to": "apps/web/src/lib/i18n/languages/category/en-US/content.json"
+  },
+  {
+    "from": "src/lib/i18n/languages/category/en-US/language.json",
+    "to": "apps/web/src/lib/i18n/languages/category/en-US/language.json"
+  },
+  {
+    "from": "src/lib/i18n/languages/category/en-US/media.json",
+    "to": "apps/web/src/lib/i18n/languages/category/en-US/media.json"
+  },
+  {
+    "from": "src/lib/i18n/languages/category/en-US/region.json",
+    "to": "apps/web/src/lib/i18n/languages/category/en-US/region.json"
+  },
+  {
+    "from": "src/lib/i18n/languages/category/en-US/subject.json",
+    "to": "apps/web/src/lib/i18n/languages/category/en-US/subject.json"
+  },
+  {
+    "from": "src/lib/i18n/languages/category/pt-BR/content.json",
+    "to": "apps/web/src/lib/i18n/languages/category/pt-BR/content.json"
+  },
+  {
+    "from": "src/lib/i18n/languages/category/pt-BR/language.json",
+    "to": "apps/web/src/lib/i18n/languages/category/pt-BR/language.json"
+  },
+  {
+    "from": "src/lib/i18n/languages/category/pt-BR/media.json",
+    "to": "apps/web/src/lib/i18n/languages/category/pt-BR/media.json"
+  },
+  {
+    "from": "src/lib/i18n/languages/category/pt-BR/region.json",
+    "to": "apps/web/src/lib/i18n/languages/category/pt-BR/region.json"
+  },
+  {
+    "from": "src/lib/i18n/languages/category/pt-BR/subject.json",
+    "to": "apps/web/src/lib/i18n/languages/category/pt-BR/subject.json"
+  },
+  {
+    "from": "src/lib/i18n/languages/en-US.json",
+    "to": "apps/web/src/lib/i18n/languages/en-US.json"
+  },
+  {
+    "from": "src/lib/i18n/languages/pt-BR.json",
+    "to": "apps/web/src/lib/i18n/languages/pt-BR.json"
+  },
+  {
+    "from": "src/lib/i18n/store.svelte.ts",
+    "to": "apps/web/src/lib/i18n/store.svelte.ts"
+  },
+  {
+    "from": "src/lib/i18n/t-static.ts",
+    "to": "apps/web/src/lib/i18n/t-static.ts"
+  },
+  {
+    "from": "src/lib/i18n/t.ts",
+    "to": "apps/web/src/lib/i18n/t.ts"
+  },
+  {
+    "from": "src/lib/i18n/types.ts",
+    "to": "apps/web/src/lib/i18n/types.ts"
+  },
+  {
+    "from": "src/lib/index.ts",
+    "to": "apps/web/src/lib/index.ts"
+  },
+  {
+    "from": "src/lib/ingestion/atom/atom.client.test.ts",
+    "to": "apps/web/src/lib/ingestion/atom/atom.client.test.ts"
+  },
+  {
+    "from": "src/lib/ingestion/atom/atom.client.ts",
+    "to": "apps/web/src/lib/ingestion/atom/atom.client.ts"
+  },
+  {
+    "from": "src/lib/ingestion/jsonfeed/jsonfeed.client.test.ts",
+    "to": "apps/web/src/lib/ingestion/jsonfeed/jsonfeed.client.test.ts"
+  },
+  {
+    "from": "src/lib/ingestion/jsonfeed/jsonfeed.client.ts",
+    "to": "apps/web/src/lib/ingestion/jsonfeed/jsonfeed.client.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/audio-capture.test.ts",
+    "to": "apps/web/src/lib/ingestion/media/audio-capture.test.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/audio-capture.ts",
+    "to": "apps/web/src/lib/ingestion/media/audio-capture.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/audio-embed.ts",
+    "to": "apps/web/src/lib/ingestion/media/audio-embed.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/audio-quality.test.ts",
+    "to": "apps/web/src/lib/ingestion/media/audio-quality.test.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/audio-quality.ts",
+    "to": "apps/web/src/lib/ingestion/media/audio-quality.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/image-capture.test.ts",
+    "to": "apps/web/src/lib/ingestion/media/image-capture.test.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/image-capture.ts",
+    "to": "apps/web/src/lib/ingestion/media/image-capture.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/image-quality.test.ts",
+    "to": "apps/web/src/lib/ingestion/media/image-quality.test.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/image-quality.ts",
+    "to": "apps/web/src/lib/ingestion/media/image-quality.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/media.resolver.test.ts",
+    "to": "apps/web/src/lib/ingestion/media/media.resolver.test.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/media.resolver.ts",
+    "to": "apps/web/src/lib/ingestion/media/media.resolver.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/runtime-context.test.ts",
+    "to": "apps/web/src/lib/ingestion/media/runtime-context.test.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/runtime-context.ts",
+    "to": "apps/web/src/lib/ingestion/media/runtime-context.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/video-capture.test.ts",
+    "to": "apps/web/src/lib/ingestion/media/video-capture.test.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/video-capture.ts",
+    "to": "apps/web/src/lib/ingestion/media/video-capture.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/video-embed.ts",
+    "to": "apps/web/src/lib/ingestion/media/video-embed.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/video-quality.test.ts",
+    "to": "apps/web/src/lib/ingestion/media/video-quality.test.ts"
+  },
+  {
+    "from": "src/lib/ingestion/media/video-quality.ts",
+    "to": "apps/web/src/lib/ingestion/media/video-quality.ts"
+  },
+  {
+    "from": "src/lib/ingestion/net/feed-url.test.ts",
+    "to": "apps/web/src/lib/ingestion/net/feed-url.test.ts"
+  },
+  {
+    "from": "src/lib/ingestion/net/feed-url.ts",
+    "to": "apps/web/src/lib/ingestion/net/feed-url.ts"
+  },
+  {
+    "from": "src/lib/ingestion/net/helia-resolver.ts",
+    "to": "apps/web/src/lib/ingestion/net/helia-resolver.ts"
+  },
+  {
+    "from": "src/lib/ingestion/net/http-adapter.ts",
+    "to": "apps/web/src/lib/ingestion/net/http-adapter.ts"
+  },
+  {
+    "from": "src/lib/ingestion/net/http-utils.test.ts",
+    "to": "apps/web/src/lib/ingestion/net/http-utils.test.ts"
+  },
+  {
+    "from": "src/lib/ingestion/net/http-utils.ts",
+    "to": "apps/web/src/lib/ingestion/net/http-utils.ts"
+  },
+  {
+    "from": "src/lib/ingestion/net/index.ts",
+    "to": "apps/web/src/lib/ingestion/net/index.ts"
+  },
+  {
+    "from": "src/lib/ingestion/net/tauri-http.adapter.ts",
+    "to": "apps/web/src/lib/ingestion/net/tauri-http.adapter.ts"
+  },
+  {
+    "from": "src/lib/ingestion/net/web-proxy.adapter.ts",
+    "to": "apps/web/src/lib/ingestion/net/web-proxy.adapter.ts"
+  },
+  {
+    "from": "src/lib/ingestion/nostr/bech32.test.ts",
+    "to": "apps/web/src/lib/ingestion/nostr/bech32.test.ts"
+  },
+  {
+    "from": "src/lib/ingestion/nostr/bech32.ts",
+    "to": "apps/web/src/lib/ingestion/nostr/bech32.ts"
+  },
+  {
+    "from": "src/lib/ingestion/nostr/nostr.client.ts",
+    "to": "apps/web/src/lib/ingestion/nostr/nostr.client.ts"
+  },
+  {
+    "from": "src/lib/ingestion/post-manager.ts",
+    "to": "apps/web/src/lib/ingestion/post-manager.ts"
+  },
+  {
+    "from": "src/lib/ingestion/retention.ts",
+    "to": "apps/web/src/lib/ingestion/retention.ts"
+  },
+  {
+    "from": "src/lib/ingestion/rss/rss.client.test.ts",
+    "to": "apps/web/src/lib/ingestion/rss/rss.client.test.ts"
+  },
+  {
+    "from": "src/lib/ingestion/rss/rss.client.ts",
+    "to": "apps/web/src/lib/ingestion/rss/rss.client.ts"
+  },
+  {
+    "from": "src/lib/ingestion/scheduler.ts",
+    "to": "apps/web/src/lib/ingestion/scheduler.ts"
+  },
+  {
+    "from": "src/lib/normalization/atom.normalizer.test.ts",
+    "to": "apps/web/src/lib/normalization/atom.normalizer.test.ts"
+  },
+  {
+    "from": "src/lib/normalization/atom.normalizer.ts",
+    "to": "apps/web/src/lib/normalization/atom.normalizer.ts"
+  },
+  {
+    "from": "src/lib/normalization/canonical-post.ts",
+    "to": "apps/web/src/lib/normalization/canonical-post.ts"
+  },
+  {
+    "from": "src/lib/normalization/content-text.test.ts",
+    "to": "apps/web/src/lib/normalization/content-text.test.ts"
+  },
+  {
+    "from": "src/lib/normalization/content-text.ts",
+    "to": "apps/web/src/lib/normalization/content-text.ts"
+  },
+  {
+    "from": "src/lib/normalization/jsonfeed.normalizer.test.ts",
+    "to": "apps/web/src/lib/normalization/jsonfeed.normalizer.test.ts"
+  },
+  {
+    "from": "src/lib/normalization/jsonfeed.normalizer.ts",
+    "to": "apps/web/src/lib/normalization/jsonfeed.normalizer.ts"
+  },
+  {
+    "from": "src/lib/normalization/nostr.normalizer.test.ts",
+    "to": "apps/web/src/lib/normalization/nostr.normalizer.test.ts"
+  },
+  {
+    "from": "src/lib/normalization/nostr.normalizer.ts",
+    "to": "apps/web/src/lib/normalization/nostr.normalizer.ts"
+  },
+  {
+    "from": "src/lib/normalization/rss.normalizer.test.ts",
+    "to": "apps/web/src/lib/normalization/rss.normalizer.test.ts"
+  },
+  {
+    "from": "src/lib/normalization/rss.normalizer.ts",
+    "to": "apps/web/src/lib/normalization/rss.normalizer.ts"
+  },
+  {
+    "from": "src/lib/notifications/notification-engine.ts",
+    "to": "apps/web/src/lib/notifications/notification-engine.ts"
+  },
+  {
+    "from": "src/lib/notifications/os-notifier.ts",
+    "to": "apps/web/src/lib/notifications/os-notifier.ts"
+  },
+  {
+    "from": "src/lib/notifications/permission.ts",
+    "to": "apps/web/src/lib/notifications/permission.ts"
+  },
+  {
+    "from": "src/lib/notifications/pipeline-event-consumer.ts",
+    "to": "apps/web/src/lib/notifications/pipeline-event-consumer.ts"
+  },
+  {
+    "from": "src/lib/persistence/activity.store.ts",
+    "to": "apps/web/src/lib/persistence/activity.store.ts"
+  },
+  {
+    "from": "src/lib/persistence/backends/indexeddb.backend.ts",
+    "to": "apps/web/src/lib/persistence/backends/indexeddb.backend.ts"
+  },
+  {
+    "from": "src/lib/persistence/backends/sqlite.backend.ts",
+    "to": "apps/web/src/lib/persistence/backends/sqlite.backend.ts"
+  },
+  {
+    "from": "src/lib/persistence/backends/storage-backend.ts",
+    "to": "apps/web/src/lib/persistence/backends/storage-backend.ts"
+  },
+  {
+    "from": "src/lib/persistence/category-seed.service.ts",
+    "to": "apps/web/src/lib/persistence/category-seed.service.ts"
+  },
+  {
+    "from": "src/lib/persistence/category.store.ts",
+    "to": "apps/web/src/lib/persistence/category.store.ts"
+  },
+  {
+    "from": "src/lib/persistence/content-media.store.ts",
+    "to": "apps/web/src/lib/persistence/content-media.store.ts"
+  },
+  {
+    "from": "src/lib/persistence/content-tree.store.ts",
+    "to": "apps/web/src/lib/persistence/content-tree.store.ts"
+  },
+  {
+    "from": "src/lib/persistence/db.ts",
+    "to": "apps/web/src/lib/persistence/db.ts"
+  },
+  {
+    "from": "src/lib/persistence/editor-media.store.ts",
+    "to": "apps/web/src/lib/persistence/editor-media.store.ts"
+  },
+  {
+    "from": "src/lib/persistence/editor-tree.store.ts",
+    "to": "apps/web/src/lib/persistence/editor-tree.store.ts"
+  },
+  {
+    "from": "src/lib/persistence/fetcher-state.store.ts",
+    "to": "apps/web/src/lib/persistence/fetcher-state.store.ts"
+  },
+  {
+    "from": "src/lib/persistence/notification-inbox.store.ts",
+    "to": "apps/web/src/lib/persistence/notification-inbox.store.ts"
+  },
+  {
+    "from": "src/lib/persistence/notification-meta.store.ts",
+    "to": "apps/web/src/lib/persistence/notification-meta.store.ts"
+  },
+  {
+    "from": "src/lib/persistence/pipeline-events.store.ts",
+    "to": "apps/web/src/lib/persistence/pipeline-events.store.ts"
+  },
+  {
+    "from": "src/lib/persistence/post.store.test.ts",
+    "to": "apps/web/src/lib/persistence/post.store.test.ts"
+  },
+  {
+    "from": "src/lib/persistence/post.store.ts",
+    "to": "apps/web/src/lib/persistence/post.store.ts"
+  },
+  {
+    "from": "src/lib/persistence/schema.ts",
+    "to": "apps/web/src/lib/persistence/schema.ts"
+  },
+  {
+    "from": "src/lib/persistence/tree-publication.store.ts",
+    "to": "apps/web/src/lib/persistence/tree-publication.store.ts"
+  },
+  {
+    "from": "src/lib/persistence/user-consumer.store.ts",
+    "to": "apps/web/src/lib/persistence/user-consumer.store.ts"
+  },
+  {
+    "from": "src/lib/persistence/user-creator.store.ts",
+    "to": "apps/web/src/lib/persistence/user-creator.store.ts"
+  },
+  {
+    "from": "src/lib/platform/android/twa.ts",
+    "to": "apps/web/src/lib/platform/android/twa.ts"
+  },
+  {
+    "from": "src/lib/platform/capabilities.ts",
+    "to": "apps/web/src/lib/platform/capabilities.ts"
+  },
+  {
+    "from": "src/lib/platform/desktop/tauri-bridge.ts",
+    "to": "apps/web/src/lib/platform/desktop/tauri-bridge.ts"
+  },
+  {
+    "from": "src/lib/platform/desktop/tray.ts",
+    "to": "apps/web/src/lib/platform/desktop/tray.ts"
+  },
+  {
+    "from": "src/lib/platform/desktop/updater.ts",
+    "to": "apps/web/src/lib/platform/desktop/updater.ts"
+  },
+  {
+    "from": "src/lib/platform/desktop/window.ts",
+    "to": "apps/web/src/lib/platform/desktop/window.ts"
+  },
+  {
+    "from": "src/lib/platform/web/install-prompt.svelte.ts",
+    "to": "apps/web/src/lib/platform/web/install-prompt.svelte.ts"
+  },
+  {
+    "from": "src/lib/platform/web/notifications.ts",
+    "to": "apps/web/src/lib/platform/web/notifications.ts"
+  },
+  {
+    "from": "src/lib/platform/web/sw-register.ts",
+    "to": "apps/web/src/lib/platform/web/sw-register.ts"
+  },
+  {
+    "from": "src/lib/services/activity.service.ts",
+    "to": "apps/web/src/lib/services/activity.service.ts"
+  },
+  {
+    "from": "src/lib/services/copy-consumer.service.ts",
+    "to": "apps/web/src/lib/services/copy-consumer.service.ts"
+  },
+  {
+    "from": "src/lib/services/export.service.ts",
+    "to": "apps/web/src/lib/services/export.service.ts"
+  },
+  {
+    "from": "src/lib/services/image.service.test.ts",
+    "to": "apps/web/src/lib/services/image.service.test.ts"
+  },
+  {
+    "from": "src/lib/services/image.service.ts",
+    "to": "apps/web/src/lib/services/image.service.ts"
+  },
+  {
+    "from": "src/lib/services/import.service.ts",
+    "to": "apps/web/src/lib/services/import.service.ts"
+  },
+  {
+    "from": "src/lib/services/media.service.ts",
+    "to": "apps/web/src/lib/services/media.service.ts"
+  },
+  {
+    "from": "src/lib/stores/active-user.svelte.ts",
+    "to": "apps/web/src/lib/stores/active-user.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/activity-settings.svelte.ts",
+    "to": "apps/web/src/lib/stores/activity-settings.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/browse-categories.svelte.ts",
+    "to": "apps/web/src/lib/stores/browse-categories.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/browse-entity-filter.svelte.ts",
+    "to": "apps/web/src/lib/stores/browse-entity-filter.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/browse.svelte.ts",
+    "to": "apps/web/src/lib/stores/browse.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/category-filter.svelte.ts",
+    "to": "apps/web/src/lib/stores/category-filter.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/category-tree.types.ts",
+    "to": "apps/web/src/lib/stores/category-tree.types.ts"
+  },
+  {
+    "from": "src/lib/stores/consumer.svelte.ts",
+    "to": "apps/web/src/lib/stores/consumer.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/creator.svelte.ts",
+    "to": "apps/web/src/lib/stores/creator.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/entity-filter.svelte.ts",
+    "to": "apps/web/src/lib/stores/entity-filter.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/entity-filter.types.ts",
+    "to": "apps/web/src/lib/stores/entity-filter.types.ts"
+  },
+  {
+    "from": "src/lib/stores/feed-categories.svelte.ts",
+    "to": "apps/web/src/lib/stores/feed-categories.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/feed-entity-filter.svelte.ts",
+    "to": "apps/web/src/lib/stores/feed-entity-filter.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/feed-macros.svelte.ts",
+    "to": "apps/web/src/lib/stores/feed-macros.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/feed.svelte.ts",
+    "to": "apps/web/src/lib/stores/feed.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/layout.svelte.ts",
+    "to": "apps/web/src/lib/stores/layout.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/library.svelte.ts",
+    "to": "apps/web/src/lib/stores/library.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/preview-entity-filter.svelte.ts",
+    "to": "apps/web/src/lib/stores/preview-entity-filter.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/preview-feed.svelte.ts",
+    "to": "apps/web/src/lib/stores/preview-feed.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/sidebar-flyout.svelte.ts",
+    "to": "apps/web/src/lib/stores/sidebar-flyout.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/sidebar-slot.svelte.ts",
+    "to": "apps/web/src/lib/stores/sidebar-slot.svelte.ts"
+  },
+  {
+    "from": "src/lib/stores/user-scope-reset.ts",
+    "to": "apps/web/src/lib/stores/user-scope-reset.ts"
+  },
+  {
+    "from": "src/lib/stores/view-mode.svelte.ts",
+    "to": "apps/web/src/lib/stores/view-mode.svelte.ts"
+  },
+  {
+    "from": "src/lib/utils.ts",
+    "to": "apps/web/src/lib/utils.ts"
+  },
+  {
+    "from": "src/lib/utils/date.test.ts",
+    "to": "apps/web/src/lib/utils/date.test.ts"
+  },
+  {
+    "from": "src/lib/utils/date.ts",
+    "to": "apps/web/src/lib/utils/date.ts"
+  },
+  {
+    "from": "src/lib/utils/errors.ts",
+    "to": "apps/web/src/lib/utils/errors.ts"
+  },
+  {
+    "from": "src/lib/utils/mock-data.ts",
+    "to": "apps/web/src/lib/utils/mock-data.ts"
+  },
+  {
+    "from": "src/lib/utils/share.ts",
+    "to": "apps/web/src/lib/utils/share.ts"
+  },
+  {
+    "from": "src/lib/utils/types.ts",
+    "to": "apps/web/src/lib/utils/types.ts"
+  },
+  {
+    "from": "src/routes/+layout.svelte",
+    "to": "apps/web/src/routes/+layout.svelte"
+  },
+  {
+    "from": "src/routes/+layout.ts",
+    "to": "apps/web/src/routes/+layout.ts"
+  },
+  {
+    "from": "src/routes/+page.svelte",
+    "to": "apps/web/src/routes/+page.svelte"
+  },
+  {
+    "from": "src/routes/browse/+page.svelte",
+    "to": "apps/web/src/routes/browse/+page.svelte"
+  },
+  {
+    "from": "src/routes/browse/import/+page.svelte",
+    "to": "apps/web/src/routes/browse/import/+page.svelte"
+  },
+  {
+    "from": "src/routes/browse/node/[nodeId]/+page.svelte",
+    "to": "apps/web/src/routes/browse/node/[nodeId]/+page.svelte"
+  },
+  {
+    "from": "src/routes/library/+page.svelte",
+    "to": "apps/web/src/routes/library/+page.svelte"
+  },
+  {
+    "from": "src/routes/library/node/[nodeId]/+page.svelte",
+    "to": "apps/web/src/routes/library/node/[nodeId]/+page.svelte"
+  },
+  {
+    "from": "src/routes/pages/[id]/+page.svelte",
+    "to": "apps/web/src/routes/pages/[id]/+page.svelte"
+  },
+  {
+    "from": "src/routes/pages/+page.svelte",
+    "to": "apps/web/src/routes/pages/+page.svelte"
+  },
+  {
+    "from": "src/routes/pages/new/+page.svelte",
+    "to": "apps/web/src/routes/pages/new/+page.svelte"
+  },
+  {
+    "from": "src/routes/preview/+page.svelte",
+    "to": "apps/web/src/routes/preview/+page.svelte"
+  },
+  {
+    "from": "src/routes/preview/node/[nodeId]/+page.svelte",
+    "to": "apps/web/src/routes/preview/node/[nodeId]/+page.svelte"
+  },
+  {
+    "from": "src/routes/user/+page.svelte",
+    "to": "apps/web/src/routes/user/+page.svelte"
+  },
+  {
+    "from": "src/routes/user/settings/activity/+page.svelte",
+    "to": "apps/web/src/routes/user/settings/activity/+page.svelte"
+  },
+  {
+    "from": "src/routes/user/settings/ingestion/+page.svelte",
+    "to": "apps/web/src/routes/user/settings/ingestion/+page.svelte"
+  },
+  {
+    "from": "src/routes/user/settings/notifications/+page.svelte",
+    "to": "apps/web/src/routes/user/settings/notifications/+page.svelte"
+  },
+  {
+    "from": "src/service-worker.ts",
+    "to": "apps/web/src/service-worker.ts"
+  },
+  {
+    "from": "static/icons/apple-touch-icon.png",
+    "to": "apps/web/static/icons/apple-touch-icon.png"
+  },
+  {
+    "from": "static/icons/icon-192.png",
+    "to": "apps/web/static/icons/icon-192.png"
+  },
+  {
+    "from": "static/icons/icon-512.png",
+    "to": "apps/web/static/icons/icon-512.png"
+  },
+  {
+    "from": "static/icons/icon-maskable-512.png",
+    "to": "apps/web/static/icons/icon-maskable-512.png"
+  },
+  {
+    "from": "static/icons/source.svg",
+    "to": "apps/web/static/icons/source.svg"
+  },
+  {
+    "from": "static/manifest.webmanifest",
+    "to": "apps/web/static/manifest.webmanifest"
+  },
+  {
+    "from": "static/robots.txt",
+    "to": "apps/web/static/robots.txt"
+  },
+  {
+    "from": "svelte.config.js",
+    "to": "apps/web/svelte.config.js"
+  },
+  {
+    "from": "vite.config.ts",
+    "to": "apps/web/vite.config.ts"
+  },
+  {
+    "from": "vitest.config.ts",
+    "to": "apps/web/vitest.config.ts"
+  },
+  {
+    "from": "tsconfig.json",
+    "to": "apps/web/tsconfig.json"
+  },
+  {
+    "from": "components.json",
+    "to": "apps/web/components.json"
+  },
+  {
+    "from": "scripts/generate-icons.mjs",
+    "to": "apps/web/scripts/generate-icons.mjs"
+  }
+]

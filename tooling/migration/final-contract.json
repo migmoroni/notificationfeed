@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "referenceRecipe": "tooling/migration/reference/pwa-reference.json",
+  "historicalApprovals": "tooling/migration/reference/approvals.json",
+  "cleanGeneratedDirectories": ["apps/web/.svelte-kit", "apps/web/build"],
+  "install": "npm ci; lockfile e arquivos auditados permanecem iguais",
+  "referenceRebuild": "Git bundle com checkpoint P1 exato; arquivo/hash de cada fonte igual ao auditado; npm ci e build em área sintética isolada",
+  "devScenario": "DEV-01: navegador abre a web pelo comando público dev, cria consumidor, importa pacote ligado e mantém SW desativado em dev",
+  "finalArtifactOrder": "Empacotar/inspecionar antes dos testes E2E finais, para estes usarem o mesmo build emitido pelo hook Tauri",
+  "documents": ["README.md", "docs/build-targets.md", "docs/architecture.md", "docs/glossary.md", "docs/requirements/ingestion.md", "docs/plans/etapa-1-migracao-estrutural/state.md"]
+}

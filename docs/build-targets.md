@@ -7,9 +7,9 @@ Este documento descreve os alvos de build do Notfeed, suas características e co
 | Alvo | Comando | Bundle / Output | Storage | Service Worker | Status |
 |---|---|---|---|---|---|
 | **web (dev)** | `npm run dev` | servidor Vite local (`http://localhost:5173`) | IndexedDB | não emitido em dev | ativo |
-| **web (build)** | `npm run build` | `build/` (estáticos `adapter-static`) com `service-worker.js` | IndexedDB | sim — app shell precache, navegação SPA, runtime image cache, sync handlers | ativo |
-| **PWA instalável** | `npm run build` + `npm run preview` | `build/` servido sobre HTTPS, com `manifest.webmanifest` + SW | IndexedDB | sim — `src/service-worker.ts` com Workbox precache, cache de imagens e ingestão via sync | ativo |
-| **Tauri Linux AppImage** | `npm run tauri:appimage` | `src-tauri/target/release/bundle/appimage/Notfeed_<version>_amd64.AppImage` | IndexedDB | **não** (gating por `capabilities.platform === 'desktop'` em `+layout.svelte`) | ativo |
+| **web (build)** | `npm run build` | `apps/web/build/` (estáticos `adapter-static`) com `service-worker.js` | IndexedDB | sim — app shell precache, navegação SPA, runtime image cache, sync handlers | ativo |
+| **PWA instalável** | `npm run build` + `npm run preview` | `apps/web/build/` servido sobre HTTPS, com `manifest.webmanifest` + SW | IndexedDB | sim — `apps/web/src/service-worker.ts` com Workbox precache, cache de imagens e ingestão via sync | ativo |
+| **Tauri Linux AppImage** | `npm run tauri:appimage` | `apps/desktop/src-tauri/target/release/bundle/appimage/Notfeed_<version>_amd64.AppImage` | IndexedDB | **não** (gating por `capabilities.platform === 'desktop'` em `+layout.svelte`) | ativo |
 
 ## Future targets (Plano C)
 
@@ -26,8 +26,8 @@ A escolha entre IndexedDB e SQLite é feita em build-time pela env `VITE_STORAGE
 
 ### Web/PWA
 
-- Node.js 20+
-- npm 11+
+- Node.js 22.21.1 (referência em `.nvmrc`)
+- npm 11.11.1 (referência dos gates)
 
 ### Tauri AppImage (Linux x86_64)
 
@@ -49,13 +49,19 @@ sudo apt install -y \
 - `pkg-config`, `libwebkit2gtk-4.1-dev`, `libgtk-3-dev`, `librsvg2-dev`, `libayatana-appindicator3-dev`, `libssl-dev` — necessários em **build time** para compilar `webkit2gtk-sys`, `glib-sys`, `gtk-sys`, etc.
 - `libfuse2` — necessário em **run time** para executar a AppImage produzida.
 
-**Cargo features** (em `src-tauri/Cargo.toml`):
+**Cargo features** (em `apps/desktop/src-tauri/Cargo.toml`):
 
 - `default = ["backend-indexeddb"]` — build padrão; sem `tauri-plugin-sql`.
-- `backend-sqlite` — habilita `tauri-plugin-sql` (Plano C). Build com `cargo build --no-default-features --features backend-sqlite` em `src-tauri/`.
+- `backend-sqlite` — habilita `tauri-plugin-sql` (Plano C). Build com `cargo build --no-default-features --features backend-sqlite` em `apps/desktop/src-tauri/`.
 
-**Saída**: `src-tauri/target/release/bundle/appimage/Notfeed_0.1.0_amd64.AppImage`. Marque executável (`chmod +x`) e rode.
+**Saída**: `apps/desktop/src-tauri/target/release/bundle/appimage/Notfeed_0.1.0_amd64.AppImage`. Marque executável (`chmod +x`) e rode.
 
 ### Future native bundles (Plano C)
 
 Pré-requisitos específicos por plataforma serão adicionados quando o Plano C for executado.
+
+## Workspace e validação
+
+Os comandos da raiz delegam para `@notfeed/web` e `@notfeed/desktop`. A CLI Tauri executa em `apps/desktop`; seus hooks constroem a web e `frontendDist` usa `../../web/build` a partir de `src-tauri`. O código de produto está em `packages/notfeed/src`.
+
+`npm run gate:migration -- P6` executa instalação limpa, tipos, unitários, Chromium de desenvolvimento/produção, atualização PWA desde o checkpoint P1 reconstruído, Cargo check/test e AppImage com inspeção. O bundle é extraído para verificar payload ELF, identidade, entrada desktop e assets. Isso não cobre a interface nativa ou notificações do sistema.

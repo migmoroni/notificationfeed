@@ -67,7 +67,7 @@ A prova de atualização usa o mesmo origin de teste e o mesmo perfil/contexto d
 
 ## C07 Comandos e evidências
 
-Os scripts de gate ainda não existem. P0 os cria e testa antes de mover código. Na raiz ficam `check`, `test:run`, `build`, `lint:architecture`, `test:gate`, `test:e2e`, `check:contracts` e `gate:migration`, além dos comandos existentes de desenvolvimento e Tauri que continuarem aplicáveis. Após a movimentação, a raiz delega aos workspaces corretos; não simula a árvore antiga.
+Os scripts de gate foram implementados e testados antes da movimentação. Na raiz ficam `check`, `test:run`, `build`, `lint:architecture`, `test:gate`, `test:e2e`, `check:contracts` e `gate:migration`, além dos comandos de desenvolvimento e Tauri. A raiz delega aos workspaces corretos; não simula a árvore antiga. O `tsconfig.json` da raiz apenas permite a descoberta do projeto pelo editor, estendendo a configuração web que abrange o pacote, sem aliases antigos.
 
 O árbitro `tooling/migration/gate.mjs` recebe o ID da fase, verifica seu predecessor e executa uma lista fixa de comandos. Não aceita flags para ignorar verificações. Usa processos filhos e propaga qualquer saída não zero, sinal ou timeout.
 
@@ -76,6 +76,10 @@ Cada execução produz evidência em `.artifacts/migration/<fase>/<execucao>/`: 
 A aprovação do predecessor refere-se ao checkpoint histórico daquela fase. A movimentação prevista na fase seguinte não apaga essa aprovação histórica, mas exige seu próprio gate. Nenhum resultado anterior pode ser reutilizado como se tivesse verificado fontes modificadas. Os hashes de entrada excluem logs/artefatos gerados e a anotação do resultado em `state.md`, evitando que a gravação da evidência invalide a própria execução.
 
 ## C08 Referência e limitações conhecidas
+
+Exceção pontual autorizada em execução: [ADR 003](adr/003-correcao-importacao.md) corrige o proxy reativo da importação com `$state.raw`. O inventário P0 não é regravado; o delta exato é validado por hashes em `tooling/migration/reference/approved-changes.json`.
+
+Uma segunda autorização, [ADR 004](adr/004-correcao-publicacao.md), permite apenas o snapshot na chamada de persistência da publicação. O mesmo registro de hashes protege esse delta.
 
 A avaliação anterior encontrou 24 arquivos de teste, 201 testes passando e seis falhas em datas; a configuração usa `jsdom` e o idioma padrão é `en-US`. Esses números são observações anteriores, não um gate aprovado. P0 executa novamente e corrige a configuração determinística dos testes sem mudar o idioma padrão do produto.
 

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "checkpoint": "55de787301f029d386607c25a9c767983017a3bc",
+  "inputHash": "b9d5a9f2b5620c5fb81a68caeaa0ac93f5debf23f771d0c0d3e6ed0e2178056f",
+  "bundle": "tooling/migration/reference/pwa-reference.bundle",
+  "bundleHash": "06697301f68a82ce906b5a707004cd48bf437c539c2d808a7b03e4bde53c7635",
+  "prerequisite": "c8175415f31eb10b8d48218a9ff2101f9fab40af",
+  "node": "22.21.1",
+  "npm": "11.11.1"
+}

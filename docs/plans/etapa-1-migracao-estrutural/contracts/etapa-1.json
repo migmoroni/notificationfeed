@@ -1,7 +1,7 @@
 {
   "version": 1,
   "scope": "stage-1-structural-migration",
-  "executionStarted": false,
+  "executionStarted": true,
   "packageManager": "npm",
   "nodeReference": "22.21.1",
   "npmReference": "11.11.1",

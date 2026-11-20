@@ -2,7 +2,7 @@
 
 **Data:** 19 de novembro de 2026
 
-**Estado:** Planejado. Nenhuma fase de implementação foi iniciada.
+**Estado:** Estrutura migrada; validação final e resultados reais em [state.md](state.md).
 
 ## Invariantes e fronteiras primeiro
 

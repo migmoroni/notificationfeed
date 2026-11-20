@@ -84,12 +84,30 @@ Independente do modo, todo post novo entra na **inbox in-app** (ninguém fica pa
 
 ## Começando
 
+Use Node 22.21.1 (`.nvmrc`) e npm 11.11.1, as versões de referência dos gates.
+
 ```sh
-npm install
+npm ci
 npm run dev
 ```
 
 Abra <http://localhost:5173>, crie um Consumer em `/user`, vá em `/browse/import` e cole uma URL de feed. Ou pegue um `.notfeed.json` qualquer e arraste pra mesma página.
+
+### Estrutura do repositório
+
+```text
+apps/web/                  @notfeed/web: rotas, layout, CSS, static e service worker
+apps/desktop/src-tauri/     @notfeed/desktop: aplicativo Tauri e crate Rust existentes
+packages/notfeed/src/      @notfeed/product: código atual de lib e seus agrupamentos
+tooling/migration/         contratos, inventários e quality gates
+tooling/e2e/               Chromium, fixtures locais e provas de atualização PWA
+```
+
+A raiz coordena os npm workspaces com um único lockfile. A web importa `@notfeed/product` por subpaths; o pacote conserva as dependências de Svelte/SvelteKit já usadas pelo produto. O desktop empacota `apps/web/build`. A definição dos módulos de negócio pertence à etapa 2. Pacotes futuros Rust/C++ poderão ter manifests próprios quando houver um consumidor concreto.
+
+O `tsconfig.json` da raiz permite ao editor descobrir o projeto ao abrir arquivos do pacote; ele estende a configuração da web, que inclui toda a árvore do produto. Não há alias para a localização anterior.
+
+O [estado da migração](docs/plans/etapa-1-migracao-estrutural/state.md) registra gates, checkpoints e limites de cobertura.
 
 ### Primeiro feed em 30 segundos
 
@@ -109,6 +127,8 @@ npm run build
 npm run preview   # http://localhost:4173 com SW ativo
 ```
 
+O deploy estático usa somente o conteúdo de `apps/web/build`.
+
 Em produção, o navegador detecta `manifest.webmanifest` + service worker e oferece **"Instalar app"**. Depois de instalado, abre offline (assets pré-cacheados, SPA fallback).
 
 ### 🖥️ Tauri — AppImage Linux
@@ -117,7 +137,7 @@ Pré-requisitos de sistema (GTK, WebKit2GTK, libfuse2 em runtime): veja [docs/bu
 
 ```sh
 npm run tauri:dev          # janela nativa com HMR
-npm run tauri:appimage     # → src-tauri/target/release/bundle/appimage/Notfeed_<version>_amd64.AppImage
+npm run tauri:appimage     # → apps/desktop/src-tauri/target/release/bundle/appimage/Notfeed_<version>_amd64.AppImage
 ```
 
 Em runtime Tauri:
@@ -155,9 +175,25 @@ Outros bundles (`.deb`, `.rpm`, `.msi`, `.dmg`, Android TWA) ficam para iteraç�
 | `npm run check` | Type-check (`svelte-check`) |
 | `npm run test` | Testes em watch mode |
 | `npm run test:run` | Testes em batch (CI) |
-| `npm run icons:gen` | Regenera ícones PWA a partir de `static/icons/source.svg` |
+| `npm run test:gate` | Provas adversas do árbitro de migração |
+| `npm run check:e2e` | Tipos da infraestrutura de navegador |
+| `npm run test:e2e -- --project=chromium` | Fluxos web/PWA contra o build de produção |
+| `npm run test:e2e:dev -- --project=chromium` | Navegador real contra o servidor de desenvolvimento |
+| `npm run test:e2e:upgrade` | Reconstrói o checkpoint P1 e verifica atualização preservando dados |
+| `npm run gate:migration -- P6` | Instalação, referência reproduzida e gate final completo, incluindo Tauri |
+| `npm run icons:gen` | Regenera ícones PWA a partir de `apps/web/static/icons/source.svg` |
 | `npm run tauri:dev` | Tauri em modo dev (janela nativa + HMR) |
 | `npm run tauri:appimage` | Bundle AppImage Linux x86_64 |
+
+Antes dos testes de navegador, instale o Chromium correspondente ao Playwright fixado:
+
+```sh
+npm exec -- playwright install chromium
+npm run build
+npm run test:e2e -- --project=chromium
+```
+
+Os testes usam dados sintéticos em servidor local e `.artifacts`. A prova de atualização reconstrói a referência pelo Git bundle versionado; requer o histórico com a revisão base indicada em `tooling/migration/reference/pwa-reference.json`. O gate nativo verifica compilação, testes Rust disponíveis e conteúdo do AppImage; não é E2E da WebView ou das notificações do sistema.
 
 ---
 

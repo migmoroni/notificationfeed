@@ -106,7 +106,7 @@ Todos os 5 limiares (`idleTier{1,2,3}IntervalMs`, `idleTier{1,2}MaxIdleMs`) são
 
 ### Backoff em falha (system-level)
 
-A política de backoff afeta uma `ProtocolFetcherState` por entry de protocolo (compartilhada entre todos os usuários da fonte) e não cabe ao usuário final ajustar. Os parâmetros vivem em `src/lib/config/back-settings.ts` (constante `INGESTION_BACKOFF`):
+A política de backoff afeta uma `ProtocolFetcherState` por entry de protocolo (compartilhada entre todos os usuários da fonte) e não cabe ao usuário final ajustar. Os parâmetros vivem em `packages/notfeed/src/config/back-settings.ts` (constante `INGESTION_BACKOFF`):
 
 - `enabled: boolean` — mestre. `false` desativa backoff (sempre intervalo normal).
 - `multiplier: number` — fator de crescimento (default `2`).

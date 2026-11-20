@@ -1,0 +1,215 @@
+<script lang="ts">
+	import { t } from '../../i18n/t.js';
+	import { library, ALL_LIBRARY_ID, ONLY_FAVORITES_ID, LIBRARY_HOME_ID } from '../../stores/library.svelte.js';
+	import { layout } from '../../stores/layout.svelte.js';
+	import Plus from '@lucide/svelte/icons/plus';
+	import Home from '@lucide/svelte/icons/home';
+	import Ellipsis from '@lucide/svelte/icons/ellipsis';
+	import Pencil from '@lucide/svelte/icons/pencil';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import TabDialog from '../shared/dialog/TabDialog.svelte';
+
+	let showCreateDialog = $state(false);
+	let editingTab = $state<{ id: string; title: string; emoji: string } | null>(null);
+	let showDeleteConfirm = $state(false);
+	let deletingTabId = $state<string | null>(null);
+	let openMenuId = $state<string | null>(null);
+
+	function handleTabClick(tabId: string) {
+		library.setActiveTab(tabId);
+	}
+
+	function handleCreateTab() {
+		showCreateDialog = true;
+	}
+
+	async function handleCreateConfirm(title: string, emoji: string) {
+		await library.createTab(title, emoji);
+		showCreateDialog = false;
+	}
+
+	function handleEditTab(tab: { id: string; title: string; emoji: string }) {
+		editingTab = tab;
+		openMenuId = null;
+	}
+
+	async function handleEditConfirm(title: string, emoji: string) {
+		if (editingTab) {
+			await library.updateTab(editingTab.id, { title, emoji });
+			editingTab = null;
+		}
+	}
+
+	async function handleDeleteTab(tabId: string) {
+		openMenuId = null;
+		deletingTabId = tabId;
+		showDeleteConfirm = true;
+	}
+
+	async function confirmDeleteTab() {
+		if (deletingTabId) {
+			await library.deleteTab(deletingTabId);
+			deletingTabId = null;
+		}
+		showDeleteConfirm = false;
+	}
+
+	function toggleMenu(tabId: string, e: MouseEvent) {
+		e.stopPropagation();
+		openMenuId = openMenuId === tabId ? null : tabId;
+	}
+
+	function handleCloseMenuOnClickOutside() {
+		openMenuId = null;
+	}
+</script>
+
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+{#if openMenuId}
+	<div class="fixed inset-0 z-40" onclick={handleCloseMenuOnClickOutside}></div>
+{/if}
+
+<nav
+	class="flex gap-1 {layout.isExpanded ? 'flex-col' : 'flex-row overflow-x-auto pb-2'}"
+	aria-label={t('aria.library_tabs')}
+>
+	<!-- Home (initial page — not a tab) -->
+	<button
+		onclick={() => handleTabClick(LIBRARY_HOME_ID)}
+		class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors shrink-0
+			{library.activeTabId === LIBRARY_HOME_ID
+			? 'bg-accent text-accent-foreground'
+			: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
+		aria-current={library.activeTabId === LIBRARY_HOME_ID ? 'true' : undefined}
+		aria-label={t('aria.library_home')}
+	>
+		<Home class="size-4" />
+		{#if layout.isExpanded}
+			<span class="truncate">{t('library.home')}</span>
+		{/if}
+	</button>
+
+	<!-- Add tab button -->
+	<button
+		onclick={handleCreateTab}
+		class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors shrink-0"
+		aria-label={t('aria.create_new_tab')}
+	>
+		<Plus class="size-4" />
+		{#if layout.isExpanded}
+			<span>{t('library.new_tab')}</span>
+		{/if}
+	</button>
+
+	<!-- System tab: All Library -->
+	<button
+		onclick={() => handleTabClick(ALL_LIBRARY_ID)}
+		class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors shrink-0
+			{library.activeTabId === ALL_LIBRARY_ID
+			? 'bg-accent text-accent-foreground'
+			: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
+		aria-current={library.activeTabId === ALL_LIBRARY_ID ? 'true' : undefined}
+	>
+		<span class="text-base">📚</span>
+		{#if layout.isExpanded}
+			<span class="truncate">{t('library.all')}</span>
+			<span class="ml-auto text-xs text-muted-foreground">{library.count}</span>
+		{/if}
+	</button>
+
+	<!-- System tab: Only Favorites -->
+	<button
+		onclick={() => handleTabClick(ONLY_FAVORITES_ID)}
+		class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors shrink-0
+			{library.activeTabId === ONLY_FAVORITES_ID
+			? 'bg-accent text-accent-foreground'
+			: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
+		aria-current={library.activeTabId === ONLY_FAVORITES_ID ? 'true' : undefined}
+	>
+		<span class="text-base">⭐</span>
+		{#if layout.isExpanded}
+			<span class="truncate">{t('library.only_favorites')}</span>
+			<span class="ml-auto text-xs text-muted-foreground">{library.itemsByTab.get(ONLY_FAVORITES_ID)?.length ?? 0}</span>
+		{/if}
+	</button>
+
+	<!-- Custom tabs -->
+	{#each library.customTabs as tab (tab.id)}
+		{@const itemCount = library.itemsByTab.get(tab.id)?.length ?? 0}
+		<div class="relative shrink-0">
+			<button
+				onclick={() => handleTabClick(tab.id)}
+				class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors
+					{library.activeTabId === tab.id
+					? 'bg-accent text-accent-foreground'
+					: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
+				aria-current={library.activeTabId === tab.id ? 'true' : undefined}
+			>
+				<span class="text-base">{tab.emoji}</span>
+				{#if layout.isExpanded}
+					<span class="truncate">{tab.title}</span>
+					<span class="ml-auto text-xs text-muted-foreground">{itemCount}</span>
+				{/if}
+			</button>
+
+			{#if layout.isExpanded}
+				<button
+					onclick={(e) => toggleMenu(tab.id, e)}
+					class="absolute right-0 top-0 flex items-center justify-center size-7 rounded text-muted-foreground hover:text-foreground opacity-0 hover:opacity-100 focus:opacity-100 transition-opacity
+						{library.activeTabId === tab.id ? 'opacity-100' : ''}"
+					aria-label={t('aria.tab_options', { title: tab.title })}
+				>
+					<Ellipsis class="size-3.5" />
+				</button>
+
+				{#if openMenuId === tab.id}
+					<div class="absolute right-0 top-8 z-50 w-36 rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
+						<button
+							onclick={() => handleEditTab({ id: tab.id, title: tab.title, emoji: tab.emoji })}
+							class="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
+						>
+							<Pencil class="size-3.5" />
+							{t('btn.edit')}
+						</button>
+						<button
+							onclick={() => handleDeleteTab(tab.id)}
+							class="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
+						>
+							<Trash2 class="size-3.5" />
+							{t('btn.delete')}
+						</button>
+					</div>
+				{/if}
+			{/if}
+		</div>
+	{/each}
+</nav>
+
+<!-- Create dialog -->
+<TabDialog
+	bind:open={showCreateDialog}
+	mode="create"
+	onconfirm={handleCreateConfirm}
+	oncancel={() => (showCreateDialog = false)}
+/>
+
+<!-- Edit dialog -->
+{#if editingTab}
+	<TabDialog
+		open={true}
+		mode="edit"
+		initialTitle={editingTab.title}
+		initialEmoji={editingTab.emoji}
+		onconfirm={handleEditConfirm}
+		oncancel={() => (editingTab = null)}
+	/>
+{/if}
+
+<!-- Delete tab confirm -->
+<TabDialog
+	bind:open={showDeleteConfirm}
+	mode="delete"
+	onconfirm={confirmDeleteTab}
+	oncancel={() => { showDeleteConfirm = false; deletingTabId = null; }}
+/>

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "playwright": "1.65.1",
+  "origin": "http://127.0.0.1:4173",
+  "locale": "en-US",
+  "timezoneId": "UTC",
+  "browser": "chromium",
+  "serviceWorkers": "allow",
+  "feedFixtureClock": "Data UTC capturada uma vez no início do servidor; constante durante a troca de builds e fresca em execuções futuras",
+  "scenarios": {
+    "WEB-01": "SPA, navegação, recarga de /browse/node/migration-tree:root e demais rotas atuais; nenhum asset 404",
+    "WEB-02": "criar dois consumidores na UI, trocar de conta, comprovar isolamento dos estados de leitura/salvo do mesmo conteúdo",
+    "WEB-03": "importar migration.notfeed.json pela UI, ativar fonte JSON Feed local, ingerir, ler/salvar e recarregar com dados preservados",
+    "WEB-04": "criar Creator e página pela UI, publicar snapshot local e exportar download; verificar todos os campos públicos",
+    "WEB-05": "manifest e ícones válidos; estilos computados de botão e layout",
+    "PWA-01": "worker realmente ativado/controlador, contexto offline, recarga da rota e dados sem rede",
+    "PWA-02": "mesmo contexto e origem, dados sentinelas/contas/schema/chaves preservados entre referência e build alvo, sem limpeza/reimportação"
+  },
+  "adversarial": ["sentinela ausente deve reprovar comparação", "página sem controlador deve reprovar prova offline"],
+  "network": "feed e assets no servidor local; tráfego externo inesperado reprova; nenhum transporte público de publicação"
+}
