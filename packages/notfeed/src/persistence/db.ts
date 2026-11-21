@@ -30,29 +30,29 @@ let pending: Promise<StorageBackend> | null = null;
  * backend is opened exactly once per process.
  */
 export async function getStorageBackend(): Promise<StorageBackend> {
-if (cached) return cached;
-if (pending) return pending;
+	if (cached) return cached;
+	if (pending) return pending;
 
-const { storageBackend } = getCapabilities();
+	const { storageBackend } = getCapabilities();
 
-pending = (async () => {
-switch (storageBackend) {
-case 'indexeddb':
-cached = await openIndexedDBBackend();
-break;
-case 'sqlite':
-cached = await openSqliteBackend();
-break;
-default: {
-const exhaustive: never = storageBackend;
-throw new Error(`Unknown storage backend: ${exhaustive as string}`);
-}
-}
-pending = null;
-return cached;
-})();
+	pending = (async () => {
+		switch (storageBackend) {
+			case 'indexeddb':
+				cached = await openIndexedDBBackend();
+				break;
+			case 'sqlite':
+				cached = await openSqliteBackend();
+				break;
+			default: {
+				const exhaustive: never = storageBackend;
+				throw new Error(`Unknown storage backend: ${exhaustive as string}`);
+			}
+		}
+		pending = null;
+		return cached;
+	})();
 
-return pending;
+	return pending;
 }
 
 /** @deprecated Use getStorageBackend(). Kept for back-compat. */

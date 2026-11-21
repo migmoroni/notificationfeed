@@ -5,10 +5,7 @@
  * interfere with the consumption pipeline.
  */
 
-import type {
-	ContentTree,
-	ContentTreeRepository
-} from '../domain/content-tree/content-tree.js';
+import type { ContentTree, ContentTreeRepository } from '../domain/content-tree/content-tree.js';
 import { getStorageBackend } from './db.js';
 
 export function createEditorTreeStore(): ContentTreeRepository {

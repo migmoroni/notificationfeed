@@ -9,7 +9,7 @@ import type {
 	UserConsumer,
 	UserConsumerRepository,
 	NewUserConsumer,
-	NodeActivation,
+	NodeActivation
 } from '../domain/user/user-consumer.js';
 import type { LibraryTab } from '../domain/user/user-consumer.js';
 import type { FeedMacro, FeedMacroFilters } from '../domain/feed-macro/feed-macro.js';
@@ -250,10 +250,7 @@ export function createUserConsumerStore(): UserConsumerRepository {
 
 		// -- Feed macro management (embedded in user) --
 
-		async createMacro(
-			userId: string,
-			macro: Omit<FeedMacro, 'id'>
-		): Promise<FeedMacro> {
+		async createMacro(userId: string, macro: Omit<FeedMacro, 'id'>): Promise<FeedMacro> {
 			const db = await getStorageBackend();
 			const user = await db.users.getById<UserConsumer>(userId);
 			if (!user) throw new Error(`UserConsumer not found: ${userId}`);

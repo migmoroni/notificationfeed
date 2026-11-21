@@ -14,10 +14,23 @@
 		mediaIds?: string[];
 		regionIds?: string[];
 		languageIds?: string[];
-		onchange?: (filters: { subjectIds: string[]; contentIds: string[]; mediaIds: string[]; regionIds: string[]; languageIds: string[] }) => void;
+		onchange?: (filters: {
+			subjectIds: string[];
+			contentIds: string[];
+			mediaIds: string[];
+			regionIds: string[];
+			languageIds: string[];
+		}) => void;
 	}
 
-	let { subjectIds = [], contentIds = [], mediaIds = [], regionIds = [], languageIds = [], onchange }: Props = $props();
+	let {
+		subjectIds = [],
+		contentIds = [],
+		mediaIds = [],
+		regionIds = [],
+		languageIds = [],
+		onchange
+	}: Props = $props();
 
 	let subjectCategories: Category[] = $state([]);
 	let contentCategories: Category[] = $state([]);
@@ -82,14 +95,22 @@
 			}
 		}
 
-		onchange?.({ subjectIds: newSubjects, contentIds: newContents, mediaIds: newMedias, regionIds: newRegions, languageIds: newLanguages });
+		onchange?.({
+			subjectIds: newSubjects,
+			contentIds: newContents,
+			mediaIds: newMedias,
+			regionIds: newRegions,
+			languageIds: newLanguages
+		});
 	}
 
 	function clearAll() {
 		onchange?.({ subjectIds: [], contentIds: [], mediaIds: [], regionIds: [], languageIds: [] });
 	}
 
-	let activeCount = $derived(subjectIds.length + contentIds.length + mediaIds.length + regionIds.length + languageIds.length);
+	let activeCount = $derived(
+		subjectIds.length + contentIds.length + mediaIds.length + regionIds.length + languageIds.length
+	);
 </script>
 
 <div class="relative">
@@ -101,7 +122,9 @@
 		<Filter class="size-3.5" />
 		{t('category_filter.categories')}
 		{#if activeCount > 0}
-			<span class="inline-flex items-center justify-center size-4 rounded-full bg-primary text-primary-foreground text-[10px]">
+			<span
+				class="inline-flex items-center justify-center size-4 rounded-full bg-primary text-primary-foreground text-[10px]"
+			>
 				{activeCount}
 			</span>
 		{/if}
@@ -113,7 +136,9 @@
 		<div class="fixed inset-0 z-40" onclick={() => (showPanel = false)} onkeydown={() => {}}></div>
 
 		<!-- Filter panel -->
-		<div class="absolute left-0 top-full mt-2 z-50 w-72 rounded-lg border border-border bg-popover p-3 shadow-md">
+		<div
+			class="absolute left-0 top-full mt-2 z-50 w-72 rounded-lg border border-border bg-popover p-3 shadow-md"
+		>
 			<div class="flex items-center justify-between mb-3">
 				<span class="text-sm font-semibold">{t('feed.filter_by_category')}</span>
 				{#if activeCount > 0}
@@ -126,7 +151,9 @@
 			<!-- Subject categories -->
 			{#if subjectCategories.length > 0}
 				<div class="mb-3">
-					<p class="text-xs font-medium text-muted-foreground mb-1.5">{t('category_tree.subject')}</p>
+					<p class="text-xs font-medium text-muted-foreground mb-1.5">
+						{t('category_tree.subject')}
+					</p>
 					<div class="flex flex-wrap gap-1.5">
 						{#each subjectCategories as cat (cat.id)}
 							<button
@@ -146,7 +173,9 @@
 			<!-- Content type categories -->
 			{#if contentCategories.length > 0}
 				<div class="mb-3">
-					<p class="text-xs font-medium text-muted-foreground mb-1.5">{t('category_tree.content')}</p>
+					<p class="text-xs font-medium text-muted-foreground mb-1.5">
+						{t('category_tree.content')}
+					</p>
 					<div class="flex flex-wrap gap-1.5">
 						{#each contentCategories as cat (cat.id)}
 							<button
@@ -186,7 +215,9 @@
 			<!-- Region categories -->
 			{#if regionCategories.length > 0}
 				<div class="mb-3">
-					<p class="text-xs font-medium text-muted-foreground mb-1.5">{t('category_tree.region')}</p>
+					<p class="text-xs font-medium text-muted-foreground mb-1.5">
+						{t('category_tree.region')}
+					</p>
 					<div class="flex flex-wrap gap-1.5">
 						{#each regionCategories as cat (cat.id)}
 							<button
@@ -206,7 +237,9 @@
 			<!-- Language categories -->
 			{#if languageCategories.length > 0}
 				<div>
-					<p class="text-xs font-medium text-muted-foreground mb-1.5">{t('category_tree.language')}</p>
+					<p class="text-xs font-medium text-muted-foreground mb-1.5">
+						{t('category_tree.language')}
+					</p>
 					<div class="flex flex-wrap gap-1.5">
 						{#each languageCategories as cat (cat.id)}
 							<button

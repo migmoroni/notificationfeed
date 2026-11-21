@@ -113,7 +113,10 @@ export function htmlToPlainText(input: string | null | undefined): string {
 		.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
 		.replace(/<!--[\s\S]*?-->/g, ' ')
 		.replace(/<br\s*\/?>/gi, ' ')
-		.replace(/<\/?(?:address|article|aside|blockquote|dd|div|dl|dt|fieldset|figcaption|figure|footer|form|h[1-6]|header|hr|li|main|nav|ol|p|pre|section|table|tbody|td|tfoot|th|thead|tr|ul)\b[^>]*>/gi, ' ')
+		.replace(
+			/<\/?(?:address|article|aside|blockquote|dd|div|dl|dt|fieldset|figcaption|figure|footer|form|h[1-6]|header|hr|li|main|nav|ol|p|pre|section|table|tbody|td|tfoot|th|thead|tr|ul)\b[^>]*>/gi,
+			' '
+		)
 		.replace(/<\/?[a-z][a-z0-9:-]*(?:\s[^<>]*)?\/?>/gi, ' ');
 
 	return decodeHtmlEntities(withoutMarkup).replace(/\s+/g, ' ').trim();

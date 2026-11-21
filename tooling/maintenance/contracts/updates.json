@@ -1,0 +1,1098 @@
+{
+	"schemaVersion": 1,
+	"selectedAt": "2026-11-20",
+	"groups": [
+		{
+			"id": "network-js",
+			"phase": "2.2",
+			"predecessor": null,
+			"dependencies": [
+				{
+					"name": "@libp2p/peer-id",
+					"before": "6.0.8",
+					"after": "6.0.18",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@libp2p/crypto",
+					"before": "5.1.17",
+					"after": "5.2.0",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@libp2p/peer-store",
+					"before": "12.0.18",
+					"after": "12.0.32",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@libp2p/kad-dht",
+					"before": "16.2.4",
+					"after": "16.4.9",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "libp2p",
+					"before": "3.2.3",
+					"after": "3.5.1",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "nanoid",
+					"before": "5.1.11",
+					"after": "5.1.16",
+					"ecosystem": "npm",
+					"consumer": "node_modules/@libp2p/circuit-relay-v2/node_modules/nanoid",
+					"mechanism": "npm update nanoid --workspace @notfeed/product resolves existing majors 5 and 3 in one named-package operation; no override retained."
+				},
+				{
+					"name": "ws",
+					"before": "8.20.0",
+					"after": "8.23.0",
+					"ecosystem": "npm",
+					"consumer": "node_modules/ws"
+				},
+				{
+					"name": "multiformats",
+					"before": "13.4.2",
+					"after": "14.0.6",
+					"ecosystem": "npm",
+					"reason": "libp2p 3.5.1/peer-id 6.0.18 use CID types with ArrayBuffer, incompatible with direct v13 ArrayBufferLike. Align the already-declared peer-id consumer; retain Helia and its own compatible v13 dependencies."
+				},
+				{
+					"name": "nanoid",
+					"before": "3.3.11",
+					"after": "3.3.20",
+					"ecosystem": "npm",
+					"consumer": "node_modules/nanoid",
+					"reason": "The same targeted npm update resolves both preexisting nanoid majors. Both targets were selected in 2.1; move this compatible patch from web-foundation into the atomic nanoid correction, with no major forced."
+				}
+			],
+			"reason": "Protect the existing Helia/libp2p path against untrusted peers; refresh only this compatible family and its required transitives.",
+			"sources": [
+				"https://registry.npmjs.org/@libp2p/peer-id/6.0.18",
+				"https://registry.npmjs.org/@libp2p/crypto/5.2.0",
+				"https://registry.npmjs.org/@libp2p/peer-store/12.0.32",
+				"https://registry.npmjs.org/@libp2p/kad-dht/16.4.9",
+				"https://registry.npmjs.org/libp2p/3.5.1",
+				"https://registry.npmjs.org/nanoid/5.1.16",
+				"https://registry.npmjs.org/multiformats/14.0.6",
+				"https://registry.npmjs.org/nanoid/3.3.20"
+			],
+			"advisories": [
+				"GHSA-rvfr-cqwq-rc4j",
+				"GHSA-32mq-hpph-xfvr",
+				"GHSA-vrf4-mx87-p53w",
+				"GHSA-xj6q-8x83-jv6g",
+				"GHSA-mmx7-hfxf-jppx",
+				"GHSA-pmv8-rq9r-6j72",
+				"GHSA-mwf2-3pr3-8698",
+				"GHSA-gcfj-64vw-6mp9",
+				"GHSA-7q8q-rj6j-mhjq",
+				"GHSA-jqh4-m9w3-8hp9",
+				"GHSA-f4gw-2p7v-4548",
+				"GHSA-42h9-826w-cgv3",
+				"GHSA-hcpx-6fm6-wx23",
+				"GHSA-vh66-26gq-q6x8",
+				"GHSA-9fr6-4gfg-395g",
+				"GHSA-mghh-pgcx-3jjj",
+				"GHSA-x97p-jq2g-jp4f",
+				"GHSA-3pq3-5fj3-cg6v",
+				"GHSA-542g-h47m-68v8",
+				"GHSA-j8rh-479h-cp32",
+				"GHSA-4hqw-qxg8-jxx2",
+				"GHSA-m8m8-qj5v-23w3",
+				"GHSA-44g4-m2mj-wpvx",
+				"GHSA-q3jh-wrc6-jgq8",
+				"GHSA-8r9p-f939-6h3c",
+				"GHSA-mrwp-f3q8-3g9p",
+				"GHSA-hmw2-7cc7-3qxx",
+				"GHSA-28wg-ghj8-5hjv",
+				"GHSA-86w9-cpqp-85rv",
+				"GHSA-4642-5mcj-2rqw",
+				"GHSA-6wvx-3r32-xmcg",
+				"GHSA-525v-9gp9-w22h",
+				"GHSA-7wch-p9px-956x",
+				"GHSA-h6cr-wjv9-3cpp",
+				"GHSA-4487-j8r4-4g2f",
+				"GHSA-5cwg-6vw7-rj6p",
+				"GHSA-jc66-7q78-782g",
+				"GHSA-8hrf-8g6f-7xwp",
+				"GHSA-hqq3-7jhf-c5jx",
+				"GHSA-5x38-2vff-x55p",
+				"GHSA-9wg5-mj3p-v49q",
+				"GHSA-2vgq-wchc-25w7",
+				"GHSA-h46v-rmh6-fq4f",
+				"GHSA-rhr8-3pm8-cq29",
+				"GHSA-6qrw-m8cv-hcxf",
+				"GHSA-6889-vf6x-f3g5",
+				"GHSA-w4xr-hqv8-ch44",
+				"GHSA-6cv4-p8m7-4r25",
+				"GHSA-j8rw-jp99-435v",
+				"GHSA-vmh5-mc38-953g",
+				"GHSA-p88m-4jfj-68fv",
+				"GHSA-g8m3-5g58-fq7m",
+				"GHSA-pr7r-676h-xcf6",
+				"GHSA-8xcm-r25x-g524",
+				"GHSA-4cwx-7wf7-3272",
+				"GHSA-m8rv-5g2x-5cg5",
+				"GHSA-jr45-8vmc-qm54",
+				"GHSA-v3r7-h72x-cjcm",
+				"GHSA-35p6-xmwp-9g52",
+				"GHSA-3wwx-pv8p-q78v",
+				"GHSA-pmjh-fq2x-6v4x",
+				"GHSA-r53p-7pc4-xj5r",
+				"GHSA-rfgv-xxqx-mfg5",
+				"GHSA-3xpg-4rpp-hhhm",
+				"GHSA-2jfj-6hjv-fm6j",
+				"GHSA-2gqq-gqf2-x968",
+				"GHSA-w293-vg96-wgc3",
+				"GHSA-8436-99hf-9mmv",
+				"GHSA-rx4f-c7p8-82vq",
+				"GHSA-38rv-x7px-6hhq",
+				"GHSA-4qv8-2p9j-2685",
+				"GHSA-f72v-6w45-q472",
+				"GHSA-xjj6-f33q-929c",
+				"GHSA-4w7w-5xrc-9h26",
+				"GHSA-2m5v-pch6-74hx",
+				"GHSA-qrxm-fqhp-jwvm",
+				"GHSA-9fm3-97px-rjf6",
+				"GHSA-55wc-3pg8-jfw6",
+				"GHSA-vxpw-j846-p89q",
+				"GHSA-58qx-3vcg-4xpx",
+				"GHSA-96hv-2xvq-fx4p"
+			],
+			"peers": "Validate selected engines/peers from official metadata; preserve a single compatible Svelte instance; graph deltas recorded by node and edge.",
+			"expectedChanges": "Manifests/lockfile and minimal technical compatibility adjustments only; no business/schema changes.",
+			"tests": [
+				"types",
+				"207 unit identities",
+				"Chromium dev/production/PWA upgrade",
+				"isolated install",
+				"security policy",
+				"Cargo locked and AppImage payload"
+			],
+			"profile": "Complete",
+			"technicalAdaptations": [
+				"helia-resolver readUnixfsText CID parameter derives from UnixFS.cat, retaining its existing accepted type without casts or runtime changes."
+			]
+		},
+		{
+			"id": "rust-network",
+			"phase": "2.2",
+			"predecessor": "network-js",
+			"dependencies": [
+				{
+					"name": "h2",
+					"before": "0.4.13",
+					"after": "0.4.20",
+					"ecosystem": "cargo"
+				},
+				{
+					"name": "rustls",
+					"before": "0.23.40",
+					"after": "0.23.46",
+					"ecosystem": "cargo"
+				},
+				{
+					"name": "rustls-webpki",
+					"before": "0.103.13",
+					"after": "0.103.17",
+					"ecosystem": "cargo"
+				},
+				{
+					"name": "webpki-roots",
+					"before": "1.0.7",
+					"after": "1.0.12",
+					"ecosystem": "cargo"
+				},
+				{
+					"name": "anyhow",
+					"before": "1.0.102",
+					"after": "1.0.104",
+					"ecosystem": "cargo"
+				},
+				{
+					"name": "event-listener",
+					"before": "5.4.1",
+					"after": "5.4.2",
+					"ecosystem": "cargo"
+				},
+				{
+					"name": "rustix",
+					"before": "1.1.4",
+					"after": "1.1.6",
+					"ecosystem": "cargo"
+				},
+				{
+					"name": "tokio",
+					"before": "1.52.1",
+					"after": "1.54.1",
+					"ecosystem": "cargo"
+				}
+			],
+			"reason": "Resolve exposed HTTP/TLS and active unsoundness advisories using compatible crates; selected MSRV <=1.85 fits entry Rust 1.95.",
+			"sources": [
+				"https://crates.io/api/v1/crates/h2",
+				"https://crates.io/api/v1/crates/rustls",
+				"https://crates.io/api/v1/crates/rustls-webpki",
+				"https://crates.io/api/v1/crates/webpki-roots",
+				"https://crates.io/api/v1/crates/anyhow",
+				"https://crates.io/api/v1/crates/event-listener",
+				"https://crates.io/api/v1/crates/rustix",
+				"https://crates.io/api/v1/crates/tokio"
+			],
+			"advisories": [
+				"RUSTSEC-2026-0258",
+				"RUSTSEC-2026-0459",
+				"RUSTSEC-2021-0119",
+				"RUSTSEC-2026-0195",
+				"RUSTSEC-2026-0194",
+				"RUSTSEC-2026-0524",
+				"RUSTSEC-2026-0523",
+				"RUSTSEC-2026-0342",
+				"RUSTSEC-2026-0340",
+				"RUSTSEC-2026-0339",
+				"RUSTSEC-2026-0338",
+				"RUSTSEC-2026-0185",
+				"RUSTSEC-2026-0538",
+				"RUSTSEC-2026-0235",
+				"RUSTSEC-2023-0071",
+				"RUSTSEC-2026-0349",
+				"RUSTSEC-2026-0348",
+				"RUSTSEC-2026-0346",
+				"RUSTSEC-2026-0285",
+				"RUSTSEC-2026-0382",
+				"RUSTSEC-2026-0381",
+				"RUSTSEC-2026-0190",
+				"RUSTSEC-2026-0221",
+				"RUSTSEC-2024-0429",
+				"RUSTSEC-2026-0097",
+				"RUSTSEC-2026-0486",
+				"RUSTSEC-2026-0386"
+			],
+			"peers": "Validate selected engines/peers from official metadata; preserve a single compatible Svelte instance; graph deltas recorded by node and edge.",
+			"expectedChanges": "Manifests/lockfile and minimal technical compatibility adjustments only; no business/schema changes.",
+			"tests": [
+				"types",
+				"207 unit identities",
+				"Chromium dev/production/PWA upgrade",
+				"isolated install",
+				"security policy",
+				"Cargo locked and AppImage payload"
+			],
+			"profile": "Desktop"
+		},
+		{
+			"id": "node-types",
+			"phase": "2.4",
+			"predecessor": "rust-network",
+			"dependencies": [
+				{
+					"name": "node",
+					"before": "22.21.1",
+					"after": "24.22.3",
+					"ecosystem": "runtime"
+				},
+				{
+					"name": "@types/node",
+					"before": "25.6.0",
+					"after": "24.19.2",
+					"ecosystem": "npm"
+				}
+			],
+			"reason": "Adopt maintained patched Node 24 LTS and align declarations with its major.",
+			"sources": [
+				"https://nodejs.org/dist/v24.22.3/SHASUMS256.txt",
+				"https://registry.npmjs.org/@types/node/24.19.2"
+			],
+			"advisories": [],
+			"peers": "Validate selected engines/peers from official metadata; preserve a single compatible Svelte instance; graph deltas recorded by node and edge.",
+			"expectedChanges": "Manifests/lockfile and minimal technical compatibility adjustments only; no business/schema changes.",
+			"tests": [
+				"types",
+				"207 unit identities",
+				"Chromium dev/production/PWA upgrade",
+				"isolated install",
+				"security policy",
+				"Cargo locked and AppImage payload"
+			],
+			"profile": "Complete"
+		},
+		{
+			"id": "web-foundation",
+			"phase": "2.4",
+			"predecessor": "node-types",
+			"dependencies": [
+				{
+					"name": "svelte",
+					"before": "5.53.12",
+					"after": "5.59.1",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@sveltejs/kit",
+					"before": "2.57.1",
+					"after": "2.70.4",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@sveltejs/adapter-static",
+					"before": "3.0.10",
+					"after": "3.0.11",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@sveltejs/vite-plugin-svelte",
+					"before": "6.2.4",
+					"after": "6.2.4",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "vite",
+					"before": "7.3.2",
+					"after": "7.3.8",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "typescript",
+					"before": "5.9.3",
+					"after": "5.9.3",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "postcss",
+					"before": "8.5.9",
+					"after": "8.5.33",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "autoprefixer",
+					"before": "10.4.24",
+					"after": "10.7.0",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "devalue",
+					"before": "5.6.4",
+					"after": "5.9.4",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "esbuild",
+					"before": "0.27.3",
+					"after": "0.28.2",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "nanoid",
+					"before": "3.3.11",
+					"after": "3.3.20",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "source-map-js",
+					"before": "1.2.1",
+					"after": "1.2.4",
+					"ecosystem": "npm",
+					"mechanism": "pnpm convergence override source-map-js@ -> 1.2.4. Applies only when the declared consumer range accepts 1.2.4; css-tree ^1.0.1 verified compatible. Bare deep update retained vulnerable 1.2.1 despite a mature patched version."
+				},
+				{
+					"name": "@babel/core",
+					"before": "7.29.0",
+					"after": "7.29.13",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "browserslist",
+					"before": "4.28.1",
+					"after": "4.29.6",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "baseline-browser-mapping",
+					"before": "2.9.19",
+					"after": "2.11.39",
+					"ecosystem": "npm"
+				}
+			],
+			"reason": "Patch the maintained framework/build lines without unnecessary framework/TypeScript major migrations.",
+			"sources": [
+				"https://registry.npmjs.org/svelte/5.59.1",
+				"https://registry.npmjs.org/@sveltejs/kit/2.70.4",
+				"https://registry.npmjs.org/@sveltejs/adapter-static/3.0.11",
+				"https://registry.npmjs.org/@sveltejs/vite-plugin-svelte/6.2.4",
+				"https://registry.npmjs.org/vite/7.3.8",
+				"https://registry.npmjs.org/typescript/5.9.3",
+				"https://registry.npmjs.org/postcss/8.5.33",
+				"https://registry.npmjs.org/autoprefixer/10.7.0",
+				"https://registry.npmjs.org/devalue/5.9.4",
+				"https://registry.npmjs.org/esbuild/0.28.2",
+				"https://registry.npmjs.org/nanoid/3.3.20",
+				"https://registry.npmjs.org/source-map-js/1.2.4",
+				"https://registry.npmjs.org/@babel/core/7.29.13",
+				"https://registry.npmjs.org/browserslist/4.29.6",
+				"https://registry.npmjs.org/baseline-browser-mapping/2.11.39",
+				"https://github.com/pnpm/pnpm/blob/main/pnpm11/docs/settings/dependency-resolution.md#convergence-overrides"
+			],
+			"advisories": [
+				"GHSA-4x5r-pxfx-6jf8",
+				"GHSA-jf9x-2fg2-hx4w",
+				"GHSA-hgv7-v322-mmgr",
+				"GHSA-866w-xmhq-wj7x",
+				"GHSA-wqjv-9729-c5q2",
+				"GHSA-29g2-3rmr-qm68",
+				"GHSA-pfhg-q3qv-9q6r",
+				"GHSA-27mw-82g8-phjj",
+				"GHSA-mw6w-2fmv-pvw3",
+				"GHSA-3r8g-jcqq-3p5j",
+				"GHSA-rqp5-r3wg-vg35",
+				"GHSA-w5vr-8v7q-w6rv",
+				"GHSA-c83g-rgw3-j3cx",
+				"GHSA-73wf-gq98-2v4g",
+				"GHSA-pxg6-pf52-xh8x",
+				"GHSA-77vg-94rm-hx3p",
+				"GHSA-9rgm-9g3h-6x36",
+				"GHSA-j22f-vq7h-c4qm",
+				"GHSA-hx4r-w6wj-j8fg",
+				"GHSA-mcm9-63f2-9j32",
+				"GHSA-wf3x-273g-mvxv",
+				"GHSA-4q55-j62x-fr9h",
+				"GHSA-r9w8-h9r3-54w4",
+				"GHSA-g7r4-m6w7-qqqr",
+				"GHSA-5p2g-fcmc-qvqq",
+				"GHSA-w3rx-r6r6-pgpr",
+				"GHSA-28wg-ghj8-5hjv",
+				"GHSA-2v37-7h3g-55p8",
+				"GHSA-xwg4-73v4-xw9w",
+				"GHSA-qx2v-qp2m-jg93",
+				"GHSA-6g55-p6wh-862q",
+				"GHSA-fxqj-rqcc-2cmp",
+				"GHSA-r28c-9q8g-f849",
+				"GHSA-w7jw-789q-3m8p",
+				"GHSA-395f-4hp3-45gv",
+				"GHSA-68fv-2mgg-jv7q",
+				"GHSA-f3cj-j4f6-wq85",
+				"GHSA-rcqx-6q8c-2c42",
+				"GHSA-9rmh-mm8f-r9h6",
+				"GHSA-pr6f-5x2q-rwfp",
+				"GHSA-v6wh-96g9-6wx3",
+				"GHSA-698v-4r3x-3vcv",
+				"GHSA-r825-w8mm-5pxw",
+				"GHSA-587h-7wmj-h5pm",
+				"GHSA-9jrq-w75r-8gcw",
+				"GHSA-rq7h-c2jc-7f22",
+				"GHSA-fx2h-pf6j-xcff",
+				"GHSA-96hv-2xvq-fx4p",
+				"GHSA-6cf5-gc4q-fm3x"
+			],
+			"peers": "Validate selected engines/peers from official metadata; preserve a single compatible Svelte instance; graph deltas recorded by node and edge.",
+			"expectedChanges": "Manifests/lockfile and minimal technical compatibility adjustments only; no business/schema changes.",
+			"tests": [
+				"types",
+				"207 unit identities",
+				"Chromium dev/production/PWA upgrade",
+				"isolated install",
+				"security policy",
+				"Cargo locked and AppImage payload"
+			],
+			"profile": "Complete",
+			"peerFloors": {
+				"svelte": "^5.59.1",
+				"@sveltejs/kit": "^2.70.4"
+			}
+		},
+		{
+			"id": "test-stack",
+			"phase": "2.4",
+			"predecessor": "web-foundation",
+			"dependencies": [
+				{
+					"name": "vitest",
+					"before": "4.0.18",
+					"after": "4.1.12",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@testing-library/svelte",
+					"before": "5.3.1",
+					"after": "5.4.2",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "jsdom",
+					"before": "28.1.0",
+					"after": "28.1.0",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@playwright/test",
+					"before": "1.65.1",
+					"after": "1.65.1",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "undici",
+					"before": "7.24.4",
+					"after": "7.30.2",
+					"ecosystem": "npm",
+					"mechanism": "Convergence undici@ -> 7.30.2, only ranges accepting this version; jsdom declares ^7.21.0. Bare updates (including --dev) retained its old 7.24.4 resolution."
+				},
+				{
+					"name": "undici",
+					"before": "8.2.0",
+					"after": "8.12.4",
+					"ecosystem": "npm",
+					"consumer": "@libp2p/http Node client",
+					"reason": "The named update also patches the existing Undici 8 line inside its declared ^8.2.0 range; no major forced or Node platform introduced."
+				}
+			],
+			"reason": "Patch Vitest/mocker and jsdom HTTP implementation; retain existing assertions and pinned Chromium.",
+			"sources": [
+				"https://registry.npmjs.org/vitest/4.1.12",
+				"https://registry.npmjs.org/@testing-library/svelte/5.4.2",
+				"https://registry.npmjs.org/jsdom/28.1.0",
+				"https://registry.npmjs.org/@playwright/test/1.65.1",
+				"https://registry.npmjs.org/undici/7.30.2",
+				"https://registry.npmjs.org/undici/8.12.4"
+			],
+			"advisories": [
+				"GHSA-82fw-gwwq-j7x9",
+				"GHSA-qxg6-89mg-rqv8",
+				"GHSA-vmh5-mc38-953g",
+				"GHSA-p88m-4jfj-68fv",
+				"GHSA-hm92-r4w5-c3mj",
+				"GHSA-g8m3-5g58-fq7m",
+				"GHSA-pr7r-676h-xcf6",
+				"GHSA-8xcm-r25x-g524",
+				"GHSA-4cwx-7wf7-3272",
+				"GHSA-m8rv-5g2x-5cg5",
+				"GHSA-jr45-8vmc-qm54",
+				"GHSA-v3r7-h72x-cjcm",
+				"GHSA-35p6-xmwp-9g52",
+				"GHSA-pmjh-fq2x-6v4x",
+				"GHSA-r53p-7pc4-xj5r",
+				"GHSA-rfgv-xxqx-mfg5",
+				"GHSA-3xpg-4rpp-hhhm",
+				"GHSA-2jfj-6hjv-fm6j",
+				"GHSA-2gqq-gqf2-x968",
+				"GHSA-w293-vg96-wgc3",
+				"GHSA-8436-99hf-9mmv",
+				"GHSA-rx4f-c7p8-82vq",
+				"GHSA-4qv8-2p9j-2685",
+				"GHSA-f72v-6w45-q472",
+				"GHSA-xjj6-f33q-929c",
+				"GHSA-4w7w-5xrc-9h26",
+				"GHSA-2m5v-pch6-74hx",
+				"GHSA-qrxm-fqhp-jwvm",
+				"GHSA-9fm3-97px-rjf6",
+				"GHSA-55wc-3pg8-jfw6",
+				"GHSA-vxpw-j846-p89q",
+				"GHSA-5xrq-8626-4rwp"
+			],
+			"peers": "Validate selected engines/peers from official metadata; preserve a single compatible Svelte instance; graph deltas recorded by node and edge.",
+			"expectedChanges": "Manifests/lockfile and minimal technical compatibility adjustments only; no business/schema changes.",
+			"tests": [
+				"types",
+				"207 unit identities",
+				"Chromium dev/production/PWA upgrade",
+				"isolated install",
+				"security policy",
+				"Cargo locked and AppImage payload"
+			],
+			"profile": "Complete"
+		},
+		{
+			"id": "ui-css",
+			"phase": "2.4",
+			"predecessor": "test-stack",
+			"dependencies": [
+				{
+					"name": "@tailwindcss/vite",
+					"before": "4.1.18",
+					"after": "4.3.5",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "tailwindcss",
+					"before": "4.1.18",
+					"after": "4.3.5",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "bits-ui",
+					"before": "2.16.5",
+					"after": "2.21.0",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@internationalized/date",
+					"before": "3.11.0",
+					"after": "3.12.4",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "tailwind-merge",
+					"before": "3.4.0",
+					"after": "3.7.1",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "tailwind-variants",
+					"before": "3.2.2",
+					"after": "3.3.1",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@lucide/svelte",
+					"before": "0.561.0",
+					"after": "0.561.0",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "clsx",
+					"before": "2.1.1",
+					"after": "2.1.1",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "tw-animate-css",
+					"before": "1.4.0",
+					"after": "1.4.0",
+					"ecosystem": "npm"
+				}
+			],
+			"reason": "Align existing CSS/UI families; keep the icon major and public components while verifying computed styles.",
+			"sources": [
+				"https://registry.npmjs.org/@tailwindcss/vite/4.3.5",
+				"https://registry.npmjs.org/tailwindcss/4.3.5",
+				"https://registry.npmjs.org/bits-ui/2.21.0",
+				"https://registry.npmjs.org/@internationalized/date/3.12.4",
+				"https://registry.npmjs.org/tailwind-merge/3.7.1",
+				"https://registry.npmjs.org/tailwind-variants/3.3.1",
+				"https://registry.npmjs.org/@lucide/svelte/0.561.0",
+				"https://registry.npmjs.org/clsx/2.1.1",
+				"https://registry.npmjs.org/tw-animate-css/1.4.0"
+			],
+			"advisories": [],
+			"peers": "Validate selected engines/peers from official metadata; preserve a single compatible Svelte instance; graph deltas recorded by node and edge.",
+			"expectedChanges": "Manifests/lockfile and minimal technical compatibility adjustments only; no business/schema changes.",
+			"tests": [
+				"types",
+				"207 unit identities",
+				"Chromium dev/production/PWA upgrade",
+				"isolated install",
+				"security policy",
+				"Cargo locked and AppImage payload"
+			],
+			"profile": "Complete",
+			"behaviorContract": [
+				"Keep existing component props, classes and interactions; no redesign",
+				"Create button computed display:flex, align-items:center, height:28px; dialog opening/submission/closing and publication/export assertions remain in existing Chromium scenarios",
+				"All 207 original unit identities and strict types remain mandatory"
+			],
+			"compatibilityReview": {
+				"date": "2026-11-20",
+				"metadata": ".artifacts/maintenance/2.4/ui-css/input/metadata.json",
+				"summary": "Tailwind Vite plugin accepts Vite ^7; Bits UI requires Svelte ^5.33.0/date ^3.8.1, satisfied by selected versions. Existing majors retained; no consumer API rewrite expected.",
+				"sources": [
+					"https://tailwindcss.com/docs/upgrade-guide",
+					"https://www.bits-ui.com/docs/getting-started"
+				]
+			}
+		},
+		{
+			"id": "pwa-assets",
+			"phase": "2.4",
+			"predecessor": "ui-css",
+			"dependencies": [
+				{
+					"name": "workbox-precaching",
+					"before": "7.4.0",
+					"after": "7.4.1",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "workbox-routing",
+					"before": "7.4.0",
+					"after": "7.4.1",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "workbox-window",
+					"before": "7.4.0",
+					"after": "7.4.1",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "sharp",
+					"before": "0.34.5",
+					"after": "0.35.5",
+					"ecosystem": "npm"
+				}
+			],
+			"reason": "Patch image processing and PWA tools; validate worker/controller/cache/data/offline and packaged current assets.",
+			"sources": [
+				"https://registry.npmjs.org/workbox-precaching/7.4.1",
+				"https://registry.npmjs.org/workbox-routing/7.4.1",
+				"https://registry.npmjs.org/workbox-window/7.4.1",
+				"https://registry.npmjs.org/sharp/0.35.5"
+			],
+			"advisories": ["GHSA-f88m-g3jw-g9cj", "GHSA-rgj7-g3m4-5g8c", "GHSA-wq5f-xc86-pv6w"],
+			"peers": "Validate selected engines/peers from official metadata; preserve a single compatible Svelte instance; graph deltas recorded by node and edge.",
+			"expectedChanges": "Manifests/lockfile and minimal technical compatibility adjustments only; no business/schema changes.",
+			"tests": [
+				"types",
+				"207 unit identities",
+				"Chromium dev/production/PWA upgrade",
+				"isolated install",
+				"security policy",
+				"Cargo locked and AppImage payload"
+			],
+			"profile": "Complete",
+			"behaviorContract": [
+				"Keep existing service worker routing, cache names, update flow, origin and persisted data; existing production/upgrade Chromium scenarios mandatory",
+				"Run the unmodified icon generator in synthetic output tree with the actual web dependency; four PNGs sized 192/512/512/180 and maskable background RGBA 10,10,10,255; no writes to tracked icons"
+			],
+			"compatibilityReview": {
+				"date": "2026-11-20",
+				"metadata": ".artifacts/maintenance/2.4/pwa-assets/input/metadata.json",
+				"summary": "Sharp 0.35 requires Node >=20.9, removes install script and obsolete APIs not used by the existing PNG resize/composite consumer. Use existing Linux prebuilt binaries; no native build toolchain/platform addition. Workbox 7 patch with public routing/precaching APIs retained.",
+				"sources": [
+					"https://sharp.pixelplumbing.com/changelog/v0.35.0/",
+					"https://sharp.pixelplumbing.com/changelog/v0.35.5/",
+					"https://github.com/GoogleChrome/workbox/releases/tag/v7.4.1"
+				]
+			}
+		},
+		{
+			"id": "desktop-tauri",
+			"phase": "2.4",
+			"predecessor": "pwa-assets",
+			"dependencies": [
+				{
+					"name": "@tauri-apps/api",
+					"before": "2.10.1",
+					"after": "2.12.5",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@tauri-apps/cli",
+					"before": "2.10.1",
+					"after": "2.12.6",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@tauri-apps/plugin-http",
+					"before": "2.5.8",
+					"after": "2.9.0",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@tauri-apps/plugin-notification",
+					"before": "2.3.3",
+					"after": "2.8.1",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@tauri-apps/plugin-shell",
+					"before": "2.3.5",
+					"after": "2.6.0",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@tauri-apps/plugin-process",
+					"before": "2.3.1",
+					"after": "2.4.0",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@tauri-apps/plugin-updater",
+					"before": "2.10.1",
+					"after": "2.14.1",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "tauri",
+					"before": "2.10.3",
+					"after": "2.12.7",
+					"ecosystem": "cargo"
+				},
+				{
+					"name": "tauri-build",
+					"before": "2.5.6",
+					"after": "2.7.6",
+					"ecosystem": "cargo"
+				},
+				{
+					"name": "tauri-plugin-http",
+					"before": "2.5.8",
+					"after": "2.9.0",
+					"ecosystem": "cargo"
+				},
+				{
+					"name": "tauri-plugin-shell",
+					"before": "2.3.5",
+					"after": "2.6.0",
+					"ecosystem": "cargo"
+				},
+				{
+					"name": "tauri-plugin-notification",
+					"before": "2.3.3",
+					"after": "2.8.1",
+					"ecosystem": "cargo"
+				},
+				{
+					"name": "serde",
+					"before": "1.0.228",
+					"after": "1.0.229",
+					"ecosystem": "cargo"
+				},
+				{
+					"name": "serde_json",
+					"before": "1.0.149",
+					"after": "1.0.154",
+					"ecosystem": "cargo"
+				},
+				{
+					"name": "battery",
+					"before": "0.7.8",
+					"after": "0.7.8",
+					"ecosystem": "cargo"
+				},
+				{
+					"name": "default-net",
+					"before": "0.22.0",
+					"after": "0.22.0",
+					"ecosystem": "cargo"
+				},
+				{
+					"name": "plist",
+					"before": "1.9.0",
+					"after": "1.10.4",
+					"ecosystem": "cargo",
+					"reason": "New Tauri-utils compiles the preexisting plist path on Linux. Compatible ^1 update uses fixed quick-xml, preserving direct native contracts."
+				},
+				{
+					"name": "quick-xml",
+					"before": "0.39.2",
+					"after": "0.42.0",
+					"ecosystem": "cargo",
+					"reason": "Required by plist 1.10.4; removes RUSTSEC-2026-0195 newly exposed in the current compiled graph. No forced incompatible dependency override."
+				}
+			],
+			"reason": "Update the coupled Tauri v2 JS/CLI/crate family in one atomic unit; preserve plugins, identity, features and runtime command.",
+			"sources": [
+				"https://registry.npmjs.org/@tauri-apps/api/2.12.5",
+				"https://registry.npmjs.org/@tauri-apps/cli/2.12.6",
+				"https://registry.npmjs.org/@tauri-apps/plugin-http/2.9.0",
+				"https://registry.npmjs.org/@tauri-apps/plugin-notification/2.8.1",
+				"https://registry.npmjs.org/@tauri-apps/plugin-shell/2.6.0",
+				"https://registry.npmjs.org/@tauri-apps/plugin-process/2.4.0",
+				"https://registry.npmjs.org/@tauri-apps/plugin-updater/2.14.1",
+				"https://crates.io/api/v1/crates/tauri",
+				"https://crates.io/api/v1/crates/tauri-build",
+				"https://crates.io/api/v1/crates/tauri-plugin-http",
+				"https://crates.io/api/v1/crates/tauri-plugin-shell",
+				"https://crates.io/api/v1/crates/tauri-plugin-notification",
+				"https://crates.io/api/v1/crates/serde",
+				"https://crates.io/api/v1/crates/serde_json",
+				"https://crates.io/api/v1/crates/battery",
+				"https://crates.io/api/v1/crates/default-net",
+				"https://rustsec.org/advisories/RUSTSEC-2026-0195.html",
+				"https://crates.io/api/v1/crates/plist/1.10.4",
+				"https://crates.io/api/v1/crates/quick-xml/0.42.0"
+			],
+			"advisories": ["RUSTSEC-2026-0195"],
+			"peers": "Validate selected engines/peers from official metadata; preserve a single compatible Svelte instance; graph deltas recorded by node and edge.",
+			"expectedChanges": "Manifests/lockfile and minimal technical compatibility adjustments only; no business/schema changes.",
+			"tests": [
+				"types",
+				"207 unit identities",
+				"Chromium dev/production/PWA upgrade",
+				"isolated install",
+				"security policy",
+				"Cargo locked and AppImage payload"
+			],
+			"profile": "Complete",
+			"behaviorContract": [
+				"Keep native crate identity, backend-indexeddb default and all root feature definitions/dependency feature flags/optionalness from native-project.json",
+				"No process/updater native plugin addition, SQLite activation, permission/capability/identity changes or new platform",
+				"Existing strict types/unit identities, Cargo locked check/test, fresh AppImage payload/assets and all PWA scenarios mandatory; packaging is not native UI coverage"
+			],
+			"compatibilityReview": {
+				"date": "2026-11-20",
+				"metadata": ".artifacts/maintenance/2.4/desktop-tauri/input/metadata.json",
+				"summary": "Selected Tauri/crate family stays at v2 and requires Rust 1.90, compatible with entry 1.95. JS selected CLI Node engine is satisfied. Crate metadata checked in official Cargo index (API endpoint unavailable); Cargo resolution refreshes actual registry. Battery/default-net retained.",
+				"sources": [
+					"https://v2.tauri.app/start/prerequisites/",
+					"https://github.com/tauri-apps/tauri/releases/tag/tauri-v2.12.7"
+				]
+			}
+		},
+		{
+			"id": "rust-toolchain",
+			"phase": "2.4",
+			"predecessor": "desktop-tauri",
+			"dependencies": [
+				{
+					"name": "rust",
+					"before": "1.95.0",
+					"after": "1.100.0",
+					"ecosystem": "toolchain"
+				},
+				{
+					"name": "cargo-audit",
+					"before": "0.22.2",
+					"after": "0.23.0",
+					"ecosystem": "cargo-tool"
+				}
+			],
+			"reason": "Pin the current stable Rust with rustfmt/Clippy and the current auditor; verify actual override and MSRV.",
+			"sources": [
+				"https://blog.rust-lang.org/2026/11/12/Rust-1.100.0/",
+				"https://crates.io/api/v1/crates/cargo-audit/0.23.0"
+			],
+			"advisories": [],
+			"peers": "Validate selected engines/peers from official metadata; preserve a single compatible Svelte instance; graph deltas recorded by node and edge.",
+			"expectedChanges": "Manifests/lockfile and minimal technical compatibility adjustments only; no business/schema changes.",
+			"tests": [
+				"types",
+				"207 unit identities",
+				"Chromium dev/production/PWA upgrade",
+				"isolated install",
+				"security policy",
+				"Cargo locked and AppImage payload"
+			],
+			"profile": "Desktop",
+			"minimumRust": {
+				"version": "1.95",
+				"scope": "Current Linux x86_64 native crate and lock, compiled and fully gated with entry Rust 1.95.0; upstream 1.90 is not claimed as tested project minimum.",
+				"proof": ".artifacts/maintenance/2.4/desktop-tauri/2026-11-20T22-34-47.685Z-68d2b330-0fb2-4557-ae10-064b91a0c9d4/evidence.json"
+			},
+			"behaviorContract": [
+				"Exact root Rust 1.100.0 minimal profile with rustfmt/Clippy, cargo-audit 0.23.0; effective versions checked",
+				"Declare tested minimum rust-version 1.95; preserve edition, features, plugins, product/native logic and both lockfiles",
+				"Install named Rust toolchain without changing global rustup default; standalone auditor isolated in task tools"
+			],
+			"compatibilityReview": {
+				"date": "2026-11-20",
+				"sources": [
+					"https://blog.rust-lang.org/2026/11/12/Rust-1.100.0/",
+					"https://github.com/rustsec/rustsec/releases/tag/cargo-audit%2Fv0.23.0"
+				],
+				"summary": "Rust 1.100 changes never-type fallback also in edition 2021; keep edition/source/locks and prove locked consumers with actual compiler. Auditor JSON/report behavior validated by current security gate; no ignore/deny relaxation."
+			}
+		},
+		{
+			"id": "lint-tools",
+			"phase": "2.5",
+			"predecessor": "rust-toolchain",
+			"dependencies": [
+				{
+					"name": "eslint",
+					"before": "not-installed",
+					"after": "10.15.0",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "@eslint/js",
+					"before": "not-installed",
+					"after": "10.0.1",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "globals",
+					"before": "not-installed",
+					"after": "17.14.0",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "typescript-eslint",
+					"before": "not-installed",
+					"after": "8.73.0",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "eslint-plugin-svelte",
+					"before": "not-installed",
+					"after": "3.24.1",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "eslint-config-prettier",
+					"before": "not-installed",
+					"after": "10.1.8",
+					"ecosystem": "npm"
+				}
+			],
+			"reason": "Previously authorized bounded lint tools adopted with their consumer/configuration in 2.5/lint.",
+			"sources": [
+				"https://registry.npmjs.org/eslint/10.15.0",
+				"https://registry.npmjs.org/@eslint/js/10.0.1",
+				"https://registry.npmjs.org/globals/17.14.0",
+				"https://registry.npmjs.org/typescript-eslint/8.73.0",
+				"https://registry.npmjs.org/eslint-plugin-svelte/3.24.1",
+				"https://registry.npmjs.org/eslint-config-prettier/10.1.8"
+			],
+			"advisories": [],
+			"peers": "Validate selected engines/peers from official metadata; preserve a single compatible Svelte instance; graph deltas recorded by node and edge.",
+			"expectedChanges": "Manifests/lockfile and minimal technical compatibility adjustments only; no business/schema changes.",
+			"tests": [
+				"all active source discovery",
+				"lint adversarial fixtures",
+				"zero enabled errors/warnings",
+				"format check",
+				"types",
+				"unit identities"
+			],
+			"profile": "Base",
+			"adoptionUnit": "lint"
+		},
+		{
+			"id": "format-tools",
+			"phase": "2.5",
+			"predecessor": "lint-tools",
+			"dependencies": [
+				{
+					"name": "prettier",
+					"before": "not-installed",
+					"after": "3.10.1",
+					"ecosystem": "npm"
+				},
+				{
+					"name": "prettier-plugin-svelte",
+					"before": "not-installed",
+					"after": "4.2.0",
+					"ecosystem": "npm"
+				}
+			],
+			"reason": "Previously authorized formatter tools adopted only with their consumer/configuration in 2.5/format.",
+			"sources": [
+				"https://registry.npmjs.org/prettier/3.10.1",
+				"https://registry.npmjs.org/prettier-plugin-svelte/4.2.0"
+			],
+			"advisories": [],
+			"peers": "Validate selected engines/peers from official metadata; preserve a single compatible Svelte instance; graph deltas recorded by node and edge.",
+			"expectedChanges": "Manifests/lockfile and minimal technical compatibility adjustments only; no business/schema changes.",
+			"tests": [
+				"all active source discovery",
+				"lint adversarial fixtures",
+				"zero enabled errors/warnings",
+				"format check",
+				"types",
+				"unit identities"
+			],
+			"profile": "Base",
+			"adoptionUnit": "format"
+		}
+	],
+	"retained": [
+		"Helia 6.1.4, @helia/ipns 9.2.1, @helia/unixfs 7.2.1 and multiformats 13.4.2 unless the network compatibility proof requires a documented target revision.",
+		"Inactive React Native/autoTLS dependencies and optional/non-Linux crates are classified by exposure; no forced overrides or platform additions to remove a raw audit count."
+	],
+	"selectionEvidence": [
+		".artifacts/maintenance/2.1/diagnosis/inventory/metadata.json",
+		".artifacts/maintenance/2.1/diagnosis/inventory/outdated.json"
+	]
+}

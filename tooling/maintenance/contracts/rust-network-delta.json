@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "group": "rust-network",
+  "reviewedAt": "2026-11-20",
+  "beforeLockHash": "87a9c8ca2495bd26b8d633320918f229d32ae12735ff62af6d8e5842d02e9004",
+  "afterLockHash": "c2768efb73be65c88e3c73fefe688f90c3fb566e131f8f6277f0f0d478ce318a",
+  "versionChanges": [
+    {
+      "name": "h2",
+      "before": "0.4.13",
+      "after": "0.4.20"
+    },
+    {
+      "name": "rustls",
+      "before": "0.23.40",
+      "after": "0.23.46"
+    },
+    {
+      "name": "rustls-webpki",
+      "before": "0.103.13",
+      "after": "0.103.17"
+    },
+    {
+      "name": "webpki-roots",
+      "before": "1.0.7",
+      "after": "1.0.12"
+    },
+    {
+      "name": "anyhow",
+      "before": "1.0.102",
+      "after": "1.0.104"
+    },
+    {
+      "name": "event-listener",
+      "before": "5.4.1",
+      "after": "5.4.2"
+    },
+    {
+      "name": "rustix",
+      "before": "1.1.4",
+      "after": "1.1.6"
+    },
+    {
+      "name": "tokio",
+      "before": "1.52.1",
+      "after": "1.54.1"
+    }
+  ],
+  "resolverEdges": [
+    {
+      "package": "dirs-sys@0.5.0",
+      "before": [
+        "libc",
+        "option-ext",
+        "redox_users",
+        "windows-sys 0.61.2"
+      ],
+      "after": [
+        "libc",
+        "option-ext",
+        "redox_users",
+        "windows-sys 0.59.0"
+      ],
+      "reason": "Cargo refreshed target-specific Windows dependency edges among existing locked package versions; no new target or feature activated."
+    },
+    {
+      "package": "errno@0.3.14",
+      "before": [
+        "libc",
+        "windows-sys 0.61.2"
+      ],
+      "after": [
+        "libc",
+        "windows-sys 0.52.0"
+      ],
+      "reason": "Cargo refreshed target-specific Windows dependency edges among existing locked package versions; no new target or feature activated."
+    },
+    {
+      "package": "os_pipe@1.2.3",
+      "before": [
+        "libc",
+        "windows-sys 0.61.2"
+      ],
+      "after": [
+        "libc",
+        "windows-sys 0.45.0"
+      ],
+      "reason": "Cargo refreshed target-specific Windows dependency edges among existing locked package versions; no new target or feature activated."
+    },
+    {
+      "package": "quinn-udp@0.5.14",
+      "before": [
+        "cfg_aliases",
+        "libc",
+        "once_cell",
+        "socket2",
+        "tracing",
+        "windows-sys 0.60.2"
+      ],
+      "after": [
+        "cfg_aliases",
+        "libc",
+        "once_cell",
+        "socket2",
+        "tracing",
+        "windows-sys 0.52.0"
+      ],
+      "reason": "Cargo refreshed target-specific Windows dependency edges among existing locked package versions; no new target or feature activated."
+    },
+    {
+      "package": "tempfile@3.27.0",
+      "before": [
+        "fastrand",
+        "getrandom 0.4.2",
+        "once_cell",
+        "rustix",
+        "windows-sys 0.61.2"
+      ],
+      "after": [
+        "fastrand",
+        "getrandom 0.4.2",
+        "once_cell",
+        "rustix",
+        "windows-sys 0.52.0"
+      ],
+      "reason": "Cargo refreshed target-specific Windows dependency edges among existing locked package versions; no new target or feature activated."
+    },
+    {
+      "package": "winapi-util@0.1.11",
+      "before": [
+        "windows-sys 0.61.2"
+      ],
+      "after": [
+        "windows-sys 0.48.0"
+      ],
+      "reason": "Cargo refreshed target-specific Windows dependency edges among existing locked package versions; no new target or feature activated."
+    }
+  ],
+  "unchanged": [
+    "JS lock",
+    "Cargo.toml and default features",
+    "native sources and permissions",
+    "data and product behavior"
+  ]
+}

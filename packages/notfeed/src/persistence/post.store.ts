@@ -331,10 +331,7 @@ export async function trashOldPostsForUser(
 }
 
 /** Physically delete trashed posts older than the cutoff. */
-export async function purgeTrashedBefore(
-	userId: string,
-	cutoffTrashedAt: number
-): Promise<number> {
+export async function purgeTrashedBefore(userId: string, cutoffTrashedAt: number): Promise<number> {
 	const db = await getStorageBackend();
 	const records = await db.posts.query<StoredPost>('byUser', userId);
 	let count = 0;

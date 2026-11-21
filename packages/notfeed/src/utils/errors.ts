@@ -13,7 +13,10 @@ export class NotfeedError extends Error {
 }
 
 export class IngestionError extends NotfeedError {
-	constructor(message: string, public readonly fontId: string) {
+	constructor(
+		message: string,
+		public readonly fontId: string
+	) {
 		super(message, 'INGESTION_ERROR');
 		this.name = 'IngestionError';
 	}

@@ -64,7 +64,10 @@
 					{@const url = getMediaPreviewUrl(media)}
 					<button
 						type="button"
-						class="relative aspect-square rounded-lg overflow-hidden border-2 transition-colors bg-muted {picked === media.metadata.id ? 'border-primary ring-2 ring-primary/30' : 'border-transparent hover:border-muted-foreground/30'}"
+						class="relative aspect-square rounded-lg overflow-hidden border-2 transition-colors bg-muted {picked ===
+						media.metadata.id
+							? 'border-primary ring-2 ring-primary/30'
+							: 'border-transparent hover:border-muted-foreground/30'}"
 						onclick={() => (picked = media.metadata.id)}
 					>
 						<img src={url} alt="" class="w-full h-full object-cover" />

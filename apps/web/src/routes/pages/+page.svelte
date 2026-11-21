@@ -15,11 +15,11 @@
 	import Archive from '@lucide/svelte/icons/archive';
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
 	import { t } from '@notfeed/product/i18n/t.js';
-import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
+	import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 
 	const roleMeta: Record<string, { label: string; icon: typeof Newspaper }> = {
 		profile: { label: 'Profile', icon: Newspaper },
-		collection: { label: 'Collection', icon: Library },
+		collection: { label: 'Collection', icon: Library }
 	};
 
 	let showRemoved = $state(false);
@@ -36,7 +36,11 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 			{#if activeUser.isCreator}
 				<div class="flex items-center gap-2">
 					{#if creator.removedTrees.length > 0}
-						<Button variant={showRemoved ? 'secondary' : 'ghost'} size="sm" onclick={() => (showRemoved = !showRemoved)}>
+						<Button
+							variant={showRemoved ? 'secondary' : 'ghost'}
+							size="sm"
+							onclick={() => (showRemoved = !showRemoved)}
+						>
 							<Archive class="size-4 mr-1" />
 							{t('pages.removed')} ({creator.removedTrees.length})
 						</Button>
@@ -114,18 +118,26 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 										/>
 									</div>
 								{:else if rootNode?.data.header.coverEmoji}
-									<div class="size-10 rounded-lg bg-muted flex items-center justify-center shrink-0 text-xl">
+									<div
+										class="size-10 rounded-lg bg-muted flex items-center justify-center shrink-0 text-xl"
+									>
 										{rootNode.data.header.coverEmoji}
 									</div>
 								{:else}
-									<div class="size-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+									<div
+										class="size-10 rounded-lg bg-muted flex items-center justify-center shrink-0"
+									>
 										<FileStack class="size-5 text-muted-foreground" />
 									</div>
 								{/if}
 								<div class="flex-1 min-w-0">
-									<Card.Title class="text-base truncate">{rootNode?.data.header.title ?? t('import.without_title')}</Card.Title>
+									<Card.Title class="text-base truncate">
+										{rootNode?.data.header.title ?? t('import.without_title')}
+									</Card.Title>
 									{#if rootNode?.data.header.subtitle}
-										<p class="text-xs font-medium mt-0.5 truncate">{rootNode.data.header.subtitle}</p>
+										<p class="text-xs font-medium mt-0.5 truncate">
+											{rootNode.data.header.subtitle}
+										</p>
 									{/if}
 									{#if rootNode?.data.header.summary}
 										<Card.Description class="line-clamp-2 text-xs mt-0.5">

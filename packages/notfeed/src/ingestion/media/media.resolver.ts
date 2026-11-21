@@ -1,7 +1,4 @@
-import {
-	parseEmbed as parseVideoEmbed,
-	type EmbedInfo as VideoEmbedInfo
-} from './video-embed.js';
+import { parseEmbed as parseVideoEmbed, type EmbedInfo as VideoEmbedInfo } from './video-embed.js';
 import { parseAudioEmbed, type AudioEmbedInfo } from './audio-embed.js';
 
 export type EmbedInfo = VideoEmbedInfo | AudioEmbedInfo;
@@ -19,7 +16,10 @@ function parsePreferredEmbed(
 	return parseAudioEmbed(audioCandidate);
 }
 
-function parseForThumbnail(url: string | undefined | null, videoUrl?: string | undefined | null): VideoEmbedInfo {
+function parseForThumbnail(
+	url: string | undefined | null,
+	videoUrl?: string | undefined | null
+): VideoEmbedInfo {
 	const candidate = videoUrl ?? url;
 	return parseVideoEmbed(candidate);
 }
@@ -55,9 +55,4 @@ export function parseEmbed(url: string | undefined | null): EmbedInfo {
 	return parseVideoEmbed(url) ?? parseAudioEmbed(url);
 }
 
-export {
-	parseVideoEmbed,
-	parseAudioEmbed,
-	type VideoEmbedInfo,
-	type AudioEmbedInfo
-};
+export { parseVideoEmbed, parseAudioEmbed, type VideoEmbedInfo, type AudioEmbedInfo };

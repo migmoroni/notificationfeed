@@ -22,7 +22,7 @@
 		iframeScrolling,
 		iframeLazy,
 		background,
-		playButton,
+		playButton
 	}: Props = $props();
 
 	let iframeLoaded = $state(false);

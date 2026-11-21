@@ -207,13 +207,13 @@ Quando **todas** as sources de uma font estão `OPEN`, a font está
 `FetcherState.confidence` é derivada de `pipelineState` via
 `INGESTION_CONFIDENCE`:
 
-| Estado       | Confidence |
-|--------------|------------|
-| HEALTHY      | 1.0        |
-| RECOVERING   | 0.7        |
-| UNSTABLE     | 0.5        |
-| DEGRADED     | 0.3        |
-| OFFLINE      | 0.0        |
+| Estado     | Confidence |
+| ---------- | ---------- |
+| HEALTHY    | 1.0        |
+| RECOVERING | 0.7        |
+| UNSTABLE   | 0.5        |
+| DEGRADED   | 0.3        |
+| OFFLINE    | 0.0        |
 
 A UI exibe esse número onde for útil (badges, debug overlays).
 
@@ -222,13 +222,13 @@ A UI exibe esse número onde for útil (badges, debug overlays).
 Toda transição legal anexa um `PipelineEvent` ao store
 `pipelineEvents` via `appendPipelineEvent`:
 
-| Tipo de evento       | Severidade | Dedup default |
-|----------------------|------------|---------------|
-| PIPELINE_UNSTABLE    | warning    | 30 min        |
-| PIPELINE_OFFLINE     | critical   | 6 h           |
-| PIPELINE_RECOVERED   | info       | (nunca)       |
-| PIPELINE_DEGRADED    | warning    | 30 min        |
-| SOURCE_SWITCHED      | info       | 6 h           |
+| Tipo de evento     | Severidade | Dedup default |
+| ------------------ | ---------- | ------------- |
+| PIPELINE_UNSTABLE  | warning    | 30 min        |
+| PIPELINE_OFFLINE   | critical   | 6 h           |
+| PIPELINE_RECOVERED | info       | (nunca)       |
+| PIPELINE_DEGRADED  | warning    | 30 min        |
+| SOURCE_SWITCHED    | info       | 6 h           |
 
 O consumer (`pipeline-event-consumer.ts`) lê esses eventos, aplica
 as configs por canal do usuário (`mode`, `severityThreshold`,

@@ -78,13 +78,27 @@ function triggerIngestionForActivation(userId: string, nodeId: string): void {
 // ── Exported accessor ──────────────────────────────────────────────────
 
 export const consumer = {
-	get user() { return state.user; },
-	get activateTrees() { return state.user?.activateTrees ?? []; },
-	get activateNodes() { return state.user?.activateNodes ?? []; },
-	get activationMap() { return state.activationMap; },
-	get libraryTabs() { return state.user?.libraryTabs ?? []; },
-	get loading() { return state.loading; },
-	get isReady() { return state.user !== null && !state.loading; },
+	get user() {
+		return state.user;
+	},
+	get activateTrees() {
+		return state.user?.activateTrees ?? [];
+	},
+	get activateNodes() {
+		return state.user?.activateNodes ?? [];
+	},
+	get activationMap() {
+		return state.activationMap;
+	},
+	get libraryTabs() {
+		return state.user?.libraryTabs ?? [];
+	},
+	get loading() {
+		return state.loading;
+	},
+	get isReady() {
+		return state.user !== null && !state.loading;
+	},
 
 	/** Node activation lookup by nodeId */
 	getActivation(nodeId: string): NodeActivation | undefined {
@@ -295,13 +309,23 @@ export const consumer = {
 		if (!state.user) return;
 
 		await repo.setProfileImage(state.user.id, image);
-		state.user = { ...state.user, profileImage: image, profileEmoji: image ? null : state.user.profileEmoji, updatedAt: new Date() };
+		state.user = {
+			...state.user,
+			profileImage: image,
+			profileEmoji: image ? null : state.user.profileEmoji,
+			updatedAt: new Date()
+		};
 	},
 
 	async setProfileEmoji(emoji: string | null): Promise<void> {
 		if (!state.user) return;
 
 		await repo.setProfileEmoji(state.user.id, emoji);
-		state.user = { ...state.user, profileEmoji: emoji, profileImage: emoji ? null : state.user.profileImage, updatedAt: new Date() };
+		state.user = {
+			...state.user,
+			profileEmoji: emoji,
+			profileImage: emoji ? null : state.user.profileImage,
+			updatedAt: new Date()
+		};
 	}
 };

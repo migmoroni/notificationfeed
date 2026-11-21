@@ -32,7 +32,10 @@
 			const tree = creator.trees.find((t) => t.metadata.id === treeId);
 			const rootNode = tree ? creator.getRootNode(treeId) : null;
 			const name = rootNode?.data.header.title ?? 'export';
-			const safeName = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+			const safeName = name
+				.toLowerCase()
+				.replace(/[^a-z0-9]+/g, '-')
+				.replace(/^-|-$/g, '');
 			a.download = `${safeName}${TREE_EXPORT_EXTENSION}`;
 			document.body.appendChild(a);
 			a.click();

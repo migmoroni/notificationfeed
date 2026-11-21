@@ -28,5 +28,5 @@ export const CATEGORY_SEED: SeedCategory[] = [
 	...contentSeed,
 	...mediaSeed,
 	...regionSeed,
-	...languageSeed,
+	...languageSeed
 ];

@@ -48,7 +48,10 @@ function setNumericParams(params: URLSearchParams, names: string[], value: numbe
 	return changed;
 }
 
-function applyVideoInitialHeightToQuery(url: string, initialHeight: IngestionVideoInitialHeight): string | undefined {
+function applyVideoInitialHeightToQuery(
+	url: string,
+	initialHeight: IngestionVideoInitialHeight
+): string | undefined {
 	if (initialHeight == null) return undefined;
 
 	let parsed: URL;

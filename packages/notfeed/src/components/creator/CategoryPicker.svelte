@@ -78,7 +78,9 @@
 				<span class="text-xs font-medium text-muted-foreground">
 					{t(tree.labelKey)} ({selected.length})
 					{#if selected.length > SUGGESTED_CATEGORIES_PER_TREE}
-						<span class="text-amber-500">— {t('category_picker.suggested', { max: String(SUGGESTED_CATEGORIES_PER_TREE) })}</span>
+						<span class="text-amber-500">
+							— {t('category_picker.suggested', { max: String(SUGGESTED_CATEGORIES_PER_TREE) })}
+						</span>
 					{/if}
 				</span>
 

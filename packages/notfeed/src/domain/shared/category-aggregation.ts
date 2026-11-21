@@ -19,26 +19,26 @@ import { getRootNodeId } from '../content-tree/content-tree.js';
  * Within each treeId, categoryIds are unioned and deduplicated.
  */
 export function mergeAssignments(...sources: CategoryAssignment[][]): CategoryAssignment[] {
-const byTree = new Map<CategoryTreeId, Set<string>>();
+	const byTree = new Map<CategoryTreeId, Set<string>>();
 
-for (const assignments of sources) {
-for (const a of assignments) {
-const existing = byTree.get(a.treeId);
-if (existing) {
-for (const id of a.categoryIds) existing.add(id);
-} else {
-byTree.set(a.treeId, new Set(a.categoryIds));
-}
-}
-}
+	for (const assignments of sources) {
+		for (const a of assignments) {
+			const existing = byTree.get(a.treeId);
+			if (existing) {
+				for (const id of a.categoryIds) existing.add(id);
+			} else {
+				byTree.set(a.treeId, new Set(a.categoryIds));
+			}
+		}
+	}
 
-const result: CategoryAssignment[] = [];
-for (const [treeId, ids] of byTree) {
-if (ids.size > 0) {
-result.push({ treeId, categoryIds: [...ids] });
-}
-}
-return result;
+	const result: CategoryAssignment[] = [];
+	for (const [treeId, ids] of byTree) {
+		if (ids.size > 0) {
+			result.push({ treeId, categoryIds: [...ids] });
+		}
+	}
+	return result;
 }
 
 /**
@@ -48,24 +48,24 @@ return result;
  * For the root node: own + union of all child node assignments in the tree.
  */
 export function getEffectiveNodeCategories(
-nodeId: string,
-tree: ContentTree
+	nodeId: string,
+	tree: ContentTree
 ): CategoryAssignment[] {
-const node = tree.nodes[nodeId];
-if (!node) return [];
+	const node = tree.nodes[nodeId];
+	if (!node) return [];
 
-const ownAssignments = node.data.header.categoryAssignments;
-const rootId = getRootNodeId(tree);
+	const ownAssignments = node.data.header.categoryAssignments;
+	const rootId = getRootNodeId(tree);
 
-// Non-root nodes just return their own assignments
-if (nodeId !== rootId) return ownAssignments;
+	// Non-root nodes just return their own assignments
+	if (nodeId !== rootId) return ownAssignments;
 
-// Root node: aggregate from all children
-const childAssignments: CategoryAssignment[][] = [];
-for (const [id, childNode] of Object.entries(tree.nodes)) {
-if (id === rootId) continue;
-childAssignments.push(childNode.data.header.categoryAssignments);
-}
+	// Root node: aggregate from all children
+	const childAssignments: CategoryAssignment[][] = [];
+	for (const [id, childNode] of Object.entries(tree.nodes)) {
+		if (id === rootId) continue;
+		childAssignments.push(childNode.data.header.categoryAssignments);
+	}
 
-return mergeAssignments(ownAssignments, ...childAssignments);
+	return mergeAssignments(ownAssignments, ...childAssignments);
 }

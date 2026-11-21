@@ -16,7 +16,18 @@
 	let videoEmbed = $derived(parseVideoEmbed(videoUrl ?? url));
 	let audioEmbed = $derived(videoEmbed ? null : parseAudioEmbed(audioUrl ?? url));
 	let showMedia = $derived(videoEmbed !== null || audioEmbed !== null || !!imageUrl);
-	const unifiedProviders = new Set(['youtube', 'x', 'twitch', 'dailymotion', 'vimeo', 'rumble', 'internet-archive', 'odysee', 'peertube', 'kick']);
+	const unifiedProviders = new Set([
+		'youtube',
+		'x',
+		'twitch',
+		'dailymotion',
+		'vimeo',
+		'rumble',
+		'internet-archive',
+		'odysee',
+		'peertube',
+		'kick'
+	]);
 	const unifiedAudioProviders = new Set(['spotify', 'soundcloud']);
 </script>
 
@@ -26,7 +37,7 @@
 			<div class="{videoEmbed.aspectClass} w-full bg-black relative group">
 				{#if unifiedProviders.has(videoEmbed.provider)}
 					<UnifiedEmbedPlayer
-						title={title}
+						{title}
 						embedUrl={videoEmbed.embedUrl}
 						provider={videoEmbed.provider}
 						thumbnailUrl={videoEmbed.thumbnailUrl ?? imageUrl ?? undefined}
@@ -35,7 +46,7 @@
 					<iframe
 						class="w-full h-full"
 						src={videoEmbed.embedUrl}
-						title={title}
+						{title}
 						frameborder="0"
 						allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 						allowfullscreen
@@ -70,7 +81,7 @@
 				<div class="{audioEmbed.aspectClass} w-full bg-black relative group">
 					{#if unifiedAudioProviders.has(audioEmbed.provider)}
 						<UnifiedAudioPlayer
-							title={title}
+							{title}
 							embedUrl={audioEmbed.embedUrl}
 							provider={audioEmbed.provider}
 						/>
@@ -78,7 +89,7 @@
 						<iframe
 							class="w-full h-full"
 							src={audioEmbed.embedUrl}
-							title={title}
+							{title}
 							frameborder="0"
 							allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
 							loading="lazy"
@@ -101,22 +112,12 @@
 
 				<div class="w-full bg-muted px-4 py-3">
 					<!-- svelte-ignore a11y_media_has_caption -->
-					<audio
-						class="w-full"
-						src={audioEmbed.audioUrl}
-						controls
-						preload="metadata"
-					></audio>
+					<audio class="w-full" src={audioEmbed.audioUrl} controls preload="metadata"></audio>
 				</div>
 			</div>
 		{:else if imageUrl}
 			<div class="w-full bg-muted">
-				<img
-					src={imageUrl}
-					alt={title}
-					class="w-full max-h-150 object-contain"
-					loading="lazy"
-				/>
+				<img src={imageUrl} alt={title} class="w-full max-h-150 object-contain" loading="lazy" />
 			</div>
 		{/if}
 	</div>

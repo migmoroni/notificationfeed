@@ -1,67 +1,44 @@
-# Notfeed — Build Targets
+# Alvos de build
 
-Este documento descreve os alvos de build do Notfeed, suas características e como produzir cada um. As linhas marcadas como **planejado** são preenchidas pelos planos AB (PWA) e AC (Tauri AppImage); as demais são apenas referência futura (Plano C).
+O repositório mantém web/PWA e Tauri Linux x86_64 AppImage, consumindo o mesmo produto em packages/notfeed. A rotina de instalação e validação está em [development.md](development.md).
 
-## Matriz de alvos
+| Alvo           | Comando               | Saída                                                                              | Persistência            | Service worker            |
+| -------------- | --------------------- | ---------------------------------------------------------------------------------- | ----------------------- | ------------------------- |
+| Web dev        | `pnpm dev`            | localhost:5173, porta estrita                                                      | IndexedDB               | Ausente em dev            |
+| Web build      | `pnpm build`          | apps/web/build, adapter-static                                                     | IndexedDB               | Emitido no build          |
+| Preview PWA    | `pnpm pwa:preview`    | 127.0.0.1:4173, porta estrita                                                      | IndexedDB               | Ativo no preview          |
+| Tauri AppImage | `pnpm tauri:appimage` | apps/desktop/src-tauri/target/release/bundle/appimage/Notfeed_0.1.0_amd64.AppImage | IndexedDB do WebKit2GTK | Não registrado no desktop |
 
-| Alvo | Comando | Bundle / Output | Storage | Service Worker | Status |
-|---|---|---|---|---|---|
-| **web (dev)** | `npm run dev` | servidor Vite local (`http://localhost:5173`) | IndexedDB | não emitido em dev | ativo |
-| **web (build)** | `npm run build` | `apps/web/build/` (estáticos `adapter-static`) com `service-worker.js` | IndexedDB | sim — app shell precache, navegação SPA, runtime image cache, sync handlers | ativo |
-| **PWA instalável** | `npm run build` + `npm run preview` | `apps/web/build/` servido sobre HTTPS, com `manifest.webmanifest` + SW | IndexedDB | sim — `apps/web/src/service-worker.ts` com Workbox precache, cache de imagens e ingestão via sync | ativo |
-| **Tauri Linux AppImage** | `npm run tauri:appimage` | `apps/desktop/src-tauri/target/release/bundle/appimage/Notfeed_<version>_amd64.AppImage` | IndexedDB | **não** (gating por `capabilities.platform === 'desktop'` em `+layout.svelte`) | ativo |
+## Web/PWA
 
-## Future targets (Plano C)
+Node 24.22.3 e pnpm 11.28.12 são exatos. Use `pnpm install --frozen-lockfile` e instale o Chromium do Playwright fixado com `pnpm exec playwright install chromium`. `pnpm run doctor --target web` diagnostica o ambiente sem instalar ferramentas e sem exigir Rust/GTK.
 
-| Alvo | Bundle | Storage | Notas |
-|---|---|---|---|
-| Tauri Linux (deb / rpm) | `npm run tauri:build -- --bundles deb,rpm` | SQLite (`tauri-plugin-sql`) | Empacotamento nativo com integração ao FS do host. |
-| Tauri Windows (msi) | `npm run tauri:build` (em Windows) | SQLite | Requer assinatura para distribuição. |
-| Tauri macOS (dmg) | `npm run tauri:build` (em macOS) | SQLite | Requer notarização. |
-| Tauri Android (apk/aab) | `npm run tauri:android` | SQLite | Plugin `tauri-plugin-sql` + WebView Android. |
+## Tauri Linux x86_64
 
-A escolha entre IndexedDB e SQLite é feita em build-time pela env `VITE_STORAGE_BACKEND` e exposta como `Capability.storageBackend`. Ver ADR-033 para o racional.
-
-## Pré-requisitos por alvo
-
-### Web/PWA
-
-- Node.js 22.21.1 (referência em `.nvmrc`)
-- npm 11.11.1 (referência dos gates)
-
-### Tauri AppImage (Linux x86_64)
-
-**Rust toolchain**: instalar via [rustup](https://rustup.rs/) e selecionar stable: `rustup default stable`.
-
-**Pacotes de sistema (Ubuntu/Debian)**:
+Instale o toolchain fixado e o auditor:
 
 ```sh
-sudo apt install -y \
-  pkg-config \
-  libwebkit2gtk-4.1-dev \
-  libgtk-3-dev \
-  librsvg2-dev \
-  libayatana-appindicator3-dev \
-  libssl-dev \
-  libfuse2
+rustup toolchain install 1.100.0 --profile minimal --component rustfmt --component clippy
+cargo install cargo-audit --version 0.23.0 --locked
 ```
 
-- `pkg-config`, `libwebkit2gtk-4.1-dev`, `libgtk-3-dev`, `librsvg2-dev`, `libayatana-appindicator3-dev`, `libssl-dev` — necessários em **build time** para compilar `webkit2gtk-sys`, `glib-sys`, `gtk-sys`, etc.
-- `libfuse2` — necessário em **run time** para executar a AppImage produzida.
+rust-toolchain.toml seleciona Rust 1.100.0; o mínimo declarado da crate é 1.95, já validado no Linux com o lock adotado. O default global do rustup não precisa mudar. Confira overrides com `pnpm run doctor --target desktop`.
 
-**Cargo features** (em `apps/desktop/src-tauri/Cargo.toml`):
+Em Ubuntu/Debian, os requisitos de compilação/inspeção são:
 
-- `default = ["backend-indexeddb"]` — build padrão; sem `tauri-plugin-sql`.
-- `backend-sqlite` — habilita `tauri-plugin-sql` (Plano C). Build com `cargo build --no-default-features --features backend-sqlite` em `apps/desktop/src-tauri/`.
+```sh
+sudo apt install build-essential pkg-config libwebkit2gtk-4.1-dev libgtk-3-dev \
+  librsvg2-dev libayatana-appindicator3-dev libssl-dev patchelf binutils
+```
 
-**Saída**: `apps/desktop/src-tauri/target/release/bundle/appimage/Notfeed_0.1.0_amd64.AppImage`. Marque executável (`chmod +x`) e rode.
+A execução de AppImage pelo usuário pode exigir o suporte FUSE da distribuição. A inspeção automatizada extrai o bundle e não abre janela nativa.
 
-### Future native bundles (Plano C)
+A CLI Tauri executa em apps/desktop. Seus hooks usam pnpm na raiz, constroem apps/web e consomem frontendDist ../../web/build a partir de src-tauri. `CARGO_TARGET_DIR`, quando definido, muda o diretório de saída e é respeitado pela inspeção.
 
-Pré-requisitos específicos por plataforma serão adicionados quando o Plano C for executado.
+A crate notfeed 0.1.0 mantém edition 2021, lib notfeed_lib e feature padrão backend-indexeddb. backend-sqlite continua declarado como opção futura e não é ativado pelos comandos ou gates desta etapa. Identidade app.notfeed.desktop e permissões http/shell/notification permanecem iguais.
 
-## Workspace e validação
+`pnpm verify:integration` executa Cargo check/test, rustfmt, Clippy, segurança, build AppImage e inspeção ELF/assets atuais antes dos testes Chromium dev/produção/atualização. A prova nativa cobre compilação e pacote; não há testes Rust de comportamento ou E2E de WebView/notificações.
 
-Os comandos da raiz delegam para `@notfeed/web` e `@notfeed/desktop`. A CLI Tauri executa em `apps/desktop`; seus hooks constroem a web e `frontendDist` usa `../../web/build` a partir de `src-tauri`. O código de produto está em `packages/notfeed/src`.
+## Alvos futuros
 
-`npm run gate:migration -- P6` executa instalação limpa, tipos, unitários, Chromium de desenvolvimento/produção, atualização PWA desde o checkpoint P1 reconstruído, Cargo check/test e AppImage com inspeção. O bundle é extraído para verificar payload ELF, identidade, entrada desktop e assets. Isso não cobre a interface nativa ou notificações do sistema.
+Windows, macOS, Android, outros bundles Linux, armazenamento SQLite e integrações Rust/C++ adicionais dependem de etapas próprias. Não há novos comandos ou garantias de suporte para esses alvos nesta entrega. A organização dos módulos de negócio pertence à etapa 3.

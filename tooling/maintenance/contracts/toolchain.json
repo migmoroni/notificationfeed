@@ -1,0 +1,412 @@
+{
+	"schemaVersion": 1,
+	"selectedAt": "2026-11-20",
+	"tools": [
+		{
+			"name": "node",
+			"version": "24.22.3",
+			"current": "22.21.1",
+			"source": "https://nodejs.org/dist/v24.22.3/SHASUMS256.txt",
+			"consultedAt": "2026-11-20",
+			"compatibility": "Maintenance LTS through 2028-04-30; aligns @types/node 24; all selected Node engines satisfied",
+			"installation": "official linux-x64 archive verified with SHA256, isolated provisioner; .nvmrc for local use",
+			"adoptionPhase": "2.4"
+		},
+		{
+			"name": "rust",
+			"version": "1.100.0",
+			"current": "1.95.0",
+			"source": "https://blog.rust-lang.org/2026/11/12/Rust-1.100.0/",
+			"consultedAt": "2026-11-20",
+			"compatibility": "Stable release 2026-11-12; selected Tauri family MSRV 1.90, urgent transitives <=1.85. Existing locked target first validated with entry Rust 1.95.",
+			"installation": "rustup toolchain install 1.100.0 --profile minimal --component rustfmt --component clippy; verify effective override",
+			"adoptionPhase": "2.4"
+		},
+		{
+			"name": "cargo-audit",
+			"version": "0.23.0",
+			"current": "0.22.2",
+			"source": "https://crates.io/api/v1/crates/cargo-audit/0.23.0",
+			"consultedAt": "2026-11-20",
+			"compatibility": "MSRV 1.88; entry auditor 0.22.2 retained for diagnostic receipts only; final CLI 0.23.0",
+			"installation": "cargo install cargo-audit --version 0.23.0 --locked --root <tools>",
+			"adoptionPhase": "2.4"
+		},
+		{
+			"name": "pnpm",
+			"version": "11.28.12",
+			"current": "not-installed",
+			"source": "https://registry.npmjs.org/pnpm/11.28.12",
+			"consultedAt": "2026-11-20",
+			"compatibility": {
+				"engines": {
+					"node": ">=22.13"
+				},
+				"peers": {}
+			},
+			"installation": "npm install --prefix <tools> --ignore-scripts --no-audit --no-fund pnpm@11.28.12",
+			"adoptionPhase": "2.3",
+			"dist": {
+				"shasum": "bdcfcc7a8824738e9c871eeb8955d290fbb6e3fc",
+				"tarball": "https://registry.npmjs.org/pnpm/-/pnpm-11.28.12.tgz",
+				"fileCount": 470,
+				"integrity": "sha512-lIMzh+NdUD6K0QEEF83rgsEg5+abr98KnbBpBRW+rnFZJ0Vx5pK5arwqCF01Zv7FQ4Gv2Xj2X2SoU2Lf1+EI9w==",
+				"signatures": [
+					{
+						"sig": "MEUCIQCllP24wgyIhuxmBi2V6PS1rk58gkys6JU0G9DgG4MIlAIgEP24RsQg3LEFnzXk9awsLajkj+ThvMCcfVTPNsvR2bM=",
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+					}
+				],
+				"attestations": {
+					"url": "https://registry.npmjs.org/-/npm/v1/attestations/pnpm@11.28.12",
+					"provenance": {
+						"predicateType": "https://slsa.dev/provenance/v1"
+					}
+				},
+				"unpackedSize": 23000863
+			}
+		},
+		{
+			"name": "eslint",
+			"version": "10.15.0",
+			"current": "not-installed",
+			"source": "https://registry.npmjs.org/eslint/10.15.0",
+			"consultedAt": "2026-11-20",
+			"compatibility": {
+				"engines": {
+					"node": "^20.19.0 || ^22.13.0 || >=24"
+				},
+				"peers": {
+					"jiti": "*"
+				}
+			},
+			"installation": "dev dependency in consuming workspace; exact version and locked integrity",
+			"adoptionPhase": "2.5",
+			"dist": {
+				"shasum": "dd29a7f78bc47cb7107a40acd3350f19c9089435",
+				"tarball": "https://registry.npmjs.org/eslint/-/eslint-10.15.0.tgz",
+				"fileCount": 421,
+				"integrity": "sha512-+5Wg4p+ze3sG1WErYgUO/3H1IQIfFBymVUA0Fo/XTeBOLS6UQIUekpSJ8sdRkn7O7wjh84b55w/roqavH2aScg==",
+				"signatures": [
+					{
+						"sig": "MEUCIQDC8ZsQyx0/0byBl0Sk7VdRWn+oWrOfZrRt1tDVKQQPEAIgXJJp9YV3KmXuu4YpbjU0i3/nnCpNWfU8ZB6Y3Crl6Xo=",
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+					},
+					{
+						"sig": "MEUCICyq+IGMKXSLm0OeQgI8VNPZIVUIgs0jv+B6DbHgxYQPAiEAwP4SV5jwVlHpTMFCL28NeLgoGik26oJHXAE0Rnp272g=",
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+					}
+				],
+				"unpackedSize": 2958806
+			}
+		},
+		{
+			"name": "@eslint/js",
+			"version": "10.0.1",
+			"current": "not-installed",
+			"source": "https://registry.npmjs.org/@eslint/js/10.0.1",
+			"consultedAt": "2026-11-20",
+			"compatibility": {
+				"engines": {
+					"node": "^20.19.0 || ^22.13.0 || >=24"
+				},
+				"peers": {
+					"eslint": "^10.0.0"
+				}
+			},
+			"installation": "dev dependency in consuming workspace; exact version and locked integrity",
+			"adoptionPhase": "2.5",
+			"dist": {
+				"shasum": "1e8a876f50117af8ab67e47d5ad94d38d6622583",
+				"tarball": "https://registry.npmjs.org/@eslint/js/-/js-10.0.1.tgz",
+				"fileCount": 7,
+				"integrity": "sha512-zeR9k5pd4gxjZ0abRoIaxdc7I3nDktoXZk2qOv9gCNWx3mVwEn32VRhyLaRsDiJjTs0xq/T8mfPtyuXu7GWBcA==",
+				"signatures": [
+					{
+						"sig": "MEUCIQC01PnD397TPFwX0F9HFSExrqR/ahZ/msR5jN0S2R716wIgJi3MsB6EmezIqYLGeLnGsuRmVAmSBUdcpNLONJnD71s=",
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+					}
+				],
+				"unpackedSize": 15687
+			}
+		},
+		{
+			"name": "globals",
+			"version": "17.14.0",
+			"current": "not-installed",
+			"source": "https://registry.npmjs.org/globals/17.14.0",
+			"consultedAt": "2026-11-20",
+			"compatibility": {
+				"engines": {
+					"node": ">=18"
+				},
+				"peers": {}
+			},
+			"installation": "dev dependency in consuming workspace; exact version and locked integrity",
+			"adoptionPhase": "2.5",
+			"dist": {
+				"shasum": "5bbbe515622ba24229bd94d4a7c441740e1b50dd",
+				"tarball": "https://registry.npmjs.org/globals/-/globals-17.14.0.tgz",
+				"fileCount": 6,
+				"integrity": "sha512-UtdkTVyAJePQv0J2M9Xe4L0ruNSDV314XiIJsADI2Zf40bcdAonE/D/OhAU8AT99oij9mhLByb+NvA3QWZYgCg==",
+				"signatures": [
+					{
+						"sig": "MEUCIQDmFBUSq8WFT61yD6yPBY0vzZgaIGV8r+Kid2++0ENnpAIgTxi30RY/2eouoXeW7jG2Azg0iqp/mU5T708/9MF7Kow=",
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+					},
+					{
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+						"sig": "MEYCIQCDOw3B2cM6c7DaoDtNpFsAA5oIojglbbtMeM6sTdik3QIhAI/PjWYfKmAf1ZLT4lbdehnGjGMvpnXcNdrfKZr82SlO"
+					}
+				],
+				"unpackedSize": 258712
+			}
+		},
+		{
+			"name": "typescript-eslint",
+			"version": "8.73.0",
+			"current": "not-installed",
+			"source": "https://registry.npmjs.org/typescript-eslint/8.73.0",
+			"consultedAt": "2026-11-20",
+			"compatibility": {
+				"engines": {
+					"node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+				},
+				"peers": {
+					"eslint": "^8.57.0 || ^9.0.0 || ^10.0.0",
+					"typescript": ">=4.8.4 <6.1.0"
+				}
+			},
+			"installation": "dev dependency in consuming workspace; exact version and locked integrity",
+			"adoptionPhase": "2.5",
+			"dist": {
+				"shasum": "c67e54120e95b5246775e704b025ef4dbe04cdbb",
+				"tarball": "https://registry.npmjs.org/typescript-eslint/-/typescript-eslint-8.73.0.tgz",
+				"fileCount": 13,
+				"integrity": "sha512-+EnKy9rkYPun4l+kG2bDuYWQ6y1tGVgdR/tY1U9AC6h21CjEwOoc7gsjwe0FXB8uWFzk4QiCFbuRWgX758PiAg==",
+				"signatures": [
+					{
+						"sig": "MEUCIHq9UpCYXcB5KkhppnNAncWVAvIoXjj5VmAPUQGlVnV2AiEA2iUleQCQorjrsjf2xK3AJiMOAyghpzbu8ylDdsfuQKQ=",
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+					},
+					{
+						"sig": "MEQCIH65KpGj3v5EjXNdJZ81jWFnVaMh/Izmm+iiZWangy80AiA0Ug78Qilf/NERDQQksI0OexiTfEH92fFbqiKLp7gibA==",
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+					}
+				],
+				"attestations": {
+					"url": "https://registry.npmjs.org/-/npm/v1/attestations/typescript-eslint@8.73.0",
+					"provenance": {
+						"predicateType": "https://slsa.dev/provenance/v1"
+					}
+				},
+				"unpackedSize": 42700
+			}
+		},
+		{
+			"name": "eslint-plugin-svelte",
+			"version": "3.24.1",
+			"current": "not-installed",
+			"source": "https://registry.npmjs.org/eslint-plugin-svelte/3.24.1",
+			"consultedAt": "2026-11-20",
+			"compatibility": {
+				"engines": {
+					"node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+				},
+				"peers": {
+					"eslint": "^8.57.1 || ^9.0.0 || ^10.0.0",
+					"svelte": "^3.37.0 || ^4.0.0 || ^5.0.0"
+				}
+			},
+			"installation": "dev dependency in consuming workspace; exact version and locked integrity",
+			"adoptionPhase": "2.5",
+			"dist": {
+				"shasum": "b14a15c494e9b5af5dd1c358e3aa39adfdf5da3b",
+				"tarball": "https://registry.npmjs.org/eslint-plugin-svelte/-/eslint-plugin-svelte-3.24.1.tgz",
+				"fileCount": 283,
+				"integrity": "sha512-XYzp318u8UkDH4ZdRkdSomOYnwMTeJP2Zw9u6DuBj3mViFZD8zS+mhfTYq34plm3SH9eF7ZaiYJfQYq2xMhPHg==",
+				"signatures": [
+					{
+						"sig": "MEYCIQDN6xqJQp1AE/xLQy3s+SSUcu9os2LHyLSAquDpijpxUwIhAOvZOK+Ay3XcLLNasXfJ2xSgRlbKAtDAWocrXL5G6Qhu",
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+					},
+					{
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+						"sig": "MEQCIGMEUuvvAszFDfn+wa0Nw5akkUuoHkqITA0KDX47z1OnAiBRYtbLaXR0Ysk+tBUGroh1GqrfRv7R+OpsJj82dLq49w=="
+					}
+				],
+				"attestations": {
+					"url": "https://registry.npmjs.org/-/npm/v1/attestations/eslint-plugin-svelte@3.24.1",
+					"provenance": {
+						"predicateType": "https://slsa.dev/provenance/v1"
+					}
+				},
+				"unpackedSize": 916257
+			}
+		},
+		{
+			"name": "eslint-config-prettier",
+			"version": "10.1.8",
+			"current": "not-installed",
+			"source": "https://registry.npmjs.org/eslint-config-prettier/10.1.8",
+			"consultedAt": "2026-11-20",
+			"compatibility": {
+				"engines": {},
+				"peers": {
+					"eslint": ">=7.0.0"
+				}
+			},
+			"installation": "dev dependency in consuming workspace; exact version and locked integrity",
+			"adoptionPhase": "2.5",
+			"dist": {
+				"shasum": "15734ce4af8c2778cc32f0b01b37b0b5cd1ecb97",
+				"tarball": "https://registry.npmjs.org/eslint-config-prettier/-/eslint-config-prettier-10.1.8.tgz",
+				"fileCount": 11,
+				"integrity": "sha512-82GZUjRS0p/jganf6q1rEO25VSoHH0hKPCTrgillPjdI/3bgBhAE1QzHrHTizjpRvy6pGAvKjDJtk2pF9NDq8w==",
+				"signatures": [
+					{
+						"sig": "MEYCIQD9EuOP+1zjg0YQuwDmmgFte/IM76XVawVfX0pBqnxvawIhALW1gE/Lcp65mO3qAMHnbS2JjZ0PoeTBxPw1NlcJ36Wh",
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+					}
+				],
+				"attestations": {
+					"url": "https://registry.npmjs.org/-/npm/v1/attestations/eslint-config-prettier@10.1.8",
+					"provenance": {
+						"predicateType": "https://slsa.dev/provenance/v1"
+					}
+				},
+				"unpackedSize": 59021
+			}
+		},
+		{
+			"name": "prettier",
+			"version": "3.10.1",
+			"current": "not-installed",
+			"source": "https://registry.npmjs.org/prettier/3.10.1",
+			"consultedAt": "2026-11-20",
+			"compatibility": {
+				"engines": {
+					"node": ">=14"
+				},
+				"peers": {}
+			},
+			"installation": "dev dependency in consuming workspace; exact version and locked integrity",
+			"adoptionPhase": "2.5",
+			"dist": {
+				"shasum": "00b1c1872f9650ec22093d5bdafdca0fe6760f77",
+				"tarball": "https://registry.npmjs.org/prettier/-/prettier-3.10.1.tgz",
+				"fileCount": 56,
+				"integrity": "sha512-70vp3ZUYoPlFbF9uiTdXHUUCGEIp7d4+6p+8DYbkm2jP7x/3i/paXVF6dopSI3zd/CEitrZN1rc4i85xWmmXlg==",
+				"signatures": [
+					{
+						"sig": "MEUCIQCsJ1ExpRBdcLDzXOEpfMtAOclFFLhX03Pe0TChoOuchwIgXa3CzH0dAZivwbpHbSDKQgyuMmJjF755G3VuQvqX+uc=",
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+					},
+					{
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+						"sig": "MEYCIQCODqhrMNwnIi7BSBUHm+O9+hPe+gfT+7YDoNBxPsN/qwIhALFlQWO+/LeSyEDQ4prpUCtdaIhTw4sB5VobBr0ZwlKG"
+					}
+				],
+				"unpackedSize": 11442158
+			}
+		},
+		{
+			"name": "prettier-plugin-svelte",
+			"version": "4.2.0",
+			"current": "not-installed",
+			"source": "https://registry.npmjs.org/prettier-plugin-svelte/4.2.0",
+			"consultedAt": "2026-11-20",
+			"compatibility": {
+				"engines": {
+					"node": ">=20"
+				},
+				"peers": {
+					"svelte": "^5.0.0",
+					"prettier": "^3.0.0"
+				}
+			},
+			"installation": "dev dependency in consuming workspace; exact version and locked integrity",
+			"adoptionPhase": "2.5",
+			"dist": {
+				"shasum": "d93aa4d043605c3bcc77223a8a70a36ca2e6c269",
+				"tarball": "https://registry.npmjs.org/prettier-plugin-svelte/-/prettier-plugin-svelte-4.2.0.tgz",
+				"fileCount": 7,
+				"integrity": "sha512-VgUFSR6+7/KLloVSIgKMwY/9OFxaixY/xsOBUCP95ZKaxSa6JBtLKzq6L1L/Tw6Jc1C7K+op7D1Yu5qD+YdPHA==",
+				"signatures": [
+					{
+						"sig": "MEYCIQDpHzSy8rua3v6UfEFn0GB9RgnsCgYO4Fb3xlOXWL1f5AIhALPyXg/Ardnnkla4QO1TtBqA/S5WDAW6EQ3Dd7T15rOv",
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+					},
+					{
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+						"sig": "MEQCIEGHhsP6u6z0SpqHD33gt5NAGDbW7ATQTY613EAg47WvAiB5e0S4O7uyCD3mF0P12zE1C+KsDROD2s+7D/2X2UnArA=="
+					}
+				],
+				"attestations": {
+					"url": "https://registry.npmjs.org/-/npm/v1/attestations/prettier-plugin-svelte@4.2.0",
+					"provenance": {
+						"predicateType": "https://slsa.dev/provenance/v1"
+					}
+				},
+				"unpackedSize": 461130
+			}
+		},
+		{
+			"name": "@types/node",
+			"version": "24.19.2",
+			"current": "25.6.0",
+			"source": "https://registry.npmjs.org/@types/node/24.19.2",
+			"consultedAt": "2026-11-20",
+			"compatibility": {
+				"engines": {},
+				"peers": {}
+			},
+			"installation": "dev dependency in consuming workspace; exact version and locked integrity",
+			"adoptionPhase": "2.4",
+			"dist": {
+				"shasum": "8718eedbc0f89648de6525be9f4a9c61cdbaa502",
+				"tarball": "https://registry.npmjs.org/@types/node/-/node-24.19.2.tgz",
+				"fileCount": 88,
+				"integrity": "sha512-93d49wCWJkCyN87MxLpNN6KXPCwFw7bVUg79mGUV1OS40JGWwVCr8n61DXCSqz7CV6/VfPkb7xec7uP2M+QHWQ==",
+				"signatures": [
+					{
+						"sig": "MEQCIANcVRgt/opOpIiouz2oQFvOIyDM4lBAgR5KWFpeM0S7AiAlIKKketPR7tVtdmeqoW9ERmEN+hUSbmSsgvw4PZE5xg==",
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+					},
+					{
+						"sig": "MEQCIEyyRKiIaH5zy091E3cDbeZApk+zitfD9OmZP0qKnrKRAiB6X7j1j2Vakh+MTSX0FSCk/vXjx9TKwcy6mTWJb+rXXg==",
+						"keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+					}
+				],
+				"unpackedSize": 2613701
+			}
+		},
+		{
+			"name": "semver",
+			"version": "7.8.6",
+			"current": "not-directly-declared",
+			"source": "https://registry.npmjs.org/semver/7.8.6",
+			"consultedAt": "2026-11-20",
+			"compatibility": {
+				"engines": {
+					"node": ">=10"
+				}
+			},
+			"installation": "root devDependency, exact version, npm lock/integrity",
+			"adoptionPhase": "2.1",
+			"integrity": "sha512-9lpSSU4Mly3mrtruwLs1eLK6+gzbzqeBFwRNjIjE+9LuDpWdYctrQlQ3ej1Ilgi7gknpsTRnPoLP8DpCHqHIJw==",
+			"authorization": "explicit user approval, 2026-11-20"
+		}
+	],
+	"sources": [
+		"https://github.com/nodejs/Release",
+		"https://github.com/pnpm/pnpm/security",
+		"https://pnpm.io/11.x/installation",
+		"https://typescript-eslint.io/users/dependency-versions/"
+	],
+	"decisions": [
+		"pnpm 11.28.12 is supported until 2027-04-30 and runs on entry Node 22.21.1; no pre-conversion runtime change. Reevaluate by 2027-03-31.",
+		"Use Node 24 LTS and TypeScript 5.9.3; do not combine framework major upgrades with maintenance when supported patch/minor fixes suffice.",
+		"Keep Playwright 1.65.1/Chromium 1255 already pinned; no reason to replace this verified test stack."
+	]
+}

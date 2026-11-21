@@ -1,0 +1,46 @@
+{
+	"schemaVersion": 1,
+	"options": {
+		"useTabs": true,
+		"singleQuote": true,
+		"trailingComma": "none",
+		"semi": true,
+		"printWidth": 100,
+		"proseWrap": "preserve",
+		"plugins": ["prettier-plugin-svelte"],
+		"overrides": [
+			{
+				"files": "*.svelte",
+				"options": {
+					"parser": "svelte"
+				}
+			}
+		]
+	},
+	"generatedExclusions": [
+		".artifacts/**",
+		"**/node_modules/**",
+		"apps/web/.svelte-kit/**",
+		"apps/web/build/**",
+		"apps/desktop/src-tauri/target/**",
+		"apps/desktop/src-tauri/gen/**",
+		"pnpm-lock.yaml",
+		"**/Cargo.lock"
+	],
+	"historicalExclusions": [
+		"docs/plans/etapa-1-migracao-estrutural/**",
+		"tooling/migration/**",
+		"tooling/e2e/reference/**",
+		"tooling/maintenance/contracts/baseline.json",
+		"tooling/maintenance/contracts/npm-before-pnpm.json",
+		"tooling/maintenance/contracts/*-delta.json",
+		"tooling/maintenance/contracts/rust-toolchain-adoption.json"
+	],
+	"historicalReason": "Identified immutable stage-1 planning/proofs, self-contained historical recipe, entry inventory and closed graph/adoption records; active code/configuration and stage-2/future docs remain in scope.",
+	"commands": {
+		"check": "prettier --check .",
+		"write": "prettier --write ."
+	},
+	"native": "cargo fmt --manifest-path apps/desktop/src-tauri/Cargo.toml -- --check",
+	"validation": "Dry-run protected token/value hashes before writing; existing entry baseline unchanged, all unit identities and negative restrictions retained; second format check produces no source changes."
+}

@@ -11,7 +11,7 @@
 	import FeedList from '@notfeed/product/components/feed/FeedList.svelte';
 	import { PriorityFilter } from '@notfeed/product/components/feed/index.js';
 	import ViewModeToggle from '@notfeed/product/components/feed/ViewModeToggle.svelte';
-import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
+	import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 	import FeedMacros from '@notfeed/product/components/feed/FeedMacros.svelte';
 	import FilterSidebar from '@notfeed/product/components/shared/FilterSidebar.svelte';
 	import ActiveCategoryBadges from '@notfeed/product/components/shared/ActiveCategoryBadges.svelte';
@@ -32,11 +32,11 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 
 	let hasAdvancedFilters = $derived(
 		feedEntityFilter.hasFilters ||
-		feedCategories.getSelectedIds('subject').length > 0 ||
-		feedCategories.getSelectedIds('content').length > 0 ||
-		feedCategories.getSelectedIds('media').length > 0 ||
-		feedCategories.getSelectedIds('region').length > 0 ||
-		feedCategories.getSelectedIds('language').length > 0
+			feedCategories.getSelectedIds('subject').length > 0 ||
+			feedCategories.getSelectedIds('content').length > 0 ||
+			feedCategories.getSelectedIds('media').length > 0 ||
+			feedCategories.getSelectedIds('region').length > 0 ||
+			feedCategories.getSelectedIds('language').length > 0
 	);
 
 	// Tab: 'saved' or 'advanced'. Default to 'advanced' only if filters are active without a macro.
@@ -51,9 +51,7 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 	// Edit macro UI
 	let isEditing = $state(false);
 	let editingMacroId = $state<string | null>(null);
-	let hasEditChanges = $derived(
-		editingMacroId !== null && !feedMacros.isCurrentStateSaved
-	);
+	let hasEditChanges = $derived(editingMacroId !== null && !feedMacros.isCurrentStateSaved);
 
 	// Delete macro confirm
 	let showDeleteConfirm = $state(false);
@@ -65,7 +63,7 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 	// Which macro is currently active (for the action bar)
 	let activeMacro = $derived(
 		feedMacros.activeMacroId
-			? feedMacros.macros.find((m) => m.id === feedMacros.activeMacroId) ?? null
+			? (feedMacros.macros.find((m) => m.id === feedMacros.activeMacroId) ?? null)
 			: null
 	);
 
@@ -138,7 +136,9 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 		language: feedCategories.getAllIds('language')
 	});
 
-	let allowedNodeIds = $derived(feedEntityFilter.hasFilters ? [...feedEntityFilter.getAllowedFontNodeIds()] : []);
+	let allowedNodeIds = $derived(
+		feedEntityFilter.hasFilters ? [...feedEntityFilter.getAllowedFontNodeIds()] : []
+	);
 
 	onMount(async () => {
 		await feed.loadFeed();
@@ -174,8 +174,7 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 			// (`activeMacroId === null`). Fall through to it so the
 			// notification's destination is always something the user
 			// can actually see selected in the sidebar.
-			const target =
-				isAll && macros.length < 2 ? null : isAll ? ALL_MACROS_ID : macroParam;
+			const target = isAll && macros.length < 2 ? null : isAll ? ALL_MACROS_ID : macroParam;
 			feedMacros.applyMacro(target);
 			activeTab = 'saved';
 			const url = new URL(page.url);
@@ -221,7 +220,7 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 		<!-- Tab headers -->
 		<div class="flex border-b border-border shrink-0">
 			<button
-				onclick={() => activeTab = 'saved'}
+				onclick={() => (activeTab = 'saved')}
 				class="flex-1 px-3 py-2 text-sm font-medium transition-colors text-center
 					{activeTab === 'saved'
 					? 'border-b-2 border-primary text-foreground'
@@ -230,7 +229,7 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 				{t('feed.filters_saved')}
 			</button>
 			<button
-				onclick={() => activeTab = 'advanced'}
+				onclick={() => (activeTab = 'advanced')}
 				class="flex-1 px-3 py-2 text-sm font-medium transition-colors text-center
 					{activeTab === 'advanced'
 					? 'border-b-2 border-primary text-foreground'
@@ -304,7 +303,10 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 							<Check class="size-3.5" />
 						</button>
 						<button
-							onclick={() => { isSaving = false; newMacroName = ''; }}
+							onclick={() => {
+								isSaving = false;
+								newMacroName = '';
+							}}
 							class="p-1.5 text-muted-foreground hover:bg-accent rounded-md"
 						>
 							<X class="size-3.5" />
@@ -312,16 +314,16 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 					</div>
 				{:else}
 					<button
-						onclick={() => isSaving = true}
+						onclick={() => (isSaving = true)}
 						class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors border border-dashed border-primary/30"
 					>
 						<Plus class="size-3.5" />
-					{t('feed.save_current_filter')}
+						{t('feed.save_current_filter')}
 					</button>
 				{/if}
 			{:else}
 				<button
-					onclick={() => activeTab = 'advanced'}
+					onclick={() => (activeTab = 'advanced')}
 					class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors border border-dashed border-border"
 				>
 					<Plus class="size-3.5" />
@@ -335,7 +337,11 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 			{#if activeTab === 'saved'}
 				<FeedMacros />
 			{:else}
-				<FilterSidebar entityStore={feedEntityFilter} categoryStore={feedCategories} showPriorityToggle />
+				<FilterSidebar
+					entityStore={feedEntityFilter}
+					categoryStore={feedCategories}
+					showPriorityToggle
+				/>
 			{/if}
 		</div>
 	</div>
@@ -345,36 +351,42 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 	<title>{t('page_title.feed')}</title>
 </svelte:head>
 
-<div class="mx-auto w-full h-full flex flex-col pt-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
+<div
+	class="mx-auto w-full h-full flex flex-col pt-4"
+	class:max-w-8xl={layout.isExpanded}
+	class:max-w-2xl={!layout.isExpanded}
+>
 	<div class="px-4 shrink-0">
 		<PageHeader
-		title={t('title.feed')}
-		subtitle={feed.lastRefresh ? formatRelativeDate(feed.lastRefresh) : null}
-	>
-		{#snippet actions()}
-			<button
-				onclick={handleRefresh}
-				disabled={refreshing}
-				class="inline-flex items-center justify-center size-9 rounded-full bg-background border border-border shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50"
-				aria-label={t('aria.update_feed')}
-			>
-				<RefreshCw class="size-4 {refreshing ? 'animate-spin' : ''}" />
-			</button>
-		{/snippet}
+			title={t('title.feed')}
+			subtitle={feed.lastRefresh ? formatRelativeDate(feed.lastRefresh) : null}
+		>
+			{#snippet actions()}
+				<button
+					onclick={handleRefresh}
+					disabled={refreshing}
+					class="inline-flex items-center justify-center size-9 rounded-full bg-background border border-border shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50"
+					aria-label={t('aria.update_feed')}
+				>
+					<RefreshCw class="size-4 {refreshing ? 'animate-spin' : ''}" />
+				</button>
+			{/snippet}
 
-		{#snippet bottomRow()}
-			<div class="flex items-center gap-3 w-full">
-				<div class="flex items-center gap-2">
-					<PriorityFilter value={filter} onchange={(v) => (filter = v)} />
-					<ViewModeToggle />
+			{#snippet bottomRow()}
+				<div class="flex items-center gap-3 w-full">
+					<div class="flex items-center gap-2">
+						<PriorityFilter value={filter} onchange={(v) => (filter = v)} />
+						<ViewModeToggle />
+					</div>
+					<div
+						class="flex-1 min-w-0 min-h-7 flex items-center justify-end gap-1.5 overflow-x-auto whitespace-nowrap"
+					>
+						<ActiveLibraryTabBadges store={feedEntityFilter} />
+						<ActiveCategoryBadges store={feedCategories} />
+					</div>
 				</div>
-				<div class="flex-1 min-w-0 min-h-7 flex items-center justify-end gap-1.5 overflow-x-auto whitespace-nowrap">
-					<ActiveLibraryTabBadges store={feedEntityFilter} />
-					<ActiveCategoryBadges store={feedCategories} />
-				</div>
-			</div>
-		{/snippet}
-	</PageHeader>
+			{/snippet}
+		</PageHeader>
 	</div>
 
 	<div class="flex-1 min-h-0 flex flex-col">
@@ -388,10 +400,15 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 <ConfirmDialog
 	bind:open={showDeleteConfirm}
 	title={t('feed.delete_saved_filter')}
-	description={deletingMacroName ? t('feed.delete_macro_description_named', { name: deletingMacroName }) : t('feed.delete_macro_description')}
+	description={deletingMacroName
+		? t('feed.delete_macro_description_named', { name: deletingMacroName })
+		: t('feed.delete_macro_description')}
 	confirmLabel={t('btn.delete')}
 	onconfirm={confirmDelete}
-	oncancel={() => { showDeleteConfirm = false; deletingMacroId = null; }}
+	oncancel={() => {
+		showDeleteConfirm = false;
+		deletingMacroId = null;
+	}}
 >
 	{#snippet icon()}
 		<div class="flex items-center justify-center size-12 rounded-full bg-destructive/10">

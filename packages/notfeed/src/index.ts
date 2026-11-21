@@ -2,13 +2,34 @@
 
 // Domain — User
 export type { UserBase, UserRole } from './domain/user/user.js';
-export type { UserConsumer, NewUserConsumer, TreeActivation, NodeActivation, LibraryTab } from './domain/user/user-consumer.js';
-export { SYSTEM_ALL_LIBRARY_TAB_ID, SYSTEM_ONLY_FAVORITES_TAB_ID, SYSTEM_LIBRARY_TABS } from './domain/user/user-consumer.js';
+export type {
+	UserConsumer,
+	NewUserConsumer,
+	TreeActivation,
+	NodeActivation,
+	LibraryTab
+} from './domain/user/user-consumer.js';
+export {
+	SYSTEM_ALL_LIBRARY_TAB_ID,
+	SYSTEM_ONLY_FAVORITES_TAB_ID,
+	SYSTEM_LIBRARY_TABS
+} from './domain/user/user-consumer.js';
 export type { UserCreator, NewUserCreator } from './domain/user/user-creator.js';
 export type { PriorityLevel } from './domain/user/priority-level.js';
 
 // Domain — Content Model
-export type { TreeNode, NodeHeader, NodeBody, NodeRole, CollectionBody, ProfileBody, FontBody, ContentTree, TreeSection, TreePaths } from './domain/content-tree/content-tree.js';
+export type {
+	TreeNode,
+	NodeHeader,
+	NodeBody,
+	NodeRole,
+	CollectionBody,
+	ProfileBody,
+	FontBody,
+	ContentTree,
+	TreeSection,
+	TreePaths
+} from './domain/content-tree/content-tree.js';
 export type { ContentMedia } from './domain/content-media/content-media.js';
 export type { TreeExport } from './domain/tree-export/tree-export.js';
 export type { TreePublication } from './domain/tree-export/tree-publication.js';
@@ -19,7 +40,10 @@ export { CATEGORY_SEED } from './domain/category/category-seed.js';
 
 // Domain — Category Assignment
 export type { CategoryAssignment } from './domain/shared/category-assignment.js';
-export { SUGGESTED_CATEGORIES_PER_TREE, validateAssignments } from './domain/shared/category-assignment.js';
+export {
+	SUGGESTED_CATEGORIES_PER_TREE,
+	validateAssignments
+} from './domain/shared/category-assignment.js';
 
 // Domain — Shared Value Objects
 export type { ImageAsset, ImageSlot, AcceptedImageFormat } from './domain/shared/image-asset.js';
@@ -71,9 +95,14 @@ export { EntityCard, EntityList, NodeDetailPage } from './components/shared/enti
 
 // Components — Creator
 export {
-	TagInput, CategoryPicker,
-	MediaUpload, NodeForm, NodeHeaderForm,
-	TreeEditor, PublishButton, ExportButton,
+	TagInput,
+	CategoryPicker,
+	MediaUpload,
+	NodeForm,
+	NodeHeaderForm,
+	TreeEditor,
+	PublishButton,
+	ExportButton,
 	CopyFromConsumerDialog
 } from './components/creator/index.js';
 

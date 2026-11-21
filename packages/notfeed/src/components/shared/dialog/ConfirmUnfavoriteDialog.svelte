@@ -20,13 +20,7 @@
 	);
 </script>
 
-<ConfirmDialog
-	bind:open
-	title={t('dialog.unfavorite.title')}
-	{description}
-	{onconfirm}
-	{oncancel}
->
+<ConfirmDialog bind:open title={t('dialog.unfavorite.title')} {description} {onconfirm} {oncancel}>
 	{#snippet icon()}
 		<div class="flex items-center justify-center size-12 rounded-full bg-yellow-500/10">
 			<StarOff class="size-6 text-yellow-500" />

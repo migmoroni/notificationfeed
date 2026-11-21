@@ -35,7 +35,10 @@
 		<div class="flex flex-col items-center gap-4 pt-2">
 			<!-- Preview -->
 			{#if previewUrl && mediaLabel === 'banner'}
-				<div class="w-full rounded-xl overflow-hidden border-2 bg-muted shadow-sm" style="aspect-ratio: 3.6 / 1;">
+				<div
+					class="w-full rounded-xl overflow-hidden border-2 bg-muted shadow-sm"
+					style="aspect-ratio: 3.6 / 1;"
+				>
 					<img src={previewUrl} alt={mediaLabel} class="w-full h-full object-cover" />
 				</div>
 			{:else if previewUrl}
@@ -43,7 +46,9 @@
 					<img src={previewUrl} alt={mediaLabel} class="w-full h-full object-cover" />
 				</div>
 			{:else if emoji}
-				<div class="size-24 rounded-xl border-2 bg-muted flex items-center justify-center text-5xl shadow-sm">
+				<div
+					class="size-24 rounded-xl border-2 bg-muted flex items-center justify-center text-5xl shadow-sm"
+				>
 					{emoji}
 				</div>
 			{:else}

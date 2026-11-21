@@ -1,7 +1,8 @@
 const URL_RE = /\b(?:https?:\/\/|ipfs:\/\/|ipns:\/\/)[^\s<>"'\])]+/gi;
 const AUDIO_EXT_RE = /\.(?:mp3|m4a|aac|flac|wav|oga|ogg|opus|weba)$/i;
 const AUDIO_QUERY_VALUE_RE = /(?:^|\b)(?:audio\/|mp3|m4a|aac|flac|wav|ogg|oga|opus|weba)(?:$|\b)/i;
-const AUDIO_PATH_HINT_RE = /\/(?:audio|podcast|podcasts|episode|episodes|track|tracks|song|songs|music|listen|playlist|playlists)\b/i;
+const AUDIO_PATH_HINT_RE =
+	/\/(?:audio|podcast|podcasts|episode|episodes|track|tracks|song|songs|music|listen|playlist|playlists)\b/i;
 const SUPPORTED_PROTOCOLS = new Set(['http:', 'https:', 'ipfs:', 'ipns:']);
 
 function trimUrlPunctuation(value: string): string {
@@ -106,7 +107,9 @@ export function isLikelyAudioUrl(url: string | null | undefined): boolean {
 /**
  * Pick the first valid URL from explicit audio candidates.
  */
-export function pickFirstAudioUrl(...candidates: Array<string | null | undefined>): string | undefined {
+export function pickFirstAudioUrl(
+	...candidates: Array<string | null | undefined>
+): string | undefined {
 	for (const candidate of candidates) {
 		const normalized = normalizeUrlCandidate(candidate);
 		if (normalized) return normalized;
@@ -120,7 +123,8 @@ export function pickFirstAudioUrl(...candidates: Array<string | null | undefined
 export function extractFirstAudioUrlFromHtml(html: string | null | undefined): string | undefined {
 	if (!html) return undefined;
 
-	const srcRegex = /<(?:audio|source|iframe)\b[^>]*\b(?:src|data-src)\s*=\s*(?:\"([^\"]+)\"|'([^']+)'|([^\s>]+))/gi;
+	const srcRegex =
+		/<(?:audio|source|iframe)\b[^>]*\b(?:src|data-src)\s*=\s*(?:\"([^\"]+)\"|'([^']+)'|([^\s>]+))/gi;
 	for (const match of html.matchAll(srcRegex)) {
 		const src = match[1] ?? match[2] ?? match[3] ?? '';
 		const normalized = normalizeUrlCandidate(src);
@@ -169,14 +173,22 @@ export function extractFirstAudioUrlFromText(text: string | null | undefined): s
 /**
  * Extract audio URLs from structured Nostr tags (`audio`, `imeta`, etc).
  */
-export function extractAudioUrlFromNostrTags(tags: string[][] | null | undefined): string | undefined {
+export function extractAudioUrlFromNostrTags(
+	tags: string[][] | null | undefined
+): string | undefined {
 	if (!tags || tags.length === 0) return undefined;
 
 	for (const tag of tags) {
 		if (!tag || tag.length < 2) continue;
 		const kind = tag[0]?.toLowerCase() ?? '';
 
-		if (kind === 'audio' || kind === 'song' || kind === 'music' || kind === 'podcast' || kind === 'track') {
+		if (
+			kind === 'audio' ||
+			kind === 'song' ||
+			kind === 'music' ||
+			kind === 'podcast' ||
+			kind === 'track'
+		) {
 			const direct = pickFirstAudioUrl(tag[1]);
 			if (direct) return direct;
 		}

@@ -52,10 +52,5 @@
 			{/each}
 		</div>
 	{/if}
-	<Input
-		bind:value={inputValue}
-		{placeholder}
-		onkeydown={handleKeydown}
-		onblur={addTag}
-	/>
+	<Input bind:value={inputValue} {placeholder} onkeydown={handleKeydown} onblur={addTag} />
 </div>

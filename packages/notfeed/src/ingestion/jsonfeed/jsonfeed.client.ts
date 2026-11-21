@@ -28,7 +28,10 @@ import type { HttpAdapter } from '../net/index.js';
 
 export interface FetchResult {
 	posts: IngestedPost[];
-	nextState: Pick<ProtocolFetcherState, 'etag' | 'lastModified' | 'lastFetchedAt' | 'lastSuccessAt'>;
+	nextState: Pick<
+		ProtocolFetcherState,
+		'etag' | 'lastModified' | 'lastFetchedAt' | 'lastSuccessAt'
+	>;
 }
 
 /**

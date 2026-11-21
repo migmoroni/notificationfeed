@@ -26,10 +26,7 @@ let activeMacroId = $state<string | null>(null);
 
 /** Collect all currently selected node IDs from the entity filter (pages + fonts). */
 function currentNodeIds(): string[] {
-	return [
-		...feedEntityFilter.selectedPageIds,
-		...feedEntityFilter.selectedFontIds
-	];
+	return [...feedEntityFilter.selectedPageIds, ...feedEntityFilter.selectedFontIds];
 }
 
 function currentFilters() {
@@ -54,8 +51,12 @@ function currentFilters() {
 }
 
 export const feedMacros = {
-	get macros() { return consumer.feedMacros; },
-	get activeMacroId() { return activeMacroId; },
+	get macros() {
+		return consumer.feedMacros;
+	},
+	get activeMacroId() {
+		return activeMacroId;
+	},
 
 	async saveCurrentAsMacro(name: string): Promise<void> {
 		const created = await consumer.createMacro({ name, filters: currentFilters() });
@@ -80,7 +81,10 @@ export const feedMacros = {
 
 		if (id === ALL_MACROS_ID) {
 			const allNodeIds = new Set<string>();
-			const allCatModes: Record<CategoryTreeId, Map<string, CategoryFilterMode>> = Object.fromEntries(
+			const allCatModes: Record<
+				CategoryTreeId,
+				Map<string, CategoryFilterMode>
+			> = Object.fromEntries(
 				TREE_IDS.map((t) => [t, new Map<string, CategoryFilterMode>()])
 			) as Record<CategoryTreeId, Map<string, CategoryFilterMode>>;
 			const allPriorities: Record<string, 'high'> = {};

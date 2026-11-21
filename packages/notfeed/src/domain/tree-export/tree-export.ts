@@ -19,21 +19,21 @@ export const TREE_EXPORT_MIME = 'application/json';
 
 /** The exported file structure */
 export interface TreeExport {
-/** Stable identifier — generated once on first export, preserved on re-exports */
-exportId: string;
+	/** Stable identifier — generated once on first export, preserved on re-exports */
+	exportId: string;
 
-/** Incremented on every re-export */
-version: number;
+	/** Incremented on every re-export */
+	version: number;
 
-/** When this export was generated */
-exportedAt: Date;
+	/** When this export was generated */
+	exportedAt: Date;
 
-/** Creator's display name (informational, for import UI) */
-creatorDisplayName: string;
+	/** Creator's display name (informational, for import UI) */
+	creatorDisplayName: string;
 
-/** The full tree structure (sections, paths, nodes, metadata) */
-tree: ContentTree;
+	/** The full tree structure (sections, paths, nodes, metadata) */
+	tree: ContentTree;
 
-/** All media referenced by nodes in this tree (with embedded data URLs) */
-medias: ContentMedia[];
+	/** All media referenced by nodes in this tree (with embedded data URLs) */
+	medias: ContentMedia[];
 }

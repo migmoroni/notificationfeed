@@ -56,10 +56,7 @@ import {
 	type NodeCategoryIndex
 } from '../domain/feed-macro/macro-evaluator.js';
 import { NOTIFICATIONS } from '../config/back-settings.js';
-import {
-	listUnnotifiedForUser,
-	markPostsNotified
-} from '../persistence/post.store.js';
+import { listUnnotifiedForUser, markPostsNotified } from '../persistence/post.store.js';
 import { getStorageBackend } from '../persistence/db.js';
 import {
 	getNotificationMeta,
@@ -289,12 +286,8 @@ export async function runNotificationPipeline(
 		// we're inside the configured interval. Without this, the very
 		// first batch from each new font after the first one of the
 		// hour is silently swallowed.
-		const everFiredNodes = new Set(
-			meta.batchGlobalEverNotifiedNodeIds ?? []
-		);
-		const hasFirstDelivery = batchGlobalBucket.some(
-			(p) => !everFiredNodes.has(p.nodeId)
-		);
+		const everFiredNodes = new Set(meta.batchGlobalEverNotifiedNodeIds ?? []);
+		const hasFirstDelivery = batchGlobalBucket.some((p) => !everFiredNodes.has(p.nodeId));
 		if (hasFirstDelivery || now - lastFired >= batchGlobalStep.intervalMs) {
 			const { title, body } = batchSummary(batchGlobalBucket.length);
 			fires.push({

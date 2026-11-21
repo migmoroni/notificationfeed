@@ -110,7 +110,12 @@ function defaultSteps(): [NotificationStep, NotificationStep, NotificationStep] 
 	return [
 		{ id: 'per_post', kind: 'per_post', macroIds: [...a.macroIds], intervalMs: a.intervalMs },
 		{ id: 'batch_macro', kind: 'batch_macro', macroIds: [...b.macroIds], intervalMs: b.intervalMs },
-		{ id: 'batch_global', kind: 'batch_global', macroIds: [...c.macroIds], intervalMs: c.intervalMs }
+		{
+			id: 'batch_global',
+			kind: 'batch_global',
+			macroIds: [...c.macroIds],
+			intervalMs: c.intervalMs
+		}
 	];
 }
 

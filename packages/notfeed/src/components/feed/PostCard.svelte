@@ -33,10 +33,20 @@
 	let fontHref = $derived(fontNode ? `/browse/node/${fontNode.metadata.id}` : null);
 
 	let postHasMedia = $derived(
-		hasMedia(sortedPost.post.url, sortedPost.post.imageUrl, sortedPost.post.videoUrl, sortedPost.post.audioUrl)
+		hasMedia(
+			sortedPost.post.url,
+			sortedPost.post.imageUrl,
+			sortedPost.post.videoUrl,
+			sortedPost.post.audioUrl
+		)
 	);
 	let postThumbnail = $derived(
-		getThumbnail(sortedPost.post.url, sortedPost.post.imageUrl, sortedPost.post.videoUrl, sortedPost.post.audioUrl)
+		getThumbnail(
+			sortedPost.post.url,
+			sortedPost.post.imageUrl,
+			sortedPost.post.videoUrl,
+			sortedPost.post.audioUrl
+		)
 	);
 
 	function handleClick() {
@@ -78,10 +88,10 @@
 
 {#snippet actions()}
 	<div class="flex items-center gap-1">
-		<ShareMenu 
-			title={sortedPost.post.title} 
-			text={sortedPost.post.content ? truncate(sortedPost.post.content, 100) : undefined} 
-			url={sortedPost.post.url} 
+		<ShareMenu
+			title={sortedPost.post.title}
+			text={sortedPost.post.content ? truncate(sortedPost.post.content, 100) : undefined}
+			url={sortedPost.post.url}
 		/>
 		<button
 			type="button"
@@ -115,7 +125,10 @@
 <!-- svelte-ignore a11y_no_static_element_interactions, a11y_no_noninteractive_element_to_interactive_role -->
 {#if mode === 'list'}
 	<article
-		class="group flex items-stretch rounded-lg border border-border/50 bg-card text-card-foreground transition-all hover:bg-sky-500/5 hover:border-sky-500/30 {sortedPost.post.read ? 'opacity-60' : ''}"
+		class="group flex items-stretch rounded-lg border border-border/50 bg-card text-card-foreground transition-all hover:bg-sky-500/5 hover:border-sky-500/30 {sortedPost
+			.post.read
+			? 'opacity-60'
+			: ''}"
 	>
 		<div class="flex items-center gap-3 pl-3 shrink-0">
 			{#if !sortedPost.post.read}
@@ -144,12 +157,16 @@
 			role="button"
 			aria-label={t('aria.open_post', { title: sortedPost.post.title || 'Post' })}
 		>
-			<h3 class="text-sm font-medium leading-snug truncate flex-1 flex flex-row items-center gap-1.5">
+			<h3
+				class="text-sm font-medium leading-snug truncate flex-1 flex flex-row items-center gap-1.5"
+			>
 				<span class="truncate">
 					{#if sortedPost.post.title?.trim()}
 						{sortedPost.post.title}
 						{#if sortedPost.post.content?.trim()}
-							<span class="text-muted-foreground font-normal ml-1">— {sortedPost.post.content}</span>
+							<span class="text-muted-foreground font-normal ml-1">
+								— {sortedPost.post.content}
+							</span>
 						{/if}
 					{:else if sortedPost.post.content?.trim()}
 						{sortedPost.post.content}
@@ -162,26 +179,37 @@
 		</div>
 
 		<div class="flex items-center gap-4 shrink-0 pr-2.5">
-			<time class="text-xs text-muted-foreground whitespace-nowrap text-right" datetime={new Date(sortedPost.post.publishedAt).toISOString()}>
+			<time
+				class="text-xs text-muted-foreground whitespace-nowrap text-right"
+				datetime={new Date(sortedPost.post.publishedAt).toISOString()}
+			>
 				{formatRelativeDate(sortedPost.post.publishedAt)}
 			</time>
 			{@render actions()}
 		</div>
 	</article>
-
 {:else if mode === 'cards'}
 	<article
-		class="group relative flex rounded-lg border border-border/60 bg-card shadow-sm text-card-foreground transition-all hover:shadow hover:border-sky-500/40 {sortedPost.post.read ? 'opacity-60' : ''}"
+		class="group relative flex rounded-lg border border-border/60 bg-card shadow-sm text-card-foreground transition-all hover:shadow hover:border-sky-500/40 {sortedPost
+			.post.read
+			? 'opacity-60'
+			: ''}"
 	>
 		<!-- Font side tab -->
 		{#if fontNode}
 			<a
 				href={fontHref}
-				class="relative shrink-0 w-6 rounded-l-lg flex items-center justify-center overflow-hidden transition-colors {sortedPost.post.read ? 'bg-muted/50' : 'bg-sky-900 dark:bg-sky-800'} hover:bg-sky-600 group/font"
+				class="relative shrink-0 w-6 rounded-l-lg flex items-center justify-center overflow-hidden transition-colors {sortedPost
+					.post.read
+					? 'bg-muted/50'
+					: 'bg-sky-900 dark:bg-sky-800'} hover:bg-sky-600 group/font"
 				title={fontTitle}
 			>
 				<span
-					class="absolute whitespace-nowrap text-[10px] font-semibold tracking-wide uppercase truncate max-w-30 {sortedPost.post.read ? 'text-muted-foreground' : 'text-sky-50'} group-hover/font:text-white"
+					class="absolute whitespace-nowrap text-[10px] font-semibold tracking-wide uppercase truncate max-w-30 {sortedPost
+						.post.read
+						? 'text-muted-foreground'
+						: 'text-sky-50'} group-hover/font:text-white"
 					style="writing-mode: vertical-rl; transform: rotate(180deg);"
 				>
 					{fontTitle}
@@ -203,7 +231,9 @@
 			>
 				<div class="flex-1 flex flex-col pr-3">
 					<div class="flex items-start justify-between gap-2 mb-1.5">
-						<h3 class="text-sm font-semibold leading-snug line-clamp-2 flex-1 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+						<h3
+							class="text-sm font-semibold leading-snug line-clamp-2 flex-1 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors"
+						>
 							{sortedPost.post.title}
 						</h3>
 						{#if sortedPost.post.url}
@@ -219,7 +249,7 @@
 						<div class="flex-1 mb-3"></div>
 					{/if}
 				</div>
-				
+
 				{#if postThumbnail}
 					<div class="shrink-0 mb-3">
 						<img
@@ -232,7 +262,9 @@
 				{/if}
 			</div>
 
-			<div class="flex items-center justify-between border-t border-border/40 pt-2 pb-2.5 px-4 mt-auto">
+			<div
+				class="flex items-center justify-between border-t border-border/40 pt-2 pb-2.5 px-4 mt-auto"
+			>
 				<div class="flex items-center gap-2 text-[11px] text-muted-foreground">
 					<time datetime={new Date(sortedPost.post.publishedAt).toISOString()}>
 						{formatRelativeDate(sortedPost.post.publishedAt)}
@@ -249,13 +281,17 @@
 			</div>
 		</div>
 	</article>
-
 {:else if mode === 'posts'}
 	<article
 		class="group relative flex flex-col rounded-xl border border-border/80 bg-card shadow-sm text-card-foreground transition-all hover:shadow-md hover:border-sky-500/50 overflow-hidden"
 	>
 		<!-- Header (Safe Area) -->
-		<div class="px-5 pt-3 pb-3 flex items-center justify-between border-b border-border/30 bg-muted/10 {sortedPost.post.read ? 'opacity-70' : ''}">
+		<div
+			class="px-5 pt-3 pb-3 flex items-center justify-between border-b border-border/30 bg-muted/10 {sortedPost
+				.post.read
+				? 'opacity-70'
+				: ''}"
+		>
 			<div class="flex items-center gap-2 shrink-0">
 				{#if fontNode}
 					<a
@@ -266,7 +302,10 @@
 						{fontTitle}
 					</a>
 				{/if}
-				<time class="text-xs text-muted-foreground" datetime={new Date(sortedPost.post.publishedAt).toISOString()}>
+				<time
+					class="text-xs text-muted-foreground"
+					datetime={new Date(sortedPost.post.publishedAt).toISOString()}
+				>
 					{formatRelativeDate(sortedPost.post.publishedAt)}
 				</time>
 				<PriorityBadge level={sortedPost.priority} />
@@ -284,7 +323,9 @@
 		<div class="flex flex-col flex-1">
 			<div class="p-5 pb-4 flex flex-col {sortedPost.post.read ? 'opacity-70' : ''}">
 				<div class="flex items-start justify-between gap-4 mb-2">
-					<h3 class="text-base font-bold leading-snug hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
+					<h3
+						class="text-base font-bold leading-snug hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+					>
 						{sortedPost.post.title}
 					</h3>
 					<button
@@ -298,18 +339,22 @@
 				</div>
 
 				{#if sortedPost.post.content}
-					<p class="text-sm text-foreground/80 leading-relaxed {postHasMedia ? 'mb-4 line-clamp-3' : 'mb-1 line-clamp-6'}">
+					<p
+						class="text-sm text-foreground/80 leading-relaxed {postHasMedia
+							? 'mb-4 line-clamp-3'
+							: 'mb-1 line-clamp-6'}"
+					>
 						{truncate(sortedPost.post.content, 400)}
 					</p>
 				{/if}
 			</div>
 
-			<PostMedia 
-				url={sortedPost.post.url} 
-				imageUrl={sortedPost.post.imageUrl} 
-				videoUrl={sortedPost.post.videoUrl} 
+			<PostMedia
+				url={sortedPost.post.url}
+				imageUrl={sortedPost.post.imageUrl}
+				videoUrl={sortedPost.post.videoUrl}
 				audioUrl={sortedPost.post.audioUrl}
-				title={sortedPost.post.title} 
+				title={sortedPost.post.title}
 			/>
 		</div>
 	</article>

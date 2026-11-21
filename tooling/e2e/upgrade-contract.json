@@ -1,13 +1,13 @@
 {
-  "version": 1,
-  "referenceManifest": ".artifacts/e2e/reference.json",
-  "referenceBuild": ".artifacts/e2e/reference-build",
-  "targetBuild": "apps/web/build",
-  "origin": "http://127.0.0.1:4173",
-  "sameBrowserContext": true,
-  "clearStorage": false,
-  "reimportAfterSwitch": false,
-  "database": {"name": "notfeed-v2", "version": 18},
-  "worker": "Usar atualização normal; se houver worker aguardando, fechar os clientes do contexto e reabrir, sem skipWaiting artificial",
-  "acceptance": "Uma única revisão do documento raiz no precache, igual ao build servido; página controlada; snapshot semântico e leitura offline preservados"
+	"version": 1,
+	"referenceManifest": ".artifacts/e2e/reference.json",
+	"referenceBuild": ".artifacts/e2e/reference-build",
+	"targetBuild": "apps/web/build",
+	"origin": "http://127.0.0.1:4173",
+	"sameBrowserContext": true,
+	"clearStorage": false,
+	"reimportAfterSwitch": false,
+	"database": { "name": "notfeed-v2", "version": 18 },
+	"worker": "Usar atualização normal; se houver worker aguardando, fechar os clientes do contexto e reabrir, sem skipWaiting artificial",
+	"acceptance": "Uma única revisão do documento raiz no precache, igual ao build servido; página controlada; snapshot semântico e leitura offline preservados"
 }

@@ -80,7 +80,9 @@
 			}
 
 			// Always init consumer (needed for feed data even when creator is active)
-			await consumer.init(activeUser.current?.role === 'consumer' ? activeUser.current.id : undefined);
+			await consumer.init(
+				activeUser.current?.role === 'consumer' ? activeUser.current.id : undefined
+			);
 
 			// If restored user is a creator, init creator store
 			if (activeUser.isCreator) {
@@ -154,7 +156,9 @@
 				{#each navItems as item}
 					<a
 						href={item.href}
-						class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors min-w-0 {isActive(item.href)
+						class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors min-w-0 {isActive(
+							item.href
+						)
 							? 'bg-sidebar-accent text-sidebar-accent-foreground'
 							: 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'}"
 					>
@@ -206,7 +210,9 @@
 				{#each navItems as item}
 					<a
 						href={item.href}
-						class="flex flex-col items-center justify-center gap-0.5 py-1 text-xs {isActive(item.href)
+						class="flex flex-col items-center justify-center gap-0.5 py-1 text-xs {isActive(
+							item.href
+						)
 							? 'text-foreground'
 							: 'text-muted-foreground'}"
 					>

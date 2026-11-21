@@ -17,7 +17,12 @@
 		label?: string;
 	}
 
-	let { slot, mediaId, onchange, label = slot === 'avatar' ? 'Avatar' : 'Banner' }: Props = $props();
+	let {
+		slot,
+		mediaId,
+		onchange,
+		label = slot === 'avatar' ? 'Avatar' : 'Banner'
+	}: Props = $props();
 
 	let loading = $state(false);
 	let error = $state<string | null>(null);
@@ -69,14 +74,20 @@
 
 	{#if previewUrl}
 		<div class="space-y-2">
-			<div class="w-full max-w-md rounded-lg overflow-hidden bg-muted border" style="aspect-ratio: 3.6 / 1;">
+			<div
+				class="w-full max-w-md rounded-lg overflow-hidden bg-muted border"
+				style="aspect-ratio: 3.6 / 1;"
+			>
 				<img src={previewUrl} alt={label} class="w-full h-full object-cover" />
 			</div>
 			<div class="flex gap-2">
-				<Button variant="outline" size="sm" onclick={() => (showMediaPicker = true)}>
-					Trocar
-				</Button>
-				<Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" onclick={requestRemove}>
+				<Button variant="outline" size="sm" onclick={() => (showMediaPicker = true)}>Trocar</Button>
+				<Button
+					variant="ghost"
+					size="sm"
+					class="text-destructive hover:text-destructive"
+					onclick={requestRemove}
+				>
 					Remover
 				</Button>
 			</div>
@@ -96,9 +107,7 @@
 				<span class="text-[11px]">{t('media_upload.click_to_upload')}</span>
 			{/if}
 		</button>
-		<Button variant="outline" size="sm" onclick={() => (showMediaPicker = true)}>
-			Biblioteca
-		</Button>
+		<Button variant="outline" size="sm" onclick={() => (showMediaPicker = true)}>Biblioteca</Button>
 	{/if}
 
 	<input
@@ -116,7 +125,7 @@
 
 <ConfirmRemoveMediaDialog
 	bind:open={showRemoveDialog}
-	previewUrl={previewUrl}
+	{previewUrl}
 	mediaLabel={slot === 'banner' ? 'banner' : 'avatar'}
 	onconfirm={handleRemove}
 	oncancel={() => (showRemoveDialog = false)}

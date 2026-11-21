@@ -217,5 +217,5 @@ export const symbols: EmojiEntry[] = [
 	{ emoji: '💲', name: 'heavy dollar sign money' },
 	{ emoji: '©️', name: 'copyright' },
 	{ emoji: '®️', name: 'registered' },
-	{ emoji: '™️', name: 'trade mark' },
+	{ emoji: '™️', name: 'trade mark' }
 ];

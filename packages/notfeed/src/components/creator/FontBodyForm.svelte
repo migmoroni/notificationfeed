@@ -101,7 +101,9 @@
 
 <div class="space-y-4">
 	{#each body.protocols as entry, idx (entry.id)}
-		<div class="rounded-md border p-3 space-y-3 {entry.primary ? 'border-primary' : 'border-muted'}">
+		<div
+			class="rounded-md border p-3 space-y-3 {entry.primary ? 'border-primary' : 'border-muted'}"
+		>
 			<div class="flex items-center justify-between gap-2">
 				<div class="flex items-center gap-2">
 					{#if entry.primary}

@@ -31,7 +31,10 @@
 		{#each CATEGORIES as cat (cat.label)}
 			<button
 				type="button"
-				onclick={() => { activeCategory = cat.label; search = ''; }}
+				onclick={() => {
+					activeCategory = cat.label;
+					search = '';
+				}}
 				class="shrink-0 px-2 py-1 text-xs rounded-md transition-colors
 					{activeCategory === cat.label && !search.trim()
 					? 'bg-accent text-accent-foreground font-medium'
@@ -44,7 +47,9 @@
 
 	<!-- Search -->
 	<div class="relative">
-		<Search class="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+		<Search
+			class="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none"
+		/>
 		<Input
 			bind:value={search}
 			placeholder={t('emoji.search_placeholder')}
@@ -53,7 +58,9 @@
 	</div>
 
 	<!-- Emoji grid -->
-	<div class="grid grid-cols-8 h-48 overflow-y-auto p-0.5 rounded-md border border-border bg-muted/30">
+	<div
+		class="grid grid-cols-8 h-48 overflow-y-auto p-0.5 rounded-md border border-border bg-muted/30"
+	>
 		{#each visibleEmojis as em (em.emoji)}
 			<button
 				type="button"

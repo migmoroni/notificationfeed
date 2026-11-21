@@ -58,7 +58,10 @@ export function createProxyTargets(
 	return dedupe(out);
 }
 
-export function createGatewayProxyFallbackTargets(baseTargets: string[], proxies: ProxyConfig[]): string[] {
+export function createGatewayProxyFallbackTargets(
+	baseTargets: string[],
+	proxies: ProxyConfig[]
+): string[] {
 	const defaultPhases: IpfsFallbackPhases = {
 		gatewayEnabled: true,
 		proxyEnabled: true
@@ -104,7 +107,9 @@ function resolveHttpFeedTransportRule(
 	};
 }
 
-function defaultHttpFeedTransportRule(feedKind: HttpRequestOpts['feedKind'] | undefined): FeedTransportRule {
+function defaultHttpFeedTransportRule(
+	feedKind: HttpRequestOpts['feedKind'] | undefined
+): FeedTransportRule {
 	if (feedKind) {
 		const fromBackSettings = INGESTION_HTTP_FEED_TRANSPORT_DEFAULTS[feedKind];
 		return {

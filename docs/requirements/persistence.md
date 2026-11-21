@@ -5,11 +5,11 @@
 Persistência local, sem dependência de backend remoto. A camada é abstraída pela interface
 `StorageBackend` em `$lib/persistence/backends/storage-backend.ts`, com duas implementações:
 
-| Plataforma | Backend ativo | Motivo |
-|---|---|---|
-| Web / PWA / Android TWA | `IndexedDBBackend` | API nativa do browser, suporta dados estruturados e índices |
-| Tauri AppImage (Linux) | `IndexedDBBackend` | WebView embarca o mesmo sandbox do browser |
-| Tauri deb/rpm/msi/dmg/android | `SqliteBackend` (stub, Plano C) | Acesso via `tauri-plugin-sql`, integração FS do SO |
+| Plataforma                    | Backend ativo                   | Motivo                                                      |
+| ----------------------------- | ------------------------------- | ----------------------------------------------------------- |
+| Web / PWA / Android TWA       | `IndexedDBBackend`              | API nativa do browser, suporta dados estruturados e índices |
+| Tauri AppImage (Linux)        | `IndexedDBBackend`              | WebView embarca o mesmo sandbox do browser                  |
+| Tauri deb/rpm/msi/dmg/android | `SqliteBackend` (stub, Plano C) | Acesso via `tauri-plugin-sql`, integração FS do SO          |
 
 Seleção em runtime via `capabilities.storageBackend` (`'indexeddb' | 'sqlite'`), lido de
 `import.meta.env.VITE_STORAGE_BACKEND` (default `'indexeddb'`).
@@ -23,36 +23,50 @@ Seleção em runtime via `capabilities.storageBackend` (`'indexeddb' | 'sqlite'`
 ## Stores (13 totais)
 
 ### contentTrees
+
 Árvores publicadas/importadas com nós embarcados.
+
 - keyPath: `metadata.id`
 - Index: `author` (campo `metadata.author`)
 
 ### contentMedias
+
 Objetos de mídia externa associados a árvores publicadas.
+
 - keyPath: `metadata.id`
 - Index: `author`
 
 ### editorTrees
+
 Rascunhos do creator (árvores em edição).
+
 - keyPath: `metadata.id`
 - Index: `author`
 
 ### editorMedias
+
 Cópias de mídias do creator (rascunho).
+
 - keyPath: `metadata.id`
 - Index: `author`
 
 ### treePublications
+
 Metadados de publicação (snapshot `TreeExport` por árvore).
+
 - keyPath: `treeId`
 
 ### users
+
 Todos os usuários (consumer e creator).
+
 - keyPath: `id`
 - Index: `role`
 
 ### posts
+
 **Per-user post boxes**. Um registro por usuário × fonte × post id.
+
 - keyPath: `_pk` — chave sintética `${userId}|${nodeId}|${id}`
 - Index `byUser`: `userId` — listar todos os posts de um usuário
 - Index `byUserNode`: `_userNode` — chave sintética `${userId}|${nodeId}`, para listar uma fonte de um usuário
@@ -66,29 +80,41 @@ vistas podem ser mantidas separadamente no Cache Storage pelo service worker.
 Ver `docs/ingestion-to-post-flow.md`.
 
 ### fetcherStates
+
 **Per-source ingestion state**. Um registro por `nodeId`, compartilhado entre todos os usuários que ativaram a fonte. Carrega o estado da máquina de pipeline (`pipelineState`, `confidence`, `effectivePrimaryEntryId`) e um sub-mapa `protocols` com circuit-breaker / backoff / EWMA por entrada de protocolo. Ver `docs/ingestion-pipeline.md`.
+
 - keyPath: `nodeId`
 
 ### categories
+
 Taxonomia oficial (seed).
+
 - keyPath: `id`
 - Indexes: `parentId`, `treeId`
 
 ### activityData
+
 Agregados de atividade / histórico de leitura usados pelo dashboard.
+
 - keyPath: `id`
 
 ### notificationMeta
+
 Metadados de runtime do engine de notificações por usuário (`stepLastFiredAt`, `lastClearedAt`, `batchGlobalEverNotifiedNodeIds`). A definição do pipeline em si vive em `users.settingsUser.notifications`.
+
 - keyPath: `userId`
 
 ### notificationInbox
+
 Histórico canônico de notificações disparadas (sino in-app). Compartilhado pelos dois canais (posts e eventos de pipeline).
+
 - keyPath: `_pk` (chave sintética `${userId}|${notifId}`)
 - Index `byUser`: `userId`
 
 ### pipelineEvents
+
 Fila durável de eventos emitidos pelo post-manager (`PIPELINE_UNSTABLE`, `PIPELINE_OFFLINE`, `PIPELINE_RECOVERED`, `PIPELINE_DEGRADED`, `SOURCE_SWITCHED`). Cada entrada carrega `consumedBy[]` per-usuário. Podada após `INGESTION_PIPELINE_EVENT_RETENTION_MS` (7 dias). Ver `docs/notification-system.md`.
+
 - keyPath: `id` (uuidv7)
 - Index `byFont`: `fontId`
 - Index `byTimestamp`: `timestamp`
@@ -99,11 +125,11 @@ Fila durável de eventos emitidos pelo post-manager (`PIPELINE_UNSTABLE`, `PIPEL
 
 ```typescript
 interface StoreOps {
-  getAll<T>(): Promise<T[]>;
-  getById<T>(id: string): Promise<T | null>;
-  query<T>(index: string, value: unknown): Promise<T[]>;
-  put<T>(item: T): Promise<void>;
-  delete(id: string): Promise<void>;
+	getAll<T>(): Promise<T[]>;
+	getById<T>(id: string): Promise<T | null>;
+	query<T>(index: string, value: unknown): Promise<T[]>;
+	put<T>(item: T): Promise<void>;
+	delete(id: string): Promise<void>;
 }
 ```
 
@@ -114,31 +140,31 @@ Stores de domínio em `$lib/persistence/*.store.ts` consomem a interface via `ge
 Toda API de leitura/escrita de posts é per-usuário:
 
 ```typescript
-savePostsForUser(userId, posts) // upsert preservando read/saved/trashed existentes
-getPostsForUser(userId, query)  // filtros: nodeIds, includeTrashed, savedOnly, ...
-markRead(userId, nodeId, postId, value)
-setSaved(userId, nodeId, postId, value)        // saved limpa trashedAt
-setTrashed(userId, nodeId, postId, value)      // saved overrides trash (no-op)
-trashOldPostsForUser(userId, nodeIds, cutoff)  // retenção
-purgeTrashedBefore(userId, cutoff)             // hard delete
-deletePostsForUserNode(userId, nodeId)         // ao desativar uma font
-backfillPostsForUserNode(userId, nodeId)       // ao ativar nova font
+savePostsForUser(userId, posts); // upsert preservando read/saved/trashed existentes
+getPostsForUser(userId, query); // filtros: nodeIds, includeTrashed, savedOnly, ...
+markRead(userId, nodeId, postId, value);
+setSaved(userId, nodeId, postId, value); // saved limpa trashedAt
+setTrashed(userId, nodeId, postId, value); // saved overrides trash (no-op)
+trashOldPostsForUser(userId, nodeIds, cutoff); // retenção
+purgeTrashedBefore(userId, cutoff); // hard delete
+deletePostsForUserNode(userId, nodeId); // ao desativar uma font
+backfillPostsForUserNode(userId, nodeId); // ao ativar nova font
 ```
 
 `fetcher-state.store.ts` expõe a API per-source:
 
 ```typescript
-getFetcherState(nodeId)          // retorna estado vazio se não existir
-putFetcherState(state)
-deleteFetcherState(nodeId)       // só quando *nenhum* usuário tem a fonte
-getDueFetcherStates(nodeIds, now)
+getFetcherState(nodeId); // retorna estado vazio se não existir
+putFetcherState(state);
+deleteFetcherState(nodeId); // só quando *nenhum* usuário tem a fonte
+getDueFetcherStates(nodeIds, now);
 ```
 
 ## Separação Creator / Consumer
 
-| Escopo | Store Trees | Store Medias | Descrição |
-|---|---|---|---|
-| Creator (rascunho) | `editorTrees` | `editorMedias` | Árvores em edição |
+| Escopo              | Store Trees    | Store Medias    | Descrição                                                   |
+| ------------------- | -------------- | --------------- | ----------------------------------------------------------- |
+| Creator (rascunho)  | `editorTrees`  | `editorMedias`  | Árvores em edição                                           |
 | Publicado/Importado | `contentTrees` | `contentMedias` | Árvores publicadas pelo creator ou importadas pelo consumer |
 
 Publicar copia o `TreeExport` snapshot de `editorTrees` para `contentTrees`. `metadata.author` identifica o dono.

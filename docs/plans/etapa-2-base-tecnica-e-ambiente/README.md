@@ -1,6 +1,6 @@
 # Plano de engenharia da etapa 2
 
-**Data:** 20 de novembro de 2026. **Situação:** planejamento concluído; execução não iniciada.
+**Data:** 20 de novembro de 2026. **Situação:** execução em 2.6/execution, preparação local; gates finais 2.1–2.5 e recuperação do checkpoint 2.4 aprovados. Acompanhar [state.md](state.md).
 
 ## Invariantes e fronteiras primeiro
 
@@ -16,33 +16,33 @@ O foco continua web/PWA, com o Tauri Linux AppImage existente preservado. A etap
 
 ## Como usar este plano
 
-| Documento | Finalidade |
-| --- | --- |
-| [Invariantes e fronteiras](invariantes-e-fronteiras.md) | Topologia, dependências e proibições |
-| [Contratos](contratos.md) | Dados de controle, ferramentas, segurança e comandos previstos |
-| [Manifesto](contracts/etapa-2.json) | Identificadores e critérios comuns legíveis por máquina |
-| [Quality gates](quality-gates.md) | Comandos, provas adversas, matriz de impacto e evidências |
-| [Protocolo de execução](protocolo-execucao.md) | Ciclo obrigatório, Builder/Auditor, consulta e handoff |
-| [Estado vivo](state.md) | Posição atual, decisões, evidências e próxima ação |
-| [ADRs](adr/README.md) | Razões das decisões e alterações de contrato |
+| Documento                                               | Finalidade                                                     |
+| ------------------------------------------------------- | -------------------------------------------------------------- |
+| [Invariantes e fronteiras](invariantes-e-fronteiras.md) | Topologia, dependências e proibições                           |
+| [Contratos](contratos.md)                               | Dados de controle, ferramentas, segurança e comandos previstos |
+| [Manifesto](contracts/etapa-2.json)                     | Identificadores e critérios comuns legíveis por máquina        |
+| [Quality gates](quality-gates.md)                       | Comandos, provas adversas, matriz de impacto e evidências      |
+| [Protocolo de execução](protocolo-execucao.md)          | Ciclo obrigatório, Builder/Auditor, consulta e handoff         |
+| [Estado vivo](state.md)                                 | Posição atual, decisões, evidências e próxima ação             |
+| [ADRs](adr/README.md)                                   | Razões das decisões e alterações de contrato                   |
 
-Os comandos novos descritos aqui são **contratos a implementar**, não ferramentas já disponíveis. A fase 2.1 começa pelos testes de contrato e pelo árbitro usando Node, sem modificar o produto. Nenhum gate da etapa 2 está aprovado por esta entrega documental.
+Os comandos permanentes da fase 2.5 estão implementados e suas cinco unidades foram aprovadas. As fases de CI/consolidação seguem o estado registrado; a etapa inteira ainda não está concluída.
 
 ## Sequência de execução
 
-| Fase | Unidades atômicas | Resultado de saída |
-| --- | --- | --- |
-| [2.1 Diagnóstico e contratos](fases/2.1-diagnostico-e-contratos.md) | 2.1a árbitro; 2.1b referência e decisões técnicas | Contratos verificados, riscos classificados, versões e grupos exatos registrados |
-| [2.2 Correções prioritárias](fases/2.2-correcoes-prioritarias.md) | Um recorte por risco urgente, ou comprovação de ausência | Riscos que impedem esperar tratados antes de pnpm |
-| [2.3 pnpm](fases/2.3-pnpm.md) | Uma migração coerente do gerenciador | Lock único JS/TS, resolução local e consumidores validados |
-| [2.4 Atualizações](fases/2.4-atualizacoes.md) | Uma unidade por grupo de compatibilidade | Versões mantidas, critérios de segurança atendidos e ambiente fixado |
-| [2.5 Ambiente e checks](fases/2.5-ambiente-e-checks.md) | 2.5a checks; 2.5b lint; 2.5c formatação; 2.5d testes/servidores; 2.5e diagnóstico | Rotina permanente sem depender da cadeia histórica |
-| [2.6 CI](fases/2.6-ci.md) | 2.6a configuração; 2.6b execução real | Jobs obrigatórios executados e aprovados para a revisão auditada |
-| [2.7 Consolidação](fases/2.7-consolidacao.md) | Gate completo e handoff | Referência reproduzível para a etapa 3 |
+| Fase                                                                | Unidades atômicas                                                                 | Resultado de saída                                                               |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| [2.1 Diagnóstico e contratos](fases/2.1-diagnostico-e-contratos.md) | 2.1a árbitro; 2.1b referência e decisões técnicas                                 | Contratos verificados, riscos classificados, versões e grupos exatos registrados |
+| [2.2 Correções prioritárias](fases/2.2-correcoes-prioritarias.md)   | Um recorte por risco urgente, ou comprovação de ausência                          | Riscos que impedem esperar tratados antes de pnpm                                |
+| [2.3 pnpm](fases/2.3-pnpm.md)                                       | Uma migração coerente do gerenciador                                              | Lock único JS/TS, resolução local e consumidores validados                       |
+| [2.4 Atualizações](fases/2.4-atualizacoes.md)                       | Uma unidade por grupo de compatibilidade                                          | Versões mantidas, critérios de segurança atendidos e ambiente fixado             |
+| [2.5 Ambiente e checks](fases/2.5-ambiente-e-checks.md)             | 2.5a checks; 2.5b lint; 2.5c formatação; 2.5d testes/servidores; 2.5e diagnóstico | Rotina permanente sem depender da cadeia histórica                               |
+| [2.6 CI](fases/2.6-ci.md)                                           | 2.6a configuração; 2.6b execução real                                             | Jobs obrigatórios executados e aprovados para a revisão auditada                 |
+| [2.7 Consolidação](fases/2.7-consolidacao.md)                       | Gate completo e handoff                                                           | Referência reproduzível para a etapa 3                                           |
 
 Cada unidade percorre **Especificação → Contrato/Schema → Teste → Implementação Mínima → Quality Gate**. Passar uma unidade não aprova automaticamente sua fase. Não iniciar a fase dependente até concluir todas as unidades e o gate de saída da anterior.
 
-As versões exatas e os grupos de atualização serão resultados verificáveis de 2.1b, com fontes e data de consulta. O plano fixa o processo e os critérios; não transforma a fotografia de versões ou alertas de novembro em uma escolha permanente sem nova verificação.
+As versões exatas e os grupos de atualização foram registrados em 2.1b, com fontes e data de consulta. O plano fixa o processo e os critérios; não transforma a fotografia de versões ou alertas de novembro em uma escolha permanente sem nova verificação.
 
 ## Ponto de partida
 

@@ -38,20 +38,11 @@ import { resolveIngestionAudioUrl } from '../ingestion/media/audio-quality.js';
  * PostManager fans the post out to each interested user's box.
  */
 export function normalizeNostrEvent(event: NostrEvent, nodeId: string): IngestedPost {
-	const imageUrl = pickFirstImageUrl(
-		event.imageUrl,
-		extractFirstImageUrlFromText(event.content)
-	);
+	const imageUrl = pickFirstImageUrl(event.imageUrl, extractFirstImageUrlFromText(event.content));
 	const resolvedImageUrl = resolveIngestionImageUrl(imageUrl);
-	const videoUrl = pickFirstVideoUrl(
-		event.videoUrl,
-		extractFirstVideoUrlFromText(event.content)
-	);
+	const videoUrl = pickFirstVideoUrl(event.videoUrl, extractFirstVideoUrlFromText(event.content));
 	const resolvedVideoUrl = resolveIngestionVideoUrl(videoUrl);
-	const audioUrl = pickFirstAudioUrl(
-		event.audioUrl,
-		extractFirstAudioUrlFromText(event.content)
-	);
+	const audioUrl = pickFirstAudioUrl(event.audioUrl, extractFirstAudioUrlFromText(event.content));
 	const resolvedAudioUrl = resolveIngestionAudioUrl(audioUrl);
 
 	return {

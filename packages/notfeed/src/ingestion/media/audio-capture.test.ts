@@ -19,12 +19,17 @@ describe('audio-capture', () => {
 
 	it('only treats direct assets as direct playable audio', () => {
 		expect(isLikelyDirectAudioAssetUrl('https://cdn.example.com/podcast/episode-1.mp3')).toBe(true);
-		expect(isLikelyDirectAudioAssetUrl('https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC')).toBe(false);
+		expect(
+			isLikelyDirectAudioAssetUrl('https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC')
+		).toBe(false);
 	});
 
 	it('extracts audio URL from html iframe', () => {
-		const html = '<div><iframe src="https://open.spotify.com/embed/track/4uLU6hMCjMI75M1A2tKUQC"></iframe></div>';
-		expect(extractFirstAudioUrlFromHtml(html)).toBe('https://open.spotify.com/embed/track/4uLU6hMCjMI75M1A2tKUQC');
+		const html =
+			'<div><iframe src="https://open.spotify.com/embed/track/4uLU6hMCjMI75M1A2tKUQC"></iframe></div>';
+		expect(extractFirstAudioUrlFromHtml(html)).toBe(
+			'https://open.spotify.com/embed/track/4uLU6hMCjMI75M1A2tKUQC'
+		);
 	});
 
 	it('extracts audio URL from plain text', () => {
@@ -38,6 +43,8 @@ describe('audio-capture', () => {
 	});
 
 	it('picks first valid explicit candidate', () => {
-		expect(pickFirstAudioUrl(' https://cdn.example.com/a/1.mp3 ')).toBe('https://cdn.example.com/a/1.mp3');
+		expect(pickFirstAudioUrl(' https://cdn.example.com/a/1.mp3 ')).toBe(
+			'https://cdn.example.com/a/1.mp3'
+		);
 	});
 });

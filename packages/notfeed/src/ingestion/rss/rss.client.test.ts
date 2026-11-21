@@ -169,9 +169,7 @@ describe('fetchRssFeed', () => {
 		expect(result.posts[0].url).toBe(
 			'https://www.bbc.com/news/videos/cdxpn5r2nlgo?at_medium=RSS&at_campaign=rss'
 		);
-		expect(result.posts[0].imageUrl).toContain(
-			'5e343470-484c-11f1-b55d-0f258dce1735.jpg'
-		);
+		expect(result.posts[0].imageUrl).toContain('5e343470-484c-11f1-b55d-0f258dce1735.jpg');
 		expect(result.posts[0].videoUrl).toBeUndefined();
 	});
 

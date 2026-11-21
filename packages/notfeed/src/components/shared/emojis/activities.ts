@@ -86,5 +86,5 @@ export const activities: EmojiEntry[] = [
 	{ emoji: '🎳', name: 'bowling' },
 	{ emoji: '🎮', name: 'video game controller' },
 	{ emoji: '🕹️', name: 'joystick arcade' },
-	{ emoji: '🎰', name: 'slot machine casino' },
+	{ emoji: '🎰', name: 'slot machine casino' }
 ];

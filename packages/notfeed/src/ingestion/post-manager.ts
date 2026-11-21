@@ -34,11 +34,31 @@
  *    jitter. Disabled there → next try at the regular interval.
  */
 
-import type { TreeNode, FontBody, FontProtocolEntry, FontRssConfig, FontAtomConfig, FontNostrConfig, FontJsonfeedConfig } from '../domain/content-tree/content-tree.js';
-import { isFontNode, getProtocolEntriesByPriority, getPrimaryProtocolEntry } from '../domain/content-tree/content-tree.js';
+import type {
+	TreeNode,
+	FontBody,
+	FontProtocolEntry,
+	FontRssConfig,
+	FontAtomConfig,
+	FontNostrConfig,
+	FontJsonfeedConfig
+} from '../domain/content-tree/content-tree.js';
+import {
+	isFontNode,
+	getProtocolEntriesByPriority,
+	getPrimaryProtocolEntry
+} from '../domain/content-tree/content-tree.js';
 import type { UserConsumer } from '../domain/user/user-consumer.js';
-import type { FetcherState, ProtocolFetcherState, PipelineState } from '../domain/ingestion/fetcher-state.js';
-import { emptyFetcherState, getOrCreateProtoState, transition } from '../domain/ingestion/fetcher-state.js';
+import type {
+	FetcherState,
+	ProtocolFetcherState,
+	PipelineState
+} from '../domain/ingestion/fetcher-state.js';
+import {
+	emptyFetcherState,
+	getOrCreateProtoState,
+	transition
+} from '../domain/ingestion/fetcher-state.js';
 import type { PipelineEvent, PipelineEventType } from '../domain/ingestion/pipeline-event.js';
 import { defaultSeverityFor } from '../domain/ingestion/pipeline-event.js';
 import type {
@@ -48,7 +68,10 @@ import type {
 	FeedTransportByKind,
 	IpfsFeedTransportByKind
 } from '../domain/ingestion/ingestion-settings.js';
-import { createIngestionSettings, normalizeIngestionSettings } from '../domain/ingestion/ingestion-settings.js';
+import {
+	createIngestionSettings,
+	normalizeIngestionSettings
+} from '../domain/ingestion/ingestion-settings.js';
 import {
 	INGESTION_BACKOFF,
 	INGESTION_FETCH,
@@ -172,7 +195,10 @@ async function loadContext(): Promise<TickContext> {
 
 	// Resolve enabled font nodeIds per consumer by walking each user's
 	// activateNodes and looking up the corresponding TreeNode in the trees DB.
-	const trees = await db.contentTrees.getAll<{ metadata: { id: string }; nodes: Record<string, TreeNode> }>();
+	const trees = await db.contentTrees.getAll<{
+		metadata: { id: string };
+		nodes: Record<string, TreeNode>;
+	}>();
 	const nodeById = new Map<string, TreeNode>();
 	for (const t of trees) {
 		for (const [nid, node] of Object.entries(t.nodes)) {
@@ -211,9 +237,10 @@ async function loadContext(): Promise<TickContext> {
 	// Pick HTTP adapter — uses the active user's proxies if present,
 	// otherwise the first consumer's, otherwise an empty list.
 	const activeUserId = readActiveUserIdFromStorage();
-	const ctxUser =
-		consumers.find((u) => u.id === activeUserId) ?? consumers[0] ?? null;
-	const ingest = normalizeIngestionSettings(ctxUser?.settingsUser?.ingestion ?? createIngestionSettings());
+	const ctxUser = consumers.find((u) => u.id === activeUserId) ?? consumers[0] ?? null;
+	const ingest = normalizeIngestionSettings(
+		ctxUser?.settingsUser?.ingestion ?? createIngestionSettings()
+	);
 	const proxies: ProxyConfig[] = ingest.proxyServices;
 	const ipfsGateways: IpfsGatewayConfig[] = ingest.ipfsGatewayServices;
 	const httpFeedTransportByKind: FeedTransportByKind = ingest.httpFeedTransportByKind;
@@ -277,7 +304,10 @@ async function runTick(deps: PostManagerDeps): Promise<TickResult> {
 	return { fetched, skipped, failed, postsInserted };
 }
 
-function applyMediaIngestionPolicy(posts: IngestedPost[], settings: IngestionSettings): IngestedPost[] {
+function applyMediaIngestionPolicy(
+	posts: IngestedPost[],
+	settings: IngestionSettings
+): IngestedPost[] {
 	const definitions = resolveMediaIngestionRuntimeDefinitions({ settings });
 
 	return posts.map((post) => {
@@ -520,7 +550,8 @@ async function processFont(
 		// Sparse retry — but never sooner than the earliest source's
 		// own backoff, which may already be longer.
 		const sparse = INGESTION_INSTABILITY.unstableSparseIntervalMs;
-		next.nextScheduledAt = ctx.now + jitter(Math.max(sparse, earliestSourceDue(next, ctx.now, sparse)));
+		next.nextScheduledAt =
+			ctx.now + jitter(Math.max(sparse, earliestSourceDue(next, ctx.now, sparse)));
 	}
 
 	await persistAll(next, events);
@@ -625,8 +656,7 @@ function applyFailureMetrics(s: ProtocolFetcherState, latencyMs: number, now: nu
 	}
 
 	const cb = INGESTION_CIRCUIT_BREAKER;
-	const shouldOpen =
-		s.failureCount >= cb.openAfterFailures || backoffMs >= cb.openAfterBackoffMs;
+	const shouldOpen = s.failureCount >= cb.openAfterFailures || backoffMs >= cb.openAfterBackoffMs;
 
 	if (shouldOpen) {
 		// Open the breaker. If we just failed a HALF_OPEN probe, push
@@ -762,7 +792,12 @@ function pickInterval(ctx: TickContext, entry: FontEntry): number {
 	for (const userId of entry.userIds) {
 		const s = entry.settingsByUser.get(userId);
 		if (!s) continue;
-		const candidate = pickIntervalForUser(ctx, userId, s, entry.interactedAtByUser.get(userId) ?? 0);
+		const candidate = pickIntervalForUser(
+			ctx,
+			userId,
+			s,
+			entry.interactedAtByUser.get(userId) ?? 0
+		);
 		if (candidate < min) min = candidate;
 	}
 	return Number.isFinite(min) ? min : 24 * 60 * 60 * 1000;

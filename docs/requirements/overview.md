@@ -16,12 +16,12 @@ Notfeed é um cliente de agregação de informação focado em feeds e notifica�
 
 ## Plataformas-alvo
 
-| Plataforma | Tecnologia | Artefato |
-|---|---|---|
-| Web / PWA | SvelteKit (adapter-static) | Estáticos + Service Worker |
-| Android | TWA (Trusted Web Activity) | APK/AAB |
-| Windows Desktop | Tauri v2 | `.msi` |
-| Linux Desktop | Tauri v2 | `.AppImage` |
+| Plataforma      | Tecnologia                 | Artefato                   |
+| --------------- | -------------------------- | -------------------------- |
+| Web / PWA       | SvelteKit (adapter-static) | Estáticos + Service Worker |
+| Android         | TWA (Trusted Web Activity) | APK/AAB                    |
+| Windows Desktop | Tauri v2                   | `.msi`                     |
+| Linux Desktop   | Tauri v2                   | `.AppImage`                |
 
 ## Stack técnico
 
@@ -49,26 +49,29 @@ Notfeed é um cliente de agregação de informação focado em feeds e notifica�
 ## Rotas
 
 ### Consumer
-| Rota | Descrição |
-|---|---|
-| `/` | Feed — timeline unificada com filtros, macros, entity filter, category filter |
-| `/browse` | Browse — navegação por árvores com filtros de category e busca |
-| `/browse/import` | Import — upload de .notfeed.json ou URLs simples |
-| `/browse/node/[id]` | Detalhe genérico de nó |
-| `/library` | Library — nós ativados organizados em tabs |
-| `/library/node/[id]` | Detalhe genérico de nó |
-| `/user` | Configurações, CRUD de usuários, troca de identidade |
+
+| Rota                 | Descrição                                                                     |
+| -------------------- | ----------------------------------------------------------------------------- |
+| `/`                  | Feed — timeline unificada com filtros, macros, entity filter, category filter |
+| `/browse`            | Browse — navegação por árvores com filtros de category e busca                |
+| `/browse/import`     | Import — upload de .notfeed.json ou URLs simples                              |
+| `/browse/node/[id]`  | Detalhe genérico de nó                                                        |
+| `/library`           | Library — nós ativados organizados em tabs                                    |
+| `/library/node/[id]` | Detalhe genérico de nó                                                        |
+| `/user`              | Configurações, CRUD de usuários, troca de identidade                          |
 
 ### Creator
-| Rota | Descrição |
-|---|---|
-| `/pages` | Lista de ContentTrees do creator |
-| `/pages/new` | Criar nova ContentTree |
-| `/pages/[id]` | Editar ContentTree (CRUD de nós, seções) |
-| `/preview` | Preview de trees publicadas (visão geral + feed) |
-| `/preview/node/[id]` | Detalhe genérico de nó |
+
+| Rota                 | Descrição                                        |
+| -------------------- | ------------------------------------------------ |
+| `/pages`             | Lista de ContentTrees do creator                 |
+| `/pages/new`         | Criar nova ContentTree                           |
+| `/pages/[id]`        | Editar ContentTree (CRUD de nós, seções)         |
+| `/preview`           | Preview de trees publicadas (visão geral + feed) |
+| `/preview/node/[id]` | Detalhe genérico de nó                           |
 
 ### Layout
+
 - **Desktop** (≥900px): sidebar 295px + main scrollável
 - **Mobile** (<900px): bottom nav 56px
 - **Consumer nav**: Feed, Browse, Library, User

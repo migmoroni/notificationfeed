@@ -12,8 +12,12 @@ const dbMock = vi.hoisted(() => ({
 vi.mock('./db.js', () => ({
 	getStorageBackend: vi.fn(async () => ({
 		posts: {
-			async getAll() { return dbMock.records; },
-			async getById(id: string) { return dbMock.records.find((r) => r._pk === id) ?? null; },
+			async getAll() {
+				return dbMock.records;
+			},
+			async getById(id: string) {
+				return dbMock.records.find((r) => r._pk === id) ?? null;
+			},
 			async query(index: string, value: unknown) {
 				if (index === 'byUser') return dbMock.records.filter((r) => r.userId === value);
 				if (index === 'byUserNode') return dbMock.records.filter((r) => r._userNode === value);

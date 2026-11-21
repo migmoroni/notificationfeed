@@ -61,19 +61,23 @@
 			<Input
 				bind:value={typedName}
 				placeholder={t('dialog.remove_user.placeholder')}
-				onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter' && canConfirm) handleConfirm(); }}
+				onkeydown={(e: KeyboardEvent) => {
+					if (e.key === 'Enter' && canConfirm) handleConfirm();
+				}}
 			/>
 		</div>
 
 		<Dialog.Footer>
-			<Button variant="outline" onclick={() => { typedName = ''; oncancel(); }}>
+			<Button
+				variant="outline"
+				onclick={() => {
+					typedName = '';
+					oncancel();
+				}}
+			>
 				{t('btn.cancel')}
 			</Button>
-			<Button
-				variant="destructive"
-				disabled={!canConfirm}
-				onclick={handleConfirm}
-			>
+			<Button variant="destructive" disabled={!canConfirm} onclick={handleConfirm}>
 				<Trash2 class="size-4 mr-1.5" />
 				{t('btn.remove')}
 			</Button>

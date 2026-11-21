@@ -48,7 +48,9 @@ describe('video-quality', () => {
 			}
 		});
 
-		const resolved = resolveIngestionVideoUrl(source, { initialHeight: definitions.videoInitialHeight });
+		const resolved = resolveIngestionVideoUrl(source, {
+			initialHeight: definitions.videoInitialHeight
+		});
 
 		expect(resolved).toBe('https://www.youtube.com/watch?v=dQw4w9WgXcQ&vq=large&height=480');
 	});
@@ -66,7 +68,9 @@ describe('video-quality', () => {
 			}
 		});
 
-		const resolved = resolveIngestionVideoUrl(source, { initialHeight: definitions.videoInitialHeight });
+		const resolved = resolveIngestionVideoUrl(source, {
+			initialHeight: definitions.videoInitialHeight
+		});
 
 		expect(resolved).toBe('https://www.youtube.com/watch?v=dQw4w9WgXcQ&vq=medium&height=360');
 	});

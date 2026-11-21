@@ -123,7 +123,9 @@ describe('media.resolver', () => {
 		expect(embed?.type).toBe('iframe');
 		expect(embed?.provider).toBe('twitch');
 		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
-		expect(embed.embedUrl).toBe('https://clips.twitch.tv/embed?clip=IncredulousSpinelessGoatKreygasm');
+		expect(embed.embedUrl).toBe(
+			'https://clips.twitch.tv/embed?clip=IncredulousSpinelessGoatKreygasm'
+		);
 	});
 
 	it('parses twitch player URL as iframe embed', () => {
@@ -142,7 +144,12 @@ describe('media.resolver', () => {
 		const embed = parseEmbed('https://www.dailymotion.com/video/x84sh87');
 		expect(embed?.type).toBe('iframe');
 		expect(embed?.provider).toBe('dailymotion');
-		if (!embed || embed.type !== 'iframe' || embed.provider !== 'dailymotion' || !('thumbnailUrl' in embed)) {
+		if (
+			!embed ||
+			embed.type !== 'iframe' ||
+			embed.provider !== 'dailymotion' ||
+			!('thumbnailUrl' in embed)
+		) {
 			throw new Error('Expected dailymotion iframe embed');
 		}
 		expect(embed.embedUrl).toBe('https://www.dailymotion.com/embed/video/x84sh87');
@@ -170,7 +177,9 @@ describe('media.resolver', () => {
 		expect(embed?.type).toBe('iframe');
 		expect(embed?.provider).toBe('dailymotion');
 		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
-		expect(embed.embedUrl).toBe('https://www.dailymotion.com/embed/video/x84sh87?height=720&quality=720');
+		expect(embed.embedUrl).toBe(
+			'https://www.dailymotion.com/embed/video/x84sh87?height=720&quality=720'
+		);
 	});
 
 	it('does not treat dailymotion listing URL as embeddable video', () => {
@@ -262,19 +271,27 @@ describe('media.resolver', () => {
 	});
 
 	it('parses peertube watch URL as iframe embed', () => {
-		const embed = parseEmbed('https://peertube.tv/videos/watch/9c9de5e8-0a1e-484a-b099-e80766180a6d');
+		const embed = parseEmbed(
+			'https://peertube.tv/videos/watch/9c9de5e8-0a1e-484a-b099-e80766180a6d'
+		);
 		expect(embed?.type).toBe('iframe');
 		expect(embed?.provider).toBe('peertube');
 		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
-		expect(embed.embedUrl).toBe('https://peertube.tv/videos/embed/9c9de5e8-0a1e-484a-b099-e80766180a6d');
+		expect(embed.embedUrl).toBe(
+			'https://peertube.tv/videos/embed/9c9de5e8-0a1e-484a-b099-e80766180a6d'
+		);
 	});
 
 	it('parses peertube embed URL as iframe embed', () => {
-		const embed = parseEmbed('https://peertube.tv/videos/embed/9c9de5e8-0a1e-484a-b099-e80766180a6d?autoplay=1');
+		const embed = parseEmbed(
+			'https://peertube.tv/videos/embed/9c9de5e8-0a1e-484a-b099-e80766180a6d?autoplay=1'
+		);
 		expect(embed?.type).toBe('iframe');
 		expect(embed?.provider).toBe('peertube');
 		if (!embed || embed.type !== 'iframe') throw new Error('Expected iframe embed');
-		expect(embed.embedUrl).toBe('https://peertube.tv/videos/embed/9c9de5e8-0a1e-484a-b099-e80766180a6d');
+		expect(embed.embedUrl).toBe(
+			'https://peertube.tv/videos/embed/9c9de5e8-0a1e-484a-b099-e80766180a6d'
+		);
 	});
 
 	it('parses peertube short URL as iframe embed', () => {

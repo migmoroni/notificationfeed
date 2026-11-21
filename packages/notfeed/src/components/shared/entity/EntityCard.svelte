@@ -38,18 +38,43 @@
 	let showUnsubscribeConfirm = $state(false);
 	let showUnsaveConfirm = $state(false);
 
-	const roleMeta: Record<string, { label: string; activeLabel: string; inactiveLabel: string; icon: typeof Globe }> = {
-		profile: { label: t('entity.profile'), activeLabel: t('action.subscribed'), inactiveLabel: t('action.subscribe'), icon: User },
-		font: { label: t('entity.font'), activeLabel: t('action.following'), inactiveLabel: t('action.follow'), icon: Rss },
-		collection: { label: t('entity.collection'), activeLabel: t('action.pinned'), inactiveLabel: t('action.pin'), icon: Globe }
+	const roleMeta: Record<
+		string,
+		{ label: string; activeLabel: string; inactiveLabel: string; icon: typeof Globe }
+	> = {
+		profile: {
+			label: t('entity.profile'),
+			activeLabel: t('action.subscribed'),
+			inactiveLabel: t('action.subscribe'),
+			icon: User
+		},
+		font: {
+			label: t('entity.font'),
+			activeLabel: t('action.following'),
+			inactiveLabel: t('action.follow'),
+			icon: Rss
+		},
+		collection: {
+			label: t('entity.collection'),
+			activeLabel: t('action.pinned'),
+			inactiveLabel: t('action.pin'),
+			icon: Globe
+		}
 	};
 
-	let meta = $derived(roleMeta[node.role] ?? { label: node.role, activeLabel: t('action.following'), inactiveLabel: t('action.follow'), icon: Globe });
+	let meta = $derived(
+		roleMeta[node.role] ?? {
+			label: node.role,
+			activeLabel: t('action.following'),
+			inactiveLabel: t('action.follow'),
+			icon: Globe
+		}
+	);
 	let activation = $derived(consumer.getActivation(node.metadata.id));
 	let isActivated = $derived(!!activation);
 	let isFavorite = $derived(activation?.favorite ?? false);
 	let isEnabled = $derived(activation?.enabled ?? true);
-	let isActive = $derived(node.role === 'font' ? (isActivated && isEnabled) : isActivated);
+	let isActive = $derived(node.role === 'font' ? isActivated && isEnabled : isActivated);
 
 	/**
 	 * Determine protocol icon for font nodes.
@@ -118,14 +143,12 @@
 		<!-- Avatar / Icon -->
 		{#if avatarUrl}
 			<div class="shrink-0 w-32 overflow-hidden">
-				<img
-					src={avatarUrl}
-					alt=""
-					class="w-full h-full object-cover rounded-l-lg"
-				/>
+				<img src={avatarUrl} alt="" class="w-full h-full object-cover rounded-l-lg" />
 			</div>
 		{:else}
-			<div class="flex items-center justify-center w-32 shrink-0 rounded-l-lg bg-muted text-muted-foreground">
+			<div
+				class="flex items-center justify-center w-32 shrink-0 rounded-l-lg bg-muted text-muted-foreground"
+			>
 				{#if protocolIcon}
 					{@const ProtocolIcon = protocolIcon}
 					<ProtocolIcon class="size-5" />
@@ -170,11 +193,16 @@
 {/snippet}
 
 {#if href}
-	<a {href} class="block rounded-lg border border-border bg-card text-card-foreground transition-colors hover:bg-accent/50">
+	<a
+		{href}
+		class="block rounded-lg border border-border bg-card text-card-foreground transition-colors hover:bg-accent/50"
+	>
 		{@render cardContent()}
 	</a>
 {:else}
-	<div class="rounded-lg border border-border bg-card text-card-foreground transition-colors hover:bg-accent/50">
+	<div
+		class="rounded-lg border border-border bg-card text-card-foreground transition-colors hover:bg-accent/50"
+	>
 		{@render cardContent()}
 	</div>
 {/if}

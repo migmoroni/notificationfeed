@@ -4,11 +4,7 @@ import { peerIdFromCID, peerIdFromString } from '@libp2p/peer-id';
 import { createHelia } from 'helia';
 import { CID } from 'multiformats/cid';
 import { INGESTION_FETCH } from '../../config/back-settings.js';
-import {
-	joinFeedPath,
-	type FeedIpfsTransport,
-	type FeedIpnsTransport
-} from './feed-url.js';
+import { joinFeedPath, type FeedIpfsTransport, type FeedIpnsTransport } from './feed-url.js';
 
 interface HeliaRuntime {
 	fs: UnixFS;
@@ -71,7 +67,7 @@ function parseIpnsKey(name: string) {
 
 async function readUnixfsText(
 	fs: UnixFS,
-	cid: CID,
+	cid: Parameters<UnixFS['cat']>[0],
 	path: string,
 	signal: AbortSignal
 ): Promise<string> {
@@ -82,7 +78,10 @@ async function readUnixfsText(
 	return readUtf8Stream(stream, INGESTION_FETCH.ipfsMaxBodyBytes);
 }
 
-async function readUtf8Stream(stream: AsyncIterable<Uint8Array>, maxBytes: number): Promise<string> {
+async function readUtf8Stream(
+	stream: AsyncIterable<Uint8Array>,
+	maxBytes: number
+): Promise<string> {
 	const chunks: Uint8Array[] = [];
 	let total = 0;
 

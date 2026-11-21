@@ -2,7 +2,10 @@
  * ContentMedia store — persistence for content media using IndexedDB.
  */
 
-import type { ContentMedia, ContentMediaRepository } from '../domain/content-media/content-media.js';
+import type {
+	ContentMedia,
+	ContentMediaRepository
+} from '../domain/content-media/content-media.js';
 import { getStorageBackend } from './db.js';
 
 export function createContentMediaStore(): ContentMediaRepository {

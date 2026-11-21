@@ -1,7 +1,8 @@
 const URL_RE = /\b(?:https?:\/\/|ipfs:\/\/|ipns:\/\/)[^\s<>"'\])]+/gi;
 const IMAGE_EXT_RE = /\.(?:avif|webp|png|jpe?g|gif|bmp|svg|tiff?|heic|heif|apng)$/i;
 const VIDEO_EXT_RE = /\.(?:mp4|webm|ogg|ogv|mov|m4v|m3u8|mpd)$/i;
-const IMAGE_QUERY_VALUE_RE = /(?:^|\b)(?:image\/|avif|webp|png|jpe?g|gif|bmp|svg|tiff?|heic|heif|apng)(?:$|\b)/i;
+const IMAGE_QUERY_VALUE_RE =
+	/(?:^|\b)(?:image\/|avif|webp|png|jpe?g|gif|bmp|svg|tiff?|heic|heif|apng)(?:$|\b)/i;
 const VIDEO_QUERY_VALUE_RE = /(?:^|\b)(?:video\/|mp4|webm|ogg|ogv|mov|m4v|m3u8|mpd)(?:$|\b)/i;
 const IMAGE_PATH_HINT_RE = /\/(?:img|image|images|photo|photos|thumb|thumbnail|media)\b/i;
 const SUPPORTED_PROTOCOLS = new Set(['http:', 'https:', 'ipfs:', 'ipns:']);
@@ -69,7 +70,9 @@ export function isLikelyImageUrl(url: string | null | undefined): boolean {
 /**
  * Pick the first valid URL from explicit image candidates.
  */
-export function pickFirstImageUrl(...candidates: Array<string | null | undefined>): string | undefined {
+export function pickFirstImageUrl(
+	...candidates: Array<string | null | undefined>
+): string | undefined {
 	for (const candidate of candidates) {
 		const normalized = normalizeUrlCandidate(candidate);
 		if (normalized) return normalized;
@@ -83,7 +86,8 @@ export function pickFirstImageUrl(...candidates: Array<string | null | undefined
 export function extractFirstImageUrlFromHtml(html: string | null | undefined): string | undefined {
 	if (!html) return undefined;
 
-	const srcRegex = /<(?:img|source)\b[^>]*\b(?:src|data-src)\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))/gi;
+	const srcRegex =
+		/<(?:img|source)\b[^>]*\b(?:src|data-src)\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))/gi;
 	for (const match of html.matchAll(srcRegex)) {
 		const src = match[1] ?? match[2] ?? match[3] ?? '';
 		if (!src || src.toLowerCase().startsWith('data:')) continue;
@@ -120,14 +124,22 @@ export function extractFirstImageUrlFromText(text: string | null | undefined): s
 /**
  * Extract image URLs from structured Nostr tags (`image`, `thumb`, `imeta`).
  */
-export function extractImageUrlFromNostrTags(tags: string[][] | null | undefined): string | undefined {
+export function extractImageUrlFromNostrTags(
+	tags: string[][] | null | undefined
+): string | undefined {
 	if (!tags || tags.length === 0) return undefined;
 
 	for (const tag of tags) {
 		if (!tag || tag.length < 2) continue;
 		const kind = tag[0]?.toLowerCase() ?? '';
 
-		if (kind === 'image' || kind === 'img' || kind === 'thumb' || kind === 'thumbnail' || kind === 'photo') {
+		if (
+			kind === 'image' ||
+			kind === 'img' ||
+			kind === 'thumb' ||
+			kind === 'thumbnail' ||
+			kind === 'photo'
+		) {
 			const direct = normalizeUrlCandidate(tag[1]);
 			if (direct) return direct;
 		}

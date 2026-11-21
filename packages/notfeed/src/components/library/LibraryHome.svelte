@@ -27,7 +27,6 @@
 </script>
 
 <div class="flex flex-col gap-4 h-full min-h-0">
-
 	{#if resolvedTabs.length === 0}
 		<div class="flex flex-col items-center justify-center py-12 text-center">
 			<p class="text-sm text-muted-foreground">{t('library.home_empty')}</p>
@@ -45,7 +44,9 @@
 					class="group flex flex-col items-center justify-start gap-2 h-full rounded-lg border bg-card text-card-foreground p-3 hover:bg-accent hover:text-accent-foreground transition-colors"
 				>
 					<span class="text-5xl leading-none">{tab.emoji}</span>
-					<span class="text-sm font-medium text-center line-clamp-2 wrap-break-word">{tab.title}</span>
+					<span class="text-sm font-medium text-center line-clamp-2 wrap-break-word">
+						{tab.title}
+					</span>
 					<span class="text-xs text-muted-foreground">{tab.count}</span>
 				</button>
 			{/each}

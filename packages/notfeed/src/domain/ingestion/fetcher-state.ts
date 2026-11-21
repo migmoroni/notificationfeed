@@ -194,10 +194,7 @@ export function emptyProtocolState(entryId: string): ProtocolFetcherState {
 }
 
 /** Get the sub-state for an entry, creating it on first access. */
-export function getOrCreateProtoState(
-	state: FetcherState,
-	entryId: string
-): ProtocolFetcherState {
+export function getOrCreateProtoState(state: FetcherState, entryId: string): ProtocolFetcherState {
 	const existing = state.protocols[entryId];
 	if (existing) return existing;
 	const fresh = emptyProtocolState(entryId);

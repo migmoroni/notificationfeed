@@ -34,7 +34,12 @@ export async function processImage(file: File, slot: ImageSlot): Promise<ImageAs
 
 	// Calculate target dimensions
 	const maxDim = IMAGE_MAX_DIMENSIONS[slot];
-	const { width, height } = fitDimensions(img.naturalWidth, img.naturalHeight, maxDim.width, maxDim.height);
+	const { width, height } = fitDimensions(
+		img.naturalWidth,
+		img.naturalHeight,
+		maxDim.width,
+		maxDim.height
+	);
 
 	// Draw to canvas and export as WEBP
 	const canvas = document.createElement('canvas');

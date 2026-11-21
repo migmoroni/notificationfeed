@@ -2,7 +2,10 @@
  * TreePublication store — persistence for tree publication snapshots using IndexedDB.
  */
 
-import type { TreePublication, TreePublicationRepository } from '../domain/tree-export/tree-publication.js';
+import type {
+	TreePublication,
+	TreePublicationRepository
+} from '../domain/tree-export/tree-publication.js';
 import { getStorageBackend } from './db.js';
 
 export function createTreePublicationStore(): TreePublicationRepository {

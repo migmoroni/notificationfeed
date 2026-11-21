@@ -54,11 +54,12 @@
 
 	// Initialize header with defaults or from initial prop
 	let header = $state<NodeHeader>(
-		untrack(() =>
-			initialHeader ?? {
-				title: '',
-				categoryAssignments: []
-			}
+		untrack(
+			() =>
+				initialHeader ?? {
+					title: '',
+					categoryAssignments: []
+				}
 		)
 	);
 
@@ -131,32 +132,16 @@
 </script>
 
 <form onsubmit={handleSubmit} class="space-y-6">
-	<NodeHeaderForm
-		{header}
-		onchange={(h) => (header = h)}
-	/>
+	<NodeHeaderForm {header} onchange={(h) => (header = h)} />
 
 	{#if body.role === 'collection'}
-		<CollectionBodyForm
-			body={body as CollectionBody}
-			onchange={(b) => (body = b)}
-		/>
+		<CollectionBodyForm body={body as CollectionBody} onchange={(b) => (body = b)} />
 	{:else if body.role === 'profile'}
-		<ProfileBodyForm
-			body={body as ProfileBody}
-			onchange={(b) => (body = b)}
-		/>
+		<ProfileBodyForm body={body as ProfileBody} onchange={(b) => (body = b)} />
 	{:else if body.role === 'font'}
-		<FontBodyForm
-			body={body as FontBody}
-			onchange={(b) => (body = b)}
-		/>
+		<FontBodyForm body={body as FontBody} onchange={(b) => (body = b)} />
 	{:else if body.role === 'tree'}
-		<TreeLinkBodyForm
-			body={body as TreeLinkBody}
-			onchange={(b) => (body = b)}
-			{availableTrees}
-		/>
+		<TreeLinkBodyForm body={body as TreeLinkBody} onchange={(b) => (body = b)} {availableTrees} />
 	{/if}
 
 	<CategoryTreePicker
@@ -176,7 +161,8 @@
 			<AvatarPicker
 				mediaId={header.coverMediaId}
 				emoji={header.coverEmoji}
-				onchange={({ mediaId, emoji }) => (header = { ...header, coverMediaId: mediaId, coverEmoji: emoji })}
+				onchange={({ mediaId, emoji }) =>
+					(header = { ...header, coverMediaId: mediaId, coverEmoji: emoji })}
 			/>
 		</div>
 

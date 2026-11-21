@@ -248,11 +248,16 @@ function capMediaProfileByGeneral(
 ): IngestionMediaProfile {
 	return {
 		imageMaxWidth: capImageWidthByGeneral(profile.imageMaxWidth, general.imageMaxWidth),
-		videoInitialHeight: capVideoInitialHeightByGeneral(profile.videoInitialHeight, general.videoInitialHeight)
+		videoInitialHeight: capVideoInitialHeightByGeneral(
+			profile.videoInitialHeight,
+			general.videoInitialHeight
+		)
 	};
 }
 
-function normalizeMediaIngestionSettings(mediaIngestion: IngestionMediaSettings): IngestionMediaSettings {
+function normalizeMediaIngestionSettings(
+	mediaIngestion: IngestionMediaSettings
+): IngestionMediaSettings {
 	const general = mediaIngestion.general;
 
 	const byNetwork = {
@@ -322,15 +327,21 @@ export function createIngestionSettings(): IngestionSettings {
 	};
 }
 
-export function normalizeIngestionSettings(settings: IngestionSettings | null | undefined): IngestionSettings {
+export function normalizeIngestionSettings(
+	settings: IngestionSettings | null | undefined
+): IngestionSettings {
 	const defaults = createIngestionSettings();
 	if (!settings) return defaults;
 
 	return {
 		...defaults,
 		...settings,
-		proxyServices: settings.proxyServices ? [...settings.proxyServices] : [...defaults.proxyServices],
-		ipfsGatewayServices: settings.ipfsGatewayServices ? [...settings.ipfsGatewayServices] : [...defaults.ipfsGatewayServices],
+		proxyServices: settings.proxyServices
+			? [...settings.proxyServices]
+			: [...defaults.proxyServices],
+		ipfsGatewayServices: settings.ipfsGatewayServices
+			? [...settings.ipfsGatewayServices]
+			: [...defaults.ipfsGatewayServices],
 		httpFeedTransportByKind: {
 			rss: {
 				...defaults.httpFeedTransportByKind.rss,

@@ -26,8 +26,8 @@
 		{onclick}
 		class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors
 			{active
-				? 'text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'
-				: 'text-muted-foreground hover:text-foreground hover:bg-muted'}"
+			? 'text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'
+			: 'text-muted-foreground hover:text-foreground hover:bg-muted'}"
 		aria-label={active ? t('aria.deactivate') : t('aria.activate')}
 	>
 		{#if active}
@@ -43,8 +43,8 @@
 		{onclick}
 		class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors
 			{active
-				? 'text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'
-				: 'text-muted-foreground hover:text-foreground hover:bg-muted border border-border'}"
+			? 'text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'
+			: 'text-muted-foreground hover:text-foreground hover:bg-muted border border-border'}"
 		aria-label={active ? t('aria.deactivate') : t('aria.activate')}
 	>
 		{#if active}

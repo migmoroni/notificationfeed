@@ -2,20 +2,20 @@
 
 ## Leis invioláveis
 
-| ID | Regra |
-| --- | --- |
-| E2-INV-01 | Manter os três workspaces atuais e os agrupamentos do pacote único. Organização de negócio pertence à etapa 3. |
-| E2-INV-02 | Uma implementação ativa por responsabilidade. Sem `legacy`, cópia de produto, alias antigo, reexport ou wrapper destinado a sustentar estrutura substituída. |
+| ID        | Regra                                                                                                                                                                                                                        |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| E2-INV-01 | Manter os três workspaces atuais e os agrupamentos do pacote único. Organização de negócio pertence à etapa 3.                                                                                                               |
+| E2-INV-02 | Uma implementação ativa por responsabilidade. Sem `legacy`, cópia de produto, alias antigo, reexport ou wrapper destinado a sustentar estrutura substituída.                                                                 |
 | E2-INV-03 | Preservar banco `notfeed-v2` v18, stores, índices, chaves, formatos de importação/exportação, contas, URLs públicas e identidade `app.notfeed.desktop`. Não apagar, converter ou reimportar dados para fazer um gate passar. |
-| E2-INV-04 | Obedecer ao grafo abaixo; nenhuma dependência pacote → aplicativo, produto → tooling ou import de fontes entre aplicativos. |
-| E2-INV-05 | Separar migração do gerenciador de atualizações deliberadas. Um grupo de compatibilidade por vez, com versões e diferença de lockfile explicadas. |
-| E2-INV-06 | Dependências diretas devem ser declaradas por seus consumidores. Ferramentas adicionais somente dentro da autorização registrada; nova biblioteca direta não prevista exige consulta. |
-| E2-INV-07 | Preservar `strict: true`, `checkJs: true`, descoberta integral de fontes e identidade/cobertura dos testes. Não relaxar tipos, lint, assertions ou critérios de segurança para obter zero. |
-| E2-INV-08 | Validar contrato e prova antes da implementação. Aprovação depende de comandos executados, saída zero e evidência vinculada às fontes e contratos atuais. |
-| E2-INV-09 | Não presumir sucesso diante de erro, timeout, sinal, ferramenta ausente, teste ignorado, relatório inválido ou job obrigatório omitido. |
-| E2-INV-10 | Checks permanentes não exigem aprovação P0–P6 nem hashes imutáveis do produto. Preservar os comprovantes históricos; não reescrevê-los como provas das versões novas. |
-| E2-INV-11 | Mudanças no produto limitam-se às correções e adaptações técnicas necessárias e testadas. Mudança de regra, schema, plataforma ou redesenho amplo exige Stop & Ask. |
-| E2-INV-12 | Registrar estado, decisões e recuperação reproduzível; preservar trabalho do usuário e dados pessoais. Artefatos de teste usam dados sintéticos. |
+| E2-INV-04 | Obedecer ao grafo abaixo; nenhuma dependência pacote → aplicativo, produto → tooling ou import de fontes entre aplicativos.                                                                                                  |
+| E2-INV-05 | Separar migração do gerenciador de atualizações deliberadas. Um grupo de compatibilidade por vez, com versões e diferença de lockfile explicadas.                                                                            |
+| E2-INV-06 | Dependências diretas devem ser declaradas por seus consumidores. Ferramentas adicionais somente dentro da autorização registrada; nova biblioteca direta não prevista exige consulta.                                        |
+| E2-INV-07 | Preservar `strict: true`, `checkJs: true`, descoberta integral de fontes e identidade/cobertura dos testes. Não relaxar tipos, lint, assertions ou critérios de segurança para obter zero.                                   |
+| E2-INV-08 | Validar contrato e prova antes da implementação. Aprovação depende de comandos executados, saída zero e evidência vinculada às fontes e contratos atuais.                                                                    |
+| E2-INV-09 | Não presumir sucesso diante de erro, timeout, sinal, ferramenta ausente, teste ignorado, relatório inválido ou job obrigatório omitido.                                                                                      |
+| E2-INV-10 | Checks permanentes não exigem aprovação P0–P6 nem hashes imutáveis do produto. Preservar os comprovantes históricos; não reescrevê-los como provas das versões novas.                                                        |
+| E2-INV-11 | Mudanças no produto limitam-se às correções e adaptações técnicas necessárias e testadas. Mudança de regra, schema, plataforma ou redesenho amplo exige Stop & Ask.                                                          |
+| E2-INV-12 | Registrar estado, decisões e recuperação reproduzível; preservar trabalho do usuário e dados pessoais. Artefatos de teste usam dados sintéticos.                                                                             |
 
 ## Topologia preservada e acréscimos técnicos
 

@@ -201,5 +201,5 @@ export const objects: EmojiEntry[] = [
 	{ emoji: '📧', name: 'email e-mail' },
 	{ emoji: '📨', name: 'incoming envelope' },
 	{ emoji: '📩', name: 'envelope arrow' },
-	{ emoji: '🏮', name: 'red paper lantern' },
+	{ emoji: '🏮', name: 'red paper lantern' }
 ];

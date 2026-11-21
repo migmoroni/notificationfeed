@@ -14,5 +14,5 @@ import { resolveEntry, deriveDepth } from './category-data.js';
 import data from './data/region.json';
 
 export const regionSeed: SeedCategory[] = (data as CategoryDataEntry[]).map((e) =>
-resolveEntry(e, 'region', deriveDepth(e.id, true))
+	resolveEntry(e, 'region', deriveDepth(e.id, true))
 );

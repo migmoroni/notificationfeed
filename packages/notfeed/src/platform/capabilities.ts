@@ -16,7 +16,10 @@ export function detectPlatform(): Platform {
 
 	// TWA sets document.referrer to the Android package origin
 	// or we can check the display-mode media query
-	if (window.matchMedia('(display-mode: standalone)').matches && /android/i.test(navigator.userAgent)) {
+	if (
+		window.matchMedia('(display-mode: standalone)').matches &&
+		/android/i.test(navigator.userAgent)
+	) {
 		return 'android';
 	}
 

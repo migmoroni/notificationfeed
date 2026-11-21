@@ -201,7 +201,11 @@
 	<title>{t('notifications.settings_title')}</title>
 </svelte:head>
 
-<div class="mx-auto w-full h-full flex flex-col pt-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
+<div
+	class="mx-auto w-full h-full flex flex-col pt-4"
+	class:max-w-8xl={layout.isExpanded}
+	class:max-w-2xl={!layout.isExpanded}
+>
 	<div class="px-4 shrink-0">
 		<PageHeader title={t('notifications.settings_title')}>
 			{#snippet prefix()}
@@ -216,400 +220,419 @@
 		<div class="mx-auto w-full flex flex-col gap-6 {layout.isExpanded ? 'max-w-3xl' : 'max-w-xl'}">
 			<p class="text-sm text-muted-foreground">{t('notifications.settings_hint')}</p>
 
-	{#if pipeline}
-
-		<section class="space-y-4">
-			<div class="flex items-center justify-between gap-4">
-				<div class="min-w-0">
-					<p class="text-sm font-medium">{t('notifications.master_toggle')}</p>
-					<p class="text-xs text-muted-foreground">{t('notifications.master_toggle_hint')}</p>
-				</div>
-				<Switch checked={pipeline.enabled} onCheckedChange={setEnabled} />
-			</div>
-
-			{#if caps.hasNotifications}
-				<div class="flex items-center justify-between gap-4">
-					<div class="min-w-0">
-						<p class="text-sm font-medium">{t('notifications.permission_label')}</p>
-						<p class="text-xs text-muted-foreground">{permissionLabel(permission)}</p>
+			{#if pipeline}
+				<section class="space-y-4">
+					<div class="flex items-center justify-between gap-4">
+						<div class="min-w-0">
+							<p class="text-sm font-medium">{t('notifications.master_toggle')}</p>
+							<p class="text-xs text-muted-foreground">{t('notifications.master_toggle_hint')}</p>
+						</div>
+						<Switch checked={pipeline.enabled} onCheckedChange={setEnabled} />
 					</div>
-					{#if permission !== 'granted' && permission !== 'unsupported'}
-						<Button variant="outline" size="sm" onclick={handleRequestPermission}>
-							{t('notifications.permission_request')}
-						</Button>
-					{/if}
-				</div>
-			{/if}
-		</section>
 
-		<Separator class="my-6" />
-		
-		<!-- Do-not-disturb (DND) — placed first, per design. Quiet still
+					{#if caps.hasNotifications}
+						<div class="flex items-center justify-between gap-4">
+							<div class="min-w-0">
+								<p class="text-sm font-medium">{t('notifications.permission_label')}</p>
+								<p class="text-xs text-muted-foreground">{permissionLabel(permission)}</p>
+							</div>
+							{#if permission !== 'granted' && permission !== 'unsupported'}
+								<Button variant="outline" size="sm" onclick={handleRequestPermission}>
+									{t('notifications.permission_request')}
+								</Button>
+							{/if}
+						</div>
+					{/if}
+				</section>
+
+				<Separator class="my-6" />
+
+				<!-- Do-not-disturb (DND) — placed first, per design. Quiet still
 		     records inbox entries so they are visible when the bell opens,
 		     but suppresses OS popups and the unread badge. -->
-		<section class="rounded-lg border border-border bg-card p-4 space-y-3">
-			<div>
-				<h2 class="text-sm font-semibold">{t('notifications.dnd_title')}</h2>
-				<p class="text-xs text-muted-foreground mt-1">{t('notifications.dnd_hint')}</p>
-			</div>
-			<div class="flex items-center justify-between gap-4">
-				<div class="min-w-0">
-					<p class="text-sm font-medium">{t('notifications.dnd_posts_label')}</p>
-					<p class="text-xs text-muted-foreground">{t('notifications.dnd_posts_hint')}</p>
-				</div>
-				<Switch checked={pipeline.quietPosts} onCheckedChange={setQuietPosts} />
-			</div>
-			<div class="flex items-center justify-between gap-4">
-				<div class="min-w-0">
-					<p class="text-sm font-medium">{t('notifications.dnd_health_label')}</p>
-					<p class="text-xs text-muted-foreground">{t('notifications.dnd_health_hint')}</p>
-				</div>
-				<Switch checked={eventSettings.quiet} onCheckedChange={setEventQuiet} />
-			</div>
-		</section>
-
-		<!-- Inbox layout — controls how the bell groups its entries. -->
-		<section class="mt-4 rounded-lg border border-border bg-card p-4">
-			<div class="flex items-center justify-between gap-4">
-				<div class="min-w-0">
-					<p class="text-sm font-medium">{t('notifications.split_tabs_label')}</p>
-					<p class="text-xs text-muted-foreground">{t('notifications.split_tabs_hint')}</p>
-				</div>
-				<Switch checked={pipeline.splitInboxTabs} onCheckedChange={setSplitInboxTabs} />
-			</div>
-		</section>
-
-		<Separator class="my-4" />
-
-		<section class="space-y-3">
-			<div>
-				<h2 class="text-sm font-semibold">{t('notifications.pipeline_title')}</h2>
-				<p class="text-xs text-muted-foreground">{t('notifications.funnel_hint')}</p>
-			</div>
-
-			<!-- Funnel — three fixed cards, narrowing visually toward the bottom. -->
-			<div class="space-y-2">
-				<!-- Step 1: per_post — widest, most detail. -->
-				<div class="rounded-lg border border-border bg-card p-4 space-y-3">
-					<div class="flex items-start gap-3">
-						<div
-							class="inline-flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary shrink-0"
-						>
-							<Mail class="size-4" />
+				<section class="rounded-lg border border-border bg-card p-4 space-y-3">
+					<div>
+						<h2 class="text-sm font-semibold">{t('notifications.dnd_title')}</h2>
+						<p class="text-xs text-muted-foreground mt-1">{t('notifications.dnd_hint')}</p>
+					</div>
+					<div class="flex items-center justify-between gap-4">
+						<div class="min-w-0">
+							<p class="text-sm font-medium">{t('notifications.dnd_posts_label')}</p>
+							<p class="text-xs text-muted-foreground">{t('notifications.dnd_posts_hint')}</p>
 						</div>
-						<div class="min-w-0 flex-1">
-							<div class="flex items-baseline justify-between gap-2">
-								<p class="text-sm font-semibold">
-									1. {t('notifications.step_kind_per_post')}
-								</p>
-								<span class="text-[10px] text-muted-foreground">
-									{selectedCount(pipeline.steps[0])} / {macros.length}
-								</span>
-							</div>
-							<p class="text-xs text-muted-foreground">
-								{t('notifications.step_per_post_hint')}
-							</p>
+						<Switch checked={pipeline.quietPosts} onCheckedChange={setQuietPosts} />
+					</div>
+					<div class="flex items-center justify-between gap-4">
+						<div class="min-w-0">
+							<p class="text-sm font-medium">{t('notifications.dnd_health_label')}</p>
+							<p class="text-xs text-muted-foreground">{t('notifications.dnd_health_hint')}</p>
 						</div>
+						<Switch checked={eventSettings.quiet} onCheckedChange={setEventQuiet} />
+					</div>
+				</section>
+
+				<!-- Inbox layout — controls how the bell groups its entries. -->
+				<section class="mt-4 rounded-lg border border-border bg-card p-4">
+					<div class="flex items-center justify-between gap-4">
+						<div class="min-w-0">
+							<p class="text-sm font-medium">{t('notifications.split_tabs_label')}</p>
+							<p class="text-xs text-muted-foreground">{t('notifications.split_tabs_hint')}</p>
+						</div>
+						<Switch checked={pipeline.splitInboxTabs} onCheckedChange={setSplitInboxTabs} />
+					</div>
+				</section>
+
+				<Separator class="my-4" />
+
+				<section class="space-y-3">
+					<div>
+						<h2 class="text-sm font-semibold">{t('notifications.pipeline_title')}</h2>
+						<p class="text-xs text-muted-foreground">{t('notifications.funnel_hint')}</p>
 					</div>
 
-					<button
-						type="button"
-						class="w-full inline-flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-xs hover:bg-accent transition-colors"
-						onclick={() => togglePicker(0)}
-					>
-						<span>
-							{selectedCount(pipeline.steps[0]) === 0
-								? t('notifications.no_macros_selected')
-								: t('notifications.macros_selected', {
-										count: selectedCount(pipeline.steps[0])
-									})}
-						</span>
-						<ChevronDown
-							class="size-4 transition-transform {openPicker === 0 ? 'rotate-180' : ''}"
-						/>
-					</button>
-
-					{#if openPicker === 0}
-						<div class="rounded-md border border-border p-2 space-y-1 max-h-60 overflow-y-auto">
-							{#if macros.length === 0}
-								<p class="text-xs text-muted-foreground text-center py-2">
-									{t('notifications.no_macros_yet')}
-								</p>
-							{:else}
-								<div class="flex justify-end gap-2 mb-1">
-									<Button variant="ghost" size="sm" class="h-6 text-xs" onclick={() => selectAllMacros(0)}>
-										{t('notifications.select_all')}
-									</Button>
-									<Button variant="ghost" size="sm" class="h-6 text-xs" onclick={() => clearMacros(0)}>
-										{t('notifications.clear')}
-									</Button>
+					<!-- Funnel — three fixed cards, narrowing visually toward the bottom. -->
+					<div class="space-y-2">
+						<!-- Step 1: per_post — widest, most detail. -->
+						<div class="rounded-lg border border-border bg-card p-4 space-y-3">
+							<div class="flex items-start gap-3">
+								<div
+									class="inline-flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary shrink-0"
+								>
+									<Mail class="size-4" />
 								</div>
-								{#each macros as m (m.id)}
-									<label
-										class="flex items-center gap-2 px-2 py-1 rounded text-xs hover:bg-accent cursor-pointer"
-									>
-										<input
-											type="checkbox"
-											class="size-3.5"
-											checked={pipeline.steps[0].macroIds.includes(m.id)}
-											onchange={() => toggleMacroInStep(0, m.id)}
-										/>
-										<span class="truncate">{m.name}</span>
-									</label>
-								{/each}
+								<div class="min-w-0 flex-1">
+									<div class="flex items-baseline justify-between gap-2">
+										<p class="text-sm font-semibold">
+											1. {t('notifications.step_kind_per_post')}
+										</p>
+										<span class="text-[10px] text-muted-foreground">
+											{selectedCount(pipeline.steps[0])} / {macros.length}
+										</span>
+									</div>
+									<p class="text-xs text-muted-foreground">
+										{t('notifications.step_per_post_hint')}
+									</p>
+								</div>
+							</div>
+
+							<button
+								type="button"
+								class="w-full inline-flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-xs hover:bg-accent transition-colors"
+								onclick={() => togglePicker(0)}
+							>
+								<span>
+									{selectedCount(pipeline.steps[0]) === 0
+										? t('notifications.no_macros_selected')
+										: t('notifications.macros_selected', {
+												count: selectedCount(pipeline.steps[0])
+											})}
+								</span>
+								<ChevronDown
+									class="size-4 transition-transform {openPicker === 0 ? 'rotate-180' : ''}"
+								/>
+							</button>
+
+							{#if openPicker === 0}
+								<div class="rounded-md border border-border p-2 space-y-1 max-h-60 overflow-y-auto">
+									{#if macros.length === 0}
+										<p class="text-xs text-muted-foreground text-center py-2">
+											{t('notifications.no_macros_yet')}
+										</p>
+									{:else}
+										<div class="flex justify-end gap-2 mb-1">
+											<Button
+												variant="ghost"
+												size="sm"
+												class="h-6 text-xs"
+												onclick={() => selectAllMacros(0)}
+											>
+												{t('notifications.select_all')}
+											</Button>
+											<Button
+												variant="ghost"
+												size="sm"
+												class="h-6 text-xs"
+												onclick={() => clearMacros(0)}
+											>
+												{t('notifications.clear')}
+											</Button>
+										</div>
+										{#each macros as m (m.id)}
+											<label
+												class="flex items-center gap-2 px-2 py-1 rounded text-xs hover:bg-accent cursor-pointer"
+											>
+												<input
+													type="checkbox"
+													class="size-3.5"
+													checked={pipeline.steps[0].macroIds.includes(m.id)}
+													onchange={() => toggleMacroInStep(0, m.id)}
+												/>
+												<span class="truncate">{m.name}</span>
+											</label>
+										{/each}
+									{/if}
+								</div>
 							{/if}
 						</div>
-					{/if}
-				</div>
 
-				<!-- Funnel arrow -->
-				<div class="flex justify-center text-muted-foreground" aria-hidden="true">
-					<ChevronDown class="size-4" />
-				</div>
-
-				<!-- Step 2: batch_macro — middle, macro-level summary. -->
-				<div class="rounded-lg border border-border bg-card p-4 space-y-3 mx-4">
-					<div class="flex items-start gap-3">
-						<div
-							class="inline-flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary shrink-0"
-						>
-							<Rss class="size-4" />
+						<!-- Funnel arrow -->
+						<div class="flex justify-center text-muted-foreground" aria-hidden="true">
+							<ChevronDown class="size-4" />
 						</div>
-						<div class="min-w-0 flex-1">
-							<div class="flex items-baseline justify-between gap-2">
-								<p class="text-sm font-semibold">
-									2. {t('notifications.step_kind_batch_macro')}
-								</p>
-								<span class="text-[10px] text-muted-foreground">
-									{selectedCount(pipeline.steps[1])} / {macros.length}
-								</span>
-							</div>
-							<p class="text-xs text-muted-foreground">
-								{t('notifications.step_batch_macro_hint')}
-							</p>
-						</div>
-					</div>
 
-					<div class="space-y-1">
-						<div class="grid grid-cols-[auto_1fr] items-center gap-2">
-							<span class="text-xs text-muted-foreground"
-								>{t('notifications.step_interval_minutes')}</span
-							>
-							<Input
-								type="number"
-								min={minIntervalMinutes}
-								class="h-8"
-								value={intervalMin(pipeline.steps[1])}
-								onchange={(e) =>
-									updateStep(1, {
-										intervalMs: clampInterval(Number((e.target as HTMLInputElement).value))
-									})}
-							/>
-						</div>
-						<p class="text-[10px] text-muted-foreground">
-							{t('notifications.interval_floor_hint', { count: minIntervalMinutes })}
-						</p>
-					</div>
-
-					<button
-						type="button"
-						class="w-full inline-flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-xs hover:bg-accent transition-colors"
-						onclick={() => togglePicker(1)}
-					>
-						<span>
-							{selectedCount(pipeline.steps[1]) === 0
-								? t('notifications.no_macros_selected')
-								: t('notifications.macros_selected', {
-										count: selectedCount(pipeline.steps[1])
-									})}
-						</span>
-						<ChevronDown
-							class="size-4 transition-transform {openPicker === 1 ? 'rotate-180' : ''}"
-						/>
-					</button>
-
-					{#if openPicker === 1}
-						<div class="rounded-md border border-border p-2 space-y-1 max-h-60 overflow-y-auto">
-							{#if macros.length === 0}
-								<p class="text-xs text-muted-foreground text-center py-2">
-									{t('notifications.no_macros_yet')}
-								</p>
-							{:else}
-								<div class="flex justify-end gap-2 mb-1">
-									<Button variant="ghost" size="sm" class="h-6 text-xs" onclick={() => selectAllMacros(1)}>
-										{t('notifications.select_all')}
-									</Button>
-									<Button variant="ghost" size="sm" class="h-6 text-xs" onclick={() => clearMacros(1)}>
-										{t('notifications.clear')}
-									</Button>
+						<!-- Step 2: batch_macro — middle, macro-level summary. -->
+						<div class="rounded-lg border border-border bg-card p-4 space-y-3 mx-4">
+							<div class="flex items-start gap-3">
+								<div
+									class="inline-flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary shrink-0"
+								>
+									<Rss class="size-4" />
 								</div>
-								{#each macros as m (m.id)}
-									<label
-										class="flex items-center gap-2 px-2 py-1 rounded text-xs hover:bg-accent cursor-pointer"
-									>
-										<input
-											type="checkbox"
-											class="size-3.5"
-											checked={pipeline.steps[1].macroIds.includes(m.id)}
-											onchange={() => toggleMacroInStep(1, m.id)}
-										/>
-										<span class="truncate">{m.name}</span>
-									</label>
-								{/each}
+								<div class="min-w-0 flex-1">
+									<div class="flex items-baseline justify-between gap-2">
+										<p class="text-sm font-semibold">
+											2. {t('notifications.step_kind_batch_macro')}
+										</p>
+										<span class="text-[10px] text-muted-foreground">
+											{selectedCount(pipeline.steps[1])} / {macros.length}
+										</span>
+									</div>
+									<p class="text-xs text-muted-foreground">
+										{t('notifications.step_batch_macro_hint')}
+									</p>
+								</div>
+							</div>
+
+							<div class="space-y-1">
+								<div class="grid grid-cols-[auto_1fr] items-center gap-2">
+									<span class="text-xs text-muted-foreground">
+										{t('notifications.step_interval_minutes')}
+									</span>
+									<Input
+										type="number"
+										min={minIntervalMinutes}
+										class="h-8"
+										value={intervalMin(pipeline.steps[1])}
+										onchange={(e) =>
+											updateStep(1, {
+												intervalMs: clampInterval(Number((e.target as HTMLInputElement).value))
+											})}
+									/>
+								</div>
+								<p class="text-[10px] text-muted-foreground">
+									{t('notifications.interval_floor_hint', { count: minIntervalMinutes })}
+								</p>
+							</div>
+
+							<button
+								type="button"
+								class="w-full inline-flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-xs hover:bg-accent transition-colors"
+								onclick={() => togglePicker(1)}
+							>
+								<span>
+									{selectedCount(pipeline.steps[1]) === 0
+										? t('notifications.no_macros_selected')
+										: t('notifications.macros_selected', {
+												count: selectedCount(pipeline.steps[1])
+											})}
+								</span>
+								<ChevronDown
+									class="size-4 transition-transform {openPicker === 1 ? 'rotate-180' : ''}"
+								/>
+							</button>
+
+							{#if openPicker === 1}
+								<div class="rounded-md border border-border p-2 space-y-1 max-h-60 overflow-y-auto">
+									{#if macros.length === 0}
+										<p class="text-xs text-muted-foreground text-center py-2">
+											{t('notifications.no_macros_yet')}
+										</p>
+									{:else}
+										<div class="flex justify-end gap-2 mb-1">
+											<Button
+												variant="ghost"
+												size="sm"
+												class="h-6 text-xs"
+												onclick={() => selectAllMacros(1)}
+											>
+												{t('notifications.select_all')}
+											</Button>
+											<Button
+												variant="ghost"
+												size="sm"
+												class="h-6 text-xs"
+												onclick={() => clearMacros(1)}
+											>
+												{t('notifications.clear')}
+											</Button>
+										</div>
+										{#each macros as m (m.id)}
+											<label
+												class="flex items-center gap-2 px-2 py-1 rounded text-xs hover:bg-accent cursor-pointer"
+											>
+												<input
+													type="checkbox"
+													class="size-3.5"
+													checked={pipeline.steps[1].macroIds.includes(m.id)}
+													onchange={() => toggleMacroInStep(1, m.id)}
+												/>
+												<span class="truncate">{m.name}</span>
+											</label>
+										{/each}
+									{/if}
+								</div>
 							{/if}
 						</div>
-					{/if}
-				</div>
 
-				<!-- Funnel arrow -->
-				<div class="flex justify-center text-muted-foreground" aria-hidden="true">
-					<ChevronDown class="size-4" />
-				</div>
-
-				<!-- Step 3: batch_global — narrowest, catch-all. -->
-				<div class="rounded-lg border border-border bg-card p-4 space-y-3 mx-8">
-					<div class="flex items-start gap-3">
-						<div
-							class="inline-flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary shrink-0"
-						>
-							<Globe class="size-4" />
+						<!-- Funnel arrow -->
+						<div class="flex justify-center text-muted-foreground" aria-hidden="true">
+							<ChevronDown class="size-4" />
 						</div>
-						<div class="min-w-0 flex-1">
-							<p class="text-sm font-semibold">
-								3. {t('notifications.step_kind_batch_global')}
-							</p>
-							<p class="text-xs text-muted-foreground">
-								{t('notifications.step_batch_global_hint')}
-							</p>
+
+						<!-- Step 3: batch_global — narrowest, catch-all. -->
+						<div class="rounded-lg border border-border bg-card p-4 space-y-3 mx-8">
+							<div class="flex items-start gap-3">
+								<div
+									class="inline-flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary shrink-0"
+								>
+									<Globe class="size-4" />
+								</div>
+								<div class="min-w-0 flex-1">
+									<p class="text-sm font-semibold">
+										3. {t('notifications.step_kind_batch_global')}
+									</p>
+									<p class="text-xs text-muted-foreground">
+										{t('notifications.step_batch_global_hint')}
+									</p>
+								</div>
+							</div>
+
+							<div class="space-y-1">
+								<div class="grid grid-cols-[auto_1fr] items-center gap-2">
+									<span class="text-xs text-muted-foreground">
+										{t('notifications.step_interval_minutes')}
+									</span>
+									<Input
+										type="number"
+										min={minIntervalMinutes}
+										class="h-8"
+										value={intervalMin(pipeline.steps[2])}
+										onchange={(e) =>
+											updateStep(2, {
+												intervalMs: clampInterval(Number((e.target as HTMLInputElement).value))
+											})}
+									/>
+								</div>
+								<p class="text-[10px] text-muted-foreground">
+									{t('notifications.interval_floor_hint', { count: minIntervalMinutes })}
+								</p>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<Separator class="my-6" />
+
+				<section class="space-y-4">
+					<div>
+						<h2 class="text-sm font-semibold">{t('notifications.pipeline_events_title')}</h2>
+						<p class="text-xs text-muted-foreground mt-1">
+							{t('notifications.pipeline_events_intro')}
+						</p>
+					</div>
+
+					<!-- When -->
+					<div class="space-y-2">
+						<p class="text-xs font-medium">{t('notifications.pipeline_events_mode')}</p>
+						<div class="grid grid-cols-2 gap-2">
+							<button
+								type="button"
+								class="text-left rounded-lg border p-3 transition-colors hover:bg-accent {eventSettings.mode ===
+								'realtime'
+									? 'border-primary bg-primary/5'
+									: 'border-border'}"
+								onclick={() => setEventMode('realtime')}
+							>
+								<p class="text-sm font-medium">
+									{t('notifications.pipeline_events_mode_realtime')}
+								</p>
+								<p class="text-[11px] text-muted-foreground mt-0.5">
+									{t('notifications.pipeline_events_mode_realtime_hint')}
+								</p>
+							</button>
+							<button
+								type="button"
+								class="text-left rounded-lg border p-3 transition-colors hover:bg-accent {eventSettings.mode ===
+								'batched'
+									? 'border-primary bg-primary/5'
+									: 'border-border'}"
+								onclick={() => setEventMode('batched')}
+							>
+								<p class="text-sm font-medium">
+									{t('notifications.pipeline_events_mode_batched')}
+								</p>
+								<p class="text-[11px] text-muted-foreground mt-0.5">
+									{t('notifications.pipeline_events_mode_batched_hint')}
+								</p>
+							</button>
 						</div>
 					</div>
 
-					<div class="space-y-1">
-						<div class="grid grid-cols-[auto_1fr] items-center gap-2">
-							<span class="text-xs text-muted-foreground"
-								>{t('notifications.step_interval_minutes')}</span
-							>
+					<!-- What -->
+					<div class="space-y-2">
+						<div>
+							<p class="text-xs font-medium">{t('notifications.pipeline_events_severity')}</p>
+							<p class="text-[11px] text-muted-foreground">
+								{t('notifications.pipeline_events_severity_hint')}
+							</p>
+						</div>
+						<div class="space-y-1.5">
+							{#each [{ value: 'info', label: t('notifications.pipeline_events_severity_info'), desc: t('notifications.pipeline_events_severity_info_desc') }, { value: 'warning', label: t('notifications.pipeline_events_severity_warning'), desc: t('notifications.pipeline_events_severity_warning_desc') }, { value: 'critical', label: t('notifications.pipeline_events_severity_critical'), desc: t('notifications.pipeline_events_severity_critical_desc') }] as opt (opt.value)}
+								<button
+									type="button"
+									class="w-full text-left rounded-lg border p-3 transition-colors hover:bg-accent {eventSettings.severityThreshold ===
+									opt.value
+										? 'border-primary bg-primary/5'
+										: 'border-border'}"
+									onclick={() => setEventSeverity(opt.value as EventSeverity)}
+								>
+									<div class="flex items-baseline justify-between gap-2">
+										<p class="text-sm font-medium">{opt.label}</p>
+										{#if eventSettings.severityThreshold === opt.value}
+											<span class="text-[10px] text-primary">●</span>
+										{/if}
+									</div>
+									<p class="text-[11px] text-muted-foreground mt-0.5">{opt.desc}</p>
+								</button>
+							{/each}
+						</div>
+					</div>
+
+					<!-- Batch window (only when relevant) -->
+					{#if eventSettings.mode === 'batched'}
+						<div class="space-y-1 rounded-lg border border-dashed border-border p-3">
+							<p class="text-xs font-medium">
+								{t('notifications.pipeline_events_batch_interval')}
+							</p>
+							<p class="text-[11px] text-muted-foreground">
+								{t('notifications.pipeline_events_batch_interval_hint')}
+							</p>
 							<Input
 								type="number"
-								min={minIntervalMinutes}
-								class="h-8"
-								value={intervalMin(pipeline.steps[2])}
+								min={1}
+								class="h-8 mt-1"
+								value={Math.max(1, Math.round(eventSettings.batchIntervalMs / MIN_MS))}
 								onchange={(e) =>
-									updateStep(2, {
-										intervalMs: clampInterval(Number((e.target as HTMLInputElement).value))
-									})}
+									setEventBatchInterval(
+										Math.max(1, Number((e.target as HTMLInputElement).value)) * MIN_MS
+									)}
 							/>
 						</div>
-						<p class="text-[10px] text-muted-foreground">
-							{t('notifications.interval_floor_hint', { count: minIntervalMinutes })}
-						</p>
-					</div>
-				</div>
-			</div>
-		</section>
-
-		<Separator class="my-6" />
-
-		<section class="space-y-4">
-			<div>
-				<h2 class="text-sm font-semibold">{t('notifications.pipeline_events_title')}</h2>
-				<p class="text-xs text-muted-foreground mt-1">
-					{t('notifications.pipeline_events_intro')}
-				</p>
-			</div>
-
-			<!-- When -->
-			<div class="space-y-2">
-				<p class="text-xs font-medium">{t('notifications.pipeline_events_mode')}</p>
-				<div class="grid grid-cols-2 gap-2">
-					<button
-						type="button"
-						class="text-left rounded-lg border p-3 transition-colors hover:bg-accent {eventSettings.mode ===
-						'realtime'
-							? 'border-primary bg-primary/5'
-							: 'border-border'}"
-						onclick={() => setEventMode('realtime')}
-					>
-						<p class="text-sm font-medium">
-							{t('notifications.pipeline_events_mode_realtime')}
-						</p>
-						<p class="text-[11px] text-muted-foreground mt-0.5">
-							{t('notifications.pipeline_events_mode_realtime_hint')}
-						</p>
-					</button>
-					<button
-						type="button"
-						class="text-left rounded-lg border p-3 transition-colors hover:bg-accent {eventSettings.mode ===
-						'batched'
-							? 'border-primary bg-primary/5'
-							: 'border-border'}"
-						onclick={() => setEventMode('batched')}
-					>
-						<p class="text-sm font-medium">
-							{t('notifications.pipeline_events_mode_batched')}
-						</p>
-						<p class="text-[11px] text-muted-foreground mt-0.5">
-							{t('notifications.pipeline_events_mode_batched_hint')}
-						</p>
-					</button>
-				</div>
-			</div>
-
-			<!-- What -->
-			<div class="space-y-2">
-				<div>
-					<p class="text-xs font-medium">{t('notifications.pipeline_events_severity')}</p>
-					<p class="text-[11px] text-muted-foreground">
-						{t('notifications.pipeline_events_severity_hint')}
-					</p>
-				</div>
-				<div class="space-y-1.5">
-					{#each [{ value: 'info', label: t('notifications.pipeline_events_severity_info'), desc: t('notifications.pipeline_events_severity_info_desc') }, { value: 'warning', label: t('notifications.pipeline_events_severity_warning'), desc: t('notifications.pipeline_events_severity_warning_desc') }, { value: 'critical', label: t('notifications.pipeline_events_severity_critical'), desc: t('notifications.pipeline_events_severity_critical_desc') }] as opt (opt.value)}
-						<button
-							type="button"
-							class="w-full text-left rounded-lg border p-3 transition-colors hover:bg-accent {eventSettings.severityThreshold ===
-							opt.value
-								? 'border-primary bg-primary/5'
-								: 'border-border'}"
-							onclick={() => setEventSeverity(opt.value as EventSeverity)}
-						>
-							<div class="flex items-baseline justify-between gap-2">
-								<p class="text-sm font-medium">{opt.label}</p>
-								{#if eventSettings.severityThreshold === opt.value}
-									<span class="text-[10px] text-primary">●</span>
-								{/if}
-							</div>
-							<p class="text-[11px] text-muted-foreground mt-0.5">{opt.desc}</p>
-						</button>
-					{/each}
-				</div>
-			</div>
-
-			<!-- Batch window (only when relevant) -->
-			{#if eventSettings.mode === 'batched'}
-				<div class="space-y-1 rounded-lg border border-dashed border-border p-3">
-					<p class="text-xs font-medium">
-						{t('notifications.pipeline_events_batch_interval')}
-					</p>
-					<p class="text-[11px] text-muted-foreground">
-						{t('notifications.pipeline_events_batch_interval_hint')}
-					</p>
-					<Input
-						type="number"
-						min={1}
-						class="h-8 mt-1"
-						value={Math.max(1, Math.round(eventSettings.batchIntervalMs / MIN_MS))}
-						onchange={(e) =>
-							setEventBatchInterval(
-								Math.max(1, Number((e.target as HTMLInputElement).value)) * MIN_MS
-							)}
-					/>
-				</div>
+					{/if}
+				</section>
+			{:else}
+				<p class="text-sm text-muted-foreground">…</p>
 			{/if}
-		</section>
-	{:else}
-		<p class="text-sm text-muted-foreground">…</p>
-	{/if}
-	</div>
+		</div>
 	</div>
 </div>

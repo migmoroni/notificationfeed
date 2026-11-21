@@ -5,10 +5,20 @@
 	import { layout } from '@notfeed/product/stores/layout.svelte.js';
 	import { activeUser } from '@notfeed/product/stores/active-user.svelte.js';
 	import { creator } from '@notfeed/product/stores/creator.svelte.js';
-	import { NodeForm, TreeEditor, PublishButton, ExportButton, CopyFromConsumerDialog } from '@notfeed/product/components/creator/index.js';
+	import {
+		NodeForm,
+		TreeEditor,
+		PublishButton,
+		ExportButton,
+		CopyFromConsumerDialog
+	} from '@notfeed/product/components/creator/index.js';
 	import { getMediaPreviewUrl } from '@notfeed/product/services/media.service.js';
 	import { getRootNode as domainGetRootNode } from '@notfeed/product/domain/content-tree/content-tree.js';
-	import type { CollectionBody, ProfileBody, ExternalLink } from '@notfeed/product/domain/content-tree/content-tree.js';
+	import type {
+		CollectionBody,
+		ProfileBody,
+		ExternalLink
+	} from '@notfeed/product/domain/content-tree/content-tree.js';
 	import type { Category } from '@notfeed/product/domain/category/category.js';
 	import { createCategoryStore } from '@notfeed/product/persistence/category.store.js';
 	import { Button } from '@notfeed/product/components/ui/button/index.js';
@@ -40,8 +50,16 @@
 		await creator.setAuthorTreeId(treeId, value || null);
 	}
 
-	let bannerMedia = $derived(rootNode?.data.header.bannerMediaId ? creator.getMediaById(rootNode.data.header.bannerMediaId) : null);
-	let avatarMedia = $derived(rootNode?.data.header.coverMediaId ? creator.getMediaById(rootNode.data.header.coverMediaId) : null);
+	let bannerMedia = $derived(
+		rootNode?.data.header.bannerMediaId
+			? creator.getMediaById(rootNode.data.header.bannerMediaId)
+			: null
+	);
+	let avatarMedia = $derived(
+		rootNode?.data.header.coverMediaId
+			? creator.getMediaById(rootNode.data.header.coverMediaId)
+			: null
+	);
 
 	let editing = $state(false);
 	let saving = $state(false);
@@ -71,11 +89,15 @@
 	let bodyLinks = $derived.by((): ExternalLink[] => {
 		const body = rootNode?.data.body;
 		if (!body) return [];
-		if (body.role === 'collection' || body.role === 'profile') return (body as CollectionBody | ProfileBody).links ?? [];
+		if (body.role === 'collection' || body.role === 'profile')
+			return (body as CollectionBody | ProfileBody).links ?? [];
 		return [];
 	});
 
-	async function handleSave(data: { header: import('@notfeed/product/domain/content-tree/content-tree.js').NodeHeader; body: import('@notfeed/product/domain/content-tree/content-tree.js').NodeBody }) {
+	async function handleSave(data: {
+		header: import('@notfeed/product/domain/content-tree/content-tree.js').NodeHeader;
+		body: import('@notfeed/product/domain/content-tree/content-tree.js').NodeBody;
+	}) {
 		if (!rootNode) return;
 		saving = true;
 		try {
@@ -106,7 +128,10 @@
 </svelte:head>
 
 <div class="container mx-auto px-4 py-6 {layout.isExpanded ? 'max-w-3xl' : 'max-w-2xl'}">
-	<button onclick={() => history.back()} class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
+	<button
+		onclick={() => history.back()}
+		class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
+	>
 		<ArrowLeft class="size-4" />
 		{t('btn.back')}
 	</button>
@@ -129,11 +154,15 @@
 						<img src={getMediaPreviewUrl(avatarMedia)} alt="" class="w-full h-full object-cover" />
 					</div>
 				{:else if rootNode?.data.header.coverEmoji}
-					<div class="shrink-0 w-14 h-14 rounded-lg bg-muted flex items-center justify-center text-3xl">
+					<div
+						class="shrink-0 w-14 h-14 rounded-lg bg-muted flex items-center justify-center text-3xl"
+					>
 						{rootNode.data.header.coverEmoji}
 					</div>
 				{:else}
-					<div class="shrink-0 w-14 h-14 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+					<div
+						class="shrink-0 w-14 h-14 rounded-lg bg-muted flex items-center justify-center text-muted-foreground"
+					>
 						<Globe class="size-7" />
 					</div>
 				{/if}
@@ -142,17 +171,17 @@
 				</div>
 			</div>
 			<div class="flex items-center gap-2 shrink-0">
-				<PublishButton treeId={treeId} />
-				<ExportButton treeId={treeId} />
+				<PublishButton {treeId} />
+				<ExportButton {treeId} />
 			</div>
 		</div>
 
 		<!-- Page metadata section -->
 		<div class="space-y-4 mb-6">
 			<div class="flex items-center justify-between">
-			<h2 class="text-sm font-semibold">{t('pages.page_data')}</h2>
-			<Button variant="ghost" size="sm" onclick={() => (editing = !editing)}>
-				{editing ? t('btn.cancel') : t('btn.edit')}
+				<h2 class="text-sm font-semibold">{t('pages.page_data')}</h2>
+				<Button variant="ghost" size="sm" onclick={() => (editing = !editing)}>
+					{editing ? t('btn.cancel') : t('btn.edit')}
 				</Button>
 			</div>
 
@@ -172,25 +201,34 @@
 			{:else}
 				{@const h = rootNode?.data.header}
 				{@const cats = h?.categoryAssignments ?? []}
-				{@const hasContent = !!(h?.subtitle || h?.summary || cats.length > 0 || bodyLinks.length > 0)}
+				{@const hasContent = !!(
+					h?.subtitle ||
+					h?.summary ||
+					cats.length > 0 ||
+					bodyLinks.length > 0
+				)}
 
 				<div class="border rounded-lg divide-y">
 					{#if !hasContent}
 						<div class="px-4 py-6 text-center">
-						<p class="text-sm text-muted-foreground italic">{t('pages.no_additional_info')}</p>
+							<p class="text-sm text-muted-foreground italic">{t('pages.no_additional_info')}</p>
 						</div>
 					{/if}
 
 					{#if h?.subtitle}
 						<div class="px-4 py-3">
-							<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('pages.subtitle_label')}</span>
+							<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+								{t('pages.subtitle_label')}
+							</span>
 							<p class="text-sm mt-0.5">{h.subtitle}</p>
 						</div>
 					{/if}
 
 					{#if h?.summary}
 						<div class="px-4 py-3">
-							<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('pages.description_label')}</span>
+							<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+								{t('pages.description_label')}
+							</span>
 							<p class="text-sm mt-0.5 whitespace-pre-line">{h.summary}</p>
 						</div>
 					{/if}
@@ -199,7 +237,9 @@
 						<div class="px-4 py-3">
 							<div class="flex items-center gap-1.5 mb-1.5">
 								<ExternalLinkIcon class="size-3 text-muted-foreground" />
-								<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('pages.links_label')}</span>
+								<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+									{t('pages.links_label')}
+								</span>
 							</div>
 							<div class="space-y-1.5">
 								{#each bodyLinks as link}
@@ -214,7 +254,9 @@
 												target="_blank"
 												rel="noopener noreferrer"
 												class="block text-xs text-primary hover:underline truncate"
-											>{link.url}</a>
+											>
+												{link.url}
+											</a>
 										</div>
 									</div>
 								{/each}
@@ -224,11 +266,15 @@
 
 					{#if cats.length > 0}
 						<div class="px-4 py-3">
-							<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('pages.categories_label')}</span>
+							<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+								{t('pages.categories_label')}
+							</span>
 							<div class="mt-1.5 space-y-1.5">
 								{#each cats as assignment}
 									<div>
-										<span class="text-[11px] text-muted-foreground">{TREE_LABELS[assignment.treeId] ?? assignment.treeId}:</span>
+										<span class="text-[11px] text-muted-foreground">
+											{TREE_LABELS[assignment.treeId] ?? assignment.treeId}:
+										</span>
 										<div class="flex flex-wrap gap-1 mt-0.5">
 											{#each assignment.categoryIds as catId}
 												<Badge variant="outline" class="text-xs">{getCategoryLabel(catId)}</Badge>
@@ -247,7 +293,7 @@
 
 		<!-- Tree Editor -->
 		<div class="mb-6">
-			<TreeEditor treeId={treeId} />
+			<TreeEditor {treeId} />
 		</div>
 
 		<Separator class="my-6" />
@@ -284,21 +330,13 @@
 
 		<!-- Actions -->
 		<div class="flex items-center justify-between">
-			<Button
-				variant="outline"
-				size="sm"
-				onclick={() => (showCopyDialog = true)}
-			>
+			<Button variant="outline" size="sm" onclick={() => (showCopyDialog = true)}>
 				<Copy class="size-4 mr-1" />
 				{t('pages.copy_from_consumer')}
 			</Button>
 
 			{#if isRemoved}
-				<Button
-					variant="default"
-					size="sm"
-					onclick={handleRestore}
-				>
+				<Button variant="default" size="sm" onclick={handleRestore}>
 					<ArchiveRestore class="size-4 mr-1" />
 					{t('pages.restore_page')}
 				</Button>
@@ -328,7 +366,7 @@
 		{#if showCopyDialog && activeUser.current}
 			<CopyFromConsumerDialog
 				open={showCopyDialog}
-				treeId={treeId}
+				{treeId}
 				onclose={() => (showCopyDialog = false)}
 			/>
 		{/if}

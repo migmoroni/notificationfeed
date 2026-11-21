@@ -1,0 +1,137 @@
+name: Verify
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      full:
+        description: Executar todos os consumidores
+        type: boolean
+        default: true
+permissions:
+  contents: read
+jobs:
+  impact:
+    runs-on: ubuntu-24.04
+    outputs:
+      profile: ${{ steps.impact.outputs.profile }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.22.3'
+      - id: impact
+        run: node tooling/checks/ci.mjs impact
+  web:
+    needs: impact
+    if: needs.impact.outputs.profile == 'complete'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.22.3'
+      - name: Instalar pnpm fixado
+        run: |
+          npm install --prefix "$RUNNER_TEMP/notfeed-pnpm" --no-audit --no-fund pnpm@11.28.12
+          echo "$RUNNER_TEMP/notfeed-pnpm/node_modules/.bin" >> "$GITHUB_PATH"
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.22.3'
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            pnpm-workspace.yaml
+            .nvmrc
+            rust-toolchain.toml
+            apps/desktop/src-tauri/Cargo.lock
+      - name: Instalação congelada e Chromium
+        run: |
+          node tooling/checks/prebuild.mjs --cache .artifacts/setup/npm-cache
+          npm_config_cache="$PWD/.artifacts/setup/npm-cache" pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - run: node tooling/checks/ci.mjs run web
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        if: always()
+        with:
+          name: proof-web-${{ github.run_attempt }}
+          path: .artifacts/ci/web/artifact
+          retention-days: 14
+          if-no-files-found: error
+  desktop:
+    needs: impact
+    if: needs.impact.outputs.profile == 'complete'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      CARGO_BUILD_JOBS: '2'
+      CARGO_INCREMENTAL: '0'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+      CARGO_TARGET_DIR: ${{ github.workspace }}/.artifacts/cargo
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.22.3'
+      - name: Instalar pnpm fixado
+        run: |
+          npm install --prefix "$RUNNER_TEMP/notfeed-pnpm" --no-audit --no-fund pnpm@11.28.12
+          echo "$RUNNER_TEMP/notfeed-pnpm/node_modules/.bin" >> "$GITHUB_PATH"
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.22.3'
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            pnpm-workspace.yaml
+            .nvmrc
+            rust-toolchain.toml
+            apps/desktop/src-tauri/Cargo.lock
+      - name: Preparar Linux e Rust fixado
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev libayatana-appindicator3-dev libssl-dev patchelf binutils
+          rustup set auto-self-update disable
+          rustup toolchain install 1.100.0 --profile minimal --component rustfmt --component clippy
+          CARGO_TARGET_DIR="$RUNNER_TEMP/notfeed-audit-target" cargo install cargo-audit --version 0.23.0 --locked --root "$RUNNER_TEMP/notfeed-audit"
+          echo "$RUNNER_TEMP/notfeed-audit/bin" >> "$GITHUB_PATH"
+          cargo clean --manifest-path apps/desktop/src-tauri/Cargo.toml --target-dir "$RUNNER_TEMP/notfeed-audit-target"
+      - name: Instalação congelada e Chromium
+        run: |
+          node tooling/checks/prebuild.mjs --cache .artifacts/setup/npm-cache
+          npm_config_cache="$PWD/.artifacts/setup/npm-cache" pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - run: node tooling/checks/ci.mjs run desktop
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        if: always()
+        with:
+          name: proof-desktop-${{ github.run_attempt }}
+          path: .artifacts/ci/desktop/artifact
+          retention-days: 14
+          if-no-files-found: error
+  integration:
+    if: always()
+    needs: [impact, web, desktop]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.22.3'
+      - run: node tooling/checks/ci.mjs aggregate
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}

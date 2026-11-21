@@ -131,22 +131,22 @@ O `CanonicalPost` resultante carrega URLs e metadados:
 
 ```ts
 interface CanonicalPost {
-  userId: string;
-  nodeId: string;
-  id: string;
-  protocol: FontProtocol;
-  title: string;
-  content: string;
-  url: string;
-  author: string;
-  publishedAt: number;
-  ingestedAt: number;
-  imageUrl?: string;
-  videoUrl?: string;
-  read: boolean;
-  savedAt: number | null;
-  trashedAt: number | null;
-  notifiedAt: number | null;
+	userId: string;
+	nodeId: string;
+	id: string;
+	protocol: FontProtocol;
+	title: string;
+	content: string;
+	url: string;
+	author: string;
+	publishedAt: number;
+	ingestedAt: number;
+	imageUrl?: string;
+	videoUrl?: string;
+	read: boolean;
+	savedAt: number | null;
+	trashedAt: number | null;
+	notifiedAt: number | null;
 }
 ```
 
@@ -232,7 +232,7 @@ Quando `videoUrl` e um arquivo de video direto, `PostMedia` renderiza um
 `<video>` com:
 
 ```html
-<video preload="metadata" controls playsinline>
+<video preload="metadata" controls playsinline></video>
 ```
 
 Isso permite que o browser busque metadados quando o player aparece, mas evita
@@ -294,17 +294,17 @@ separado da politica explicita do Notfeed.
 
 ## 11. O que cada etapa baixa
 
-| Etapa | Baixa feed/evento? | Baixa imagem? | Baixa video? | Salva imageUrl/videoUrl? |
-|-------|--------------------|----------------|--------------|--------------------------|
-| Client RSS/Atom/JSON Feed | Sim | Nao | Nao | Captura hints |
-| Client Nostr | Sim, eventos de relay | Nao | Nao | Captura hints |
-| Normalizer | Nao, usa payload recebido | Nao | Nao | Escolhe/canonicaliza |
-| savePostsForUser | Nao | Nao | Nao | Persiste URLs no post |
-| Feed store | Nao | Nao | Nao | Le URLs persistidas |
-| PostCard thumbnail | Nao | Sim, se renderizada | Nao diretamente | Nao altera post |
-| PostMedia imagem | Nao | Sim, se renderizada | Nao | Nao altera post |
-| PostMedia video direto | Nao | Nao | Metadata quando renderizado; bytes conforme playback | Nao altera post |
-| YouTube facade | Nao | Thumbnail quando renderizada | Iframe/video so apos clique | Nao altera post |
+| Etapa                     | Baixa feed/evento?        | Baixa imagem?                | Baixa video?                                         | Salva imageUrl/videoUrl? |
+| ------------------------- | ------------------------- | ---------------------------- | ---------------------------------------------------- | ------------------------ |
+| Client RSS/Atom/JSON Feed | Sim                       | Nao                          | Nao                                                  | Captura hints            |
+| Client Nostr              | Sim, eventos de relay     | Nao                          | Nao                                                  | Captura hints            |
+| Normalizer                | Nao, usa payload recebido | Nao                          | Nao                                                  | Escolhe/canonicaliza     |
+| savePostsForUser          | Nao                       | Nao                          | Nao                                                  | Persiste URLs no post    |
+| Feed store                | Nao                       | Nao                          | Nao                                                  | Le URLs persistidas      |
+| PostCard thumbnail        | Nao                       | Sim, se renderizada          | Nao diretamente                                      | Nao altera post          |
+| PostMedia imagem          | Nao                       | Sim, se renderizada          | Nao                                                  | Nao altera post          |
+| PostMedia video direto    | Nao                       | Nao                          | Metadata quando renderizado; bytes conforme playback | Nao altera post          |
+| YouTube facade            | Nao                       | Thumbnail quando renderizada | Iframe/video so apos clique                          | Nao altera post          |
 
 ## 12. Contrato arquitetural
 

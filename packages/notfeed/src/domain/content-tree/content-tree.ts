@@ -28,16 +28,16 @@ export type NodeRole = 'profile' | 'font' | 'collection' | 'tree';
 // ---------------------------------------------------------------------------
 
 export interface NodeHeader {
-title: string;
-subtitle?: string;
-summary?: string;
-/** Reference to a ContentMedia id */
-coverMediaId?: string;
-/** Emoji used as avatar (alternative to coverMediaId) */
-coverEmoji?: string;
-/** Reference to a ContentMedia id (primarily for root nodes) */
-bannerMediaId?: string;
-categoryAssignments: CategoryAssignment[];
+	title: string;
+	subtitle?: string;
+	summary?: string;
+	/** Reference to a ContentMedia id */
+	coverMediaId?: string;
+	/** Emoji used as avatar (alternative to coverMediaId) */
+	coverEmoji?: string;
+	/** Reference to a ContentMedia id (primarily for root nodes) */
+	bannerMediaId?: string;
+	categoryAssignments: CategoryAssignment[];
 }
 
 // ---------------------------------------------------------------------------
@@ -47,21 +47,21 @@ categoryAssignments: CategoryAssignment[];
 export type FontProtocol = 'nostr' | 'rss' | 'atom' | 'jsonfeed';
 
 export interface FontNostrConfig {
-relays: string[];
-pubkey: string;
-kinds?: number[];
+	relays: string[];
+	pubkey: string;
+	kinds?: number[];
 }
 
 export interface FontRssConfig {
-url: string;
+	url: string;
 }
 
 export interface FontAtomConfig {
-url: string;
+	url: string;
 }
 
 export interface FontJsonfeedConfig {
-url: string;
+	url: string;
 }
 
 export type FontConfig = FontNostrConfig | FontRssConfig | FontAtomConfig | FontJsonfeedConfig;
@@ -91,8 +91,8 @@ export interface ExternalLink {
 
 /** Body for role = 'profile' — editorial page with fonts */
 export interface ProfileBody {
-role: 'profile';
-links: ExternalLink[];
+	role: 'profile';
+	links: ExternalLink[];
 }
 
 /**
@@ -112,14 +112,14 @@ export interface FontBody {
 
 /** Body for role = 'tree' — cross-link to another tree */
 export interface TreeLinkBody {
-role: 'tree';
-instanceTreeId: string;
+	role: 'tree';
+	instanceTreeId: string;
 }
 
 /** Body for role = 'collection' — generic aggregator page */
 export interface CollectionBody {
-role: 'collection';
-links: ExternalLink[];
+	role: 'collection';
+	links: ExternalLink[];
 }
 
 export type NodeBody = ProfileBody | FontBody | TreeLinkBody | CollectionBody;
@@ -129,20 +129,20 @@ export type NodeBody = ProfileBody | FontBody | TreeLinkBody | CollectionBody;
 // ---------------------------------------------------------------------------
 
 export interface TreeNodeMetadata {
-/** Composite: `treeId:localUuid` */
-id: string;
-versionSchema: number;
-createdAt: Date;
-updatedAt: Date;
+	/** Composite: `treeId:localUuid` */
+	id: string;
+	versionSchema: number;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 export interface TreeNode {
-role: NodeRole;
-data: {
-header: NodeHeader;
-body: NodeBody;
-};
-metadata: TreeNodeMetadata;
+	role: NodeRole;
+	data: {
+		header: NodeHeader;
+		body: NodeBody;
+	};
+	metadata: TreeNodeMetadata;
 }
 
 // ---------------------------------------------------------------------------
@@ -150,12 +150,12 @@ metadata: TreeNodeMetadata;
 // ---------------------------------------------------------------------------
 
 export interface TreeSection {
-id: string;
-order: number;
-symbol?: string;
-title: string;
-hideTitle: boolean;
-color: string;
+	id: string;
+	order: number;
+	symbol?: string;
+	title: string;
+	hideTitle: boolean;
+	color: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -169,9 +169,9 @@ color: string;
  *   any other key → section nodeIds (string[]), key = sectionId
  */
 export interface TreePaths {
-'/': string;
-'*': string[];
-[sectionId: string]: string | string[];
+	'/': string;
+	'*': string[];
+	[sectionId: string]: string | string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -179,15 +179,15 @@ export interface TreePaths {
 // ---------------------------------------------------------------------------
 
 export interface ContentTreeMetadata {
-id: string;
-versionSchema: number;
-createdAt: Date;
-updatedAt: Date;
-author?: string;
-/** ID of a collection-type tree used to sign/attribute this tree's nodes */
-authorTreeId?: string;
-/** When set, the tree is soft-deleted (hidden from UI). ISO date string YYYY-MM-DD. */
-removedAt?: string;
+	id: string;
+	versionSchema: number;
+	createdAt: Date;
+	updatedAt: Date;
+	author?: string;
+	/** ID of a collection-type tree used to sign/attribute this tree's nodes */
+	authorTreeId?: string;
+	/** When set, the tree is soft-deleted (hidden from UI). ISO date string YYYY-MM-DD. */
+	removedAt?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -195,10 +195,10 @@ removedAt?: string;
 // ---------------------------------------------------------------------------
 
 export interface ContentTree {
-nodes: Record<string, TreeNode>;
-paths: TreePaths;
-sections: TreeSection[];
-metadata: ContentTreeMetadata;
+	nodes: Record<string, TreeNode>;
+	paths: TreePaths;
+	sections: TreeSection[];
+	metadata: ContentTreeMetadata;
 }
 
 // ---------------------------------------------------------------------------
@@ -206,12 +206,12 @@ metadata: ContentTreeMetadata;
 // ---------------------------------------------------------------------------
 
 export interface ContentTreeRepository {
-getAll(): Promise<ContentTree[]>;
-getById(id: string): Promise<ContentTree | null>;
-getByIds(ids: string[]): Promise<ContentTree[]>;
-getByAuthor(authorId: string): Promise<ContentTree[]>;
-put(tree: ContentTree): Promise<void>;
-delete(id: string): Promise<void>;
+	getAll(): Promise<ContentTree[]>;
+	getById(id: string): Promise<ContentTree | null>;
+	getByIds(ids: string[]): Promise<ContentTree[]>;
+	getByAuthor(authorId: string): Promise<ContentTree[]>;
+	put(tree: ContentTree): Promise<void>;
+	delete(id: string): Promise<void>;
 }
 
 // ---------------------------------------------------------------------------
@@ -219,19 +219,23 @@ delete(id: string): Promise<void>;
 // ---------------------------------------------------------------------------
 
 export function isProfileNode(node: TreeNode): node is TreeNode & { data: { body: ProfileBody } } {
-return node.role === 'profile';
+	return node.role === 'profile';
 }
 
 export function isFontNode(node: TreeNode): node is TreeNode & { data: { body: FontBody } } {
-return node.role === 'font';
+	return node.role === 'font';
 }
 
-export function isTreeLinkNode(node: TreeNode): node is TreeNode & { data: { body: TreeLinkBody } } {
-return node.role === 'tree';
+export function isTreeLinkNode(
+	node: TreeNode
+): node is TreeNode & { data: { body: TreeLinkBody } } {
+	return node.role === 'tree';
 }
 
-export function isCollectionNode(node: TreeNode): node is TreeNode & { data: { body: CollectionBody } } {
-return node.role === 'collection';
+export function isCollectionNode(
+	node: TreeNode
+): node is TreeNode & { data: { body: CollectionBody } } {
+	return node.role === 'collection';
 }
 
 // ---------------------------------------------------------------------------
@@ -240,73 +244,73 @@ return node.role === 'collection';
 
 /** Extract treeId from a composite nodeId (`treeId:localUuid`) */
 export function parseTreeId(compositeNodeId: string): string {
-const idx = compositeNodeId.indexOf(':');
-if (idx === -1) return compositeNodeId;
-return compositeNodeId.substring(0, idx);
+	const idx = compositeNodeId.indexOf(':');
+	if (idx === -1) return compositeNodeId;
+	return compositeNodeId.substring(0, idx);
 }
 
 /** Get a node by its composite ID */
 export function getNode(tree: ContentTree, nodeId: string): TreeNode | null {
-return tree.nodes[nodeId] ?? null;
+	return tree.nodes[nodeId] ?? null;
 }
 
 /** Get the root node of the tree */
 export function getRootNode(tree: ContentTree): TreeNode | null {
-const rootId = tree.paths['/'];
-if (!rootId || typeof rootId !== 'string') return null;
-return tree.nodes[rootId] ?? null;
+	const rootId = tree.paths['/'];
+	if (!rootId || typeof rootId !== 'string') return null;
+	return tree.nodes[rootId] ?? null;
 }
 
 /** Get the root node ID */
 export function getRootNodeId(tree: ContentTree): string {
-return tree.paths['/'] as string;
+	return tree.paths['/'] as string;
 }
 
 /** Get all node IDs in a specific path key ("*" or a sectionId) */
 export function getNodesInPath(tree: ContentTree, pathKey: string): string[] {
-const value = tree.paths[pathKey];
-if (Array.isArray(value)) return value;
-return [];
+	const value = tree.paths[pathKey];
+	if (Array.isArray(value)) return value;
+	return [];
 }
 
 /** Get all node IDs in the tree (root + all paths) */
 export function getAllNodeIds(tree: ContentTree): string[] {
-const ids = new Set<string>();
-const rootId = tree.paths['/'];
-if (typeof rootId === 'string') ids.add(rootId);
-for (const [key, value] of Object.entries(tree.paths)) {
-if (key === '/') continue;
-if (Array.isArray(value)) {
-for (const id of value) ids.add(id);
-}
-}
-return [...ids];
+	const ids = new Set<string>();
+	const rootId = tree.paths['/'];
+	if (typeof rootId === 'string') ids.add(rootId);
+	for (const [key, value] of Object.entries(tree.paths)) {
+		if (key === '/') continue;
+		if (Array.isArray(value)) {
+			for (const id of value) ids.add(id);
+		}
+	}
+	return [...ids];
 }
 
 /** Get all nodes matching a role */
 export function getNodesByRole(tree: ContentTree, role: NodeRole): TreeNode[] {
-return Object.values(tree.nodes).filter((n) => n.role === role);
+	return Object.values(tree.nodes).filter((n) => n.role === role);
 }
 
 /** Get all font nodes in the tree */
 export function getFontNodes(tree: ContentTree): TreeNode[] {
-return getNodesByRole(tree, 'font');
+	return getNodesByRole(tree, 'font');
 }
 
 /** Get the section a node belongs to (null if unsectioned or root) */
 export function getNodeSection(tree: ContentTree, nodeId: string): TreeSection | null {
-for (const [key, value] of Object.entries(tree.paths)) {
-if (key === '/' || key === '*') continue;
-if (Array.isArray(value) && value.includes(nodeId)) {
-return tree.sections.find((s) => s.id === key) ?? null;
-}
-}
-return null;
+	for (const [key, value] of Object.entries(tree.paths)) {
+		if (key === '/' || key === '*') continue;
+		if (Array.isArray(value) && value.includes(nodeId)) {
+			return tree.sections.find((s) => s.id === key) ?? null;
+		}
+	}
+	return null;
 }
 
 /** Generate a composite nodeId for a tree */
 export function generateNodeId(treeId: string, localUuid: string): string {
-return `${treeId}:${localUuid}`;
+	return `${treeId}:${localUuid}`;
 }
 
 // ---------------------------------------------------------------------------

@@ -71,5 +71,3 @@ export interface ActivityRepository {
 	/** Delete the activity log for a user (used when a user is hard-deleted). */
 	deleteByUserId(userId: string): Promise<void>;
 }
-
-

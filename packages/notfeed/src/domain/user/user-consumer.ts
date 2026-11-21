@@ -134,7 +134,11 @@ export interface UserConsumerRepository {
 
 	/** Custom library tab management (embedded in user) */
 	createTab(userId: string, tab: Omit<LibraryTab, 'id' | 'createdAt'>): Promise<LibraryTab>;
-	updateTab(userId: string, tabId: string, data: Partial<Pick<LibraryTab, 'title' | 'emoji' | 'position'>>): Promise<LibraryTab>;
+	updateTab(
+		userId: string,
+		tabId: string,
+		data: Partial<Pick<LibraryTab, 'title' | 'emoji' | 'position'>>
+	): Promise<LibraryTab>;
 	deleteTab(userId: string, tabId: string): Promise<void>;
 
 	/** Feed macro management (embedded in user) */

@@ -66,9 +66,7 @@ export async function getTreeByNodeId(compositeNodeId: string): Promise<ContentT
 /**
  * Resolve a composite nodeId to its TreeNode (or null).
  */
-export async function getNodeByCompositeId(
-	compositeNodeId: string
-): Promise<TreeNode | null> {
+export async function getNodeByCompositeId(compositeNodeId: string): Promise<TreeNode | null> {
 	const tree = await getTreeByNodeId(compositeNodeId);
 	if (!tree) return null;
 	return tree.nodes[compositeNodeId] ?? null;

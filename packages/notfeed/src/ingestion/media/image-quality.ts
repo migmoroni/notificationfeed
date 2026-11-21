@@ -130,7 +130,8 @@ function getPathDimensionCandidates(url: string, targetWidths: number[]): string
 		const currentW = Number.parseInt(pairMatch[1], 10);
 		const separator = pairMatch[2];
 		const currentH = Number.parseInt(pairMatch[3], 10);
-		if (!Number.isFinite(currentW) || !Number.isFinite(currentH) || currentW <= 0 || currentH <= 0) continue;
+		if (!Number.isFinite(currentW) || !Number.isFinite(currentH) || currentW <= 0 || currentH <= 0)
+			continue;
 
 		for (const targetW of targetWidths) {
 			if (targetW === currentW) continue;
@@ -149,8 +150,15 @@ function getPathDimensionCandidates(url: string, targetWidths: number[]): string
 	}
 
 	if (numericSegments.length > 0) {
-		const contextual = numericSegments.filter((entry) => isLikelyDimensionSegment(segments, entry.index));
-		const picked = contextual.length === 1 ? contextual[0] : numericSegments.length === 1 ? numericSegments[0] : null;
+		const contextual = numericSegments.filter((entry) =>
+			isLikelyDimensionSegment(segments, entry.index)
+		);
+		const picked =
+			contextual.length === 1
+				? contextual[0]
+				: numericSegments.length === 1
+					? numericSegments[0]
+					: null;
 		if (picked) {
 			for (const targetW of targetWidths) {
 				if (targetW === picked.value) continue;

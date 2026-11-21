@@ -23,7 +23,7 @@
 	}
 </script>
 
-<Tabs.Root value={value} onValueChange={handleChange}>
+<Tabs.Root {value} onValueChange={handleChange}>
 	<Tabs.List class="h-9">
 		{#each options as opt}
 			<Tabs.Trigger value={opt.value} class="text-xs px-3">

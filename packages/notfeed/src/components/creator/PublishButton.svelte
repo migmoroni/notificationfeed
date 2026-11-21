@@ -22,9 +22,7 @@
 	});
 
 	let isPublished = $derived(publication !== null && publication.version > 0);
-	let versionLabel = $derived(
-		isPublished ? `v${publication!.version}` : null
-	);
+	let versionLabel = $derived(isPublished ? `v${publication!.version}` : null);
 
 	async function handlePublish() {
 		publishing = true;

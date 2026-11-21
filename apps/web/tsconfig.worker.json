@@ -1,0 +1,5 @@
+{
+	"extends": "./tsconfig.json",
+	"include": ["src/service-worker.ts", ".svelte-kit/ambient.d.ts", "src/app.d.ts"],
+	"exclude": []
+}

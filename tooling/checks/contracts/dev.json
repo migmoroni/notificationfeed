@@ -1,0 +1,32 @@
+{
+	"schemaVersion": 1,
+	"environment": {
+		"TZ": "UTC",
+		"LANG": "en_US.UTF-8",
+		"LC_ALL": "en_US.UTF-8"
+	},
+	"expectedIntl": {
+		"locale": "en-US",
+		"timeZone": "UTC"
+	},
+	"ports": {
+		"dev": 5173,
+		"preview": 4173,
+		"e2eDev": 4175
+	},
+	"strictPort": true,
+	"watchFlag": "--watch",
+	"fixtureRuns": {
+		"watch": 2,
+		"batch": 1
+	},
+	"watchTimeoutMs": 30000,
+	"watchTermination": "SIGTERM by owned harness after assertions; no retry",
+	"publicCommands": {
+		"pwa:preview": "pnpm build && pnpm preview --host 127.0.0.1"
+	},
+	"webCommands": {
+		"test": "node ../../tooling/checks/unit.mjs --watch",
+		"test:run": "node ../../tooling/checks/unit.mjs"
+	}
+}

@@ -10,10 +10,7 @@
 		onchange: (header: NodeHeader) => void;
 	}
 
-	let {
-		header,
-		onchange
-	}: Props = $props();
+	let { header, onchange }: Props = $props();
 
 	function update(patch: Partial<NodeHeader>) {
 		onchange({ ...header, ...patch });

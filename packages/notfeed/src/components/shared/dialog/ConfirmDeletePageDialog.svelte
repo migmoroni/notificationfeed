@@ -67,14 +67,16 @@
 		</div>
 
 		<Dialog.Footer>
-			<Button variant="outline" onclick={() => { typedTitle = ''; oncancel(); }}>
+			<Button
+				variant="outline"
+				onclick={() => {
+					typedTitle = '';
+					oncancel();
+				}}
+			>
 				{t('btn.cancel')}
 			</Button>
-			<Button
-				variant="destructive"
-				disabled={!canConfirm}
-				onclick={handleConfirm}
-			>
+			<Button variant="destructive" disabled={!canConfirm} onclick={handleConfirm}>
 				<Trash2 class="size-4 mr-1.5" />
 				{t('dialog.delete_page.confirm')}
 			</Button>

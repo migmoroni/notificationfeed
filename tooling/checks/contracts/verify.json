@@ -1,0 +1,137 @@
+{
+	"schemaVersion": 1,
+	"allowExclusionFlags": false,
+	"profiles": {
+		"quick": [
+			{
+				"id": "DOCTOR",
+				"command": "pnpm",
+				"args": ["run", "doctor", "--target", "web"]
+			},
+			{
+				"id": "TYPES",
+				"command": "pnpm",
+				"args": ["check"],
+				"typeReport": true
+			},
+			{
+				"id": "E2E-TYPES",
+				"command": "pnpm",
+				"args": ["check:e2e"]
+			},
+			{
+				"id": "LINT",
+				"command": "pnpm",
+				"args": ["lint"]
+			},
+			{
+				"id": "FORMAT",
+				"command": "pnpm",
+				"args": ["format:check"]
+			},
+			{
+				"id": "ARCHITECTURE",
+				"command": "pnpm",
+				"args": ["check:architecture"]
+			},
+			{
+				"id": "RESTRICTIONS",
+				"command": "pnpm",
+				"args": ["check:restrictions"]
+			},
+			{
+				"id": "CONTRACTS",
+				"command": "pnpm",
+				"args": ["check:contracts"]
+			},
+			{
+				"id": "UNIT",
+				"command": "pnpm",
+				"args": ["test:run"],
+				"unitReport": true
+			}
+		],
+		"rust": [
+			{
+				"id": "CARGO-CHECK",
+				"command": "cargo",
+				"args": ["check", "--locked", "--manifest-path", "apps/desktop/src-tauri/Cargo.toml"]
+			},
+			{
+				"id": "CARGO-TEST",
+				"command": "cargo",
+				"args": ["test", "--locked", "--manifest-path", "apps/desktop/src-tauri/Cargo.toml"]
+			},
+			{
+				"id": "RUST-FMT",
+				"command": "cargo",
+				"args": ["fmt", "--manifest-path", "apps/desktop/src-tauri/Cargo.toml", "--", "--check"]
+			},
+			{
+				"id": "CLIPPY",
+				"command": "cargo",
+				"args": [
+					"clippy",
+					"--locked",
+					"--manifest-path",
+					"apps/desktop/src-tauri/Cargo.toml",
+					"--all-targets",
+					"--",
+					"-D",
+					"warnings"
+				]
+			}
+		],
+		"integration": [
+			{
+				"id": "DOCTOR",
+				"command": "pnpm",
+				"args": ["run", "doctor", "--target", "desktop"]
+			},
+			{
+				"id": "NATIVE",
+				"command": "pnpm",
+				"args": ["check:rust"],
+				"jsonReceipt": true
+			},
+			{
+				"id": "SECURITY",
+				"command": "pnpm",
+				"args": ["security:check"],
+				"jsonReceipt": true
+			},
+			{
+				"id": "BUNDLE-BUILD",
+				"command": "pnpm",
+				"args": ["tauri:appimage"]
+			},
+			{
+				"id": "BUNDLE-INSPECT",
+				"command": "node",
+				"args": ["tooling/checks/bundle.mjs"],
+				"jsonReceipt": true
+			},
+			{
+				"id": "BROWSER-DEV",
+				"command": "pnpm",
+				"args": ["test:e2e:dev"],
+				"browserReport": ".artifacts/e2e/dev-report.json",
+				"browserCount": 1
+			},
+			{
+				"id": "BROWSER",
+				"command": "pnpm",
+				"args": ["test:e2e"],
+				"browserReport": ".artifacts/e2e/report.json",
+				"browserCount": 3
+			},
+			{
+				"id": "UPGRADE",
+				"command": "pnpm",
+				"args": ["test:e2e:upgrade"],
+				"browserReport": ".artifacts/e2e/upgrade-report.json",
+				"browserCount": 3
+			}
+		]
+	}
+}

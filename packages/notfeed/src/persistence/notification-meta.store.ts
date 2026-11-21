@@ -39,10 +39,7 @@ export async function recordStepFired(
  * notification delivered. Idempotent — already-tracked nodes are
  * left alone, and the persisted array stays deduped.
  */
-export async function recordBatchGlobalNodes(
-	userId: string,
-	nodeIds: string[]
-): Promise<void> {
+export async function recordBatchGlobalNodes(userId: string, nodeIds: string[]): Promise<void> {
 	if (nodeIds.length === 0) return;
 	const meta = await getNotificationMeta(userId);
 	const set = new Set(meta.batchGlobalEverNotifiedNodeIds ?? []);

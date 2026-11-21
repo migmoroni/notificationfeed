@@ -16,7 +16,13 @@ export const IMAGE_MAX_DIMENSIONS: Record<ImageSlot, { width: number; height: nu
 };
 
 /** Formats accepted on input (converted to WEBP) */
-export const ACCEPTED_IMAGE_FORMATS = ['image/svg+xml', 'image/png', 'image/jpeg', 'image/gif', 'image/webp'] as const;
+export const ACCEPTED_IMAGE_FORMATS = [
+	'image/svg+xml',
+	'image/png',
+	'image/jpeg',
+	'image/gif',
+	'image/webp'
+] as const;
 export type AcceptedImageFormat = (typeof ACCEPTED_IMAGE_FORMATS)[number];
 
 export interface ImageAsset {

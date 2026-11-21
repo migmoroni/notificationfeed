@@ -120,5 +120,5 @@ export const travel: EmojiEntry[] = [
 	{ emoji: '🌃', name: 'night stars city' },
 	{ emoji: '🌌', name: 'milky way galaxy' },
 	{ emoji: '🌉', name: 'bridge night' },
-	{ emoji: '🌁', name: 'foggy' },
+	{ emoji: '🌁', name: 'foggy' }
 ];

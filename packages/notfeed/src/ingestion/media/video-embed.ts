@@ -1,7 +1,14 @@
 import { isLikelyDirectVideoAssetUrl } from './video-capture.js';
 
 export type EmbedInfo =
-	| { type: 'iframe'; provider: string; embedUrl: string; aspectClass: string; thumbnailUrl?: string; videoId?: string }
+	| {
+			type: 'iframe';
+			provider: string;
+			embedUrl: string;
+			aspectClass: string;
+			thumbnailUrl?: string;
+			videoId?: string;
+	  }
 	| { type: 'video'; provider: 'direct'; videoUrl: string; aspectClass: string }
 	| null;
 
@@ -131,7 +138,8 @@ function parseXStatusId(url: string): string | null {
 	}
 
 	const host = parsed.hostname.toLowerCase();
-	const isXHost = host === 'x.com' || host === 'www.x.com' || host === 'mobile.x.com' || host.endsWith('.x.com');
+	const isXHost =
+		host === 'x.com' || host === 'www.x.com' || host === 'mobile.x.com' || host.endsWith('.x.com');
 	const isTwitterHost =
 		host === 'twitter.com' ||
 		host === 'www.twitter.com' ||
@@ -149,11 +157,7 @@ function parseXStatusId(url: string): string | null {
 		return normalizeXStatusId(segments[statusIndex + 1]);
 	}
 
-	if (
-		lowerSegments[0] === 'i' &&
-		lowerSegments[1] === 'web' &&
-		lowerSegments[2] === 'status'
-	) {
+	if (lowerSegments[0] === 'i' && lowerSegments[1] === 'web' && lowerSegments[2] === 'status') {
 		return normalizeXStatusId(segments[3]);
 	}
 
@@ -167,10 +171,7 @@ function normalizeTwitchClipId(raw: string | undefined): string | null {
 	return /^[A-Za-z0-9_-]+$/.test(candidate) ? candidate : null;
 }
 
-type TwitchTarget =
-	| { kind: 'video'; id: string }
-	| { kind: 'clip'; id: string }
-	| null;
+type TwitchTarget = { kind: 'video'; id: string } | { kind: 'clip'; id: string } | null;
 
 function parseTwitchTarget(url: string): TwitchTarget {
 	let parsed: URL;
@@ -203,7 +204,12 @@ function parseTwitchTarget(url: string): TwitchTarget {
 		return clipId ? { kind: 'clip', id: clipId } : null;
 	}
 
-	if (host !== 'twitch.tv' && host !== 'www.twitch.tv' && host !== 'm.twitch.tv' && !host.endsWith('.twitch.tv')) {
+	if (
+		host !== 'twitch.tv' &&
+		host !== 'www.twitch.tv' &&
+		host !== 'm.twitch.tv' &&
+		!host.endsWith('.twitch.tv')
+	) {
 		return null;
 	}
 
@@ -243,7 +249,11 @@ function parseDailymotionId(url: string): string | null {
 		return normalizeDailymotionId(segments[0]);
 	}
 
-	if (host !== 'dailymotion.com' && host !== 'www.dailymotion.com' && !host.endsWith('.dailymotion.com')) {
+	if (
+		host !== 'dailymotion.com' &&
+		host !== 'www.dailymotion.com' &&
+		!host.endsWith('.dailymotion.com')
+	) {
 		return null;
 	}
 
@@ -251,10 +261,7 @@ function parseDailymotionId(url: string): string | null {
 		return normalizeDailymotionId(segments[1]);
 	}
 
-	if (
-		segments[0].toLowerCase() === 'embed' &&
-		segments[1]?.toLowerCase() === 'video'
-	) {
+	if (segments[0].toLowerCase() === 'embed' && segments[1]?.toLowerCase() === 'video') {
 		return normalizeDailymotionId(segments[2]);
 	}
 
@@ -294,9 +301,7 @@ function decodeUrlSegment(segment: string): string {
 }
 
 function encodeOdyseeSegment(segment: string): string {
-	return encodeURIComponent(segment)
-		.replace(/%3A/gi, ':')
-		.replace(/%40/gi, '@');
+	return encodeURIComponent(segment).replace(/%3A/gi, ':').replace(/%40/gi, '@');
 }
 
 function parseOdyseeClaimPath(url: string): string | null {
@@ -348,7 +353,9 @@ function normalizePeerTubeVideoId(raw: string | undefined): string | null {
 	if (!decoded) return null;
 	if (decoded.includes('/') || decoded.includes('?') || decoded.includes('#')) return null;
 
-	const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(decoded);
+	const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+		decoded
+	);
 	const isShortId = /^[A-Za-z0-9_-]{8,}$/.test(decoded);
 
 	return isUuid || isShortId ? decoded : null;
@@ -373,7 +380,7 @@ function parsePeerTubeTarget(url: string): { origin: string; videoId: string } |
 			if (videoId) {
 				return {
 					origin: `${parsed.protocol}//${parsed.host}`,
-					videoId,
+					videoId
 				};
 			}
 		}
@@ -384,7 +391,7 @@ function parsePeerTubeTarget(url: string): { origin: string; videoId: string } |
 		if (videoId) {
 			return {
 				origin: `${parsed.protocol}//${parsed.host}`,
-				videoId,
+				videoId
 			};
 		}
 	}
@@ -411,7 +418,7 @@ const KICK_RESERVED_ROUTES = new Set([
 	'signup',
 	'subscriptions',
 	'support',
-	'terms',
+	'terms'
 ]);
 
 function parseKickChannel(url: string): string | null {
@@ -455,7 +462,9 @@ export function parseEmbed(url: string | undefined | null): EmbedInfo {
 	if (!url) return null;
 
 	// YouTube (covers shorts, youtu.be, standard watch links)
-	const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+	const ytMatch = url.match(
+		/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i
+	);
 	if (ytMatch) {
 		const isShort = url.toLowerCase().includes('/shorts/');
 		const id = ytMatch[1];

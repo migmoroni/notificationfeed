@@ -6,7 +6,12 @@
 	const nodeId = $derived(page.params.nodeId!);
 
 	$effect(() => {
-		void activityService.record({ type: 'open', targetType: 'node', targetId: nodeId, context: 'browse' });
+		void activityService.record({
+			type: 'open',
+			targetType: 'node',
+			targetId: nodeId,
+			context: 'browse'
+		});
 	});
 </script>
 

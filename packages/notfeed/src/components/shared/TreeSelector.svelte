@@ -95,19 +95,24 @@
 			{@const isOpen = openTreeId === tr.id}
 			{@const Icon = tr.icon}
 			<button
-				onclick={(e) => { e.stopPropagation(); toggleTree(tr.id); }}
+				onclick={(e) => {
+					e.stopPropagation();
+					toggleTree(tr.id);
+				}}
 				class="relative flex-1 flex items-center justify-center rounded-md p-2 transition-colors
 					{isOpen
-						? 'bg-accent text-accent-foreground'
-						: selectedCount > 0
-							? 'text-foreground bg-accent/40 hover:bg-accent/60'
-							: 'text-muted-foreground hover:bg-accent/40 hover:text-foreground'}"
+					? 'bg-accent text-accent-foreground'
+					: selectedCount > 0
+						? 'text-foreground bg-accent/40 hover:bg-accent/60'
+						: 'text-muted-foreground hover:bg-accent/40 hover:text-foreground'}"
 				title={t(tr.labelKey)}
 				aria-label={t(tr.labelKey)}
 			>
 				<Icon class="size-4" />
 				{#if selectedCount > 0}
-					<span class="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-3.5 h-3.5 px-1 rounded-full bg-primary text-primary-foreground text-[9px] font-semibold tabular-nums leading-none">
+					<span
+						class="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-3.5 h-3.5 px-1 rounded-full bg-primary text-primary-foreground text-[9px] font-semibold tabular-nums leading-none"
+					>
 						{selectedCount}
 					</span>
 				{/if}
@@ -124,20 +129,26 @@
 			class="w-160 max-h-[70vh] overflow-y-auto rounded-lg border bg-background shadow-lg p-3 z-50"
 			style={flyoutStyle}
 			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => { if (e.key === 'Escape' && openTreeId) sidebarFlyout.close(flyoutKey(openTreeId)); }}
+			onkeydown={(e) => {
+				if (e.key === 'Escape' && openTreeId) sidebarFlyout.close(flyoutKey(openTreeId));
+			}}
 		>
 			<div class="flex items-center justify-between mb-2 px-1">
 				<span class="text-sm font-medium text-foreground">
 					{t(trees.find((tr) => tr.id === activeTreeId)?.labelKey ?? '')}
 				</span>
-				<button onclick={() => openTreeId && sidebarFlyout.close(flyoutKey(openTreeId))} class="text-muted-foreground hover:text-foreground">
+				<button
+					onclick={() => openTreeId && sidebarFlyout.close(flyoutKey(openTreeId))}
+					class="text-muted-foreground hover:text-foreground"
+				>
 					<X class="size-4" />
 				</button>
 			</div>
 			{#if store.supportsFilterMode}
 				<div class="flex items-center gap-3 mb-3 px-1 text-[11px] text-muted-foreground">
 					<span class="inline-flex items-center gap-1.5">
-						<span class="inline-block size-3 rounded bg-accent ring-1 ring-accent-foreground/20"></span>
+						<span class="inline-block size-3 rounded bg-accent ring-1 ring-accent-foreground/20"
+						></span>
 						{t('category_filter.mode_any')}
 					</span>
 					<span class="inline-flex items-center gap-1.5">
@@ -156,7 +167,9 @@
 							{#if grandchildren.length > 0}
 								<!-- Mid-level with grandchildren -->
 								<div class="mt-2 mb-1">
-									<span class="px-1 text-[11px] font-medium text-muted-foreground/70">{tCat(child.id)}</span>
+									<span class="px-1 text-[11px] font-medium text-muted-foreground/70">
+										{tCat(child.id)}
+									</span>
 									<div class="grid grid-cols-3 gap-1 mt-1">
 										{#each grandchildren as gc (gc.id)}
 											<div class="group relative">

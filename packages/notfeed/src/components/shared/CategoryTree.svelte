@@ -43,7 +43,9 @@
 
 <div class="flex flex-col gap-0.5">
 	<div class="flex items-center justify-between px-2 mb-1">
-		<span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</span>
+		<span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+			{label}
+		</span>
 		{#if selectedCount > 0}
 			<button
 				onclick={handleClearTree}
@@ -63,7 +65,9 @@
 
 		<Collapsible.Root open={isOpen} onOpenChange={() => toggleRoot(root.id, hasSelectedChild)}>
 			<Collapsible.Trigger
-				class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground {hasSelectedChild ? 'text-foreground' : 'text-muted-foreground'}"
+				class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground {hasSelectedChild
+					? 'text-foreground'
+					: 'text-muted-foreground'}"
 			>
 				<ChevronRight
 					class="size-4 shrink-0 transition-transform duration-200 {isOpen ? 'rotate-90' : ''}"
@@ -77,7 +81,7 @@
 			<Collapsible.Content>
 				<div class="ml-4 flex flex-col gap-0.5 border-l border-border pl-2 py-0.5">
 					{#each children as child (child.id)}
-					{@const selected = store.isSelected(child.id, treeId)}
+						{@const selected = store.isSelected(child.id, treeId)}
 						<button
 							onclick={() => handleToggle(child.id)}
 							class="flex w-full items-center rounded-md px-2 py-1 text-sm transition-colors text-left

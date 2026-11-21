@@ -143,8 +143,10 @@
 				<div class="flex gap-3 items-end">
 					<!-- Selected emoji display -->
 					<div class="flex flex-col gap-1.5 w-16 shrink-0">
-					<span class="text-sm font-medium">{t('dialog.tab.emoji_label')}</span>
-						<div class="flex items-center justify-center h-10 rounded-md border border-input bg-background text-2xl">
+						<span class="text-sm font-medium">{t('dialog.tab.emoji_label')}</span>
+						<div
+							class="flex items-center justify-center h-10 rounded-md border border-input bg-background text-2xl"
+						>
 							{emoji || '?'}
 						</div>
 						{#if emojiError}
@@ -154,11 +156,11 @@
 
 					<!-- Title field -->
 					<div class="flex flex-col gap-1.5 flex-1">
-					<label for="tab-title" class="text-sm font-medium">{t('dialog.tab.title_label')}</label>
-					<Input
-						id="tab-title"
-						bind:value={title}
-						placeholder={t('dialog.tab.default_name')}
+						<label for="tab-title" class="text-sm font-medium">{t('dialog.tab.title_label')}</label>
+						<Input
+							id="tab-title"
+							bind:value={title}
+							placeholder={t('dialog.tab.default_name')}
 							class="h-10"
 							maxlength={20}
 							onkeydown={handleKeydown}
@@ -170,7 +172,13 @@
 				</div>
 
 				<!-- Emoji picker grid -->
-				<EmojiPicker value={emoji} onselect={(e) => { emoji = e; emojiError = ''; }} />
+				<EmojiPicker
+					value={emoji}
+					onselect={(e) => {
+						emoji = e;
+						emojiError = '';
+					}}
+				/>
 			</div>
 		{/if}
 

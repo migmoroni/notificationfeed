@@ -26,5 +26,5 @@ export const CATEGORIES: EmojiCategory[] = [
 	{ label: 'Travel', emojis: travel },
 	{ label: 'Objects', emojis: objects },
 	{ label: 'Symbols', emojis: symbols },
-	{ label: 'Flags', emojis: flags },
+	{ label: 'Flags', emojis: flags }
 ];

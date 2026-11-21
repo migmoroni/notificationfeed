@@ -101,7 +101,9 @@ function ensureTauriProbe(): void {
 	void (async () => {
 		try {
 			const { tauriInvoke } = await import('../../platform/desktop/tauri-bridge.js');
-			const snapshot = await tauriInvoke<TauriRuntimeContextSnapshot>('get_runtime_context_snapshot');
+			const snapshot = await tauriInvoke<TauriRuntimeContextSnapshot>(
+				'get_runtime_context_snapshot'
+			);
 			cachedNetworkMode = normalizeTauriNetworkMode(snapshot?.network);
 			cachedPowerMode = normalizeTauriPowerMode(snapshot?.power);
 		} catch {
@@ -272,7 +274,11 @@ export function resolveMediaIngestionRuntimeDefinitions(
 	const imageMaxWidth =
 		general.imageMaxWidth == null || network.imageMaxWidth == null || power.imageMaxWidth == null
 			? null
-			: (Math.min(general.imageMaxWidth, network.imageMaxWidth, power.imageMaxWidth) as IngestionImageMaxWidth);
+			: (Math.min(
+					general.imageMaxWidth,
+					network.imageMaxWidth,
+					power.imageMaxWidth
+				) as IngestionImageMaxWidth);
 
 	const videoInitialHeight =
 		general.videoInitialHeight == null ||

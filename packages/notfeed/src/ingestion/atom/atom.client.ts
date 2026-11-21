@@ -11,25 +11,19 @@ import type { FontAtomConfig } from '../../domain/content-tree/content-tree.js';
 import type { ProtocolFetcherState } from '../../domain/ingestion/fetcher-state.js';
 import type { IngestedPost } from '../../persistence/post.store.js';
 import { normalizeAtomEntry, type AtomEntry } from '../../normalization/atom.normalizer.js';
-import {
-	isLikelyImageUrl,
-	pickFirstImageUrl
-} from '../media/image-capture.js';
-import {
-	isLikelyVideoUrl,
-	pickFirstVideoUrl
-} from '../media/video-capture.js';
-import {
-	isLikelyAudioUrl,
-	pickFirstAudioUrl
-} from '../media/audio-capture.js';
+import { isLikelyImageUrl, pickFirstImageUrl } from '../media/image-capture.js';
+import { isLikelyVideoUrl, pickFirstVideoUrl } from '../media/video-capture.js';
+import { isLikelyAudioUrl, pickFirstAudioUrl } from '../media/audio-capture.js';
 import type { HttpAdapter } from '../net/index.js';
 
 const NS_MEDIA = 'http://search.yahoo.com/mrss/';
 
 export interface FetchResult {
 	posts: IngestedPost[];
-	nextState: Pick<ProtocolFetcherState, 'etag' | 'lastModified' | 'lastFetchedAt' | 'lastSuccessAt'>;
+	nextState: Pick<
+		ProtocolFetcherState,
+		'etag' | 'lastModified' | 'lastFetchedAt' | 'lastSuccessAt'
+	>;
 }
 
 /**

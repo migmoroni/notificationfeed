@@ -1,7 +1,8 @@
 const URL_RE = /\b(?:https?:\/\/|ipfs:\/\/|ipns:\/\/)[^\s<>"'\])]+/gi;
 const VIDEO_EXT_RE = /\.(?:mp4|webm|ogg|ogv|mov|m4v|m3u8|mpd)$/i;
 const VIDEO_QUERY_VALUE_RE = /(?:^|\b)(?:video\/|mp4|webm|ogg|mov|m4v|m3u8|mpd)(?:$|\b)/i;
-const VIDEO_PATH_HINT_RE = /\/(?:video|videos|watch|embed|player|clip|clips|stream|streams|shorts|reel|reels)\b/i;
+const VIDEO_PATH_HINT_RE =
+	/\/(?:video|videos|watch|embed|player|clip|clips|stream|streams|shorts|reel|reels)\b/i;
 const SUPPORTED_PROTOCOLS = new Set(['http:', 'https:', 'ipfs:', 'ipns:']);
 
 function trimUrlPunctuation(value: string): string {
@@ -135,7 +136,9 @@ export function isLikelyVideoUrl(url: string | null | undefined): boolean {
 /**
  * Pick the first valid URL from explicit video candidates.
  */
-export function pickFirstVideoUrl(...candidates: Array<string | null | undefined>): string | undefined {
+export function pickFirstVideoUrl(
+	...candidates: Array<string | null | undefined>
+): string | undefined {
 	for (const candidate of candidates) {
 		const normalized = normalizeUrlCandidate(candidate);
 		if (normalized) return normalized;
@@ -149,7 +152,8 @@ export function pickFirstVideoUrl(...candidates: Array<string | null | undefined
 export function extractFirstVideoUrlFromHtml(html: string | null | undefined): string | undefined {
 	if (!html) return undefined;
 
-	const srcRegex = /<(?:video|source|iframe)\b[^>]*\b(?:src|data-src)\s*=\s*(?:\"([^\"]+)\"|'([^']+)'|([^\s>]+))/gi;
+	const srcRegex =
+		/<(?:video|source|iframe)\b[^>]*\b(?:src|data-src)\s*=\s*(?:\"([^\"]+)\"|'([^']+)'|([^\s>]+))/gi;
 	for (const match of html.matchAll(srcRegex)) {
 		const src = match[1] ?? match[2] ?? match[3] ?? '';
 		const normalized = normalizeUrlCandidate(src);
@@ -198,7 +202,9 @@ export function extractFirstVideoUrlFromText(text: string | null | undefined): s
 /**
  * Extract video URLs from structured Nostr tags (`video`, `imeta`, etc).
  */
-export function extractVideoUrlFromNostrTags(tags: string[][] | null | undefined): string | undefined {
+export function extractVideoUrlFromNostrTags(
+	tags: string[][] | null | undefined
+): string | undefined {
 	if (!tags || tags.length === 0) return undefined;
 
 	for (const tag of tags) {

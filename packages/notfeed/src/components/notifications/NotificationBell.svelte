@@ -234,14 +234,14 @@
 								entry.kind === 'font_offline'
 									? 'border-l-4 border-l-destructive'
 									: entry.kind === 'font_unstable'
-									? 'border-l-4 border-l-orange-500'
-									: entry.kind === 'font_recovered'
-									? 'border-l-4 border-l-emerald-500'
-									: entry.kind === 'font_degraded'
-									? 'border-l-4 border-l-muted-foreground'
-									: entry.kind === 'font_source_switched'
-									? 'border-l-4 border-l-blue-500'
-									: ''}
+										? 'border-l-4 border-l-orange-500'
+										: entry.kind === 'font_recovered'
+											? 'border-l-4 border-l-emerald-500'
+											: entry.kind === 'font_degraded'
+												? 'border-l-4 border-l-muted-foreground'
+												: entry.kind === 'font_source_switched'
+													? 'border-l-4 border-l-blue-500'
+													: ''}
 							<button
 								type="button"
 								class="w-full text-left px-3 py-2 border-b border-border last:border-b-0 hover:bg-accent transition-colors flex flex-col gap-0.5 {accent} {entry.read
@@ -251,9 +251,9 @@
 							>
 								<div class="flex items-baseline justify-between gap-2">
 									<span class="text-sm font-medium truncate">{entry.title}</span>
-									<span class="text-[10px] text-muted-foreground shrink-0"
-										>{formatTime(entry.createdAt)}</span
-									>
+									<span class="text-[10px] text-muted-foreground shrink-0">
+										{formatTime(entry.createdAt)}
+									</span>
 								</div>
 								{#if entry.body}
 									<span class="text-xs text-muted-foreground line-clamp-2">{entry.body}</span>

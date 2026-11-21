@@ -43,8 +43,8 @@
 				<span
 					class="inline-flex items-center rounded-full text-xs font-medium transition-colors shrink-0
 						{mode === 'all'
-							? 'bg-primary text-primary-foreground'
-							: 'bg-accent text-accent-foreground ring-1 ring-accent-foreground/20'}"
+						? 'bg-primary text-primary-foreground'
+						: 'bg-accent text-accent-foreground ring-1 ring-accent-foreground/20'}"
 				>
 					<button
 						onclick={() => store.toggleCategory(catId, treeId)}

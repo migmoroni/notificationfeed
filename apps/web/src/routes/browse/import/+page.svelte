@@ -3,10 +3,19 @@
 	import { consumer } from '@notfeed/product/stores/consumer.svelte.js';
 	import { browse } from '@notfeed/product/stores/browse.svelte.js';
 	import { browseCategories } from '@notfeed/product/stores/browse-categories.svelte.js';
-	import { parseNotfeedJson, importTreeExport, importSimpleUrls } from '@notfeed/product/services/import.service.js';
+	import {
+		parseNotfeedJson,
+		importTreeExport,
+		importSimpleUrls
+	} from '@notfeed/product/services/import.service.js';
 	import { isSupportedFeedUrl } from '@notfeed/product/ingestion/net/feed-url.js';
 	import type { TreeExport } from '@notfeed/product/domain/tree-export/index.js';
-	import { Tabs, TabsContent, TabsList, TabsTrigger } from '@notfeed/product/components/ui/tabs/index.js';
+	import {
+		Tabs,
+		TabsContent,
+		TabsList,
+		TabsTrigger
+	} from '@notfeed/product/components/ui/tabs/index.js';
 	import { Button } from '@notfeed/product/components/ui/button/index.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Upload from '@lucide/svelte/icons/upload';
@@ -79,7 +88,9 @@
 				browseCategories.loadCategories();
 			}
 		} catch (err) {
-			resultMessage = t('error.unexpected', { message: err instanceof Error ? err.message : String(err) });
+			resultMessage = t('error.unexpected', {
+				message: err instanceof Error ? err.message : String(err)
+			});
 			resultSuccess = false;
 		} finally {
 			importing = false;
@@ -107,7 +118,9 @@
 				urlText = '';
 			}
 		} catch (err) {
-			resultMessage = t('error.unexpected', { message: err instanceof Error ? err.message : String(err) });
+			resultMessage = t('error.unexpected', {
+				message: err instanceof Error ? err.message : String(err)
+			});
 			resultSuccess = false;
 		} finally {
 			importing = false;
@@ -165,7 +178,8 @@
 			<div class="rounded-lg border-2 border-dashed border-muted p-6 text-center">
 				<Upload class="mx-auto mb-2 size-8 text-muted-foreground" />
 				<p class="mb-2 text-sm text-muted-foreground">
-					{t('browse.select_file')} <code class="rounded bg-muted px-1.5 py-0.5 text-xs">.notfeed.json</code>
+					{t('browse.select_file')}
+					<code class="rounded bg-muted px-1.5 py-0.5 text-xs">.notfeed.json</code>
 				</p>
 				<input
 					type="file"
@@ -184,7 +198,9 @@
 				{@const treeNodes = Object.values(parsedExport.tree.nodes)}
 				{@const rootNodeEntry = treeNodes.find((n) => n.role === 'collection')}
 				<div class="rounded-lg border bg-card p-4 space-y-2">
-					<h3 class="font-semibold">{rootNodeEntry?.data.header.title ?? t('import.without_title')}</h3>
+					<h3 class="font-semibold">
+						{rootNodeEntry?.data.header.title ?? t('import.without_title')}
+					</h3>
 					{#if rootNodeEntry?.data.header.subtitle}
 						<p class="text-sm font-medium">{rootNodeEntry.data.header.subtitle}</p>
 					{/if}
@@ -200,7 +216,6 @@
 						<span>{treeNodes.filter((n) => n.role === 'profile').length} profile(s)</span>
 						<span>{treeNodes.filter((n) => n.role === 'font').length} font(s)</span>
 					</div>
-
 				</div>
 
 				<Button class="w-full" disabled={importing} onclick={handleImportFile}>

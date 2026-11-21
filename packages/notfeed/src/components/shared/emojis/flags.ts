@@ -205,5 +205,5 @@ export const flags: EmojiEntry[] = [
 	{ emoji: '🇿🇼', name: 'flag zimbabwe' },
 	{ emoji: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', name: 'flag england' },
 	{ emoji: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', name: 'flag scotland' },
-	{ emoji: '🏴󠁧󠁢󠁷󠁬󠁳󠁿', name: 'flag wales' },
+	{ emoji: '🏴󠁧󠁢󠁷󠁬󠁳󠁿', name: 'flag wales' }
 ];

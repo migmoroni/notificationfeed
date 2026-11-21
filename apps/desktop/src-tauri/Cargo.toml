@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Notfeed desktop"
 authors = ["Notfeed"]
 edition = "2021"
+rust-version = "1.95"
 
 [lib]
 name = "notfeed_lib"

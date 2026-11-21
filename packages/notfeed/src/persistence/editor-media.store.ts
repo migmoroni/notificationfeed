@@ -5,7 +5,10 @@
  * interfere with the consumption pipeline.
  */
 
-import type { ContentMedia, ContentMediaRepository } from '../domain/content-media/content-media.js';
+import type {
+	ContentMedia,
+	ContentMediaRepository
+} from '../domain/content-media/content-media.js';
 import { getStorageBackend } from './db.js';
 
 export function createEditorMediaStore(): ContentMediaRepository {

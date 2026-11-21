@@ -24,7 +24,7 @@
 			buttonClass: 'bg-black/15 hover:bg-black/5 focus-visible:ring-emerald-400',
 			iconBgClass: 'bg-emerald-500',
 			iframeAllow: 'autoplay; clipboard-write; encrypted-media; picture-in-picture',
-			iframeAllowFullscreen: false,
+			iframeAllowFullscreen: false
 		},
 		soundcloud: {
 			preconnectUrls: ['https://w.soundcloud.com', 'https://soundcloud.com'],
@@ -34,8 +34,8 @@
 			iconBgClass: 'bg-orange-500',
 			iframeAllow: 'autoplay; clipboard-write; encrypted-media; picture-in-picture',
 			iframeAllowFullscreen: false,
-			iframeScrolling: 'no',
-		},
+			iframeScrolling: 'no'
+		}
 	};
 
 	const defaultSpec: ProviderSpec = {
@@ -45,7 +45,7 @@
 		buttonClass: 'bg-black/15 hover:bg-black/5 focus-visible:ring-sky-400',
 		iconBgClass: 'bg-sky-500',
 		iframeAllow: 'autoplay; clipboard-write; encrypted-media; picture-in-picture',
-		iframeAllowFullscreen: false,
+		iframeAllowFullscreen: false
 	};
 
 	function isSupportedAudioProvider(provider: string): provider is SupportedAudioProvider {
@@ -93,10 +93,14 @@
 			onclick={loadIframe}
 			onpointerenter={warmConnection}
 		>
-			<div class="relative flex items-center gap-3 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white transition-transform duration-200 group-hover/facade:scale-105 group-focus-visible/facade:scale-105">
+			<div
+				class="relative flex items-center gap-3 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white transition-transform duration-200 group-hover/facade:scale-105 group-focus-visible/facade:scale-105"
+			>
 				<div class="w-8 h-8 rounded-full {spec.iconBgClass} flex items-center justify-center">
 					<svg viewBox="0 0 24 24" class="w-4 h-4 fill-white" aria-hidden="true">
-						<path d="M12 3a1 1 0 0 1 1 1v8.12a3 3 0 1 1-2 0V4a1 1 0 0 1 1-1zM7.75 8.25a.75.75 0 0 1 1.5 0v6a4.75 4.75 0 0 0 9.5 0v-6a.75.75 0 0 1 1.5 0v6a6.25 6.25 0 0 1-12.5 0z" />
+						<path
+							d="M12 3a1 1 0 0 1 1 1v8.12a3 3 0 1 1-2 0V4a1 1 0 0 1 1-1zM7.75 8.25a.75.75 0 0 1 1.5 0v6a4.75 4.75 0 0 0 9.5 0v-6a.75.75 0 0 1 1.5 0v6a6.25 6.25 0 0 1-12.5 0z"
+						/>
 					</svg>
 				</div>
 				<span class="text-sm font-medium tracking-wide">{spec.label}</span>

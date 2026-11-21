@@ -60,5 +60,5 @@ export const people: EmojiEntry[] = [
 	{ emoji: '🏃', name: 'person running' },
 	{ emoji: '💃', name: 'woman dancing' },
 	{ emoji: '🕺', name: 'man dancing' },
-	{ emoji: '👯', name: 'people bunny ears party' },
+	{ emoji: '👯', name: 'people bunny ears party' }
 ];

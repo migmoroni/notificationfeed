@@ -13,9 +13,7 @@
 	let { open = $bindable(), title = '', onconfirm, oncancel }: Props = $props();
 
 	let description = $derived(
-		title
-			? t('dialog.deactivate.description_named', { title })
-			: t('dialog.deactivate.description')
+		title ? t('dialog.deactivate.description_named', { title }) : t('dialog.deactivate.description')
 	);
 </script>
 

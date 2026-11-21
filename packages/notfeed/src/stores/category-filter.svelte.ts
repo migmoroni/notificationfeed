@@ -19,7 +19,13 @@ import { createCategoryStore } from '../persistence/category.store.js';
 export type TreeModes = Record<CategoryTreeId, Map<string, CategoryFilterMode>>;
 
 export function emptyTreeModes(): TreeModes {
-	return { subject: new Map(), content: new Map(), media: new Map(), region: new Map(), language: new Map() };
+	return {
+		subject: new Map(),
+		content: new Map(),
+		media: new Map(),
+		region: new Map(),
+		language: new Map()
+	};
 }
 
 const TREE_IDS: readonly CategoryTreeId[] = ['subject', 'content', 'media', 'region', 'language'];
@@ -60,10 +66,18 @@ export function createCategoryFilter(): CategoryFilterInstance {
 	const categoryRepo = createCategoryStore();
 
 	return {
-		get categories() { return categories; },
-		get modeByTree() { return modeByTree; },
-		get loading() { return loading; },
-		get supportsFilterMode(): true { return true; },
+		get categories() {
+			return categories;
+		},
+		get modeByTree() {
+			return modeByTree;
+		},
+		get loading() {
+			return loading;
+		},
+		get supportsFilterMode(): true {
+			return true;
+		},
 
 		getFilterMode(categoryId: string, treeId: CategoryTreeId): CategoryFilterMode | undefined {
 			return modeByTree[treeId].get(categoryId);
@@ -94,9 +108,7 @@ export function createCategoryFilter(): CategoryFilterInstance {
 		},
 
 		getChildren(parentId: string): Category[] {
-			return categories
-				.filter((c) => c.parentId === parentId)
-				.sort((a, b) => a.order - b.order);
+			return categories.filter((c) => c.parentId === parentId).sort((a, b) => a.order - b.order);
 		},
 
 		isSelected(categoryId: string, treeId: CategoryTreeId): boolean {

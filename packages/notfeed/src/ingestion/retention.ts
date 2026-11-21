@@ -52,9 +52,7 @@ export async function runRetention(now: number = Date.now()): Promise<void> {
 		if (!settings) continue;
 
 		const userActiveFonts = new Set(
-			user.activateNodes
-				.filter((a) => a.enabled !== false)
-				.map((a) => a.nodeId)
+			user.activateNodes.filter((a) => a.enabled !== false).map((a) => a.nodeId)
 		);
 
 		// Discover every nodeId that has at least one post in this user's box.

@@ -13,5 +13,5 @@ import { resolveEntry, deriveDepth } from './category-data.js';
 import data from './data/media.json';
 
 export const mediaSeed: SeedCategory[] = (data as CategoryDataEntry[]).map((e) =>
-resolveEntry(e, 'media', deriveDepth(e.id, false))
+	resolveEntry(e, 'media', deriveDepth(e.id, false))
 );

@@ -11,8 +11,14 @@ export function createUserCreatorStore(): UserCreatorRepository {
 	/** Ensure legacy records have new fields with defaults */
 	function migrate(user: UserCreator): UserCreator {
 		let needsMigration = false;
-		if (!user.ownedTreeIds) { user.ownedTreeIds = []; needsMigration = true; }
-		if (!user.ownedMediaIds) { user.ownedMediaIds = []; needsMigration = true; }
+		if (!user.ownedTreeIds) {
+			user.ownedTreeIds = [];
+			needsMigration = true;
+		}
+		if (!user.ownedMediaIds) {
+			user.ownedMediaIds = [];
+			needsMigration = true;
+		}
 		return user;
 	}
 

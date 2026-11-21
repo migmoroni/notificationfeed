@@ -102,10 +102,7 @@
 						{/if}
 						<div class={library.isSelecting ? 'pl-8' : ''}>
 							{#if item.node}
-								<EntityCard
-									node={item.node}
-									href={library.isSelecting ? null : itemHref(item)}
-								/>
+								<EntityCard node={item.node} href={library.isSelecting ? null : itemHref(item)} />
 							{/if}
 						</div>
 					</div>

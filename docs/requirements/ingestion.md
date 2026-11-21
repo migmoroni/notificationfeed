@@ -32,6 +32,7 @@ está em `docs/ingestion-to-post-flow.md`.
 Orquestrador isomórfico — roda no foreground (página) e no Service Worker, com a mesma API.
 
 Responsabilidades:
+
 - Determinar quais usuários têm cada `nodeId` ativado e calcular o intervalo agregado para a fonte (o **menor** intervalo entre os usuários interessados ganha).
 - Selecionar a entry de protocolo ativa via `getProtocolEntriesByPriority()` (primary declarada / promovida em runtime, depois fallbacks ranqueados por score).
 - Aplicar **conditional GET** via `If-None-Match` / `If-Modified-Since` para HTTP, ou `since` para Nostr, usando os campos cacheados em `ProtocolFetcherState`.
@@ -48,16 +49,17 @@ Roda no foreground enquanto o app está aberto; no Service Worker, é acionado v
 
 ### Clients de ingestão
 
-| Protocolo | Arquivo | Mecanismo |
-|---|---|---|
-| RSS 2.0 | `ingestion/rss/rss.client.ts` | HTTP GET com conditional headers; parse XML |
-| Atom 1.0 | `ingestion/atom/atom.client.ts` | HTTP GET com conditional headers; parse XML |
-| JSON Feed 1.0/1.1 | `ingestion/jsonfeed/jsonfeed.client.ts` | HTTP GET com conditional headers; `JSON.parse` lenient (erro/shape inválido → `[]`) |
-| Nostr | `ingestion/nostr/nostr.client.ts` | WebSocket nos relays da Font; `REQ` com filtros (`authors`, `kinds`), encerra após `EOSE` |
+| Protocolo         | Arquivo                                 | Mecanismo                                                                                 |
+| ----------------- | --------------------------------------- | ----------------------------------------------------------------------------------------- |
+| RSS 2.0           | `ingestion/rss/rss.client.ts`           | HTTP GET com conditional headers; parse XML                                               |
+| Atom 1.0          | `ingestion/atom/atom.client.ts`         | HTTP GET com conditional headers; parse XML                                               |
+| JSON Feed 1.0/1.1 | `ingestion/jsonfeed/jsonfeed.client.ts` | HTTP GET com conditional headers; `JSON.parse` lenient (erro/shape inválido → `[]`)       |
+| Nostr             | `ingestion/nostr/nostr.client.ts`       | WebSocket nos relays da Font; `REQ` com filtros (`authors`, `kinds`), encerra após `EOSE` |
 
 ### HTTP Adapter (`$lib/ingestion/net/`)
 
 Factory que retorna o adapter apropriado por plataforma:
+
 - **Web/PWA/TWA**: `web-proxy.adapter.ts` — usa proxy CORS configurável (template-based, ex.: `https://corsproxy.io/?{url}`).
 - **Tauri (desktop/mobile nativo)**: `tauri-http.adapter.ts` — chama `tauri-plugin-http` direto, sem CORS.
 
@@ -67,12 +69,12 @@ Detecção via `isTauri()` (presença de `__TAURI_INTERNALS__`).
 
 Funções **puras** que produzem `IngestedPost` (mesmo shape do `CanonicalPost` mas sem `userId` e sem flags de estado per-usuário). O PostManager atribui `userId` ao inserir em cada caixa.
 
-| Função | Saída | Notas |
-|---|---|---|
-| `normalizeRssItem(item, nodeId)` | IngestedPost | id = `guid ?? link`; data inválida → `now` |
-| `normalizeAtomEntry(entry, nodeId)` | IngestedPost | id = `entry.id`; prefere `<content>` sobre `<summary>` |
+| Função                                | Saída        | Notas                                                                                                                                                                                    |
+| ------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `normalizeRssItem(item, nodeId)`      | IngestedPost | id = `guid ?? link`; data inválida → `now`                                                                                                                                               |
+| `normalizeAtomEntry(entry, nodeId)`   | IngestedPost | id = `entry.id`; prefere `<content>` sobre `<summary>`                                                                                                                                   |
 | `normalizeJsonfeedItem(item, nodeId)` | IngestedPost | id = `item.id ?? item.url`; conteúdo: `content_html` → `content_text` → `summary`; autor v1.1 (`authors[0].name`) → v1 (`author.name`); data: `date_published` → `date_modified` → `now` |
-| `normalizeNostrEvent(event, nodeId)` | IngestedPost | id = `event.id`; URL = `nostr:{id}` (NIP-21); `created_at` em segundos → ms |
+| `normalizeNostrEvent(event, nodeId)`  | IngestedPost | id = `event.id`; URL = `nostr:{id}` (NIP-21); `created_at` em segundos → ms                                                                                                              |
 
 ### Mídia de posts
 
@@ -95,12 +97,12 @@ Embarcada em `UserSettings.ingestion` — cada usuário ajusta independentemente
 
 ### Tiers de ociosidade
 
-| Tier | Período de ociosidade | Intervalo de fetch | Default |
-|---|---|---|---|
-| Ativo | 0h → tier1Max | `activeIntervalMs` | 30 min |
-| Tier 1 | tier1Max → tier2Max | `idleTier1IntervalMs` | 4 h após 24 h |
-| Tier 2 | tier2Max → tier3Max | `idleTier2IntervalMs` | 24 h após 72 h |
-| Tier 3 | > tier3Max | `idleTier3IntervalMs` | (raramente atingido) |
+| Tier   | Período de ociosidade | Intervalo de fetch    | Default              |
+| ------ | --------------------- | --------------------- | -------------------- |
+| Ativo  | 0h → tier1Max         | `activeIntervalMs`    | 30 min               |
+| Tier 1 | tier1Max → tier2Max   | `idleTier1IntervalMs` | 4 h após 24 h        |
+| Tier 2 | tier2Max → tier3Max   | `idleTier2IntervalMs` | 24 h após 72 h       |
+| Tier 3 | > tier3Max            | `idleTier3IntervalMs` | (raramente atingido) |
 
 Todos os 5 limiares (`idleTier{1,2,3}IntervalMs`, `idleTier{1,2}MaxIdleMs`) são editáveis em `/user/settings/ingestion`.
 
@@ -128,6 +130,7 @@ Cada usuário tem janelas de retenção para fontes ativas e órfãs. `runRetent
 Cada post é um registro com chave sintética `_pk = ${userId}|${nodeId}|${id}`.
 
 Índices:
+
 - `byUser` (`userId`) — listar caixa de um usuário.
 - `byUserNode` (`_userNode = ${userId}|${nodeId}`) — listar uma fonte de um usuário.
 
@@ -139,30 +142,30 @@ Um registro por `nodeId`, compartilhado entre todos os usuários que ativaram a 
 
 ```typescript
 interface FetcherState {
-  nodeId: string;
-  pipelineState: PipelineState;          // HEALTHY | RECOVERING | UNSTABLE | DEGRADED | OFFLINE
-  confidence: number;                    // 0..1, derivada do pipelineState
-  effectivePrimaryEntryId: string | null;
-  lastTransitionAt: number;
-  recoveringTicksRemaining: number;
-  protocols: Record<string, ProtocolFetcherState>;
+	nodeId: string;
+	pipelineState: PipelineState; // HEALTHY | RECOVERING | UNSTABLE | DEGRADED | OFFLINE
+	confidence: number; // 0..1, derivada do pipelineState
+	effectivePrimaryEntryId: string | null;
+	lastTransitionAt: number;
+	recoveringTicksRemaining: number;
+	protocols: Record<string, ProtocolFetcherState>;
 }
 
 interface ProtocolFetcherState {
-  entryId: string;
-  circuitState: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
-  failureCount: number;
-  consecutiveFailures: number;
-  successRate: number;                   // EWMA
-  avgLatencyMs: number;                  // EWMA
-  score: number;
-  backoffUntil: number | null;
-  etag?: string;
-  lastModified?: string;
-  nostrSince?: number;
-  lastFetchedAt: number;
-  lastSuccessAt: number;
-  lastAttemptAt: number;
+	entryId: string;
+	circuitState: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+	failureCount: number;
+	consecutiveFailures: number;
+	successRate: number; // EWMA
+	avgLatencyMs: number; // EWMA
+	score: number;
+	backoffUntil: number | null;
+	etag?: string;
+	lastModified?: string;
+	nostrSince?: number;
+	lastFetchedAt: number;
+	lastSuccessAt: number;
+	lastAttemptAt: number;
 }
 ```
 
@@ -172,13 +175,13 @@ Fila durável de eventos emitidos a cada transição legítima da máquina (`PIP
 
 ## Ações que disparam fetches
 
-| Evento | Comportamento |
-|---|---|
-| Boot do app (foreground) | `startScheduler()` → primeiro `tick()` imediato |
-| Reconexão de rede (`online`) | `tickNow()` na thread ativa; `sync` no SW |
-| Periodic Background Sync (PWA instalada) | SW chama `tick()` |
-| Usuário ativa nova font | `backfillPostsForUserNode(userId, nodeId)` copia posts existentes de outras caixas; depois agenda fetch normal |
-| Usuário desativa font | `deletePostsForUserNode(userId, nodeId)` apaga apenas a caixa dele |
+| Evento                                   | Comportamento                                                                                                  |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Boot do app (foreground)                 | `startScheduler()` → primeiro `tick()` imediato                                                                |
+| Reconexão de rede (`online`)             | `tickNow()` na thread ativa; `sync` no SW                                                                      |
+| Periodic Background Sync (PWA instalada) | SW chama `tick()`                                                                                              |
+| Usuário ativa nova font                  | `backfillPostsForUserNode(userId, nodeId)` copia posts existentes de outras caixas; depois agenda fetch normal |
+| Usuário desativa font                    | `deletePostsForUserNode(userId, nodeId)` apaga apenas a caixa dele                                             |
 
 ## Regras
 

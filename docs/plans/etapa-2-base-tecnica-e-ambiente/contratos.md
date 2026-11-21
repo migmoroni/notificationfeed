@@ -6,14 +6,14 @@ O [manifesto](contracts/etapa-2.json) fixa o escopo e a ordem. Os registros abai
 
 Em 2.1b criar `tooling/maintenance/contracts/baseline.json` com `schemaVersion: 1`, revisão Git, hash da árvore auditada, diff e arquivos adicionais necessários à reprodução, versões observadas, hashes dos lockfiles e os inventários abaixo. Não registrar segredos ou arquivos pessoais.
 
-| Inventário | Campos e comparação obrigatórios |
-| --- | --- |
-| Fontes e configuração | Caminho, SHA-256, classificação produto/tooling/documentação; arquivos gerados excluídos explicitamente |
-| Dependências | Ecossistema, nome, versão, consumidor, relação direta/transitiva/peer/opcional, caminho no grafo, integridade/origem quando disponível |
-| Testes | Arquivo e nome completo de cada caso; mapeamento justificado para eventual renomeação, conservando assertions |
-| Dados públicos | Banco, versão, stores, índices, chaves, rotas, export `.notfeed.json`, identificadores e configuração Tauri |
-| Dívida histórica | Ocorrência sintática de tipo/supressão, arquivo e âncora; sem allowance por arquivo inteiro |
-| Ambiente | OS/arquitetura, Node/npm/Rust/Cargo, navegadores, ferramentas nativas, scripts e lacunas do dev |
+| Inventário            | Campos e comparação obrigatórios                                                                                                       |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Fontes e configuração | Caminho, SHA-256, classificação produto/tooling/documentação; arquivos gerados excluídos explicitamente                                |
+| Dependências          | Ecossistema, nome, versão, consumidor, relação direta/transitiva/peer/opcional, caminho no grafo, integridade/origem quando disponível |
+| Testes                | Arquivo e nome completo de cada caso; mapeamento justificado para eventual renomeação, conservando assertions                          |
+| Dados públicos        | Banco, versão, stores, índices, chaves, rotas, export `.notfeed.json`, identificadores e configuração Tauri                            |
+| Dívida histórica      | Ocorrência sintática de tipo/supressão, arquivo e âncora; sem allowance por arquivo inteiro                                            |
+| Ambiente              | OS/arquitetura, Node/npm/Rust/Cargo, navegadores, ferramentas nativas, scripts e lacunas do dev                                        |
 
 Produzir uma receita de reconstrução da **entrada da etapa 2**, com fontes e locks exatos, em área sintética isolada. Preferir revisão Git já disponível; se houver alterações relevantes não commitadas, preservar snapshot/diff e arquivos adicionais com hashes. A receita deve funcionar fora da árvore de trabalho atual. Não depender de `node_modules`, refs locais desconhecidos ou builds pré-existentes. O inventário captura a entrada antes de escrever seus próprios registros; não incluir o próprio inventário no hash que ele descreve.
 
@@ -23,18 +23,20 @@ O novo baseline não substitui P1/P6 nos registros históricos. Ele serve à com
 
 ## C02 Ferramentas e versões
 
+Autorização adicional do usuário em 20/11/2026: `semver` 7.8.6 como dependência de desenvolvimento da raiz, para classificar faixas dos advisories por versão concreta e comparar resoluções/peers. Declarar o import direto; sem biblioteca de runtime ou novo alvo.
+
 Autorização do usuário em 20/11/2026: prever `cargo-audit` e os pacotes de suporte abaixo, somente para desenvolvimento. pnpm, ESLint, Prettier, rustfmt e Clippy fazem parte da proposta; Playwright já foi autorizado e incorporado na etapa 1.
 
-| Ferramenta | Uso e local |
-| --- | --- |
-| pnpm | Gerenciador JS/TS; versão exata em `packageManager`, coerente com setup/CI |
-| ESLint e `@eslint/js` | Regras JS e configuração na raiz |
-| `typescript-eslint` e `globals` | Tipagem/parser e ambientes explícitos das fontes verificadas |
-| `eslint-plugin-svelte` | Parse e regras de componentes Svelte |
-| Prettier e `prettier-plugin-svelte` | Formatação JS/TS/Svelte e documentos ativos |
-| `eslint-config-prettier` | Separar regras de formatação das de qualidade; não desligar regras de segurança/correção |
-| rustfmt e Clippy | Componentes da toolchain Rust fixada |
-| `cargo-audit` | CLI de desenvolvimento fixada, sem virar dependência do crate de produto |
+| Ferramenta                          | Uso e local                                                                              |
+| ----------------------------------- | ---------------------------------------------------------------------------------------- |
+| pnpm                                | Gerenciador JS/TS; versão exata em `packageManager`, coerente com setup/CI               |
+| ESLint e `@eslint/js`               | Regras JS e configuração na raiz                                                         |
+| `typescript-eslint` e `globals`     | Tipagem/parser e ambientes explícitos das fontes verificadas                             |
+| `eslint-plugin-svelte`              | Parse e regras de componentes Svelte                                                     |
+| Prettier e `prettier-plugin-svelte` | Formatação JS/TS/Svelte e documentos ativos                                              |
+| `eslint-config-prettier`            | Separar regras de formatação das de qualidade; não desligar regras de segurança/correção |
+| rustfmt e Clippy                    | Componentes da toolchain Rust fixada                                                     |
+| `cargo-audit`                       | CLI de desenvolvimento fixada, sem virar dependência do crate de produto                 |
 
 As transitivas necessárias seguem os locks; novos imports diretos de tooling devem usar pacotes declarados no consumidor. Esta autorização não abrange novos parsers, drivers nativos, orquestradores ou bibliotecas de produto. Uma necessidade adicional aciona consulta antes da instalação.
 
@@ -99,22 +101,22 @@ Em 2.1b podem nascer os verificadores independentes indispensáveis à referênc
 
 ## C07 Comandos públicos previstos
 
-| Comando final na raiz | Contrato |
-| --- | --- |
-| `pnpm dev`, `pnpm build`, `pnpm preview` | Web no workspace correto, argumentos repassados |
-| `pnpm pwa:preview` | Build e preview local do SW, sem publicar nem manipular perfil pessoal |
-| `pnpm check` e `pnpm check:e2e` | Svelte/TS completos e tipos da infraestrutura de navegador |
-| `pnpm lint` e `pnpm format:check` | Código e formatação do escopo acordado, sem escrever arquivos |
-| `pnpm test` e `pnpm test:run` | Watch e lote, mesmas condições de ambiente e descoberta |
-| `pnpm check:architecture` e `pnpm check:restrictions` | Grafo/exports/dependências e proibições de novos atalhos |
-| `pnpm check:contracts` e `pnpm test:tooling` | Contratos permanentes e testes dos verificadores |
-| `pnpm verify:quick` | Tipos, lint, formatação, unitários, contratos, restrições e fronteiras |
-| `pnpm test:e2e:dev`, `pnpm test:e2e`, `pnpm test:e2e:upgrade` | Chromium dev, produção e atualização real preservando dados |
-| `pnpm check:rust` | Cargo check/test, rustfmt e Clippy, features atuais |
-| `pnpm tauri:dev`, `pnpm tauri:appimage` | Comandos desktop existentes adaptados a pnpm |
-| `pnpm doctor --target web` ou `--target desktop` | Diagnóstico sem instalar/alterar máquina, falha acionável quando necessário |
-| `pnpm security:collect` e `pnpm security:check` | Relatórios atuais e política final de segurança |
-| `pnpm verify:integration` | Build, cenários reais e provas nativas, na ordem de artefatos descrita nos gates |
+| Comando final na raiz                                         | Contrato                                                                         |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `pnpm dev`, `pnpm build`, `pnpm preview`                      | Web no workspace correto, argumentos repassados                                  |
+| `pnpm pwa:preview`                                            | Build e preview local do SW, sem publicar nem manipular perfil pessoal           |
+| `pnpm check` e `pnpm check:e2e`                               | Svelte/TS completos e tipos da infraestrutura de navegador                       |
+| `pnpm lint` e `pnpm format:check`                             | Código e formatação do escopo acordado, sem escrever arquivos                    |
+| `pnpm test` e `pnpm test:run`                                 | Watch e lote, mesmas condições de ambiente e descoberta                          |
+| `pnpm check:architecture` e `pnpm check:restrictions`         | Grafo/exports/dependências e proibições de novos atalhos                         |
+| `pnpm check:contracts` e `pnpm test:tooling`                  | Contratos permanentes e testes dos verificadores                                 |
+| `pnpm verify:quick`                                           | Tipos, lint, formatação, unitários, contratos, restrições e fronteiras           |
+| `pnpm test:e2e:dev`, `pnpm test:e2e`, `pnpm test:e2e:upgrade` | Chromium dev, produção e atualização real preservando dados                      |
+| `pnpm check:rust`                                             | Cargo check/test, rustfmt e Clippy, features atuais                              |
+| `pnpm tauri:dev`, `pnpm tauri:appimage`                       | Comandos desktop existentes adaptados a pnpm                                     |
+| `pnpm run doctor --target web` ou `--target desktop`          | Diagnóstico sem instalar/alterar máquina, falha acionável quando necessário      |
+| `pnpm security:collect` e `pnpm security:check`               | Relatórios atuais e política final de segurança                                  |
+| `pnpm verify:integration`                                     | Build, cenários reais e provas nativas, na ordem de artefatos descrita nos gates |
 
 Os agregados propagam a primeira falha e não aceitam flags de exclusão. `verify:quick` atende ao trabalho web sem exigir bibliotecas de desktop. O contrato `check:rust` fica no perfil desktop; não se pode alegar integração completa executando somente o perfil web.
 

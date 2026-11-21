@@ -18,7 +18,7 @@ const SOUNDCLOUD_RESERVED_ROUTES = new Set([
 	'pages',
 	'jobs',
 	'stories',
-	'terms-of-use',
+	'terms-of-use'
 ]);
 
 function parseSpotifyTarget(url: string): { kind: SpotifyKind; id: string } | null {
@@ -73,7 +73,12 @@ function parseSoundCloudAudioUrl(url: string): string | null {
 		return parseSoundCloudAudioUrl(nested);
 	}
 
-	if (host === 'soundcloud.com' || host === 'www.soundcloud.com' || host === 'm.soundcloud.com' || host.endsWith('.soundcloud.com')) {
+	if (
+		host === 'soundcloud.com' ||
+		host === 'www.soundcloud.com' ||
+		host === 'm.soundcloud.com' ||
+		host.endsWith('.soundcloud.com')
+	) {
 		if (segments.length < 2) return null;
 		const first = segments[0].toLowerCase();
 		if (SOUNDCLOUD_RESERVED_ROUTES.has(first)) return null;

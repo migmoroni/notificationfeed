@@ -92,11 +92,7 @@ export async function fetchNostrFeed(
 	};
 	if (since !== null) filter.since = since;
 
-	const { events, allFailed, perRelay } = await collectFromRelays(
-		config.relays,
-		filter,
-		timeoutMs
-	);
+	const { events, allFailed, perRelay } = await collectFromRelays(config.relays, filter, timeoutMs);
 	void perRelay;
 	if (allFailed && config.relays.length > 0) {
 		throw new Error(`nostr: all ${config.relays.length} relay(s) failed to connect`);
@@ -129,7 +125,7 @@ export async function fetchNostrFeed(
 		nextState: {
 			lastFetchedAt: now,
 			lastSuccessAt: now,
-			nostrSince: maxCreatedAt > 0 ? maxCreatedAt : prev?.nostrSince ?? null
+			nostrSince: maxCreatedAt > 0 ? maxCreatedAt : (prev?.nostrSince ?? null)
 		}
 	};
 }

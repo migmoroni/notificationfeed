@@ -21,5 +21,5 @@ export const drinks: EmojiEntry[] = [
 	{ emoji: '🧉', name: 'mate' },
 	{ emoji: '🍾', name: 'bottle popping cork champagne' },
 	{ emoji: '🫗', name: 'pouring liquid' },
-	{ emoji: '🏺', name: 'amphora vase' },
+	{ emoji: '🏺', name: 'amphora vase' }
 ];

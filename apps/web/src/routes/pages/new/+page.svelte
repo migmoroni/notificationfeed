@@ -14,17 +14,20 @@
 
 	type RootRole = 'profile' | 'collection';
 
-	const rootRoleOptions = $derived([{
-		value: 'profile' as RootRole,
-		label: t('role.profile'),
-		description: t('role.profile_description'),
-		icon: Newspaper
-	}, {
-		value: 'collection' as RootRole,
-		label: t('role.collection'),
-		description: t('role.collection_description'),
-		icon: Library
-	}]);
+	const rootRoleOptions = $derived([
+		{
+			value: 'profile' as RootRole,
+			label: t('role.profile'),
+			description: t('role.profile_description'),
+			icon: Newspaper
+		},
+		{
+			value: 'collection' as RootRole,
+			label: t('role.collection'),
+			description: t('role.collection_description'),
+			icon: Library
+		}
+	]);
 
 	let selectedRole = $state<RootRole>('collection');
 	let title = $state('');
@@ -58,7 +61,10 @@
 </svelte:head>
 
 <div class="container mx-auto px-4 py-6 {layout.isExpanded ? 'max-w-xl' : 'max-w-md'}">
-	<button onclick={() => history.back()} class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
+	<button
+		onclick={() => history.back()}
+		class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
+	>
 		<ArrowLeft class="size-4" />
 		{t('btn.back')}
 	</button>
@@ -74,10 +80,18 @@
 				{@const Icon = opt.icon}
 				<button
 					type="button"
-					class="flex items-center gap-3 p-3 rounded-lg border text-left transition-colors {selectedRole === opt.value ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border hover:bg-muted/50'}"
+					class="flex items-center gap-3 p-3 rounded-lg border text-left transition-colors {selectedRole ===
+					opt.value
+						? 'border-primary bg-primary/5 ring-1 ring-primary'
+						: 'border-border hover:bg-muted/50'}"
 					onclick={() => (selectedRole = opt.value)}
 				>
-					<div class="shrink-0 size-9 rounded-md flex items-center justify-center {selectedRole === opt.value ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}">
+					<div
+						class="shrink-0 size-9 rounded-md flex items-center justify-center {selectedRole ===
+						opt.value
+							? 'bg-primary text-primary-foreground'
+							: 'bg-muted text-muted-foreground'}"
+					>
 						<Icon class="size-4" />
 					</div>
 					<div class="flex-1 min-w-0">
@@ -90,7 +104,13 @@
 	</div>
 
 	<!-- Step 2: Title -->
-	<form onsubmit={(e) => { e.preventDefault(); handleCreate(); }} class="space-y-4">
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			handleCreate();
+		}}
+		class="space-y-4"
+	>
 		<div class="space-y-2">
 			<Label for="page-title">{t('pages.page_name_label')} *</Label>
 			<Input

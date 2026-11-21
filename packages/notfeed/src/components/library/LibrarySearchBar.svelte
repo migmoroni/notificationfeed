@@ -22,7 +22,9 @@
 </script>
 
 <div class="relative">
-	<Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+	<Search
+		class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none"
+	/>
 	<Input
 		type="text"
 		placeholder={t(placeholderKey)}

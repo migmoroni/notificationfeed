@@ -26,8 +26,8 @@
 		{onclick}
 		class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors
 			{subscribed
-				? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20'
-				: 'text-muted-foreground hover:text-foreground hover:bg-muted'}"
+			? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20'
+			: 'text-muted-foreground hover:text-foreground hover:bg-muted'}"
 		aria-label={subscribed ? t('aria.unsubscribe') : t('aria.subscribe')}
 	>
 		{#if subscribed}
@@ -43,8 +43,8 @@
 		{onclick}
 		class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors
 			{subscribed
-				? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20'
-				: 'text-muted-foreground hover:text-foreground hover:bg-muted border border-border'}"
+			? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20'
+			: 'text-muted-foreground hover:text-foreground hover:bg-muted border border-border'}"
 		aria-label={subscribed ? t('aria.unsubscribe') : t('aria.subscribe')}
 	>
 		{#if subscribed}

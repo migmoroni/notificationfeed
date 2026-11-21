@@ -48,7 +48,12 @@
 	}
 </script>
 
-<Dialog.Root open={true} onOpenChange={(open) => { if (!open) onclose(); }}>
+<Dialog.Root
+	open={true}
+	onOpenChange={(open) => {
+		if (!open) onclose();
+	}}
+>
 	<Dialog.Content class="sm:max-w-fit">
 		<Dialog.Header>
 			<Dialog.Title>{t('library.organize_tabs')}</Dialog.Title>
@@ -59,7 +64,9 @@
 
 		<div class="pt-2">
 			<div class="relative">
-				<Search class="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+				<Search
+					class="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none"
+				/>
 				<Input
 					bind:value={search}
 					placeholder={t('library.organize_tabs_search_placeholder')}

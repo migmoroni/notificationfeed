@@ -15,13 +15,18 @@ const treeRepo = createContentTreeStore();
 
 let loadedTrees = $state<ContentTree[]>([]);
 
-export const browseEntityFilter = createEntityFilter({
-async load() {
-const trees = await treeRepo.getAll();
-loadedTrees = trees;
-return { trees };
-},
-getTrees() { return loadedTrees; },
-isNodeActivated: (nodeId) => consumer.isNodeActivated(nodeId),
-getActivation: (nodeId) => consumer.getActivation(nodeId)
-}, { singlePageSelect: true, singleFontSelect: true });
+export const browseEntityFilter = createEntityFilter(
+	{
+		async load() {
+			const trees = await treeRepo.getAll();
+			loadedTrees = trees;
+			return { trees };
+		},
+		getTrees() {
+			return loadedTrees;
+		},
+		isNodeActivated: (nodeId) => consumer.isNodeActivated(nodeId),
+		getActivation: (nodeId) => consumer.getActivation(nodeId)
+	},
+	{ singlePageSelect: true, singleFontSelect: true }
+);

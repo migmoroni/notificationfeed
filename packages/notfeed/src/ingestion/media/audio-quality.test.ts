@@ -10,7 +10,8 @@ describe('audio-quality', () => {
 	});
 
 	it('normalizes soundcloud player URL to underlying soundcloud URL first', () => {
-		const source = 'https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fforss%2Fflickermood';
+		const source =
+			'https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fforss%2Fflickermood';
 		const candidates = getAudioQualityCandidates(source);
 		expect(candidates[0]).toBe('https://soundcloud.com/forss/flickermood');
 		expect(candidates).toContain(source);

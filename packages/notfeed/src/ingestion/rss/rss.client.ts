@@ -19,23 +19,17 @@ import type { FontRssConfig } from '../../domain/content-tree/content-tree.js';
 import type { ProtocolFetcherState } from '../../domain/ingestion/fetcher-state.js';
 import type { IngestedPost } from '../../persistence/post.store.js';
 import { normalizeRssItem, type RssItem } from '../../normalization/rss.normalizer.js';
-import {
-	isLikelyImageUrl,
-	pickFirstImageUrl
-} from '../media/image-capture.js';
-import {
-	isLikelyVideoUrl,
-	pickFirstVideoUrl
-} from '../media/video-capture.js';
-import {
-	isLikelyAudioUrl,
-	pickFirstAudioUrl
-} from '../media/audio-capture.js';
+import { isLikelyImageUrl, pickFirstImageUrl } from '../media/image-capture.js';
+import { isLikelyVideoUrl, pickFirstVideoUrl } from '../media/video-capture.js';
+import { isLikelyAudioUrl, pickFirstAudioUrl } from '../media/audio-capture.js';
 import type { HttpAdapter } from '../net/index.js';
 
 export interface FetchResult {
 	posts: IngestedPost[];
-	nextState: Pick<ProtocolFetcherState, 'etag' | 'lastModified' | 'lastFetchedAt' | 'lastSuccessAt'>;
+	nextState: Pick<
+		ProtocolFetcherState,
+		'etag' | 'lastModified' | 'lastFetchedAt' | 'lastSuccessAt'
+	>;
 }
 
 /**
@@ -133,10 +127,7 @@ function extractRssItem(item: Element): RssItem {
 	const contentEncoded = nsTextOf(item, NS_CONTENT, 'encoded');
 	const pubDate = textOf(item, 'pubDate') || nsTextOf(item, NS_DC, 'date');
 	const guid = textOf(item, 'guid') || link || `${title}|${pubDate}`;
-	const author =
-		textOf(item, 'author') ||
-		nsTextOf(item, NS_DC, 'creator') ||
-		undefined;
+	const author = textOf(item, 'author') || nsTextOf(item, NS_DC, 'creator') || undefined;
 	const imageUrl = pickFirstImageUrl(
 		nsAttributeOf(item, NS_MEDIA, 'thumbnail', 'url'),
 		pickMediaContentImage(item),
@@ -343,24 +334,16 @@ function parseRss2JsonResponse(body: string): RssItem[] {
 			pubDate: it.pubDate ?? '',
 			guid: it.guid ?? it.link ?? undefined,
 			author: it.author ?? undefined,
-			imageUrl: pickFirstImageUrl(
-				it.thumbnail,
-				it.image,
-				pickRss2JsonEnclosureImage(it.enclosure)
-			),
-			videoUrl: pickFirstVideoUrl(
-				it.video,
-				pickRss2JsonEnclosureVideo(it.enclosure)
-			),
-			audioUrl: pickFirstAudioUrl(
-				it.audio,
-				pickRss2JsonEnclosureAudio(it.enclosure)
-			)
+			imageUrl: pickFirstImageUrl(it.thumbnail, it.image, pickRss2JsonEnclosureImage(it.enclosure)),
+			videoUrl: pickFirstVideoUrl(it.video, pickRss2JsonEnclosureVideo(it.enclosure)),
+			audioUrl: pickFirstAudioUrl(it.audio, pickRss2JsonEnclosureAudio(it.enclosure))
 		};
 	});
 }
 
-function pickRss2JsonEnclosureImage(enclosure: Rss2JsonEnclosure | string | undefined): string | undefined {
+function pickRss2JsonEnclosureImage(
+	enclosure: Rss2JsonEnclosure | string | undefined
+): string | undefined {
 	if (!enclosure) return undefined;
 	if (typeof enclosure === 'string') {
 		return isLikelyImageUrl(enclosure) ? enclosure : undefined;
@@ -379,7 +362,9 @@ function pickRss2JsonEnclosureImage(enclosure: Rss2JsonEnclosure | string | unde
 	return undefined;
 }
 
-function pickRss2JsonEnclosureVideo(enclosure: Rss2JsonEnclosure | string | undefined): string | undefined {
+function pickRss2JsonEnclosureVideo(
+	enclosure: Rss2JsonEnclosure | string | undefined
+): string | undefined {
 	if (!enclosure) return undefined;
 	if (typeof enclosure === 'string') {
 		return isLikelyVideoUrl(enclosure) ? enclosure : undefined;
@@ -398,7 +383,9 @@ function pickRss2JsonEnclosureVideo(enclosure: Rss2JsonEnclosure | string | unde
 	return undefined;
 }
 
-function pickRss2JsonEnclosureAudio(enclosure: Rss2JsonEnclosure | string | undefined): string | undefined {
+function pickRss2JsonEnclosureAudio(
+	enclosure: Rss2JsonEnclosure | string | undefined
+): string | undefined {
 	if (!enclosure) return undefined;
 	if (typeof enclosure === 'string') {
 		return isLikelyAudioUrl(enclosure) ? enclosure : undefined;

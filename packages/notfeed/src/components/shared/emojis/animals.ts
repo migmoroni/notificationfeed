@@ -115,5 +115,5 @@ export const animals: EmojiEntry[] = [
 	{ emoji: '🐁', name: 'mouse' },
 	{ emoji: '🐀', name: 'rat' },
 	{ emoji: '🐿️', name: 'chipmunk squirrel' },
-	{ emoji: '🦔', name: 'hedgehog' },
+	{ emoji: '🦔', name: 'hedgehog' }
 ];

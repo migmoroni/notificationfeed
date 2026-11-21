@@ -28,12 +28,8 @@ export function tFor(
 	key: string,
 	params?: Record<string, string | number>
 ): string {
-	const resolved: Language =
-		(lang && (lang in dictionaries) ? (lang as Language) : DEFAULT_LANGUAGE);
-	const raw =
-		dictionaries[resolved]?.[key] ??
-		dictionaries[DEFAULT_LANGUAGE]?.[key] ??
-		key;
+	const resolved: Language = lang && lang in dictionaries ? (lang as Language) : DEFAULT_LANGUAGE;
+	const raw = dictionaries[resolved]?.[key] ?? dictionaries[DEFAULT_LANGUAGE]?.[key] ?? key;
 
 	if (!params) return raw;
 	return raw.replace(/\{(\w+)\}/g, (_, name) => {

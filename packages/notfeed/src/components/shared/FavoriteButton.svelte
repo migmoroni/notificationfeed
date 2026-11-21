@@ -28,7 +28,9 @@
 
 <button
 	{onclick}
-	class="{containerClass} {favorite ? 'text-yellow-500' : 'text-muted-foreground hover:text-foreground'}"
+	class="{containerClass} {favorite
+		? 'text-yellow-500'
+		: 'text-muted-foreground hover:text-foreground'}"
 	aria-label={favorite ? t('aria.remove_from_favorites') : t('aria.add_to_favorites')}
 >
 	{#if favorite}

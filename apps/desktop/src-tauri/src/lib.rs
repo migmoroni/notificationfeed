@@ -7,21 +7,21 @@ const LOW_BATTERY_LEVEL_THRESHOLD: f32 = 0.2;
 #[derive(Serialize)]
 struct RuntimeContextSnapshot {
     network: &'static str,
-    power: &'static str
+    power: &'static str,
 }
 
 #[tauri::command]
 fn get_runtime_context_snapshot() -> RuntimeContextSnapshot {
     RuntimeContextSnapshot {
         network: detect_network_mode(),
-        power: detect_power_mode()
+        power: detect_power_mode(),
     }
 }
 
 fn detect_network_mode() -> &'static str {
     match default_net::get_default_interface() {
         Ok(interface) => classify_network_mode(&interface),
-        Err(_) => "mobile"
+        Err(_) => "mobile",
     }
 }
 
@@ -38,13 +38,15 @@ fn classify_network_mode(interface: &Interface) -> &'static str {
         | InterfaceType::Wman
         | InterfaceType::GenericModem
         | InterfaceType::Ppp => "mobile",
-        _ => classify_network_mode_from_name(&interface.name)
+        _ => classify_network_mode_from_name(&interface.name),
     }
 }
 
 fn classify_network_mode_from_name(name: &str) -> &'static str {
     let lowered = name.to_ascii_lowercase();
-    let mobile_tokens = ["wwan", "rmnet", "ccmni", "pdp_ip", "cell", "lte", "mobile", "modem"];
+    let mobile_tokens = [
+        "wwan", "rmnet", "ccmni", "pdp_ip", "cell", "lte", "mobile", "modem",
+    ];
     if mobile_tokens.iter().any(|token| lowered.contains(token)) {
         return "mobile";
     }
@@ -60,21 +62,21 @@ fn classify_network_mode_from_name(name: &str) -> &'static str {
 fn detect_power_mode() -> &'static str {
     let manager = match BatteryManager::new() {
         Ok(manager) => manager,
-        Err(_) => return "battery"
+        Err(_) => return "battery",
     };
 
-    let mut batteries = match manager.batteries() {
+    let batteries = match manager.batteries() {
         Ok(batteries) => batteries,
-        Err(_) => return "battery"
+        Err(_) => return "battery",
     };
 
     let mut has_battery = false;
     let mut has_low_battery = false;
 
-    while let Some(result) = batteries.next() {
+    for result in batteries {
         let battery = match result {
             Ok(battery) => battery,
-            Err(_) => continue
+            Err(_) => continue,
         };
 
         has_battery = true;

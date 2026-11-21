@@ -91,7 +91,10 @@
 	<div class="flex items-center gap-1 rounded-md bg-muted p-0.5 w-fit">
 		<button
 			type="button"
-			class="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded transition-colors {mode === 'image' ? 'bg-background shadow-sm font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'}"
+			class="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded transition-colors {mode ===
+			'image'
+				? 'bg-background shadow-sm font-medium text-foreground'
+				: 'text-muted-foreground hover:text-foreground'}"
 			onclick={() => switchMode('image')}
 		>
 			<Image class="size-3.5" />
@@ -99,7 +102,10 @@
 		</button>
 		<button
 			type="button"
-			class="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded transition-colors {mode === 'emoji' ? 'bg-background shadow-sm font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'}"
+			class="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded transition-colors {mode ===
+			'emoji'
+				? 'bg-background shadow-sm font-medium text-foreground'
+				: 'text-muted-foreground hover:text-foreground'}"
 			onclick={() => switchMode('emoji')}
 		>
 			<Smile class="size-3.5" />
@@ -117,7 +123,12 @@
 					<Button variant="outline" size="sm" onclick={() => (showMediaPicker = true)}>
 						Trocar
 					</Button>
-					<Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" onclick={requestRemove}>
+					<Button
+						variant="ghost"
+						size="sm"
+						class="text-destructive hover:text-destructive"
+						onclick={requestRemove}
+					>
 						Remover
 					</Button>
 				</div>
@@ -151,11 +162,15 @@
 	{:else}
 		<div class="flex items-center gap-4">
 			{#if emoji}
-				<div class="w-18 h-18 rounded-lg border bg-muted flex items-center justify-center text-4xl shrink-0">
+				<div
+					class="w-18 h-18 rounded-lg border bg-muted flex items-center justify-center text-4xl shrink-0"
+				>
 					{emoji}
 				</div>
 			{:else}
-				<div class="w-18 h-18 rounded-lg border-2 border-dashed flex items-center justify-center text-muted-foreground shrink-0">
+				<div
+					class="w-18 h-18 rounded-lg border-2 border-dashed flex items-center justify-center text-muted-foreground shrink-0"
+				>
 					<Smile class="size-6" />
 				</div>
 			{/if}
@@ -164,7 +179,12 @@
 					{emoji ? 'Trocar' : 'Escolher'}
 				</Button>
 				{#if emoji}
-					<Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" onclick={requestRemove}>
+					<Button
+						variant="ghost"
+						size="sm"
+						class="text-destructive hover:text-destructive"
+						onclick={requestRemove}
+					>
 						Remover
 					</Button>
 				{/if}

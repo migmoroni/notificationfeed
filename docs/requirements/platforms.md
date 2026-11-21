@@ -7,9 +7,10 @@ O Notfeed roda a mesma base de código SvelteKit (SPA) em todas as plataformas. 
 ## Web / PWA
 
 **Artefato**: Estáticos (HTML/CSS/JS) + Service Worker  
-**Deploy**: Qualquer CDN ou host estático  
+**Deploy**: Qualquer CDN ou host estático
 
 ### Funcionalidades
+
 - [x] Service Worker com precache do app shell e fallback de navegação SPA
 - [x] Runtime cache cache-first para imagens vistas, com expiração por 30 dias sem uso
 - [x] Background Sync / Periodic Background Sync acionando a ingestão quando suportado
@@ -22,9 +23,10 @@ O Notfeed roda a mesma base de código SvelteKit (SPA) em todas as plataformas. 
 
 **Artefatos**: APK / AAB  
 **Build (TWA)**: Bubblewrap (wrapping da PWA hospedada)  
-**Build (Tauri)**: `tauri android build`  
+**Build (Tauri)**: `tauri android build`
 
 ### Funcionalidades
+
 - [ ] TWA: Carrega a PWA em Custom Tab (sem barra de endereço)
 - [ ] Tauri: Build nativo Android via Tauri mobile
 - [ ] Status bar com theme-color configurável
@@ -33,6 +35,7 @@ O Notfeed roda a mesma base de código SvelteKit (SPA) em todas as plataformas. 
 - [ ] Publicação na Google Play (TWA ou Tauri)
 
 ### Pré-requisitos
+
 - PWA publicada em domínio HTTPS com manifest válido (para TWA)
 - Android SDK + NDK (para Tauri mobile)
 - Conta Google Play para publicação
@@ -40,9 +43,10 @@ O Notfeed roda a mesma base de código SvelteKit (SPA) em todas as plataformas. 
 ## Windows Desktop (Tauri)
 
 **Artefato**: `.msi` (instalador MSI)  
-**Build**: `tauri build --bundles msi`  
+**Build**: `tauri build --bundles msi`
 
 ### Funcionalidades
+
 - [ ] Ícone de system tray com menu de contexto
 - [ ] Minimizar para tray ao fechar janela
 - [ ] Auto-update via Tauri updater plugin
@@ -51,9 +55,10 @@ O Notfeed roda a mesma base de código SvelteKit (SPA) em todas as plataformas. 
 ## Linux Desktop (Tauri)
 
 **Artefatos**: `.AppImage`, `.deb`, Flatpak  
-**Build**: `tauri build --bundles appimage,deb` + Flatpak manifest  
+**Build**: `tauri build --bundles appimage,deb` + Flatpak manifest
 
 ### Funcionalidades
+
 - [ ] Ícone de system tray com menu de contexto
 - [ ] Minimizar para tray ao fechar janela
 - [ ] Auto-update via Tauri updater plugin
@@ -63,11 +68,11 @@ O Notfeed roda a mesma base de código SvelteKit (SPA) em todas as plataformas. 
 
 O módulo `capabilities.ts` detecta em runtime qual plataforma está ativa:
 
-| Plataforma | Detecção |
-|---|---|
-| Tauri (desktop) | `'__TAURI_INTERNALS__' in window` |
-| Tauri (mobile) | `'__TAURI_INTERNALS__' in window` + user agent Android |
-| Android (TWA) | `display-mode: standalone` + user agent Android |
-| Web | Fallback padrão |
+| Plataforma      | Detecção                                               |
+| --------------- | ------------------------------------------------------ |
+| Tauri (desktop) | `'__TAURI_INTERNALS__' in window`                      |
+| Tauri (mobile)  | `'__TAURI_INTERNALS__' in window` + user agent Android |
+| Android (TWA)   | `display-mode: standalone` + user agent Android        |
+| Web             | Fallback padrão                                        |
 
 Feature flags expostas: `hasTray`, `hasPush`, `hasFileSystem`, `hasAutoUpdate`, `hasServiceWorker`, `hasInstallPrompt`.

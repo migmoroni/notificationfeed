@@ -45,10 +45,7 @@ import {
 	listUnconsumedPipelineEvents,
 	markPipelineEventsConsumed
 } from '../persistence/pipeline-events.store.js';
-import {
-	appendInboxEntries,
-	listInboxForUser
-} from '../persistence/notification-inbox.store.js';
+import { appendInboxEntries, listInboxForUser } from '../persistence/notification-inbox.store.js';
 import { tFor } from '../i18n/t-static.js';
 import { notifyOs } from './os-notifier.js';
 
@@ -120,11 +117,7 @@ function findNodeTitle(trees: ContentTree[], nodeId: string): string {
 }
 
 /** Look up the most recent fire of `(kind, fontId)` in the inbox. */
-function lastFireMs(
-	inbox: InboxEntry[],
-	kind: InboxEntryKind,
-	fontId: string
-): number {
+function lastFireMs(inbox: InboxEntry[], kind: InboxEntryKind, fontId: string): number {
 	let max = 0;
 	for (const e of inbox) {
 		if (e.kind !== kind) continue;
@@ -195,12 +188,13 @@ export async function consumePipelineEvents(
 	// transition history; the user just doesn't see them in real time.
 	if (settings.mode === 'batched' && toDeliver.length > 0) {
 		const lastAny = inbox
-			.filter((e) =>
-				e.kind === 'font_unstable' ||
-				e.kind === 'font_offline' ||
-				e.kind === 'font_recovered' ||
-				e.kind === 'font_degraded' ||
-				e.kind === 'font_source_switched'
+			.filter(
+				(e) =>
+					e.kind === 'font_unstable' ||
+					e.kind === 'font_offline' ||
+					e.kind === 'font_recovered' ||
+					e.kind === 'font_degraded' ||
+					e.kind === 'font_source_switched'
 			)
 			.reduce((max, e) => (e.createdAt > max ? e.createdAt : max), 0);
 		if (lastAny > 0 && now - lastAny < settings.batchIntervalMs) {

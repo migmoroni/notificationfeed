@@ -1,0 +1,242 @@
+{
+	"schemaVersion": 1,
+	"allowed": [
+		{
+			"file": "apps/web/src/routes/+layout.svelte",
+			"kind": "any",
+			"owner": "module",
+			"syntax": "activeUser.current as any",
+			"anchor": "fdd8ad7b55d19f93648efa6910015728457242c49a5ed626f5fb43a261153bc8",
+			"line": 87
+		},
+		{
+			"file": "apps/web/src/routes/user/+page.svelte",
+			"kind": "any",
+			"owner": "switchUser",
+			"syntax": "user as any",
+			"anchor": "fd4c53dce47964024a1f91b44894f23a7c1faa81a78d7711973b0e30b113ad5f",
+			"line": 218
+		},
+		{
+			"file": "apps/web/src/service-worker.ts",
+			"kind": "double-cast",
+			"owner": "clientsApi",
+			"syntax": "(self as unknown as ServiceWorkerGlobalScope)",
+			"anchor": "2ed4efd2ece9065d5e6f0d5827f30c3e80370f34af290218e05978beb58c829a",
+			"line": 219
+		},
+		{
+			"file": "packages/notfeed/src/components/feed/CategoryFilter.svelte",
+			"kind": "suppression",
+			"anchor": "53ec92d2e73acb7e61d5e078bbc5cc012ee76e73288bf19a9e2b078c2b23c36e",
+			"owner": "template",
+			"line": 112
+		},
+		{
+			"file": "packages/notfeed/src/components/feed/PostCard.svelte",
+			"kind": "suppression",
+			"anchor": "076a3c8c7b7b2c07ecca1feb280a133186d42c3ed1ac381159655ade9538fd53",
+			"owner": "template",
+			"line": 115
+		},
+		{
+			"file": "packages/notfeed/src/components/feed/PostCard.svelte",
+			"kind": "suppression",
+			"anchor": "076a3c8c7b7b2c07ecca1feb280a133186d42c3ed1ac381159655ade9538fd53",
+			"owner": "template",
+			"line": 138
+		},
+		{
+			"file": "packages/notfeed/src/components/feed/PostCard.svelte",
+			"kind": "suppression",
+			"anchor": "076a3c8c7b7b2c07ecca1feb280a133186d42c3ed1ac381159655ade9538fd53",
+			"owner": "template",
+			"line": 195
+		},
+		{
+			"file": "packages/notfeed/src/components/feed/PostMedia.svelte",
+			"kind": "suppression",
+			"anchor": "f6cd266f080bf5df43a0c2e4d676844775280b4eb2e9db453ed221eb2b247732",
+			"owner": "template",
+			"line": 48
+		},
+		{
+			"file": "packages/notfeed/src/components/feed/PostMedia.svelte",
+			"kind": "suppression",
+			"anchor": "f6cd266f080bf5df43a0c2e4d676844775280b4eb2e9db453ed221eb2b247732",
+			"owner": "template",
+			"line": 103
+		},
+		{
+			"file": "packages/notfeed/src/components/library/LibraryItemList.svelte",
+			"kind": "suppression",
+			"anchor": "be70e3587205b651a1ce388594187b317eee82b6df19b1cb622dc6cded1bd5a7",
+			"owner": "template",
+			"line": 83
+		},
+		{
+			"file": "packages/notfeed/src/components/library/TabSidebar.svelte",
+			"kind": "suppression",
+			"anchor": "e2794647b42534a05514cc184d5ca7220f60fab9d7360d39080ea89aa20413e9",
+			"owner": "template",
+			"line": 67
+		},
+		{
+			"file": "packages/notfeed/src/components/library/TabSidebar.svelte",
+			"kind": "suppression",
+			"anchor": "53ec92d2e73acb7e61d5e078bbc5cc012ee76e73288bf19a9e2b078c2b23c36e",
+			"owner": "template",
+			"line": 68
+		},
+		{
+			"file": "packages/notfeed/src/components/shared/LibraryTabFilter.svelte",
+			"kind": "suppression",
+			"anchor": "53ec92d2e73acb7e61d5e078bbc5cc012ee76e73288bf19a9e2b078c2b23c36e",
+			"owner": "template",
+			"line": 84
+		},
+		{
+			"file": "packages/notfeed/src/components/shared/TreeSelector.svelte",
+			"kind": "suppression",
+			"anchor": "53ec92d2e73acb7e61d5e078bbc5cc012ee76e73288bf19a9e2b078c2b23c36e",
+			"owner": "template",
+			"line": 122
+		},
+		{
+			"file": "packages/notfeed/src/components/shared/dialog/TabDialog.svelte",
+			"kind": "any",
+			"owner": "module",
+			"syntax": "any[]",
+			"anchor": "257a9692c6e823b06be2b93e1b7f3f332daf71ad0d571c267296ed1071488efd",
+			"line": 17
+		},
+		{
+			"file": "packages/notfeed/src/components/shared/dialog/TabDialog.svelte",
+			"kind": "suppression",
+			"owner": "script-comment",
+			"anchor": "6184ee2eacb3fdc1c0eb0ec61dbf67c7e23445014f3dc5594e7bc6a1190fd76c",
+			"line": 32
+		},
+		{
+			"file": "packages/notfeed/src/components/shared/dialog/TabDialog.svelte",
+			"kind": "suppression",
+			"owner": "script-comment",
+			"anchor": "6184ee2eacb3fdc1c0eb0ec61dbf67c7e23445014f3dc5594e7bc6a1190fd76c",
+			"line": 34
+		},
+		{
+			"file": "packages/notfeed/src/components/shared/share/ShareMenu.svelte",
+			"kind": "suppression",
+			"anchor": "e2794647b42534a05514cc184d5ca7220f60fab9d7360d39080ea89aa20413e9",
+			"owner": "template",
+			"line": 65
+		},
+		{
+			"file": "packages/notfeed/src/components/shared/share/ShareMenu.svelte",
+			"kind": "suppression",
+			"anchor": "53ec92d2e73acb7e61d5e078bbc5cc012ee76e73288bf19a9e2b078c2b23c36e",
+			"owner": "template",
+			"line": 66
+		},
+		{
+			"file": "packages/notfeed/src/components/shared/share/ShareMenu.svelte",
+			"kind": "suppression",
+			"anchor": "e2794647b42534a05514cc184d5ca7220f60fab9d7360d39080ea89aa20413e9",
+			"owner": "template",
+			"line": 70
+		},
+		{
+			"file": "packages/notfeed/src/components/shared/share/ShareMenu.svelte",
+			"kind": "suppression",
+			"anchor": "53ec92d2e73acb7e61d5e078bbc5cc012ee76e73288bf19a9e2b078c2b23c36e",
+			"owner": "template",
+			"line": 71
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/index.ts",
+			"kind": "double-cast",
+			"owner": "g/isTauri",
+			"syntax": "g = globalThis as unknown as { __TAURI_INTERNALS__?: unknown; }",
+			"anchor": "3d69d07fc8815620ad168ad74ff07fa2f1fa2a6e90b7bcbf81c11c789305f99f",
+			"line": 44
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/web-proxy.adapter.ts",
+			"kind": "double-cast",
+			"owner": "ctor/tryDecompression",
+			"syntax": "(globalThis as unknown as { DecompressionStream?: DecompressionStreamCtor; })",
+			"anchor": "14d8bca64d5f67d028ccee438ade9f4639127bec5e59b8bfe9c9bc31f0bd672c",
+			"line": 212
+		},
+		{
+			"file": "packages/notfeed/src/persistence/backends/sqlite.backend.ts",
+			"kind": "suppression",
+			"owner": "script-comment",
+			"anchor": "2880c50c34d6d83ac343d6465b371df922d700ce977d06cb8dbab39c5cdfe9fe",
+			"line": 52
+		},
+		{
+			"file": "packages/notfeed/src/persistence/post.store.test.ts",
+			"kind": "any",
+			"owner": "dbMock",
+			"syntax": "any[]",
+			"anchor": "af3fdb81ce605792ea243de3d15f78e18e4018fbd643a8b3f9320d0917149b98",
+			"line": 4
+		},
+		{
+			"file": "packages/notfeed/src/persistence/post.store.test.ts",
+			"kind": "any",
+			"owner": "dbMock",
+			"syntax": "item: any",
+			"anchor": "f72bb27aa9d5517bb7cc66a8c8f1e59f449af30e6e79bc801ce36128734afa08",
+			"line": 5
+		},
+		{
+			"file": "packages/notfeed/src/persistence/post.store.test.ts",
+			"kind": "any",
+			"owner": "post",
+			"syntax": "Partial<any>",
+			"anchor": "1d5d6d588c9095d2a53281541dab2b00c35ac749ae5018dbd42670036e8b4c62",
+			"line": 38
+		},
+		{
+			"file": "packages/notfeed/src/persistence/post.store.test.ts",
+			"kind": "any",
+			"owner": "ingested",
+			"syntax": "{ userId: USER_ID, nodeId: NODE_ID, id, protocol, title: 't', content: '', url, author: '', publishedAt: 1, ingestedAt: 1, read: false, savedAt: null, trashedAt: null } as any",
+			"anchor": "7ead900d13a652ce19314cc921fca487715a4e94638db343cd4b3e6129aae30a",
+			"line": 110
+		},
+		{
+			"file": "packages/notfeed/src/utils.ts",
+			"kind": "any",
+			"owner": "WithoutChild",
+			"syntax": "child?: any;",
+			"anchor": "8f4d3ced1cf1332775e99c834337d6f2e59d8a97c8dee0a8c09152bd82fe4012",
+			"line": 9
+		},
+		{
+			"file": "packages/notfeed/src/utils.ts",
+			"kind": "any",
+			"owner": "WithoutChildren",
+			"syntax": "children?: any;",
+			"anchor": "49e11ad9f383ac3649e1ac069b15872427249f7a7c61774178ffdc93a55cd92f",
+			"line": 11
+		},
+		{
+			"file": "packages/notfeed/src/utils.ts",
+			"kind": "suppression",
+			"owner": "script-comment",
+			"anchor": "8a528046fa1f335c47c2fd155bc280e737d2cac63f778a483418ea4fe39e9bc8",
+			"line": 8
+		},
+		{
+			"file": "packages/notfeed/src/utils.ts",
+			"kind": "suppression",
+			"owner": "script-comment",
+			"anchor": "8a528046fa1f335c47c2fd155bc280e737d2cac63f778a483418ea4fe39e9bc8",
+			"line": 10
+		}
+	],
+	"policy": "No new, duplicated or moved syntax escapes. Formatting preserves logical owner/token anchor. Removals are allowed; enabled lint rules have no debt waiver."
+}

@@ -13,7 +13,7 @@
 	import LibraryItemList from '@notfeed/product/components/library/LibraryItemList.svelte';
 	import ConfirmUnfavoriteDialog from '@notfeed/product/components/shared/dialog/ConfirmUnfavoriteDialog.svelte';
 	import { t } from '@notfeed/product/i18n/t.js';
-import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
+	import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 
 	let showAssignment = $state(false);
 	let showRemoveConfirm = $state(false);
@@ -46,14 +46,20 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 	<title>{t('page_title.library')}</title>
 </svelte:head>
 
-<div class="mx-auto w-full h-full flex flex-col pt-4" class:max-w-8xl={layout.isExpanded} class:max-w-2xl={!layout.isExpanded}>
+<div
+	class="mx-auto w-full h-full flex flex-col pt-4"
+	class:max-w-8xl={layout.isExpanded}
+	class:max-w-2xl={!layout.isExpanded}
+>
 	<div class="px-4 shrink-0">
 		<PageHeader title={t('title.library')}>
 			{#snippet bottomRow()}
 				<div class="w-full">
 					<LibrarySearchBar
 						value={library.searchQuery}
-						placeholderKey={isHome ? 'library.search_tabs_placeholder' : 'library.search_placeholder'}
+						placeholderKey={isHome
+							? 'library.search_tabs_placeholder'
+							: 'library.search_placeholder'}
 						onchange={(v) => library.setSearchQuery(v)}
 					/>
 				</div>
@@ -61,11 +67,15 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 		</PageHeader>
 	</div>
 
-	<div class="grid flex-1 min-h-0 overflow-hidden pl-4 {layout.isExpanded ? '' : 'gap-12 lg:grid-cols-[295px_1fr]'}">
+	<div
+		class="grid flex-1 min-h-0 overflow-hidden pl-4 {layout.isExpanded
+			? ''
+			: 'gap-12 lg:grid-cols-[295px_1fr]'}"
+	>
 		{#if !layout.isExpanded}
-		<aside class="overflow-y-auto h-full relative pb-4">
-			<TabSidebar />
-		</aside>
+			<aside class="overflow-y-auto h-full relative pb-4">
+				<TabSidebar />
+			</aside>
 		{/if}
 
 		<!-- Main: filtered items or home grid -->
@@ -87,7 +97,12 @@ import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
 
 <!-- Tab assignment dialog -->
 {#if showAssignment}
-	<TabAssignmentDialog onclose={() => { library.clearSelection(); showAssignment = false; }} />
+	<TabAssignmentDialog
+		onclose={() => {
+			library.clearSelection();
+			showAssignment = false;
+		}}
+	/>
 {/if}
 
 <!-- Remove confirm dialog -->

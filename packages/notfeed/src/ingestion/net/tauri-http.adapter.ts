@@ -84,7 +84,9 @@ async function fetchIpfsTransport(
 
 	if (!ipfsRule.gatewayEnabled && !ipfsRule.proxyEnabled) {
 		if (ipfsRule.directEnabled) {
-			throw new Error(`IPFS/IPNS direct fetch failed and gateway/proxy fallback is disabled: ${errorToString(heliaError)}`);
+			throw new Error(
+				`IPFS/IPNS direct fetch failed and gateway/proxy fallback is disabled: ${errorToString(heliaError)}`
+			);
 		}
 		throw new Error('IPFS/IPNS direct, gateway and proxy phases are disabled by settings');
 	}
@@ -117,7 +119,10 @@ async function fetchIpfsTransport(
 	}
 }
 
-function resolveIpfsFeedRule(feedKind: HttpRequestOpts['feedKind'] | undefined, byKind: IpfsFeedTransportByKind) {
+function resolveIpfsFeedRule(
+	feedKind: HttpRequestOpts['feedKind'] | undefined,
+	byKind: IpfsFeedTransportByKind
+) {
 	const key: FeedKind = feedKind ?? 'rss';
 	return byKind[key];
 }

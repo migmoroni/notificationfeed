@@ -37,11 +37,19 @@ let state = $state<ActiveUserState>({
 const ACTIVE_USER_KEY = 'notfeed:active-user-id';
 
 function saveActiveUserId(userId: string): void {
-	try { localStorage.setItem(ACTIVE_USER_KEY, userId); } catch { /* SSR / private mode */ }
+	try {
+		localStorage.setItem(ACTIVE_USER_KEY, userId);
+	} catch {
+		/* SSR / private mode */
+	}
 }
 
 function loadActiveUserId(): string | null {
-	try { return localStorage.getItem(ACTIVE_USER_KEY); } catch { return null; }
+	try {
+		return localStorage.getItem(ACTIVE_USER_KEY);
+	} catch {
+		return null;
+	}
 }
 
 async function loadAllUsers(): Promise<UserBase[]> {
@@ -58,15 +66,33 @@ async function persistUser(user: UserBase): Promise<void> {
 // ── Exported accessor ──────────────────────────────────────────────────
 
 export const activeUser = {
-	get current() { return state.current; },
-	get role(): UserRole | null { return state.current?.role ?? null; },
-	get isConsumer() { return state.current?.role === 'consumer'; },
-	get isCreator() { return state.current?.role === 'creator'; },
-	get allUsers() { return state.allUsers; },
-	get consumers() { return state.allUsers.filter((u): u is UserConsumer => u.role === 'consumer' && !u.removedAt); },
-	get creators() { return state.allUsers.filter((u): u is UserCreator => u.role === 'creator' && !u.removedAt); },
-	get removedUsers() { return state.allUsers.filter((u) => !!u.removedAt); },
-	get loading() { return state.loading; },
+	get current() {
+		return state.current;
+	},
+	get role(): UserRole | null {
+		return state.current?.role ?? null;
+	},
+	get isConsumer() {
+		return state.current?.role === 'consumer';
+	},
+	get isCreator() {
+		return state.current?.role === 'creator';
+	},
+	get allUsers() {
+		return state.allUsers;
+	},
+	get consumers() {
+		return state.allUsers.filter((u): u is UserConsumer => u.role === 'consumer' && !u.removedAt);
+	},
+	get creators() {
+		return state.allUsers.filter((u): u is UserCreator => u.role === 'creator' && !u.removedAt);
+	},
+	get removedUsers() {
+		return state.allUsers.filter((u) => !!u.removedAt);
+	},
+	get loading() {
+		return state.loading;
+	},
 
 	/**
 	 * Initialize: load all users from DB.
@@ -83,13 +109,13 @@ export const activeUser = {
 			if (!state.current) {
 				// Try to restore last active user
 				const savedId = loadActiveUserId();
-				const saved = savedId ? state.allUsers.find(u => u.id === savedId) : null;
+				const saved = savedId ? state.allUsers.find((u) => u.id === savedId) : null;
 
 				if (saved) {
 					state.current = saved;
 				} else {
 					// Fallback: first consumer
-					const consumers = state.allUsers.filter(u => u.role === 'consumer');
+					const consumers = state.allUsers.filter((u) => u.role === 'consumer');
 					if (consumers.length > 0) {
 						state.current = consumers[0];
 						saveActiveUserId(consumers[0].id);
@@ -108,7 +134,7 @@ export const activeUser = {
 	async reload(): Promise<void> {
 		state.allUsers = await loadAllUsers();
 		if (state.current) {
-			const fresh = state.allUsers.find(u => u.id === state.current!.id);
+			const fresh = state.allUsers.find((u) => u.id === state.current!.id);
 			if (fresh) state.current = fresh;
 		}
 	},
@@ -117,7 +143,7 @@ export const activeUser = {
 	 * Switch to a different user by ID.
 	 */
 	switchTo(userId: string): void {
-		const user = state.allUsers.find(u => u.id === userId);
+		const user = state.allUsers.find((u) => u.id === userId);
 		if (user) {
 			state.current = user;
 			saveActiveUserId(user.id);
@@ -132,7 +158,7 @@ export const activeUser = {
 		state.current = user;
 		saveActiveUserId(user.id);
 		// Also update in allUsers list if not present
-		if (!state.allUsers.find(u => u.id === user.id)) {
+		if (!state.allUsers.find((u) => u.id === user.id)) {
 			state.allUsers = [...state.allUsers, user];
 		}
 	},
@@ -191,13 +217,13 @@ export const activeUser = {
 	 * Update a user's display name.
 	 */
 	async updateDisplayName(userId: string, displayName: string): Promise<void> {
-		const user = state.allUsers.find(u => u.id === userId);
+		const user = state.allUsers.find((u) => u.id === userId);
 		if (!user) return;
 
 		const updated = { ...user, displayName, updatedAt: new Date() };
 		await persistUser(updated);
 
-		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		state.allUsers = state.allUsers.map((u) => (u.id === userId ? updated : u));
 		if (state.current?.id === userId) {
 			state.current = updated;
 		}
@@ -207,26 +233,36 @@ export const activeUser = {
 	 * Update a user's profile image.
 	 */
 	async setProfileImage(userId: string, image: ImageAsset | null): Promise<void> {
-		const user = state.allUsers.find(u => u.id === userId);
+		const user = state.allUsers.find((u) => u.id === userId);
 		if (!user) return;
 
-		const updated = { ...user, profileImage: image, profileEmoji: image ? null : user.profileEmoji, updatedAt: new Date() };
+		const updated = {
+			...user,
+			profileImage: image,
+			profileEmoji: image ? null : user.profileEmoji,
+			updatedAt: new Date()
+		};
 		await persistUser(updated);
 
-		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		state.allUsers = state.allUsers.map((u) => (u.id === userId ? updated : u));
 		if (state.current?.id === userId) {
 			state.current = updated;
 		}
 	},
 
 	async setProfileEmoji(userId: string, emoji: string | null): Promise<void> {
-		const user = state.allUsers.find(u => u.id === userId);
+		const user = state.allUsers.find((u) => u.id === userId);
 		if (!user) return;
 
-		const updated = { ...user, profileEmoji: emoji, profileImage: emoji ? null : user.profileImage, updatedAt: new Date() };
+		const updated = {
+			...user,
+			profileEmoji: emoji,
+			profileImage: emoji ? null : user.profileImage,
+			updatedAt: new Date()
+		};
 		await persistUser(updated);
 
-		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		state.allUsers = state.allUsers.map((u) => (u.id === userId ? updated : u));
 		if (state.current?.id === userId) {
 			state.current = updated;
 		}
@@ -236,17 +272,17 @@ export const activeUser = {
 	 * Soft-delete a user (mark as removed, keep in DB).
 	 */
 	async softDelete(userId: string): Promise<void> {
-		const user = state.allUsers.find(u => u.id === userId);
+		const user = state.allUsers.find((u) => u.id === userId);
 		if (!user) return;
 
 		const updated = { ...user, removedAt: new Date(), updatedAt: new Date() };
 		await persistUser(updated);
 
-		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		state.allUsers = state.allUsers.map((u) => (u.id === userId ? updated : u));
 
 		// If the deleted user is the current one, switch to first available
 		if (state.current?.id === userId) {
-			const available = state.allUsers.find(u => u.id !== userId && !u.removedAt);
+			const available = state.allUsers.find((u) => u.id !== userId && !u.removedAt);
 			if (available) {
 				state.current = available;
 				saveActiveUserId(available.id);
@@ -260,13 +296,13 @@ export const activeUser = {
 	 * Restore a soft-deleted user.
 	 */
 	async restore(userId: string): Promise<void> {
-		const user = state.allUsers.find(u => u.id === userId);
+		const user = state.allUsers.find((u) => u.id === userId);
 		if (!user) return;
 
 		const updated = { ...user, removedAt: null, updatedAt: new Date() };
 		await persistUser(updated);
 
-		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		state.allUsers = state.allUsers.map((u) => (u.id === userId ? updated : u));
 	},
 
 	/**
@@ -274,7 +310,7 @@ export const activeUser = {
 	 * Update a user's preferred language.
 	 */
 	async setLanguage(userId: string, language: string): Promise<void> {
-		const user = state.allUsers.find(u => u.id === userId);
+		const user = state.allUsers.find((u) => u.id === userId);
 		if (!user) return;
 
 		const updated: UserBase = {
@@ -284,7 +320,7 @@ export const activeUser = {
 		};
 		await persistUser(updated);
 
-		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		state.allUsers = state.allUsers.map((u) => (u.id === userId ? updated : u));
 		if (state.current?.id === userId) {
 			state.current = updated;
 		}
@@ -294,7 +330,7 @@ export const activeUser = {
 	 * Toggle the activity tracking subsystem for a user.
 	 */
 	async setActivityEnabled(userId: string, enabled: boolean): Promise<void> {
-		const user = state.allUsers.find(u => u.id === userId);
+		const user = state.allUsers.find((u) => u.id === userId);
 		if (!user) return;
 
 		const updated: UserBase = {
@@ -307,7 +343,7 @@ export const activeUser = {
 		};
 		await persistUser(updated);
 
-		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		state.allUsers = state.allUsers.map((u) => (u.id === userId ? updated : u));
 		if (state.current?.id === userId) {
 			state.current = updated;
 		}
@@ -316,8 +352,11 @@ export const activeUser = {
 	/**
 	 * Replace the user's ingestion settings (Plan B).
 	 */
-	async setIngestionSettings(userId: string, ingestion: import('../domain/ingestion/ingestion-settings.js').IngestionSettings): Promise<void> {
-		const user = state.allUsers.find(u => u.id === userId);
+	async setIngestionSettings(
+		userId: string,
+		ingestion: import('../domain/ingestion/ingestion-settings.js').IngestionSettings
+	): Promise<void> {
+		const user = state.allUsers.find((u) => u.id === userId);
 		if (!user) return;
 
 		const normalizedIngestion = normalizeIngestionSettings(ingestion);
@@ -329,7 +368,7 @@ export const activeUser = {
 		};
 		await persistUser(updated);
 
-		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		state.allUsers = state.allUsers.map((u) => (u.id === userId ? updated : u));
 		if (state.current?.id === userId) {
 			state.current = updated;
 		}
@@ -339,8 +378,11 @@ export const activeUser = {
 	 * Replace the user's notification pipeline (master toggle + steps).
 	 * Stamps `updatedAt` on the pipeline so consumers can react.
 	 */
-	async setNotificationPipeline(userId: string, pipeline: import('../domain/notifications/pipeline.js').NotificationPipeline): Promise<void> {
-		const user = state.allUsers.find(u => u.id === userId);
+	async setNotificationPipeline(
+		userId: string,
+		pipeline: import('../domain/notifications/pipeline.js').NotificationPipeline
+	): Promise<void> {
+		const user = state.allUsers.find((u) => u.id === userId);
 		if (!user) return;
 
 		const updated: UserBase = {
@@ -353,7 +395,7 @@ export const activeUser = {
 		};
 		await persistUser(updated);
 
-		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		state.allUsers = state.allUsers.map((u) => (u.id === userId ? updated : u));
 		if (state.current?.id === userId) {
 			state.current = updated;
 		}
@@ -369,7 +411,7 @@ export const activeUser = {
 	 * click or scheduler tick.
 	 */
 	async markInteracted(userId: string): Promise<void> {
-		const cached = state.allUsers.find(u => u.id === userId);
+		const cached = state.allUsers.find((u) => u.id === userId);
 		if (!cached) return;
 
 		const now = new Date();
@@ -390,7 +432,7 @@ export const activeUser = {
 		const updated: UserBase = { ...fresh, interactedAt: now };
 		await db.users.put($state.snapshot(updated));
 
-		state.allUsers = state.allUsers.map(u => u.id === userId ? updated : u);
+		state.allUsers = state.allUsers.map((u) => (u.id === userId ? updated : u));
 		if (state.current?.id === userId) {
 			state.current = updated;
 		}

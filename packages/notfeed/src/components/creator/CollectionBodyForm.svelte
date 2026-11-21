@@ -67,7 +67,11 @@
 					oninput={(e) => updateLink(i, 'url', e.currentTarget.value)}
 				/>
 			</div>
-			<button type="button" class="p-1.5 mt-1 hover:bg-destructive/10 rounded" onclick={() => removeLink(i)}>
+			<button
+				type="button"
+				class="p-1.5 mt-1 hover:bg-destructive/10 rounded"
+				onclick={() => removeLink(i)}
+			>
 				<Trash2 class="size-3.5 text-destructive" />
 			</button>
 		</div>

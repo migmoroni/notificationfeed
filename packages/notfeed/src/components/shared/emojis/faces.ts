@@ -106,5 +106,5 @@ export const faces: EmojiEntry[] = [
 	{ emoji: '👻', name: 'ghost' },
 	{ emoji: '👽', name: 'alien' },
 	{ emoji: '👾', name: 'alien monster space invader' },
-	{ emoji: '🤖', name: 'robot face' },
+	{ emoji: '🤖', name: 'robot face' }
 ];

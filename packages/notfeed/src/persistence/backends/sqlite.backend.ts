@@ -49,7 +49,6 @@ export async function openSqliteBackend(): Promise<StorageBackend> {
 	throw new Error(NOT_IMPLEMENTED);
 
 	// Unreachable, kept to enforce the interface shape:
-	// eslint-disable-next-line no-unreachable
 	return {
 		contentTrees: notImplementedTable(),
 		contentMedias: notImplementedTable(),

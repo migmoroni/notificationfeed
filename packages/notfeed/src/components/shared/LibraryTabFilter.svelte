@@ -54,23 +54,31 @@
 		<div
 			class="flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-[13px] font-medium transition-colors text-left
 				{open
-					? 'bg-accent text-accent-foreground'
-					: selectedCount > 0
-						? 'text-foreground hover:bg-accent/50'
-						: 'text-muted-foreground hover:bg-accent/50'}"
+				? 'bg-accent text-accent-foreground'
+				: selectedCount > 0
+					? 'text-foreground hover:bg-accent/50'
+					: 'text-muted-foreground hover:bg-accent/50'}"
 		>
 			<button
 				type="button"
-				onclick={(e) => { e.stopPropagation(); togglePanel(); }}
+				onclick={(e) => {
+					e.stopPropagation();
+					togglePanel();
+				}}
 				class="flex items-center gap-2 flex-1 min-w-0 text-left bg-transparent"
 			>
-				<ChevronRight class="size-4 shrink-0 transition-transform duration-200 {open ? 'rotate-90' : ''}" />
+				<ChevronRight
+					class="size-4 shrink-0 transition-transform duration-200 {open ? 'rotate-90' : ''}"
+				/>
 				<span class="truncate flex-1">{t('library_tab_filter.title')}</span>
 			</button>
 			{#if selectedCount > 0}
 				<button
 					type="button"
-					onclick={(e) => { e.stopPropagation(); store.clearLibraryTabFilter(); }}
+					onclick={(e) => {
+						e.stopPropagation();
+						store.clearLibraryTabFilter();
+					}}
 					class="inline-flex items-center gap-1 rounded-full bg-accent px-1.5 py-0.5 text-[11px] text-muted-foreground hover:text-foreground hover:bg-destructive/10 transition-colors"
 				>
 					<X class="size-3" />
@@ -86,13 +94,18 @@
 			class="w-[320px] max-h-[70vh] overflow-y-auto rounded-lg border bg-background shadow-lg p-3 z-50"
 			style={flyoutStyle}
 			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => { if (e.key === 'Escape') sidebarFlyout.close(FLYOUT_KEY); }}
+			onkeydown={(e) => {
+				if (e.key === 'Escape') sidebarFlyout.close(FLYOUT_KEY);
+			}}
 		>
 			<div class="flex items-center justify-between mb-2 px-1">
 				<span class="text-sm font-medium text-foreground">
 					{t('library_tab_filter.title')}
 				</span>
-				<button onclick={() => sidebarFlyout.close(FLYOUT_KEY)} class="text-muted-foreground hover:text-foreground">
+				<button
+					onclick={() => sidebarFlyout.close(FLYOUT_KEY)}
+					class="text-muted-foreground hover:text-foreground"
+				>
 					<X class="size-4" />
 				</button>
 			</div>
@@ -104,8 +117,8 @@
 						onclick={() => store.toggleLibraryTab(tab.id)}
 						class="flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] transition-colors text-left min-w-0
 							{isActive
-								? 'bg-accent text-accent-foreground font-medium'
-								: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
+							? 'bg-accent text-accent-foreground font-medium'
+							: 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}"
 					>
 						<span class="shrink-0 text-base leading-none">{tab.emoji}</span>
 						<span class="truncate">{tab.title}</span>

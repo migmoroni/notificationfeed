@@ -38,7 +38,9 @@ describe('image-quality', () => {
 
 	it('resolves ingestion image to best candidate', () => {
 		const source = 'https://example.com/image.jpg?w=320&h=180&q=60';
-		expect(resolveIngestionImageUrl(source)).toBe('https://example.com/image.jpg?w=2048&h=1152&q=90');
+		expect(resolveIngestionImageUrl(source)).toBe(
+			'https://example.com/image.jpg?w=2048&h=1152&q=90'
+		);
 	});
 
 	it('respects max width caps when generating candidates', () => {

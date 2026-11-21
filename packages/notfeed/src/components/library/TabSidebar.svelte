@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { t } from '../../i18n/t.js';
-	import { library, ALL_LIBRARY_ID, ONLY_FAVORITES_ID, LIBRARY_HOME_ID } from '../../stores/library.svelte.js';
+	import {
+		library,
+		ALL_LIBRARY_ID,
+		ONLY_FAVORITES_ID,
+		LIBRARY_HOME_ID
+	} from '../../stores/library.svelte.js';
 	import { layout } from '../../stores/layout.svelte.js';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Home from '@lucide/svelte/icons/home';
@@ -130,7 +135,9 @@
 		<span class="text-base">⭐</span>
 		{#if layout.isExpanded}
 			<span class="truncate">{t('library.only_favorites')}</span>
-			<span class="ml-auto text-xs text-muted-foreground">{library.itemsByTab.get(ONLY_FAVORITES_ID)?.length ?? 0}</span>
+			<span class="ml-auto text-xs text-muted-foreground">
+				{library.itemsByTab.get(ONLY_FAVORITES_ID)?.length ?? 0}
+			</span>
 		{/if}
 	</button>
 
@@ -164,7 +171,9 @@
 				</button>
 
 				{#if openMenuId === tab.id}
-					<div class="absolute right-0 top-8 z-50 w-36 rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
+					<div
+						class="absolute right-0 top-8 z-50 w-36 rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
+					>
 						<button
 							onclick={() => handleEditTab({ id: tab.id, title: tab.title, emoji: tab.emoji })}
 							class="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
@@ -211,5 +220,8 @@
 	bind:open={showDeleteConfirm}
 	mode="delete"
 	onconfirm={confirmDeleteTab}
-	oncancel={() => { showDeleteConfirm = false; deletingTabId = null; }}
+	oncancel={() => {
+		showDeleteConfirm = false;
+		deletingTabId = null;
+	}}
 />

@@ -21,15 +21,38 @@
 
 	interface Props {
 		filter?: PriorityFilterValue;
-		anyIds?: { subject: string[]; content: string[]; media: string[]; region: string[]; language: string[] };
-		allIds?: { subject: string[]; content: string[]; media: string[]; region: string[]; language: string[] };
+		anyIds?: {
+			subject: string[];
+			content: string[];
+			media: string[];
+			region: string[];
+			language: string[];
+		};
+		allIds?: {
+			subject: string[];
+			content: string[];
+			media: string[];
+			region: string[];
+			language: string[];
+		};
 		/** Allowed font node IDs (from entity filter). Empty = no filter. */
 		nodeIds?: string[];
 	}
 
-	const emptyTreeIds = () => ({ subject: [] as string[], content: [] as string[], media: [] as string[], region: [] as string[], language: [] as string[] });
+	const emptyTreeIds = () => ({
+		subject: [] as string[],
+		content: [] as string[],
+		media: [] as string[],
+		region: [] as string[],
+		language: [] as string[]
+	});
 
-	let { filter = 'all', anyIds = emptyTreeIds(), allIds = emptyTreeIds(), nodeIds = [] }: Props = $props();
+	let {
+		filter = 'all',
+		anyIds = emptyTreeIds(),
+		allIds = emptyTreeIds(),
+		nodeIds = []
+	}: Props = $props();
 
 	const PAGE_SIZE = UI_LIMITS.feedPageSize;
 	let visibleCount = $state(PAGE_SIZE);
@@ -40,7 +63,7 @@
 
 	// Get base posts (with category filtering if applicable)
 	let basePosts = $derived(
-		(hasAnyFilter(anyIds) || hasAnyFilter(allIds))
+		hasAnyFilter(anyIds) || hasAnyFilter(allIds)
 			? feed.filteredByCategories(anyIds, allIds, feedEntityFilter.effectivePriorityByNodeId)
 			: feed.prioritized(feedEntityFilter.effectivePriorityByNodeId)
 	);
@@ -48,15 +71,16 @@
 	// Apply entity (node) filter
 	let entityFiltered = $derived(
 		nodeIds.length > 0
-			? (() => { const allowed = new Set(nodeIds); return basePosts.filter((sp) => allowed.has(sp.post.nodeId)); })()
+			? (() => {
+					const allowed = new Set(nodeIds);
+					return basePosts.filter((sp) => allowed.has(sp.post.nodeId));
+				})()
 			: basePosts
 	);
 
 	// Apply priority filter on top
 	let filtered = $derived(
-		filter === 'all'
-			? entityFiltered
-			: entityFiltered.filter((sp) => sp.priority === filter)
+		filter === 'all' ? entityFiltered : entityFiltered.filter((sp) => sp.priority === filter)
 	);
 
 	// Group posts by priority level (only used when filter === 'all')
@@ -68,9 +92,10 @@
 			if (list) list.push(sp);
 			else map.set(sp.priority, [sp]);
 		}
-		return PRIORITY_LEVELS
-			.filter((p) => map.has(p.level))
-			.map((p) => ({ config: p, posts: map.get(p.level)! }));
+		return PRIORITY_LEVELS.filter((p) => map.has(p.level)).map((p) => ({
+			config: p,
+			posts: map.get(p.level)!
+		}));
 	});
 
 	let visible = $derived(filtered.slice(0, visibleCount));
@@ -102,7 +127,15 @@
 </script>
 
 {#snippet postGrid(posts: SortedPost<CanonicalPost>[])}
-	<div class="grid gap-3 mx-auto {layout.isExpanded ? (viewModeStore.mode === 'cards' ? 'grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3' : viewModeStore.mode === 'list' ? 'grid-cols-1' : 'max-w-3xl grid-cols-1') : 'grid-cols-1'}">
+	<div
+		class="grid gap-3 mx-auto {layout.isExpanded
+			? viewModeStore.mode === 'cards'
+				? 'grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3'
+				: viewModeStore.mode === 'list'
+					? 'grid-cols-1'
+					: 'max-w-3xl grid-cols-1'
+			: 'grid-cols-1'}"
+	>
 		{#each posts as sortedPost (sortedPost.post.id)}
 			<PostCard {sortedPost} />
 		{/each}
@@ -110,7 +143,15 @@
 {/snippet}
 
 {#if feed.loading}
-	<div class="flex flex-col gap-3 mx-auto {layout.isExpanded ? (viewModeStore.mode === 'cards' ? 'w-full' : viewModeStore.mode === 'list' ? 'max-w-6xl' : 'max-w-3xl') : ''}">
+	<div
+		class="flex flex-col gap-3 mx-auto {layout.isExpanded
+			? viewModeStore.mode === 'cards'
+				? 'w-full'
+				: viewModeStore.mode === 'list'
+					? 'max-w-6xl'
+					: 'max-w-3xl'
+			: ''}"
+	>
 		{#each { length: 3 } as _}
 			<div class="rounded-lg border border-border bg-card p-4 space-y-3">
 				<div class="h-4 w-3/4 animate-pulse rounded bg-muted"></div>
@@ -155,18 +196,36 @@
 
 	{#if hasMore}
 		<div bind:this={sentinel} class="h-10 flex items-center justify-center mt-3">
-			<div class="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent"></div>
+			<div
+				class="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent"
+			></div>
 		</div>
 	{/if}
 {:else}
-	<div class="grid gap-3 mx-auto {layout.isExpanded ? (viewModeStore.mode === 'cards' ? 'grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3' : viewModeStore.mode === 'list' ? 'grid-cols-1' : 'max-w-3xl grid-cols-1') : 'grid-cols-1'}">
+	<div
+		class="grid gap-3 mx-auto {layout.isExpanded
+			? viewModeStore.mode === 'cards'
+				? 'grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3'
+				: viewModeStore.mode === 'list'
+					? 'grid-cols-1'
+					: 'max-w-3xl grid-cols-1'
+			: 'grid-cols-1'}"
+	>
 		{#each visible as sortedPost (sortedPost.post.id)}
 			<PostCard {sortedPost} />
 		{/each}
 
 		{#if hasMore}
-			<div bind:this={sentinel} class="h-10 flex items-center justify-center {layout.isExpanded && viewModeStore.mode === 'cards' ? 'xl:col-span-2 2xl:col-span-3' : ''}">
-				<div class="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent"></div>
+			<div
+				bind:this={sentinel}
+				class="h-10 flex items-center justify-center {layout.isExpanded &&
+				viewModeStore.mode === 'cards'
+					? 'xl:col-span-2 2xl:col-span-3'
+					: ''}"
+			>
+				<div
+					class="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent"
+				></div>
 			</div>
 		{/if}
 	</div>

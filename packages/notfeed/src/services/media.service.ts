@@ -9,7 +9,10 @@
  * Browser-only (uses Canvas API via image.service.ts).
  */
 
-import type { ContentMedia, ContentMediaRepository } from '../domain/content-media/content-media.js';
+import type {
+	ContentMedia,
+	ContentMediaRepository
+} from '../domain/content-media/content-media.js';
 import type { ImageSlot } from '../domain/shared/image-asset.js';
 import { processImage } from './image.service.js';
 import { createContentMediaStore } from '../persistence/content-media.store.js';

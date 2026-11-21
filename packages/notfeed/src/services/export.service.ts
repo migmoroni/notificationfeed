@@ -13,26 +13,26 @@ import { getRootNode } from '../domain/content-tree/content-tree.js';
  * Download a TreeExport as a .notfeed.json file.
  */
 export function downloadTreeExport(treeExport: TreeExport): void {
-const json = JSON.stringify(treeExport, null, 2);
-const blob = new Blob([json], { type: TREE_EXPORT_MIME });
-const url = URL.createObjectURL(blob);
+	const json = JSON.stringify(treeExport, null, 2);
+	const blob = new Blob([json], { type: TREE_EXPORT_MIME });
+	const url = URL.createObjectURL(blob);
 
-const rootNode = getRootNode(treeExport.tree);
-const title = rootNode?.data.header.title ?? 'export';
-const slug = title
-.toLowerCase()
-.replace(/[^a-z0-9]+/g, '-')
-.replace(/(^-|-$)/g, '');
+	const rootNode = getRootNode(treeExport.tree);
+	const title = rootNode?.data.header.title ?? 'export';
+	const slug = title
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/(^-|-$)/g, '');
 
-const filename = `${slug || 'tree'}-v${treeExport.version}${TREE_EXPORT_EXTENSION}`;
+	const filename = `${slug || 'tree'}-v${treeExport.version}${TREE_EXPORT_EXTENSION}`;
 
-const a = document.createElement('a');
-a.href = url;
-a.download = filename;
-document.body.appendChild(a);
-a.click();
-document.body.removeChild(a);
-URL.revokeObjectURL(url);
+	const a = document.createElement('a');
+	a.href = url;
+	a.download = filename;
+	document.body.appendChild(a);
+	a.click();
+	document.body.removeChild(a);
+	URL.revokeObjectURL(url);
 }
 
 /**
@@ -40,12 +40,12 @@ URL.revokeObjectURL(url);
  * Throws if the tree is not published.
  */
 export async function exportTree(treeId: string): Promise<void> {
-const pubRepo = createTreePublicationStore();
-const publication = await pubRepo.getByTreeId(treeId);
+	const pubRepo = createTreePublicationStore();
+	const publication = await pubRepo.getByTreeId(treeId);
 
-if (!publication) {
-throw new Error('A árvore precisa ser publicada antes de exportar.');
-}
+	if (!publication) {
+		throw new Error('A árvore precisa ser publicada antes de exportar.');
+	}
 
-downloadTreeExport(publication.snapshot);
+	downloadTreeExport(publication.snapshot);
 }

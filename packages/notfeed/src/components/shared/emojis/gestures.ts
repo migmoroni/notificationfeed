@@ -50,5 +50,5 @@ export const gestures: EmojiEntry[] = [
 	{ emoji: '👅', name: 'tongue' },
 	{ emoji: '👄', name: 'mouth lips' },
 	{ emoji: '🫦', name: 'biting lip' },
-	{ emoji: '💋', name: 'kiss mark lips' },
+	{ emoji: '💋', name: 'kiss mark lips' }
 ];

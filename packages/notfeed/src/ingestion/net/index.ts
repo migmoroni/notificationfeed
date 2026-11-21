@@ -101,8 +101,14 @@ function sameCtx(a: AdapterContext, b: AdapterContext): boolean {
 	if (!sameUrlList(a.ipfsGateways, b.ipfsGateways)) return false;
 
 	for (const kind of FEED_KINDS) {
-		if (!sameHttpFeedTransportRule(a.httpFeedTransportByKind[kind], b.httpFeedTransportByKind[kind])) return false;
-		if (!sameIpfsFeedTransportRule(a.ipfsFeedTransportByKind[kind], b.ipfsFeedTransportByKind[kind])) return false;
+		if (
+			!sameHttpFeedTransportRule(a.httpFeedTransportByKind[kind], b.httpFeedTransportByKind[kind])
+		)
+			return false;
+		if (
+			!sameIpfsFeedTransportRule(a.ipfsFeedTransportByKind[kind], b.ipfsFeedTransportByKind[kind])
+		)
+			return false;
 	}
 
 	return true;

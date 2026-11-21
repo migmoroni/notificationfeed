@@ -118,6 +118,7 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 > 5 árvores de categories, sistema i18n completo, feed macros, entity filter.
 
 ### Taxonomia (5 árvores)
+
 - [x] Expansão de 2 → 5 árvores: subject, content_type, media_type, region, language
 - [x] Seed: `seed-media-type.ts`, `seed-region.ts`, `seed-language.ts`
 - [x] Dados language com BCP 47: English (12 variantes), Spanish (22), French (15), Portuguese (10)
@@ -126,6 +127,7 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 - [x] Árvores de 3 níveis (region, language) com resolvers `threeLevel: true`
 
 ### i18n
+
 - [x] Language type (`'en-US' | 'pt-BR'`), DEFAULT_LANGUAGE
 - [x] Store reativo `i18n/store.svelte.ts` (module-level `$state`)
 - [x] `t(key)` com interpolação `{varName}`
@@ -134,6 +136,7 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 - [x] Traduções gerais: `en-US.json`, `pt-BR.json`
 
 ### Category Filter
+
 - [x] Tri-state toggle (unselected → any → all)
 - [x] `CategoryFilterMode = 'any' | 'all'`
 - [x] `TreeModes = Record<CategoryTreeId, Map<string, CategoryFilterMode>>`
@@ -142,24 +145,28 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 - [x] CategoryTreePicker com 5 árvores
 
 ### Feed Macros
+
 - [x] FeedMacro type (`id`, `name`, `filters: FeedMacroFilters`)
 - [x] `categoryModesByTree` para persistir modos any/all por tree
 - [x] CRUD integrado em UserConsumer (embarcado em `feedMacros[]`)
 - [x] UI de criação/edição/aplicação de macros no feed
 
 ### Entity Filter
+
 - [x] Factory `createEntityFilter(source, options?)`
 - [x] Dois níveis: page → font
 - [x] Suporte a tree-links
 - [x] Integrado no feed e browse
 
 ### Stores atualizados
+
 - [x] `category-filter.svelte.ts` — TREE_IDS com 5 árvores + emptyTreeModes
 - [x] `feed-macros.svelte.ts` — TREE_IDS com 5 árvores
 - [x] `feed.svelte.ts` — `filteredByCategories()` com 5 trees + modos any/all
 - [x] `browse.svelte.ts` — filtros com 5 trees
 
 ### UI Components atualizados
+
 - [x] TreeSelector, CategoryFilter, CategoryTreePicker — 5 árvores
 - [x] ActiveCategoryBadges — 5 árvores
 - [x] FeedMacros — hasAnyFilter com 5 trees
@@ -186,12 +193,14 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 > Funil fixo de três etapas (per_post → batch_macro → batch_global) que referencia feed-macros criados pelo usuário. Inbox in-app + OS notifications best-effort + click-routing.
 
 ### Domínio
+
 - [x] `NotificationPipeline` em `UserSettings.notifications` (3 steps fixos)
 - [x] `NotificationStep { id, kind, macroIds: string[], intervalMs }`
 - [x] `InboxEntry.target` discriminado: `{ kind:'url', url, postId }` ou `{ kind:'macro', macroId }`
 - [x] `dbSchemaVersion: 15` (substituição destrutiva, ADR-004)
 
 ### Engine
+
 - [x] `notification-engine.ts` isomórfico (foreground + service worker)
 - [x] First-match-wins por post nos 3 steps
 - [x] `intervalMs` clampeado pelo menor `*IntervalMs` da ingestão
@@ -199,6 +208,7 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 - [x] IDs de macro órfãos silenciosamente ignorados
 
 ### Surfaces
+
 - [x] `os-notifier` propaga `data.targetUrl` (browser + SW)
 - [x] SW `notificationclick` reusa janela aberta via `clients.matchAll`+`focus`+`navigate`
 - [x] `NotificationBell` roteia inbox click via `entry.target` (`window.open` para post, `goto('/?macro=…')` para macro)
@@ -206,11 +216,13 @@ Verificação por fase: `npm run build` limpo + funcionalidade testável no brow
 - [x] Fallback `__all__` → `applyMacro(null)` quando o usuário tem < 2 macros
 
 ### Settings UI
+
 - [x] `/user/settings/notifications` — funil de 3 cartões fixos com multi-select de macros
 - [x] Sem enumeração de fontes ativadas — fonte da verdade é `consumer.feedMacros`
 - [x] Floor de intervalo casa com a menor cadência de ingestão
 
 ### i18n
+
 - [x] Chaves renomeadas: `*_fonts_*` → `*_macros_*`, `step_kind_batch_node` → `step_kind_batch_macro`
 - [x] Hints reescritos para mencionar destino do clique (en-US + pt-BR)
 

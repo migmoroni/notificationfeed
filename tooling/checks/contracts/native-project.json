@@ -1,0 +1,93 @@
+{
+	"name": "notfeed",
+	"version": "0.1.0",
+	"edition": "2021",
+	"features": {
+		"backend-indexeddb": [],
+		"backend-sqlite": ["dep:tauri-plugin-sql"],
+		"default": ["backend-indexeddb"]
+	},
+	"dependencies": [
+		{
+			"name": "battery",
+			"optional": false,
+			"features": [],
+			"uses_default_features": true,
+			"kind": null,
+			"target": null
+		},
+		{
+			"name": "default-net",
+			"optional": false,
+			"features": [],
+			"uses_default_features": true,
+			"kind": null,
+			"target": null
+		},
+		{
+			"name": "serde",
+			"optional": false,
+			"features": ["derive"],
+			"uses_default_features": true,
+			"kind": null,
+			"target": null
+		},
+		{
+			"name": "serde_json",
+			"optional": false,
+			"features": [],
+			"uses_default_features": true,
+			"kind": null,
+			"target": null
+		},
+		{
+			"name": "tauri",
+			"optional": false,
+			"features": [],
+			"uses_default_features": true,
+			"kind": null,
+			"target": null
+		},
+		{
+			"name": "tauri-build",
+			"optional": false,
+			"features": [],
+			"uses_default_features": true,
+			"kind": "build",
+			"target": null
+		},
+		{
+			"name": "tauri-plugin-http",
+			"optional": false,
+			"features": [],
+			"uses_default_features": true,
+			"kind": null,
+			"target": null
+		},
+		{
+			"name": "tauri-plugin-notification",
+			"optional": false,
+			"features": [],
+			"uses_default_features": true,
+			"kind": null,
+			"target": null
+		},
+		{
+			"name": "tauri-plugin-shell",
+			"optional": false,
+			"features": [],
+			"uses_default_features": true,
+			"kind": null,
+			"target": null
+		},
+		{
+			"name": "tauri-plugin-sql",
+			"optional": true,
+			"features": ["sqlite"],
+			"uses_default_features": true,
+			"kind": null,
+			"target": null
+		}
+	],
+	"rust_version": "1.95"
+}

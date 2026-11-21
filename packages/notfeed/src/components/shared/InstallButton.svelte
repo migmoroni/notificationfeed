@@ -3,10 +3,7 @@
 	import Download from '@lucide/svelte/icons/download';
 	import { t } from '../../i18n/t.js';
 	import { getCapabilities } from '../../platform/capabilities.js';
-	import {
-		installPrompt,
-		promptInstall
-	} from '../../platform/web/install-prompt.svelte.js';
+	import { installPrompt, promptInstall } from '../../platform/web/install-prompt.svelte.js';
 
 	const caps = getCapabilities();
 	let visible = $derived(

@@ -78,5 +78,5 @@ export const nature: EmojiEntry[] = [
 	{ emoji: '☔', name: 'umbrella rain' },
 	{ emoji: '☂️', name: 'umbrella' },
 	{ emoji: '🌊', name: 'water wave ocean' },
-	{ emoji: '🌫️', name: 'fog mist' },
+	{ emoji: '🌫️', name: 'fog mist' }
 ];

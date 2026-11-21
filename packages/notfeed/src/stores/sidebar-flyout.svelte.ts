@@ -8,11 +8,19 @@
 let activeKey = $state<string | null>(null);
 
 export const sidebarFlyout = {
-	get activeKey() { return activeKey; },
-	open(key: string) { activeKey = key; },
+	get activeKey() {
+		return activeKey;
+	},
+	open(key: string) {
+		activeKey = key;
+	},
 	close(key: string) {
 		if (activeKey === key) activeKey = null;
 	},
-	closeAll() { activeKey = null; },
-	isOpen(key: string): boolean { return activeKey === key; }
+	closeAll() {
+		activeKey = null;
+	},
+	isOpen(key: string): boolean {
+		return activeKey === key;
+	}
 };

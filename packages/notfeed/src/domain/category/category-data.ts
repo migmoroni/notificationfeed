@@ -74,9 +74,7 @@ export function resolveEntry(
 	treeId: CategoryTreeId,
 	depth: number
 ): SeedCategory {
-	const label = isLeafEntry(entry)
-		? entry.label[entry.label.length - 1]
-		: entry.label;
+	const label = isLeafEntry(entry) ? entry.label[entry.label.length - 1] : entry.label;
 	const seed: SeedCategory = {
 		id: entry.id,
 		label,
@@ -99,9 +97,13 @@ export function resolveEntry(
  */
 export function deriveDepth(id: string, threeLevel: boolean): number {
 	switch (id.length) {
-		case 2: return 0;
-		case 3: return 1;
-		case 5: return threeLevel ? 2 : 1;
-		default: return 0;
+		case 2:
+			return 0;
+		case 3:
+			return 1;
+		case 5:
+			return threeLevel ? 2 : 1;
+		default:
+			return 0;
 	}
 }

@@ -34,9 +34,7 @@ export function initLanguage(userLang?: string): Language {
 	if (typeof navigator !== 'undefined') {
 		const browserLangs = navigator.languages ?? [navigator.language];
 		for (const bl of browserLangs) {
-			const match = ALL_LANGUAGES.find(
-				(l) => l === bl || l.startsWith(bl.split('-')[0])
-			);
+			const match = ALL_LANGUAGES.find((l) => l === bl || l.startsWith(bl.split('-')[0]));
 			if (match) {
 				lang = match;
 				return lang;

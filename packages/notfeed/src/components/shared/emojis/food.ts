@@ -97,5 +97,5 @@ export const food: EmojiEntry[] = [
 	{ emoji: '🍪', name: 'cookie' },
 	{ emoji: '🌰', name: 'chestnut' },
 	{ emoji: '🥜', name: 'peanuts' },
-	{ emoji: '🍯', name: 'honey pot' },
+	{ emoji: '🍯', name: 'honey pot' }
 ];

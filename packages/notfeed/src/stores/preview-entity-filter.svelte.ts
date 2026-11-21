@@ -14,22 +14,29 @@ const treeRepo = createContentTreeStore();
 let loadedTrees = $state<ContentTree[]>([]);
 
 const source: EntityFilterDataSource = {
-async load() {
-const userId = activeUser.current?.id;
-if (!userId) {
-loadedTrees = [];
-return { trees: [] };
-}
+	async load() {
+		const userId = activeUser.current?.id;
+		if (!userId) {
+			loadedTrees = [];
+			return { trees: [] };
+		}
 
-const trees = await treeRepo.getByAuthor(userId);
-loadedTrees = trees;
-return { trees };
-},
+		const trees = await treeRepo.getByAuthor(userId);
+		loadedTrees = trees;
+		return { trees };
+	},
 
-getTrees() { return loadedTrees; }
+	getTrees() {
+		return loadedTrees;
+	}
 };
 
-export const previewEntityFilter = Object.assign(createEntityFilter(source, { singlePageSelect: true, singleFontSelect: true }), {
-/** Access loaded trees (available after loadNodes). */
-getTrees() { return loadedTrees; }
-});
+export const previewEntityFilter = Object.assign(
+	createEntityFilter(source, { singlePageSelect: true, singleFontSelect: true }),
+	{
+		/** Access loaded trees (available after loadNodes). */
+		getTrees() {
+			return loadedTrees;
+		}
+	}
+);

@@ -36,25 +36,27 @@ Independente de onde o conteúdo vem, você vê tudo no mesmo formato. Os quatro
 
 **Auto-detecção na importação por URL:**
 
-| Padrão na URL | Detectado como |
-|---|---|
-| termina em `.json`, contém `feed.json` ou `jsonfeed` | JSON Feed |
-| contém `atom`, `.xml`, `/feed` ou `rss` | RSS / Atom |
-| `npub1…` ou string hex de 64 chars | Nostr (pubkey) |
+| Padrão na URL                                        | Detectado como |
+| ---------------------------------------------------- | -------------- |
+| termina em `.json`, contém `feed.json` ou `jsonfeed` | JSON Feed      |
+| contém `atom`, `.xml`, `/feed` ou `rss`              | RSS / Atom     |
+| `npub1…` ou string hex de 64 chars                   | Nostr (pubkey) |
 
-**Eficiência de rede:** RSS, Atom e JSON Feed usam *conditional GET* — o app envia `If-None-Match` (ETag) e `If-Modified-Since`; se nada mudou, o servidor responde **304 Not Modified** sem corpo. Nostr é stream, então só recebe eventos novos após o `EOSE` inicial.
+**Eficiência de rede:** RSS, Atom e JSON Feed usam _conditional GET_ — o app envia `If-None-Match` (ETag) e `If-Modified-Since`; se nada mudou, o servidor responde **304 Not Modified** sem corpo. Nostr é stream, então só recebe eventos novos após o `EOSE` inicial.
 
 ### 🗂️ Organize do seu jeito
 
 - **ContentTrees** — a unidade básica de curadoria. Uma ContentTree é uma árvore com um ou mais **perfis** (canais, autores) e as **fontes** de cada perfil. Você importa trees prontas (`.notfeed.json`) de outras pessoas, ou monta a sua do zero como Creator. Na prática: "Tech Brasil" pode ser uma tree com o perfil do usuário (Nostr) + o feed do blog dele (RSS) + o canal do YouTube (Atom).
-- **Categorias** — cada tree/perfil/fonte pode ter categorias em 5 eixos: assunto, tipo de conteúdo, formato de mídia, região e idioma. No feed, você filtra por qualquer combinação com modo *qualquer um* (relaxado) ou *todos obrigatórios* (estrito).
+- **Categorias** — cada tree/perfil/fonte pode ter categorias em 5 eixos: assunto, tipo de conteúdo, formato de mídia, região e idioma. No feed, você filtra por qualquer combinação com modo _qualquer um_ (relaxado) ou _todos obrigatórios_ (estrito).
 - **Prioridades** — dois níveis (alta / normal) que você define por fonte, por perfil ou por tree inteira. Fontes de alta prioridade aparecem mais cedo na timeline; o número especifica proporção, não só ordem.
 - **Macros** — um atalho de filtro salvo. Em vez de reajustar os filtros toda vez, você cria uma macro "Tech EN-US, só text posts, modo any" e chama com um clique. As macros também são a base para o sistema de notificações.
 
 ### 👥 Multi-usuário no mesmo dispositivo
+
 Schema **per-user**: dois usuários no mesmo navegador têm caixas de leitura totalmente separadas. Marcar como lido em uma conta não vaza pra outra.
 
 Há dois papéis:
+
 - **Consumer** — quem lê (Acesso a area de consumo: Feed, Browse e Library)
 - **Creator** — quem publica trees (Acesso a area de edição: Pages e Preview)
 
@@ -62,13 +64,14 @@ Há dois papéis:
 
 Você não configura regras complexas — você escolhe **o quão barulhento** cada macro deve ser. Toda macro pode ficar em um destes três modos:
 
-1. **per_post** — *"me avise de cada post"*. Cada item novo vira uma notificação do sistema operacional individual. Bom para fontes raras e importantes.
-2. **batch_macro** — *"me dê um resumo dessa macro"*. Acumula os posts novos da macro e dispara uma única notificação agregada ("5 novos em Tech BR"). Bom para fontes ativas.
-3. **batch_global** — *"me chame uma vez só"*. Junta tudo de tudo em uma notificação diária. Ruído mínimo.
+1. **per_post** — _"me avise de cada post"_. Cada item novo vira uma notificação do sistema operacional individual. Bom para fontes raras e importantes.
+2. **batch_macro** — _"me dê um resumo dessa macro"_. Acumula os posts novos da macro e dispara uma única notificação agregada ("5 novos em Tech BR"). Bom para fontes ativas.
+3. **batch_global** — _"me chame uma vez só"_. Junta tudo de tudo em uma notificação diária. Ruído mínimo.
 
 Independente do modo, todo post novo entra na **inbox in-app** (ninguém fica para trás). A notificação do SO é best-effort: se você não deu permissão, o app não reclama. Clicar abre o post (modo per_post) ou a timeline filtrada pela macro (modos batch).
 
 ### 🌐 Funciona offline
+
 - IndexedDB como backend (abstraído atrás de `StorageBackend`)
 - Service Worker pré-cacheia assets e serve SPA fallback
 - Export `.notfeed.json` pra mover trees entre dispositivos
@@ -84,11 +87,11 @@ Independente do modo, todo post novo entra na **inbox in-app** (ninguém fica pa
 
 ## Começando
 
-Use Node 22.21.1 (`.nvmrc`) e npm 11.11.1, as versões de referência dos gates.
+Use Node 24.22.3 (`.nvmrc`) e pnpm 11.28.12 (`packageManager`). Com nvm: `nvm install && nvm use`. Se o gerenciador ainda não estiver disponível, instale-o uma vez com `npm install --global pnpm@11.28.12`; as dependências do projeto usam pnpm.
 
 ```sh
-npm ci
-npm run dev
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
 Abra <http://localhost:5173>, crie um Consumer em `/user`, vá em `/browse/import` e cole uma URL de feed. Ou pegue um `.notfeed.json` qualquer e arraste pra mesma página.
@@ -99,11 +102,13 @@ Abra <http://localhost:5173>, crie um Consumer em `/user`, vá em `/browse/impor
 apps/web/                  @notfeed/web: rotas, layout, CSS, static e service worker
 apps/desktop/src-tauri/     @notfeed/desktop: aplicativo Tauri e crate Rust existentes
 packages/notfeed/src/      @notfeed/product: código atual de lib e seus agrupamentos
-tooling/migration/         contratos, inventários e quality gates
+tooling/checks/            verificações permanentes e utilidades
+tooling/maintenance/       contratos e gates da base técnica
+tooling/migration/         provas históricas da etapa 1
 tooling/e2e/               Chromium, fixtures locais e provas de atualização PWA
 ```
 
-A raiz coordena os npm workspaces com um único lockfile. A web importa `@notfeed/product` por subpaths; o pacote conserva as dependências de Svelte/SvelteKit já usadas pelo produto. O desktop empacota `apps/web/build`. A definição dos módulos de negócio pertence à etapa 2. Pacotes futuros Rust/C++ poderão ter manifests próprios quando houver um consumidor concreto.
+A raiz coordena os três workspaces por `pnpm-workspace.yaml`, com `pnpm-lock.yaml` único para JS/TS. Cargo mantém seu lock próprio. A web importa `@notfeed/product` por subpaths; o pacote conserva as dependências de Svelte/SvelteKit já usadas pelo produto. O desktop empacota `apps/web/build`. A definição dos módulos de negócio pertence à etapa 3. Pacotes futuros Rust/C++ poderão ter manifests próprios quando houver um consumidor concreto.
 
 O `tsconfig.json` da raiz permite ao editor descobrir o projeto ao abrir arquivos do pacote; ele estende a configuração da web, que inclui toda a árvore do produto. Não há alias para a localização anterior.
 
@@ -123,8 +128,8 @@ O [estado da migração](docs/plans/etapa-1-migracao-estrutural/state.md) regist
 ### 🌐 Web / PWA
 
 ```sh
-npm run build
-npm run preview   # http://localhost:4173 com SW ativo
+pnpm build
+pnpm preview   # http://localhost:4173 com SW ativo
 ```
 
 O deploy estático usa somente o conteúdo de `apps/web/build`.
@@ -135,12 +140,15 @@ Em produção, o navegador detecta `manifest.webmanifest` + service worker e ofe
 
 Pré-requisitos de sistema (GTK, WebKit2GTK, libfuse2 em runtime): veja [docs/build-targets.md](docs/build-targets.md).
 
+O desktop usa Rust 1.100.0, fixado em `rust-toolchain.toml`, com rustfmt e Clippy. Instale com `rustup toolchain install 1.100.0 --profile minimal --component rustfmt --component clippy`; o arquivo seleciona a versão no repositório sem mudar o default global. O mínimo declarado do crate é Rust 1.95, validado no alvo Linux com o lock atual. Para a auditoria, use `cargo install cargo-audit --version 0.23.0 --locked`.
+
 ```sh
-npm run tauri:dev          # janela nativa com HMR
-npm run tauri:appimage     # → apps/desktop/src-tauri/target/release/bundle/appimage/Notfeed_<version>_amd64.AppImage
+pnpm tauri:dev          # janela nativa com HMR
+pnpm tauri:appimage     # → apps/desktop/src-tauri/target/release/bundle/appimage/Notfeed_<version>_amd64.AppImage
 ```
 
 Em runtime Tauri:
+
 - Service Worker **não** é registrado (gating em `+layout.svelte`)
 - Fetches usam `tauri-plugin-http` (sem CORS proxy)
 - Notificações via `tauri-plugin-notification`
@@ -152,72 +160,75 @@ Outros bundles (`.deb`, `.rpm`, `.msi`, `.dmg`, Android TWA) ficam para iteraç�
 
 ## Stack
 
-| Camada | Escolha |
-|---|---|
-| Framework | **SvelteKit** (SPA, `adapter-static`) |
-| UI | **Svelte 5** runes + **Tailwind 4** + bits-ui (shadcn-svelte) |
-| Linguagem | **TypeScript** estrito (svelte-check 0/0/0) |
-| Persistência | **IndexedDB** atrás de `StorageBackend` |
-| Desktop | **Tauri 2** (plugins http, shell, notification, updater) |
-| Testes | **vitest** + jsdom + @testing-library/svelte |
-| Ícones | **Lucide** (`@lucide/svelte`) |
-| i18n | sistema próprio reativo (en-US, pt-BR) |
+| Camada       | Escolha                                                       |
+| ------------ | ------------------------------------------------------------- |
+| Framework    | **SvelteKit** (SPA, `adapter-static`)                         |
+| UI           | **Svelte 5** runes + **Tailwind 4** + bits-ui (shadcn-svelte) |
+| Linguagem    | **TypeScript** estrito (svelte-check 0/0/0)                   |
+| Persistência | **IndexedDB** atrás de `StorageBackend`                       |
+| Desktop      | **Tauri 2** (plugins http, shell, notification)               |
+| Testes       | **vitest** + jsdom + @testing-library/svelte                  |
+| Ícones       | **Lucide** (`@lucide/svelte`)                                 |
+| i18n         | sistema próprio reativo (en-US, pt-BR)                        |
 
 ---
 
 ## Scripts
 
-| Comando | O que faz |
-|---|---|
-| `npm run dev` | Servidor de desenvolvimento (Vite + HMR) |
-| `npm run build` | Build de produção (emite `service-worker.js` e `manifest.webmanifest`) |
-| `npm run preview` | Preview do build com SW ativo |
-| `npm run check` | Type-check (`svelte-check`) |
-| `npm run test` | Testes em watch mode |
-| `npm run test:run` | Testes em batch (CI) |
-| `npm run test:gate` | Provas adversas do árbitro de migração |
-| `npm run check:e2e` | Tipos da infraestrutura de navegador |
-| `npm run test:e2e -- --project=chromium` | Fluxos web/PWA contra o build de produção |
-| `npm run test:e2e:dev -- --project=chromium` | Navegador real contra o servidor de desenvolvimento |
-| `npm run test:e2e:upgrade` | Reconstrói o checkpoint P1 e verifica atualização preservando dados |
-| `npm run gate:migration -- P6` | Instalação, referência reproduzida e gate final completo, incluindo Tauri |
-| `npm run icons:gen` | Regenera ícones PWA a partir de `apps/web/static/icons/source.svg` |
-| `npm run tauri:dev` | Tauri em modo dev (janela nativa + HMR) |
-| `npm run tauri:appimage` | Bundle AppImage Linux x86_64 |
+Veja [ambiente de desenvolvimento](docs/development.md) para setup por alvo, versões fixadas e diagnóstico. Use `pnpm verify:quick` na rotina web e `pnpm verify:integration` para a integração PWA/AppImage completa. `pnpm pwa:preview` faz build e preview com SW; watch e lote de testes compartilham UTC/en-US.
+
+| Comando                                | O que faz                                                                |
+| -------------------------------------- | ------------------------------------------------------------------------ |
+| `pnpm dev`                             | Servidor de desenvolvimento (Vite + HMR)                                 |
+| `pnpm build`                           | Build de produção (emite `service-worker.js` e `manifest.webmanifest`)   |
+| `pnpm preview`                         | Preview do build com SW ativo                                            |
+| `pnpm check`                           | Tipos Svelte/TS e worker separado                                        |
+| `pnpm test`                            | Testes em watch mode                                                     |
+| `pnpm test:run`                        | Testes em batch (CI)                                                     |
+| `pnpm check:e2e`                       | Tipos da infraestrutura de navegador                                     |
+| `pnpm test:e2e --project=chromium`     | Fluxos web/PWA contra o build de produção                                |
+| `pnpm test:e2e:dev --project=chromium` | Navegador real contra o servidor de desenvolvimento                      |
+| `pnpm test:e2e:upgrade`                | Reconstrói a entrada da etapa 2 e verifica atualização preservando dados |
+| `pnpm icons:gen`                       | Regenera ícones PWA a partir de `apps/web/static/icons/source.svg`       |
+| `pnpm tauri:dev`                       | Tauri em modo dev (janela nativa + HMR)                                  |
+| `pnpm tauri:appimage`                  | Bundle AppImage Linux x86_64                                             |
 
 Antes dos testes de navegador, instale o Chromium correspondente ao Playwright fixado:
 
 ```sh
-npm exec -- playwright install chromium
-npm run build
-npm run test:e2e -- --project=chromium
+pnpm exec playwright install chromium
+pnpm build
+pnpm test:e2e --project=chromium
 ```
 
-Os testes usam dados sintéticos em servidor local e `.artifacts`. A prova de atualização reconstrói a referência pelo Git bundle versionado; requer o histórico com a revisão base indicada em `tooling/migration/reference/pwa-reference.json`. O gate nativo verifica compilação, testes Rust disponíveis e conteúdo do AppImage; não é E2E da WebView ou das notificações do sistema.
+Os testes usam dados sintéticos em servidor local e `.artifacts`. A prova de atualização reconstrói a entrada da etapa 2 pelo bundle Git autossuficiente e pela receita em `tooling/e2e/reference/stage-2-entry.json`, com o Node/npm histórico provisionado em isolamento. Os comprovantes P0–P6 permanecem históricos. O gate nativo verifica compilação, testes Rust disponíveis e conteúdo do AppImage; não é E2E da WebView ou das notificações do sistema.
 
 ---
 
 ## Mapa de rotas
 
 ### Consumer
-| Rota | O que tem ali |
-|---|---|
-| `/` | Feed — timeline com filtros, macros, entity filter, category filter |
-| `/browse` | Navegação pelas árvores disponíveis (busca + filtros) |
-| `/browse/import` | Importar `.notfeed.json` ou URLs simples |
-| `/browse/node/[id]` | Detalhe de qualquer nó (perfil, fonte, coleção…) |
-| `/library` | Suas ativações organizadas em tabs (📚 All, ⭐ Favorites, custom) |
-| `/library/node/[id]` | Detalhe de nó na library |
-| `/user` | Multi-conta, troca de identidade, settings, ingestion tiers |
+
+| Rota                 | O que tem ali                                                       |
+| -------------------- | ------------------------------------------------------------------- |
+| `/`                  | Feed — timeline com filtros, macros, entity filter, category filter |
+| `/browse`            | Navegação pelas árvores disponíveis (busca + filtros)               |
+| `/browse/import`     | Importar `.notfeed.json` ou URLs simples                            |
+| `/browse/node/[id]`  | Detalhe de qualquer nó (perfil, fonte, coleção…)                    |
+| `/library`           | Suas ativações organizadas em tabs (📚 All, ⭐ Favorites, custom)   |
+| `/library/node/[id]` | Detalhe de nó na library                                            |
+| `/user`              | Multi-conta, troca de identidade, settings, ingestion tiers         |
 
 ### Creator
-| Rota | O que tem ali |
-|---|---|
-| `/pages` | Lista de ContentTrees do creator |
-| `/pages/new` · `/pages/[id]` | Editor de árvore (CRUD de nós e seções) |
-| `/preview` · `/preview/node/[id]` | Preview do snapshot publicado |
+
+| Rota                              | O que tem ali                           |
+| --------------------------------- | --------------------------------------- |
+| `/pages`                          | Lista de ContentTrees do creator        |
+| `/pages/new` · `/pages/[id]`      | Editor de árvore (CRUD de nós e seções) |
+| `/preview` · `/preview/node/[id]` | Preview do snapshot publicado           |
 
 ### Layout adaptativo
+
 - ≥ 900px → sidebar fixa de 295px + main scrollável
 - < 900px → bottom nav de 56px (mobile-first)
 

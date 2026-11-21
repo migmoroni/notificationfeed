@@ -43,7 +43,12 @@ const GATEWAY_SCHEMES: Record<GatewayScheme, GatewayNamespace> = {
 
 const GATEWAY_TRANSPORT_FACTORIES: Record<
 	GatewayNamespace,
-	(id: string, path: string, originalUrl: string, gatewaySourceUrl: string | null) => GatewayFeedTransport
+	(
+		id: string,
+		path: string,
+		originalUrl: string,
+		gatewaySourceUrl: string | null
+	) => GatewayFeedTransport
 > = {
 	ipfs: (id, path, originalUrl, gatewaySourceUrl) => ({
 		kind: 'ipfs',
@@ -104,10 +109,7 @@ export function getFeedUrlHeuristicHint(input: string): string {
 	return base;
 }
 
-export function resolveFeedHttpTargets(
-	input: string,
-	ipfsGateways: IpfsGatewayConfig[]
-): string[] {
+export function resolveFeedHttpTargets(input: string, ipfsGateways: IpfsGatewayConfig[]): string[] {
 	const parsed = parseFeedTransportUrl(input);
 	if (!parsed) return [];
 
@@ -133,7 +135,10 @@ export function joinFeedPath(...parts: Array<string | null | undefined>): string
 	return tokens.join('/');
 }
 
-export function buildGatewayUrl(baseUrl: string, feed: FeedIpfsTransport | FeedIpnsTransport): string | null {
+export function buildGatewayUrl(
+	baseUrl: string,
+	feed: FeedIpfsTransport | FeedIpnsTransport
+): string | null {
 	const cleanBase = baseUrl.trim();
 	if (!cleanBase) return null;
 
@@ -157,7 +162,11 @@ export function buildGatewayUrl(baseUrl: string, feed: FeedIpfsTransport | FeedI
 	return base.toString();
 }
 
-function parseGatewayScheme(parsed: URL, originalUrl: string, namespace: GatewayNamespace): GatewayFeedTransport | null {
+function parseGatewayScheme(
+	parsed: URL,
+	originalUrl: string,
+	namespace: GatewayNamespace
+): GatewayFeedTransport | null {
 	const id = parsed.hostname.trim();
 	if (!id) return null;
 

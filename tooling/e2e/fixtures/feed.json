@@ -1,5 +1,13 @@
 {
-  "version": "https://jsonfeed.org/version/1.1",
-  "title": "Migration local feed",
-  "items": [{"id": "migration-post", "url": "http://127.0.0.1:4173/browse/node/migration-tree:font", "title": "Migration sentinel post", "content_text": "Persistent local content for structural migration", "date_published": "2026-11-19T12:00:00Z"}]
+	"version": "https://jsonfeed.org/version/1.1",
+	"title": "Migration local feed",
+	"items": [
+		{
+			"id": "migration-post",
+			"url": "http://127.0.0.1:4173/browse/node/migration-tree:font",
+			"title": "Migration sentinel post",
+			"content_text": "Persistent local content for structural migration",
+			"date_published": "2026-11-19T12:00:00Z"
+		}
+	]
 }

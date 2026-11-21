@@ -364,8 +364,18 @@ export const NOTIFICATIONS = {
 	 */
 	defaultPipelineSteps: [
 		{ id: 'per_post', kind: 'per_post' as const, macroIds: [] as string[], intervalMs: 0 },
-		{ id: 'batch_macro', kind: 'batch_macro' as const, macroIds: [] as string[], intervalMs: 30 * MINUTE },
-		{ id: 'batch_global', kind: 'batch_global' as const, macroIds: [] as string[], intervalMs: 30 * MINUTE }
+		{
+			id: 'batch_macro',
+			kind: 'batch_macro' as const,
+			macroIds: [] as string[],
+			intervalMs: 30 * MINUTE
+		},
+		{
+			id: 'batch_global',
+			kind: 'batch_global' as const,
+			macroIds: [] as string[],
+			intervalMs: 30 * MINUTE
+		}
 	],
 	/** How many recent inbox entries the bell popover shows. */
 	inboxRecentLimit: 20,
