@@ -23,20 +23,23 @@ O novo baseline não substitui P1/P6 nos registros históricos. Ele serve à com
 
 ## C02 Ferramentas e versões
 
+Autorização do usuário em 21/11/2026: incluir mise no plano como ferramenta de provisionamento de desenvolvimento, conforme C11 e ADR 017. Sua versão e integridade serão selecionadas no início de 2.5/provision, sem atualizar os pins de Node/pnpm/Rust/auditor já aprovados. Esta entrega não instala mise nem acrescenta dependências aos manifests do produto.
+
 Autorização adicional do usuário em 20/11/2026: `semver` 7.8.6 como dependência de desenvolvimento da raiz, para classificar faixas dos advisories por versão concreta e comparar resoluções/peers. Declarar o import direto; sem biblioteca de runtime ou novo alvo.
 
 Autorização do usuário em 20/11/2026: prever `cargo-audit` e os pacotes de suporte abaixo, somente para desenvolvimento. pnpm, ESLint, Prettier, rustfmt e Clippy fazem parte da proposta; Playwright já foi autorizado e incorporado na etapa 1.
 
-| Ferramenta                          | Uso e local                                                                              |
-| ----------------------------------- | ---------------------------------------------------------------------------------------- |
-| pnpm                                | Gerenciador JS/TS; versão exata em `packageManager`, coerente com setup/CI               |
-| ESLint e `@eslint/js`               | Regras JS e configuração na raiz                                                         |
-| `typescript-eslint` e `globals`     | Tipagem/parser e ambientes explícitos das fontes verificadas                             |
-| `eslint-plugin-svelte`              | Parse e regras de componentes Svelte                                                     |
-| Prettier e `prettier-plugin-svelte` | Formatação JS/TS/Svelte e documentos ativos                                              |
-| `eslint-config-prettier`            | Separar regras de formatação das de qualidade; não desligar regras de segurança/correção |
-| rustfmt e Clippy                    | Componentes da toolchain Rust fixada                                                     |
-| `cargo-audit`                       | CLI de desenvolvimento fixada, sem virar dependência do crate de produto                 |
+| Ferramenta                          | Uso e local                                                                                                      |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| pnpm                                | Gerenciador JS/TS; versão exata em `packageManager`, coerente com setup/CI                                       |
+| mise                                | Provisionamento e seleção por projeto; bootstrap fixado, configuração e lock de ferramentas; tarefas web/desktop |
+| ESLint e `@eslint/js`               | Regras JS e configuração na raiz                                                                                 |
+| `typescript-eslint` e `globals`     | Tipagem/parser e ambientes explícitos das fontes verificadas                                                     |
+| `eslint-plugin-svelte`              | Parse e regras de componentes Svelte                                                                             |
+| Prettier e `prettier-plugin-svelte` | Formatação JS/TS/Svelte e documentos ativos                                                                      |
+| `eslint-config-prettier`            | Separar regras de formatação das de qualidade; não desligar regras de segurança/correção                         |
+| rustfmt e Clippy                    | Componentes da toolchain Rust fixada                                                                             |
+| `cargo-audit`                       | CLI de desenvolvimento fixada, sem virar dependência do crate de produto                                         |
 
 As transitivas necessárias seguem os locks; novos imports diretos de tooling devem usar pacotes declarados no consumidor. Esta autorização não abrange novos parsers, drivers nativos, orquestradores ou bibliotecas de produto. Uma necessidade adicional aciona consulta antes da instalação.
 
@@ -134,7 +137,7 @@ Preservar crate `notfeed` v0.1.0, lib `notfeed_lib`, `backend-indexeddb` padrão
 
 Inspecionar o AppImage contra o binário e os assets **do build atual**. Não comparar bytes de versões novas ao binário histórico. Transformações do empacotador continuam restritas e comprovadas; mudança nelas exige contrato/teste antes de alterar o verificador.
 
-CI prevista em GitHub Actions, pois o remoto atual é GitHub. Fixar runner Linux compatível, versões de ferramentas e revisões das actions. Usar os comandos locais e a matriz de impacto dos gates, sem deploy. Dependências nativas e instalação do Chromium são preparação explícita dos jobs. O arquivo `rust-toolchain.toml` fixa a toolchain; verificar a versão efetivamente ativa porque overrides locais podem precedê-lo. [rustup](https://rust-lang.github.io/rustup/overrides.html)
+CI em GitHub Actions com runner Ubuntu 24.04 x86_64; referência local Debian 13 x86_64. Fixar versões de ferramentas e revisões das actions. Após 2.5/provision, usar o mesmo bootstrap/configuração mise e os comandos locais, sem exigir shell interativo. Aplicar a matriz de impacto dos gates, sem deploy. Dependências nativas e instalação do Chromium são preparação explícita dos jobs. O arquivo `rust-toolchain.toml` fixa a toolchain; verificar a versão efetivamente ativa porque overrides locais podem precedê-lo. [rustup](https://rust-lang.github.io/rustup/overrides.html)
 
 Eventos previstos: `pull_request`, `push` da branch de integração definida em 2.1 e `workflow_dispatch` para validação completa. Não executar código de PR com privilégios por `pull_request_target`. [Eventos do GitHub Actions](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)
 
@@ -145,3 +148,34 @@ Cada execução escreve `.artifacts/maintenance/<fase>/<unidade-ou-final>/<id>/e
 Recibos de predecessor são históricos e identificam o checkpoint aprovado. Não exigir que o hash de um predecessor seja igual ao código já alterado pela fase seguinte. Para aprovar a fase atual, executar seus próprios checks sobre as fontes atuais. Nenhum comando de verificação pode alterar fontes, contratos ou locks enquanto o gate roda; arquivos gerados e a anotação de `state.md` são excluídos do hash de entrada.
 
 O recibo da CI inclui URL, workflow, run/attempt, commit, hash auditado, jobs exigidos e efetivamente executados, conclusão e hashes dos artefatos. Relato manual ou YAML válido não substitui esse recibo. O estado resume a evidência; não a fabrica.
+
+## C11 Provisionamento por projeto com mise
+
+Contrato planejado para [2.5/provision](fases/2.5f-provisionamento-com-mise.md). Criar `tooling/checks/contracts/provision.json` na execução e validar os campos antes de implementar o bootstrap/setup. Não instalar schema validator, parser TOML ou framework novo; usar Node/saídas estruturadas do mise e testes já disponíveis. O contrato permanente não importa o manifesto do plano.
+
+| Campo ou grupo           | Exigência verificável                                                                                                                                                                                              |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `schemaVersion`, seleção | Versão do schema; versão exata do mise, fonte oficial, data de consulta, URL/SHA-256 e pré-requisitos do bootstrap Linux x86_64. Nenhuma seleção aberta antes de implementar.                                      |
+| Plataformas              | Desenvolvimento Debian 13 x86_64; CI Ubuntu 24.04 x86_64. Registrar OS/arquitetura efetivos; não exigir igualdade de pacotes do SO.                                                                                |
+| Pins e autoridade        | Node em .nvmrc, pnpm em packageManager, Rust/componentes em rust-toolchain.toml, auditor em tools.json. Espelhos em engines/contratos/configuração devem coincidir.                                                |
+| Backends e locks         | Backend explícito para Node e pnpm JS sob o Node fixado; instalação bloqueada por mise.lock, com resoluções/URLs/integridade pertinentes a Linux x86_64. Rust/auditor conservam seus métodos rustup/Cargo fixados. |
+| Perfis e interfaces      | setup:web e setup:desktop conforme a ficha; setup web não instala/exige Rust, auditor ou GTK. doctor continua sem instalar.                                                                                        |
+| Diretórios e efeitos     | Ferramentas usuais por usuário fora do repositório; seleção por projeto/processo, sem defaults globais ou edição automática do shell. Diretórios temporários de prova explícitos, sem alterar HOME.                |
+| Pacotes do sistema       | Requisitos por distribuição/alvo; diagnóstico acionável e instalação explícita no runner. Sem apt/sudo automático no setup local.                                                                                  |
+| Recibo                   | Perfil, OS/arquitetura, versões e caminhos efetivos, hashes de fontes/contratos/locks, comandos/cwd, exit codes, logs, casos realizados, início/fim e limpeza. Falha/skip/timeout/recibo incompleto reprovam.      |
+
+Preservar os pins atuais: Node 24.22.3, pnpm 11.28.12, Rust 1.100.0 e cargo-audit 0.23.0. O novo lock de ferramentas não substitui pnpm-lock.yaml ou Cargo.lock. Atualização posterior deve alterar a declaração responsável e o lock pertinente de forma revisada; setup, doctor e gates não fazem upgrade nem regeneram lock para obter sucesso.
+
+O modo bloqueado também deve valer para instalações implícitas que o mise possa fazer antes de executar uma tarefa ou comando, não apenas para uma chamada explícita de `mise install --locked`. Provar que `mise run setup:web` e a entrada não interativa recusam lock ausente/divergente sem regravá-lo; configuração pessoal não pode substituir essa política. Os validadores/doctor não implementam instalação; a preparação pertence ao setup e à camada mise sob o contrato fixado.
+
+A configuração mise controla o ambiente dos comandos futuros, inclusive o acesso ao auditor em prefixo próprio por versão após setup desktop. Não depender de export feito em processo filho para alterar o shell pai. Rustup mantém a autoridade sobre Rust; overrides incompatíveis são diagnosticados, sem modificar o default pessoal. Não usar pnpm standalone com runtime diferente, Corepack ou pnpm global como fallback.
+
+O bootstrap é uma receita mínima do repositório, executável sem Node, com integridade verificada antes de executar o mise baixado. Se a receita precisar repetir constantes de versão/hash do contrato para esse primeiro passo, o validador confere a igualdade. Confiar somente no checkout inspecionado, explicitamente no setup/CI; não ampliar diretórios confiáveis do usuário. A versão selecionada deve fornecer as capacidades contratadas; se exigir outra ferramenta não autorizada, aplicar Stop & Ask.
+
+Uma instalação sem ferramentas globais deve produzir o candidato que recebe os checks. Registrar versão/caminho do Node usado pelo gerenciador e pelos scripts; apenas `pnpm --version` não prova o runtime efetivo. A reexecução com cache aquecido preserva fontes e os três locks; erros de rede, integridade ou subprocesso continuam bloqueantes. Sem promessa de bootstrap offline com cache vazio.
+
+Na CI, executar bootstrap e instalação bloqueada antes dos comandos Node dependentes, inclusive impact/integration, que não devem precisar de node_modules do produto. Web e desktop usam seus setups e comandos existentes. A preparação de ferramentas não pode criar dependência circular entre Node, pnpm e o próprio setup.
+
+A retenção usa as fronteiras/leases existentes: limpar apenas ferramentas e caches temporários criados pela prova, preservar recibos/logs/checkpoints e não apagar caches compartilhados ou ferramentas pessoais. Não criar uma instalação completa para cada teste negativo. Depois da adoção, a falta de `.artifacts/toolchains` não pode impedir o fluxo cotidiano; a referência PWA histórica continua isolada e reproduzível.
+
+Interfaces de verificação a implementar: `node tooling/checks/provision.mjs check` e `prove --target web|desktop`, executadas via mise. O check PROVISION do árbitro exige as provas da própria execução e torna obrigatório o novo fechamento 2.5. A implantação da unidade, sua matriz de checks e a leitura de recibos históricos devem ser testadas antes de mudar o executor; não declarar o gate novo aprovado com a lista antiga.

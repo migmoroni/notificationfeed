@@ -1,10 +1,10 @@
 # Estado da etapa 2
 
-Atualizado em 20/11/2026 (UTC 21/11). Execução autorizada; publicação Git a cargo do usuário. Etapa 3 sem implementação.
+Atualizado em 21/11/2026. Execução autorizada; publicação Git a cargo do usuário. Etapa 3 sem implementação.
 
 ## Situação e recibos
 
-Fases 2.1–2.5 e 2.6/configuration aprovadas. Conferidor de execução remota validado localmente; publicação/CI real/2.7 pendentes. Caminhos abaixo relativos a .artifacts/maintenance/.
+Fases 2.1–2.5 e 2.6/configuration aprovadas no escopo anterior. Ampliação 2.5/provision com mise planejada a pedido do usuário; implementação, novo fechamento 2.5 e requalificação de 2.6/configuration pendentes. Conferidor remoto validado localmente; publicação/CI real/2.7 pendentes. Os recibos abaixo preservam a base anterior e não aprovam mise. Caminhos relativos a .artifacts/maintenance/.
 
 | Fase/unidade       | Estado               | Recibo em .artifacts/maintenance/                                                              |
 | ------------------ | -------------------- | ---------------------------------------------------------------------------------------------- |
@@ -25,6 +25,7 @@ Fases 2.1–2.5 e 2.6/configuration aprovadas. Conferidor de execução remota v
 | 2.5/dev            | Aprovada             | 2.5/dev/2026-11-21T00-17-22.291Z-5cd3c8dc-8b9c-41f7-88e5-9abcdf354b2b/evidence.json            |
 | 2.5/doctor         | Aprovada             | 2.5/doctor/2026-11-21T00-42-49.000Z-0ff22927-d7ff-4d78-9a46-1e9b615013e0/evidence.json         |
 | 2.5/final          | Aprovada             | 2.5/final/2026-11-21T00-49-56.187Z-5219ca21-5912-497e-8ffb-d2d18d18ccf0/evidence.json          |
+| 2.5/provision      | Planejada            | Sem execução; nova unidade de provisionamento com mise                                         |
 | 2.6/configuration  | Aprovada             | 2.6/configuration/2026-11-21T01-57-21.948Z-4152e68a-f5f7-4fde-a629-d116fe9886e7/evidence.json  |
 | 2.6/execution      | Preparada localmente | Sem prova remota; gate recusa recibo ausente                                                   |
 | 2.6/final e 2.7    | Pendentes            | Exigem CI real e consolidação                                                                  |
@@ -33,8 +34,8 @@ Fases 2.1–2.5 e 2.6/configuration aprovadas. Conferidor de execução remota v
 
 - Três workspaces, um pacote de produto, regras/dados/banco notfeed-v2 v18 e identidade/permissões preservados. Sem organização de negócio, novos plugins/targets, SQLite ativo ou integrações Rust/C++ adicionais.
 - Contrato → prova → implementação mínima → gate. Sem relaxar tipos, lint, assertions, segurança, scripts ou inventário de 207 casos. Não editar fontes/contratos/locks durante gate; ledger fora do hash, mas dentro de format:check.
-- Ferramentas pnpm, Playwright, lint/Prettier, cargo-audit e semver 7.8.6 raiz/dev autorizadas. Nenhuma nova biblioteca direta pendente.
-- ADRs 001–015 preservam escolhas. updates.json e *-delta.json explicam versões/arestas. Provas históricas não aprovam fontes novas. Checks/e2e ativos independem de árbitros e planos históricos.
+- Ferramentas pnpm, Playwright, lint/Prettier, cargo-audit e semver 7.8.6 raiz/dev autorizadas. Mise incluído no plano por solicitação explícita em 21/11/2026; versão/integridade a selecionar antes da implementação, sem upgrade dos pins atuais.
+- ADRs 001–017 preservam escolhas, incluindo Debian 13 local, Ubuntu 24.04 na CI e provisionamento por usuário/projeto. updates.json e *-delta.json explicam versões/arestas. Provas históricas não aprovam fontes novas. Checks/e2e ativos independem de árbitros e planos históricos.
 
 ## Base técnica adotada
 
@@ -56,7 +57,7 @@ Checkpoint 2.3 reconstruído: 593 arquivos, hash faeb797f8bb1949b11414dfb3edb287
 
 ## Próxima ação e ambiente
 
-O usuário fará commit, push e envio à main e avisará para continuar. Não executar publicação Git/GitHub. Retenção de `.artifacts` concluída e validada; ADR 015 adotada. Após o aviso do usuário, acompanhar CI real, validar o run e só então fechar execution/final 2.6 e adotar 2.7.
+O usuário fará commit, push e envio à main e avisará para continuar. Não executar publicação Git/GitHub. Retenção de `.artifacts` concluída e validada; ADR 015 adotada. Próxima unidade: [2.5/provision](fases/2.5f-provisionamento-com-mise.md), começando pela seleção exata/integridade do mise e validação C11. Depois de implementar e aprovar a unidade, executar novo fechamento 2.5 e requalificar 2.6/configuration. Após o aviso de publicação, conferir CI real das fontes atuais, fechar execution/final 2.6 e adotar 2.7.
 Conferidor consulta GitHub read-only com API 2026-03-10, comprova run/attempt/jobs/workflow, diferencia head/merge, compara ZIP SHA256 e arquivos extraídos com fontes/contratos/locks locais. gh 2.46.0 não possui --slurp; paginação REST explícita testada, sem ferramenta nova. Gate execution sem recibo foi recusado antes de INSTALL (commands=[]). Nunca usar event=local/runId=0 como prova remota.
 
 Cada perfil CI agora usa diretório de execução novo e espelho de publicação atual; histórico preservado. Uma prova real recusou arquivos antigos no espelho antes da correção. Perfil web isolado passou em verify:quick e 50 testes, com 21 arquivos exatos/hashes validados; paginação também validada no gate completo.
@@ -76,3 +77,19 @@ Retenção concluída: `.artifacts` caiu de aproximadamente 67 GiB para 1,6 GiB 
 ADR 015/contrato artifacts.json adotados. Gates limpam dependências/caches dos candidatos ao encerrar, inclusive em falha; reconstrução histórica, auditor e inspetor nativo descartam seus temporários. Leases bloqueiam limpeza durante execuções; recusa demonstrada contra gate real. Instalações frozen, caches novos, scripts e repetição offline mantidos. Cache Cargo é reutilizado, pode ocupar vários GiB e tem limpeza explícita; não há limite fixo de disco durante build. Não remover lease órfão sem confirmar que a execução acabou.
 
 Provas em .artifacts/retention/real-gate-validation.json, live-run-refusal.json e approved-before.json/approved-after.json. 25 recibos aprovados anteriores (1 em formato histórico de logs) e todos os arquivos com hashes declarados foram conferidos antes/depois; o gate novo elevou o total para 26. Fontes do candidato continuaram idênticas após a compactação, dependências/caches/builds temporários ausentes e leases zerados. Gate 2.6/configuration completo aprovado com 90 provas Node, 207 unitários, segurança, Cargo/AppImage e PWA 1/3/3; verify:quick público também aprovado. Uma tentativa inicial restrita de testes encontrou bloqueios de loopback/SQLite do sandbox; os mesmos testes passaram no gate autorizado com acesso adequado, sem relaxar regras.
+
+## Seleção automática de versões — decisão de 21/11/2026
+
+O usuário preferiu manter versões exatas e preparar a adoção do mise. A flexibilização local do pnpm foi descartada: engines/packageManager, políticas, doctor, auditoria, CI e árbitro retornaram à base aprovada em 2fd103f, com pnpm 11.28.12 e pmOnFail=error. Os três arquivos novos da flexibilização foram removidos; evidências históricas e um arquivo de recuperação permanecem em .artifacts/maintenance/pnpm-compatibility. Demais mudanças da etapa 2 e retenção de artefatos preservadas. A adoção mise está agora detalhada em 2.5/provision, sem implementação. Publicação Git segue a cargo do usuário e 2.6/2.7 continuam aguardando CI real.
+
+Reversão validada: verify:quick com 207 unitários, doctor com pnpm 11.28.12 e contrato YAML CI aprovados; pnpm global diferente foi recusado em prova real. Recibo em .artifacts/maintenance/pnpm-compatibility/reverted-evidence.json. Na entrega da reversão, somente este ledger diferia de 2fd103f; sem alteração de índice ou publicação Git.
+
+## Referência Debian 13 — decisão de 21/11/2026
+
+O usuário confirmou Debian 13 como referência local e Ubuntu 24.04 na CI, encerrando a decisão sobre os sistemas. Proposta e ADR 016 registram versões exatas de ferramentas e comandos de validação comuns, com requisitos de sistema por distribuição. Mise ainda não foi implementado. Docker e runner próprio ficam fora desta etapa; eventual imagem Docker futura deve usar Debian. Nenhuma alteração executável de ferramenta, workflow ou gate nesta atualização documental. CI em Ubuntu complementa as provas locais em Debian; não implica igualdade de bibliotecas de sistema ou suporte do AppImage a distribuições anteriores.
+
+## Plano de provisionamento — 21/11/2026
+
+Incluídos ficha 2.5f, C11, E2-INV-13/14 e ADR 017. README, fases 2.5–2.7, gates e protocolo agora exigem preparação por alvo, instalações por usuário fora do repositório, seleção por projeto, bootstrap sem Node global, lock/integridade, provas adversas e requalificação CI. O manifesto declara mise autorizado e a ampliação em plannedExtensions, mantendo fixedUnits e executor atuais até sua adoção testada. Nenhuma ferramenta instalada, configuração mise criada ou gate novo executado nesta entrega de planejamento.
+
+Validação do planejamento: 9 testes existentes de manifesto/árbitro passaram sem falha/skip; validação adicional confirmou o manifesto, os documentos da ampliação e a recusa de provision pelo executor ainda não adotado. Conferidos 52 links locais, formatação dos 15 documentos/manifesto alterados e git diff --check. Esses checks aprovam a atualização documental, não o provisionamento planejado.

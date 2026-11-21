@@ -70,6 +70,7 @@
 	"rustLockfile": "apps/desktop/src-tauri/Cargo.lock",
 	"localProductSpecifier": "workspace:*",
 	"approvedDevelopmentTools": [
+		"mise",
 		"pnpm",
 		"eslint",
 		"@eslint/js",
@@ -154,5 +155,50 @@
 		"date": "2026-11-20",
 		"scope": "root devDependency",
 		"source": "explicit user approval"
+	},
+	"miseAuthorization": {
+		"date": "2026-11-21",
+		"scope": "development tool provisioning per project; no product dependency",
+		"source": "explicit user request to add mise to the stage-2 plan"
+	},
+	"plannedExtensions": {
+		"mise": {
+			"status": "planned-not-implemented",
+			"phase": "2.5",
+			"unit": "provision",
+			"document": "fases/2.5f-provisionamento-com-mise.md",
+			"decision": "adr/017-provisionamento-com-mise.md",
+			"contract": "C11",
+			"realizedContract": "tooling/checks/contracts/provision.json",
+			"versionSelection": "exact mise version, official URL and SHA-256 before bootstrap implementation",
+			"preserveCurrentToolPins": true,
+			"environments": {
+				"development": "debian-13",
+				"ci": "ubuntu-24.04",
+				"platform": "linux",
+				"architecture": "x64"
+			},
+			"installationScope": "per-user outside repository; temporary proof installations isolated",
+			"selectionScope": "project and process; no global defaults changed",
+			"toolLocks": ["mise.lock", "pnpm-lock.yaml", "apps/desktop/src-tauri/Cargo.lock"],
+			"profiles": ["web", "desktop"],
+			"requiredCheck": "PROVISION",
+			"adoptionRequires": [
+				"validated C11 and adverse tests before implementation",
+				"register provision in fixedUnits and environment-units together with executor support",
+				"preserve historical receipts and reject them as current provision evidence"
+			],
+			"requalificationOrder": [
+				"2.5/provision",
+				"2.5/final",
+				"2.6/configuration",
+				"user publication",
+				"2.6/execution",
+				"2.6/final",
+				"2.7/final"
+			],
+			"docker": false,
+			"selfHostedRunner": false
+		}
 	}
 }

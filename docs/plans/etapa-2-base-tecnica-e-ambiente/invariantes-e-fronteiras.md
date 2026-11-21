@@ -16,6 +16,8 @@
 | E2-INV-10 | Checks permanentes não exigem aprovação P0–P6 nem hashes imutáveis do produto. Preservar os comprovantes históricos; não reescrevê-los como provas das versões novas.                                                        |
 | E2-INV-11 | Mudanças no produto limitam-se às correções e adaptações técnicas necessárias e testadas. Mudança de regra, schema, plataforma ou redesenho amplo exige Stop & Ask.                                                          |
 | E2-INV-12 | Registrar estado, decisões e recuperação reproduzível; preservar trabalho do usuário e dados pessoais. Artefatos de teste usam dados sintéticos.                                                                             |
+| E2-INV-13 | Provisionar ferramentas por usuário e selecionar versões exatas por projeto, sem alterar defaults globais, ferramentas pessoais ou arquivos de shell automaticamente. O doctor permanece somente diagnóstico.                |
+| E2-INV-14 | Debian 13 x86_64 no desenvolvimento e Ubuntu 24.04 x86_64 na CI; mesmas versões de ferramentas e comandos, requisitos de sistema por distribuição. Setup web não instala nem exige Rust/GTK/auditor.                         |
 
 ## Topologia preservada e acréscimos técnicos
 
@@ -26,6 +28,8 @@ notfeed-app/
 ├── pnpm-lock.yaml                # substitui package-lock.json em 2.3
 ├── .nvmrc                       # versão de referência Node
 ├── rust-toolchain.toml           # versão exata e componentes Rust
+├── mise.toml                    # previsto em 2.5/provision: seleção e tarefas por alvo
+├── mise.lock                    # previsto: resoluções de ferramentas, distinto dos locks de dependências
 ├── eslint.config.js              # configuração acordada em 2.1
 ├── .prettierrc.json
 ├── .prettierignore               # somente gerados, binários e histórico identificado
@@ -36,6 +40,7 @@ notfeed-app/
 │   ├── migration/               # provas históricas da etapa 1
 │   ├── maintenance/             # árbitro, contratos realizados e evidências da etapa 2
 │   ├── checks/                  # verificações permanentes e execução de comandos
+│   ├── setup/                   # previsto: bootstrap mise e preparação mínima por alvo
 │   └── e2e/                     # cenários atuais, adaptados sem perder assertions
 ├── .github/workflows/            # CI prevista para o remoto GitHub existente
 └── docs/plans/etapa-2-base-tecnica-e-ambiente/
@@ -43,10 +48,14 @@ notfeed-app/
 
 Não criar pacotes de configuração vazios, workspace Cargo sem segundo crate, Nx, Turbo, Docker, devcontainer, backend, bindings, WebAssembly ou toolchain C++. A ferramenta de cada ecossistema continua responsável por suas dependências: pnpm para JS/TS; Cargo para Rust.
 
+Mise é autorizado como provisionamento de desenvolvimento. Sua adoção não altera as versões atuais de Node/pnpm/Rust/auditor. Instalações usuais ficam fora de `.artifacts` e podem ser reutilizadas entre projetos do usuário. Cópias temporárias das provas obedecem ao isolamento e à retenção já contratados.
+
 ## Grafo permitido
 
 ```text
 raiz e CI ──executam──> aplicativos, Cargo e tooling
+mise/setup ──preparam──> ferramentas por usuário e ambiente de processo
+mise/setup ──executam──> pnpm, rustup/Cargo e utilidades permanentes de tooling/checks
 apps/web ──importa──> @notfeed/product ──importa──> dependências declaradas
 apps/desktop ──empacota──> apps/web/build
 apps/desktop/src-tauri ──usa──> crates declaradas
@@ -56,6 +65,8 @@ tooling/checks ──inspeciona/testa──> fontes, manifests e contratos perma
 ```
 
 `tooling/checks` não importa `tooling/maintenance`, `tooling/migration` ou os recibos das fases. O estado realizado necessário aos checks cotidianos fica em `tooling/checks/contracts/`; o histórico fica em `tooling/maintenance/` ou nos documentos. O produto não importa nenhuma dessas pastas.
+
+Setup não depende de planos, árbitros ou recibos históricos. Pode chamar doctor/checks após preparar o ambiente; doctor não chama setup. As verificações de provisionamento executam o setup em processos isolados somente para provar seu comportamento, sem dependência circular de imports.
 
 O pacote conserva as dependências Svelte/SvelteKit/Tauri JS e APIs de navegador existentes. `$app/navigation` e `$app/environment` continuam permitidos como módulos virtuais do framework; `$service-worker` fica no entrypoint web. Não impor novas fronteiras entre `stores`, `services`, `persistence` e demais pastas internas.
 
@@ -68,6 +79,8 @@ O pacote conserva as dependências Svelte/SvelteKit/Tauri JS e APIs de navegador
 - Não desativar integridade/TLS, permitir scripts de instalação de todos os pacotes ou usar versão flutuante de runtime, gerenciador, auditor ou actions na CI final.
 - Não mudar banco, storage backend, origem de implantação, permissões Tauri ou regras do produto como efeito colateral de manutenção.
 - Não publicar pacotes, distribuir AppImage, acessar dados pessoais ou modificar proteção de branch como parte implícita deste plano.
+- Não usar `latest`, flexibilizar engines, gerar locks durante um gate ou cair silenciosamente em ferramenta global incompatível para concluir o setup. Não manter nvm/Corepack/pnpm global como fluxos oficiais concorrentes ao mise.
+- Não confiar globalmente em diretórios mise, alterar HOME para isolar testes, instalar pacotes de sistema pelo doctor ou remover ferramentas pessoais. Requisitos apt locais são documentados; instalação de sistema na CI continua explícita.
 
 ## Dívida histórica sem novas exceções
 

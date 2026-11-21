@@ -34,6 +34,8 @@ Parar imediatamente o recorte dependente e perguntar ao usuário diante de:
 
 Registrar fase/unidade, evidência, regra envolvida, opções e pergunta no estado. Não implementar a escolha dependente nem avançar para outra fase enquanto faltar a decisão. Pode continuar análise/documentação independente. Autorizações anteriores persistem: Playwright e as ferramentas de C02 não precisam ser perguntadas novamente.
 
+Mise foi incluído no plano a pedido do usuário em 21/11/2026. Debian 13 local e Ubuntu 24.04 na CI já estão decididos. Na execução da unidade, selecionar versão/backend e integridade dentro de C11 sem pedir novamente autorização para o próprio mise; dependência adicional não prevista continua sujeita ao fusível. O pedido atual de atualizar o plano não instala ferramentas.
+
 ## Recusa de violação
 
 Recusar a alteração conflitante enquanto o conflito persistir, citar o ID e oferecer uma alternativa. Exemplo: `--shamefully-hoist` para ocultar um import não declarado viola E2-INV-06; declarar a dependência no consumidor e testar a instalação limpa é a alternativa.
@@ -46,7 +48,9 @@ Após cada unidade, atualizar `state.md` de forma compacta: fase/unidade, passo 
 
 Checkpoint deve representar exatamente o estado auditado. Usar commit quando disponível ou snapshot/diff reproduzível com hashes; preservar HEAD/índice e alterações do usuário. Registrar como restaurar em área isolada. Não restaurar sobre trabalho atual sem avaliar os deltas.
 
-Ao encerrar sessão incompleta, registrar checks realmente executados e pendentes, sem equiparar código escrito ou documentação atualizada a gate aprovado. Não avançar `executionStarted` no manifesto até iniciar a fase 2.1.
+Ao encerrar sessão incompleta, registrar checks realmente executados e pendentes, sem equiparar código escrito ou documentação atualizada a gate aprovado. `executionStarted` já é verdadeiro desde 2.1; manter essa história. Uma ampliação planejada fica em `plannedExtensions` até a adoção com contrato/testes e não pode aparecer como unidade implementada ou aprovada.
+
+Para o acréscimo mise, começar pela ficha 2.5f, C11 e ADRs 016/017. Validar dados de seleção antes do bootstrap; implementar as provas antes de adaptar o executor. Distinguir recibos históricos da nova obrigação PROVISION, manter hashes antigos e registrar novo fechamento 2.5 e nova configuração 2.6. A instalação limpa usa diretórios próprios por ferramenta, sem alterar HOME, configurações ou defaults pessoais.
 
 ## CI e encerramento
 
