@@ -133,6 +133,15 @@ function planArtifactCleanup(root, { caches = false } = {}) {
 		targets.push(...safeTargets(root, area, policy.candidatePayloads));
 		targets.push(...planArtifactCleanup(path.join(area, 'source/.artifacts')));
 	}
+	for (const run of children('provision', /^[a-f0-9-]{36}$/)) {
+		for (const name of readdirSync(run).filter((name) => /^candidate-[\w-]+$/.test(name))) {
+			const area = path.join(run, name);
+			targets.push(...safeTargets(root, area, policy.candidatePayloads));
+			targets.push(...planArtifactCleanup(path.join(area, 'source/.artifacts')));
+		}
+	}
+	for (const area of children('setup', /^(?:[a-f0-9-]{36}|prebuild-[\w-]+)$/))
+		targets.push(...safeTargets(root, area, ['npm-cache', 'audit-target']));
 	for (const [directory, pattern, kind] of [
 		['e2e/reproduction', /^(?:stage-2-[\w-]+|\d+)$/, 'reference'],
 		['security', /^current-[\w-]+$/, 'security'],

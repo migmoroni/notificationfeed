@@ -33,6 +33,22 @@ function fixture(work) {
 		.finally(() => rmSync(root, { recursive: true, force: true }));
 }
 
+test('retenção cobre caches mise e intermediários de setup sem remover seus recibos', () =>
+	fixture(async ({ artifacts, put }) => {
+		const run = '12345678-1234-1234-1234-123456789abc';
+		const durable = put(`provision/${run}/candidate-a/source/package.json`);
+		const receipt = put(`setup/${run}/evidence.json`);
+		const payloads = [
+			`provision/${run}/candidate-a/mise-data/installs/node/bin/node`,
+			`provision/${run}/candidate-a/cache/download`,
+			`setup/${run}/npm-cache/download`,
+			`setup/${run}/audit-target/build`
+		].map((file) => put(file));
+		await cleanArtifacts(artifacts);
+		for (const file of payloads) assert.equal(existsSync(file), false, file);
+		assert.ok(existsSync(durable) && existsSync(receipt));
+	}));
+
 test('retenção elimina payloads repetidos e preserva provas, fontes, ferramentas e checkpoints', () =>
 	fixture(async ({ artifacts, put }) => {
 		const durable = [

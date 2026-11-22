@@ -11,7 +11,12 @@
 		"source/apps/web/.svelte-kit",
 		"source/apps/web/build",
 		"source/apps/desktop/src-tauri/target",
-		"source/apps/desktop/src-tauri/gen"
+		"source/apps/desktop/src-tauri/gen",
+		"mise-data",
+		"mise-cache",
+		"mise-config",
+		"mise-state",
+		"bootstrap"
 	],
 	"referencePayloads": ["source", "tools", "cache", "source.tar"],
 	"nativePayloads": ["squashfs-root", "compiled", "extracted"],
