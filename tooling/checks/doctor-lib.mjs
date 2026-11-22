@@ -4,6 +4,7 @@ import path from 'node:path';
 import { chromium } from '@playwright/test';
 import { execute, readJSON, hash } from './io.mjs';
 import { packageDirectory } from './resolve.mjs';
+import { inspectProvision, assertRustOverride } from './provision-lib.mjs';
 
 export function assertToolVersion(name, actual, expected, action) {
 	assert.equal(actual, expected, `${name}: requerido ${expected}, encontrado ${actual}. ${action}`);
@@ -39,6 +40,8 @@ export async function inspectEnvironment(target, root = process.cwd()) {
 	assert.equal(manifest.packageManager, `pnpm@${tools.pnpm}`);
 	const pnpm = await required('pnpm', ['--version'], `Instale pnpm@${tools.pnpm}.`);
 	assertToolVersion('pnpm', pnpm, tools.pnpm, `Instale pnpm@${tools.pnpm}.`);
+	const provision = await inspectProvision(root);
+	commands.push(...provision.commands);
 	const locks = ['pnpm-lock.yaml', 'apps/desktop/src-tauri/Cargo.lock'].map((file) => {
 		assert.ok(
 			existsSync(path.join(root, file)),
@@ -85,8 +88,9 @@ export async function inspectEnvironment(target, root = process.cwd()) {
 	);
 	assert.ok(browser?.browserVersion);
 	assertChromiumVersion(browserVersion, browser.browserVersion);
-	const versions = { node: process.versions.node, pnpm, chromium: browserVersion };
+	const versions = { ...provision.versions, chromium: browserVersion };
 	if (target === 'desktop') {
+		assertRustOverride(process.env);
 		assert.equal(process.platform, tools.target.platform, 'Alvo desktop atual requer Linux.');
 		assert.equal(process.arch, tools.target.arch, 'Alvo desktop atual requer x86_64.');
 		const rust = await required(
@@ -138,5 +142,14 @@ export async function inspectEnvironment(target, root = process.cwd()) {
 		versions.cargo = cargo;
 		versions.cargoAudit = audit;
 	}
-	return { schemaVersion: 1, status: 'passed', target, versions, locks, commands };
+	return {
+		schemaVersion: 1,
+		status: 'passed',
+		target,
+		versions,
+		locks,
+		commands,
+		environment: provision.environment,
+		executables: provision.executables
+	};
 }

@@ -16,3 +16,4 @@ tooling/maintenance/contracts/baseline.json
 tooling/maintenance/contracts/npm-before-pnpm.json
 tooling/maintenance/contracts/*-delta.json
 tooling/maintenance/contracts/rust-toolchain-adoption.json
+.mise/locks/

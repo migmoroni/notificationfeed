@@ -16,6 +16,7 @@ import {
 	readCompilerConfig
 } from './source-lib.mjs';
 import { assertSvelteSingleton } from './resolve.mjs';
+import { assertProvisionPins } from './provision-lib.mjs';
 
 const isSource = (file) => /\.(?:js|mjs|cjs|ts|svelte)$/.test(file);
 const configuration = (root) => readJSON(path.join(root, 'tooling/checks/contracts/project.json'));
@@ -23,7 +24,7 @@ const productFiles = (root, contract) =>
 	contract.sources.flatMap((directory) => filesUnder(path.join(root, directory))).filter(isSource);
 
 export function assertActiveTooling(root) {
-	for (const directory of ['tooling/checks', 'tooling/e2e']) {
+	for (const directory of ['tooling/checks', 'tooling/e2e', 'tooling/setup']) {
 		for (const file of filesUnder(path.join(root, directory)).filter(isSource)) {
 			for (const specifier of inspectImports(file, readFileSync(file, 'utf8'), {
 				allowComputed: true
@@ -135,6 +136,7 @@ export function assertDataContract(actual, expected) {
 }
 
 export async function assertProjectContracts(root = process.cwd()) {
+	assertProvisionPins(root);
 	const contract = configuration(root);
 	for (const [name, command] of Object.entries(contract.publicCommands))
 		assert.equal(

@@ -4,6 +4,7 @@ import { existsSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { execute, readJSON } from '../io.mjs';
+import { executablePath } from '../provision-lib.mjs';
 
 test('contratos doctor e agregados separam web de Rust e fixam a ordem do bundle', () => {
 	const tools = readJSON('tooling/checks/contracts/tools.json');
@@ -37,6 +38,9 @@ test('doctor web funciona sem executáveis Rust/GTK e desktop reprova nesse PATH
 		symlinkSync(process.execPath, path.join(directory, 'node'));
 		// pnpm run starts scripts through the host shell; no desktop tool is present.
 		symlinkSync('/bin/sh', path.join(directory, 'sh'));
+		symlinkSync(executablePath('mise'), path.join(directory, 'mise'));
+		for (const command of ['readlink', 'dirname'])
+			symlinkSync(executablePath(command), path.join(directory, command));
 		const pnpm = process.env.PATH.split(path.delimiter)
 			.map((dir) => path.join(dir, 'pnpm'))
 			.find(existsSync);
