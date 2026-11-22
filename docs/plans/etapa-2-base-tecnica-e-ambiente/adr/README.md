@@ -1,24 +1,26 @@
 # Decisões arquiteturais da etapa 2
 
-| ADR                                             | Decisão                                         | Situação                                 |
-| ----------------------------------------------- | ----------------------------------------------- | ---------------------------------------- |
-| [001](001-escopo-e-sequencia.md)                | Base técnica antes da organização modular       | Vigente                                  |
-| [002](002-checks-e-evidencias.md)               | Provas históricas e verificações permanentes    | Extração final em 2.5                    |
-| [003](003-referencia-e-ferramentas.md)          | Referência e ferramentas autorizadas            | Diagnóstico/gates 2.1 aprovados          |
-| [004](004-unidades-e-cache-nativo.md)           | Unidades e cache Cargo                          | Adotada                                  |
-| [005](005-pnpm-e-comparacao-de-grafos.md)       | pnpm e grafos canônicos                         | 2.3 aprovada                             |
-| [006](006-runtime-e-familia-web.md)             | Runtime, família web e referência               | Unidades aprovadas                       |
-| [007](007-grupos-ui-e-assets.md)                | UI/assets e download verificado                 | Unidades aprovadas                       |
-| [008](008-familia-desktop-e-rust.md)            | Tauri, segurança transitiva e Rust              | Unidades aprovadas                       |
-| [009](009-checks-permanentes.md)                | Checks independentes e cobertura efetiva        | 2.5/checks aprovada                      |
-| [010](010-lint-delimitado.md)                   | Lint delimitado e ambientes separados           | 2.5/lint aprovada                        |
-| [011](011-formatacao-isolada.md)                | Formatação isolada e prova anterior à aplicação | 2.5/format aprovada                      |
-| [012](012-ambiente-de-testes-e-portas.md)       | Ambiente comum e portas estritas                | 2.5/dev aprovada                         |
-| [013](013-diagnostico-agregados-e-seguranca.md) | Diagnóstico, agregados e segurança permanentes  | 2.5/doctor aprovada                      |
-| [014](014-ci-e-evidencia-remota.md)             | CI e comprovação no serviço                     | Configuration aprovada; CI real pendente |
-| [015](015-retencao-de-artefatos.md)             | Retenção de provas e descarte de temporários    | Adotada; gate local completo aprovado    |
-| [016](016-debian-13-como-referencia-local.md)   | Debian 13 local e Ubuntu 24.04 na CI            | Aprovada; implantação do mise pendente   |
-| [017](017-provisionamento-com-mise.md)          | Provisionamento por projeto e perfis com mise   | Planejada; implementação/gates pendentes |
+| ADR                                             | Decisão                                         | Situação                               |
+| ----------------------------------------------- | ----------------------------------------------- | -------------------------------------- |
+| [001](001-escopo-e-sequencia.md)                | Base técnica antes da organização modular       | Vigente                                |
+| [002](002-checks-e-evidencias.md)               | Provas históricas e verificações permanentes    | Extração final em 2.5                  |
+| [003](003-referencia-e-ferramentas.md)          | Referência e ferramentas autorizadas            | Diagnóstico/gates 2.1 aprovados        |
+| [004](004-unidades-e-cache-nativo.md)           | Unidades e cache Cargo                          | Adotada                                |
+| [005](005-pnpm-e-comparacao-de-grafos.md)       | pnpm e grafos canônicos                         | 2.3 aprovada                           |
+| [006](006-runtime-e-familia-web.md)             | Runtime, família web e referência               | Unidades aprovadas                     |
+| [007](007-grupos-ui-e-assets.md)                | UI/assets e download verificado                 | Unidades aprovadas                     |
+| [008](008-familia-desktop-e-rust.md)            | Tauri, segurança transitiva e Rust              | Unidades aprovadas                     |
+| [009](009-checks-permanentes.md)                | Checks independentes e cobertura efetiva        | 2.5/checks aprovada                    |
+| [010](010-lint-delimitado.md)                   | Lint delimitado e ambientes separados           | 2.5/lint aprovada                      |
+| [011](011-formatacao-isolada.md)                | Formatação isolada e prova anterior à aplicação | 2.5/format aprovada                    |
+| [012](012-ambiente-de-testes-e-portas.md)       | Ambiente comum e portas estritas                | 2.5/dev aprovada                       |
+| [013](013-diagnostico-agregados-e-seguranca.md) | Diagnóstico, agregados e segurança permanentes  | 2.5/doctor aprovada                    |
+| [014](014-ci-e-evidencia-remota.md)             | CI e comprovação no serviço                     | Escopo remoto substituído pela ADR 018 |
+| [015](015-retencao-de-artefatos.md)             | Retenção de provas e descarte de temporários    | Adotada; gate local completo aprovado  |
+| [016](016-debian-13-como-referencia-local.md)   | Debian 13 local e Ubuntu 24.04 na CI            | Adotada                                |
+| [017](017-provisionamento-com-mise.md)          | Provisionamento por projeto e perfis com mise   | Implementada e aprovada em 2.5         |
+| [018](018-ci-minima-web.md)                     | CI mínima web com mise e prova remota           | Implementada e aprovada em 2.6         |
+| [019](019-consolidacao-e-recuperacao.md)        | Recuperação externa e CI das fontes finais      | Adotada; gate final de 2.7 pendente    |
 
 Registrar nova ADR somente quando houver escolha relevante, mudança de contrato ou decisão do usuário. Usar título, data, estado, contexto, decisão, alternativas e consequências. Não criar uma ADR para cada comando ou pacote atualizado; versões/grupos e evidências têm registros próprios.
 

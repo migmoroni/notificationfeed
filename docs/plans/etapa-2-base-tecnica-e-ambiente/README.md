@@ -1,6 +1,6 @@
 # Plano de engenharia da etapa 2
 
-**Data:** 20 de novembro de 2026; revisão de CI mínima em 22/11/2026. **Situação:** base técnica/mise implementados localmente; configuração CI em requalificação para web-minimum. CI real e consolidação pendentes. Acompanhar [state.md](state.md).
+**Data:** 20 de novembro de 2026; consolidação em 22/11/2026. **Situação:** 2.1–2.6 aprovadas, incluindo mise e CI mínima real. Consolidação 2.7 em execução; a aprovação final consta exclusivamente de [state.md](state.md) e dos recibos vinculados às fontes.
 
 ## Invariantes e fronteiras primeiro
 
@@ -28,7 +28,7 @@ O foco continua web/PWA, com o Tauri Linux AppImage existente preservado. A etap
 | [Estado vivo](state.md)                                 | Posição atual, decisões, evidências e próxima ação             |
 | [ADRs](adr/README.md)                                   | Razões das decisões e alterações de contrato                   |
 
-Os comandos permanentes originais da fase 2.5 estão implementados e suas cinco unidades foram aprovadas. A [unidade adicional de provisionamento](fases/2.5f-provisionamento-com-mise.md) ainda será implementada e validada; atualizar o plano não instala mise nem aprova o ambiente novo.
+Os comandos permanentes e as seis unidades de 2.5 estão implementados e aprovados, incluindo o [provisionamento com mise](fases/2.5f-provisionamento-com-mise.md). A preparação continua por usuário/alvo; o repositório seleciona ferramentas sem substituir defaults pessoais.
 
 ## Sequência de execução
 
@@ -44,13 +44,13 @@ Os comandos permanentes originais da fase 2.5 estão implementados e suas cinco 
 
 Cada unidade percorre **Especificação → Contrato/Schema → Teste → Implementação Mínima → Quality Gate**. Passar uma unidade não aprova automaticamente sua fase. Não iniciar a fase dependente até concluir todas as unidades e o gate de saída da anterior.
 
-A revisão atual segue a ADR 018: requalificar 2.6/configuration com CI mínima web. Após a publicação feita pelo usuário, conferir o job web real em 2.6/execution/final e consolidar 2.7 com os gates locais completos. CI PWA/desktop e matriz por módulos serão reavaliadas no fechamento da etapa 3; distribuição/publicação têm escopo posterior próprio. Preservar as provas históricas sem tratá-las como aprovação desta revisão.
+A revisão segue as ADRs 018 e 019: CI mínima web homologada em 2.6 e consolidação 2.7 com os gates locais completos e recuperação por checkpoint. A CI de fechamento precisa corresponder às fontes finais. CI PWA/desktop e matriz por módulos serão reavaliadas no fechamento da etapa 3; distribuição/publicação têm escopo posterior próprio. Preservar as provas históricas sem tratá-las como aprovação de revisões posteriores.
 
 As versões exatas e os grupos de atualização foram registrados em 2.1b, com fontes e data de consulta. O plano fixa o processo e os critérios; não transforma a fotografia de versões ou alertas de novembro em uma escolha permanente sem nova verificação.
 
 ## Ponto de partida
 
-A [etapa 1](../etapa-1-migracao-estrutural/state.md) registra P0–P6 aprovadas, 207 testes unitários, 23 testes do árbitro, testes Chromium e build AppImage. Esses resultados são históricos; 2.1b verifica novamente a referência atual. Há zero testes Rust de comportamento; compilar e empacotar não significa testar a WebView nativa.
+A [etapa 1](../etapa-1-migracao-estrutural/state.md) registra P0–P6 aprovadas, 207 testes unitários, 23 testes do árbitro, testes Chromium e build AppImage. Esses resultados são históricos; 2.1b verificou novamente a referência. Naquela entrada não havia teste Rust de comportamento; 2.4 acrescentou uma regressão de segurança de origens URL. Isso não significa testar a WebView nativa.
 
 Na inspeção de planejamento, HEAD era `550037cd52eefb700a96da864d07b5ee7149816c`, com a migração estrutural já commitada e a proposta modificada na árvore de trabalho. O estado histórico da etapa 1 descreve o momento anterior a esse commit. A execução deve inventariar a árvore real, incluindo alterações posteriores, sem sobrescrevê-las nem presumir que HEAD sozinho representa o estado testado.
 

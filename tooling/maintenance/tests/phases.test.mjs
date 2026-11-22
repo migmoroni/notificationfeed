@@ -28,7 +28,7 @@ test('diagnóstico exige instalação, segurança, consumidores, bundle antes do
 	assert.equal(new Set(ids).size, ids.length);
 	assert.ok(ids.indexOf('BUNDLE-INSPECT') < ids.indexOf('BROWSER'));
 	assert.ok(ids.indexOf('BUNDLE-INSPECT') < ids.indexOf('UPGRADE'));
-	assert.throws(() => phaseChecks('2.7', null, process.execPath));
+	assert.throws(() => phaseChecks('2.8', null, process.execPath));
 });
 test('relatório real de navegador recusa caso ausente, erro, skip e flaky', () => {
 	const report = { stats: { expected: 3, unexpected: 0, skipped: 0, flaky: 0 }, errors: [] };
@@ -92,5 +92,5 @@ test('configuração CI exige prova local e não aprova execução remota ou con
 		phaseChecks('2.6', 'execution', process.execPath).some((check) => check.id === 'CI-REMOTE')
 	);
 	assert.ok(phaseChecks('2.6', null, process.execPath).some((check) => check.id === 'CI-REMOTE'));
-	assert.throws(() => phaseChecks('2.7', null, process.execPath));
+	assert.throws(() => phaseChecks('2.7', 'configuration', process.execPath));
 });

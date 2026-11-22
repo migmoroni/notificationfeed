@@ -38,7 +38,7 @@ A CLI Tauri executa em apps/desktop. Seus hooks usam pnpm na raiz, constroem app
 
 A crate notfeed 0.1.0 mantém edition 2021, lib notfeed_lib e feature padrão backend-indexeddb. backend-sqlite continua declarado como opção futura e não é ativado pelos comandos ou gates desta etapa. Identidade app.notfeed.desktop e permissões http/shell/notification permanecem iguais.
 
-`pnpm verify:integration` executa Cargo check/test, rustfmt, Clippy, segurança, build AppImage e inspeção ELF/assets atuais antes dos testes Chromium dev/produção/atualização. A prova nativa cobre compilação e pacote; não há testes Rust de comportamento ou E2E de WebView/notificações.
+`pnpm verify:integration` executa Cargo check/test, rustfmt, Clippy, segurança, build AppImage e inspeção ELF/assets atuais antes dos testes Chromium dev/produção/atualização. A prova nativa cobre compilação, um teste Rust de regressão de segurança de origens URL e o pacote. Não há E2E de WebView/notificações.
 
 ## Alvos futuros
 

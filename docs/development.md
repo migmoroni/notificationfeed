@@ -51,7 +51,7 @@ mise exec -- pnpm verify:integration
 
 `check:rust` executa Cargo check/test com lock, rustfmt e Clippy sem avisos, nas features atuais. `verify:integration` faz diagnóstico desktop, checks Rust e segurança; produz AppImage, inspeciona binário/assets e executa Chromium dev, produção e atualização/offline. O navegador valida o mesmo build inspecionado. Não reconstruir entre a inspeção e esses testes. Os agregados propagam a primeira falha e não aceitam flags para excluir checks.
 
-A referência PWA é reconstruída a partir do bundle Git autossuficiente em tooling/e2e/reference, usando Node/npm históricos em isolamento. O teste mantém origem/contexto, controlador e dados criados pela UI. Artefatos e perfis sintéticos ficam em `.artifacts/`. Há zero testes Rust de comportamento; compilação/pacote não são E2E da WebView ou das notificações nativas.
+A referência PWA é reconstruída a partir do bundle Git autossuficiente em tooling/e2e/reference, usando Node/npm históricos em isolamento. O teste mantém origem/contexto, controlador e dados criados pela UI. Artefatos e perfis sintéticos ficam em `.artifacts/`. Há um teste Rust de regressão de segurança para origens URL e `blob:` aninhado. Compilação, esse teste e empacotamento não são E2E da WebView ou das notificações nativas.
 
 ## Segurança
 

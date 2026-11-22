@@ -4,7 +4,7 @@ import { expectedNodeTests } from '../checks/source-lib.mjs';
 
 export function phaseChecks(phase, unit, node) {
 	assert.ok(
-		['2.1', '2.2', '2.3', '2.4', '2.5', '2.6'].includes(phase),
+		['2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7'].includes(phase),
 		'fase ainda não adotada no executor'
 	);
 	if (phase === '2.6') assert.ok([null, 'configuration', 'execution'].includes(unit));
@@ -76,7 +76,7 @@ export function phaseChecks(phase, unit, node) {
 			phase,
 			...(unit ? ['--unit', unit] : [])
 		]),
-		...(phase === '2.6' ? [script('CI-CONFIG', 'tooling/checks/ci.mjs', ['check'])] : []),
+		...(Number(phase) >= 2.6 ? [script('CI-CONFIG', 'tooling/checks/ci.mjs', ['check'])] : []),
 		nodeTests('ARBITER', 'tooling/maintenance/tests'),
 		nodeTests('TOOLING', 'tooling/checks/tests'),
 		...(active('checks')
@@ -178,7 +178,7 @@ export function phaseChecks(phase, unit, node) {
 			browserCount: 3,
 			timeoutMs: 900000
 		}),
-		...(phase === '2.6' && unit !== 'configuration'
+		...(Number(phase) >= 2.6 && unit !== 'configuration'
 			? [
 					script(
 						'CI-REMOTE',
@@ -193,6 +193,21 @@ export function phaseChecks(phase, unit, node) {
 			: []),
 		{ id: 'DIFF', command: 'git', args: ['diff', '--check'] }
 	];
+	if (phase === '2.7') {
+		const remoteIndex = checks.findIndex((check) => check.id === 'CI-REMOTE');
+		const [remote] = checks.splice(remoteIndex, 1);
+		checks.unshift(
+			remote,
+			script('CHECKPOINT', 'tooling/maintenance/checkpoint.mjs', [], {
+				timeoutMs: 900000,
+				jsonReceipt: true
+			})
+		);
+		assert.deepEqual(
+			checks.map((check) => check.id),
+			readJSON('tooling/maintenance/contracts/consolidation.json').checkOrder
+		);
+	}
 	const native = readJSON('tooling/checks/contracts/tools.json').nativeEnvironment;
 	return checks.map((check) =>
 		['CLIPPY', 'CARGO-CHECK', 'CARGO-TEST', 'BUNDLE-BUILD'].includes(check.id)

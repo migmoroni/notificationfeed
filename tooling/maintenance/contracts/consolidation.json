@@ -1,0 +1,56 @@
+{
+	"schemaVersion": 1,
+	"phase": "2.7",
+	"profile": "Complete",
+	"checkOrder": [
+		"CI-REMOTE",
+		"CHECKPOINT",
+		"INSTALL",
+		"PROVISION",
+		"CONTRACT",
+		"CI-CONFIG",
+		"ARBITER",
+		"TOOLING",
+		"ARCHITECTURE",
+		"RESTRICTIONS",
+		"PERMANENT-CONTRACTS",
+		"TYPES",
+		"E2E-TYPES",
+		"LINT",
+		"CLIPPY",
+		"FORMAT",
+		"RUST-FMT",
+		"DEV-ENV",
+		"DOCTOR-WEB",
+		"DOCTOR-DESKTOP",
+		"UNIT",
+		"SECURITY",
+		"CARGO-CHECK",
+		"CARGO-TEST",
+		"BUNDLE-BUILD",
+		"BUNDLE-INSPECT",
+		"BROWSER-DEV",
+		"BROWSER",
+		"UPGRADE",
+		"DIFF"
+	],
+	"checkpoint": {
+		"restoreOutsideRepository": true,
+		"prepareFromRestoredSources": true,
+		"preserveGitIndex": true,
+		"files": ["head.bundle", "sources.tar.gz", "snapshot.json", "state.md"],
+		"locks": [
+			"pnpm-lock.yaml",
+			"apps/desktop/src-tauri/Cargo.lock",
+			"mise.lock",
+			".mise/locks/npm-pnpm/11.28.12/package.json",
+			".mise/locks/npm-pnpm/11.28.12/aube-lock.yaml"
+		]
+	},
+	"activeDocumentation": [
+		"docs/development.md",
+		"docs/build-targets.md",
+		"docs/plans/etapa-2-base-tecnica-e-ambiente/README.md",
+		"docs/plans/etapa-2-base-tecnica-e-ambiente/fases/2.7-consolidacao.md"
+	]
+}
