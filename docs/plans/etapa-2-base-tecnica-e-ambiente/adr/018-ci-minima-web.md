@@ -17,3 +17,9 @@ C09/C10 e ci.json passam a exigir web-minimum, job web e artefato proof-web do m
 Antes da implementação, validar o contrato e escrever provas de ausência/skip/falha do job, checks/build omitidos ou comandos extras, preparação incompleta e artefato de outro escopo. O gate de configuração passa a executar a prova limpa da CI mínima e os testes locais dos verificadores, sem recompilar Rust apenas para validar o workflow. O fechamento técnico local completo permanece na consolidação.
 
 Quality gate: `mise exec -- node tooling/maintenance/gate.mjs 2.6 --unit configuration`. A prova limpa executa o perfil real em checkout sintético com dados/cache novos e PATH sentinela; exige locks/fontes estáveis, zero skips, ferramentas pessoais preservadas e descarte dos payloads temporários. Homologação remota somente após a publicação feita pelo usuário.
+
+## Correção de contexto no workflow
+
+Em 22/11/2026, o primeiro push da main gerou o run 45036217137 com falha antes de criar jobs. O workflow usava runner.temp em jobs.web.env, mas runner não está disponível nesse campo, conforme a [tabela oficial de contextos](https://docs.github.com/en/actions/reference/workflows-and-actions/contexts). As provas locais anteriores não detectavam essa restrição do serviço.
+
+Mover as quatro variáveis MISE para steps.tools.env, onde o contexto é permitido, e persistir seus valores em GITHUB_ENV antes do bootstrap. Cache, setup e verificações herdam os mesmos diretórios temporários. O contrato fixa environmentStep=tools; o verificador recusa ambiente global/do job, sobrescritas posteriores e persistência incompleta. Uma prova executa a exportação real com espaços no caminho e confere as quatro linhas do arquivo de ambiente. Preservar pins, locks, isolamento e os dez checks; esta correção exige nova configuração aprovada e novo run remoto, sem aproveitar o run falho como evidência de aceite.

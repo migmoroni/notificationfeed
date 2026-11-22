@@ -4,7 +4,9 @@ Atualizado em 22/11/2026. Execução e organização em commits locais autorizad
 
 ## Situação atual
 
-2.1–2.5 implementadas e aprovadas anteriormente. O usuário aprovou a revisão para CI mínima web (ADR 018): um job web obrigatório em PRs, pushes à main e disparos manuais. Configuração mínima aprovada localmente em 2.6/configuration; execução real no GitHub, execution/final 2.6 e consolidação 2.7 continuam pendentes.
+2.1–2.5 implementadas e aprovadas anteriormente. O usuário aprovou a revisão para CI mínima web (ADR 018): um job web obrigatório em PRs, pushes à main e disparos manuais. 2.6/configuration requalificada e aprovada localmente após corrigir o contexto do workflow. Execução remota aprovada, execution/final 2.6 e consolidação 2.7 continuam pendentes.
+
+Retomada em 22/11/2026: merge e push confirmados na main, revisão 775b826b10d3c6c552c56a34c7f8c85f917f8de8. O run real 45036217137/1 falhou antes de criar jobs; não tem logs nem artefato de aceite. Foi identificado runner.temp em jobs.web.env, campo sem esse contexto. Correção delimitada na ADR 018: steps.tools.env e persistência via GITHUB_ENV. Contrato validado antes da implementação; nova prova inicialmente falhou sobre o workflow antigo e 12 provas direcionadas passaram após a correção. Dados reais do run/jobs e confirmação dos SHAs das actions em .artifacts/maintenance/ci-runner-context. Sem atualização de ferramentas, locks ou produto. O diagnóstico desktop anterior aprovou 25 comandos e todas as versões fixadas, incluindo Chromium. Nenhuma evidência remota aprovada; 2.7 não iniciada.
 
 Workflow, contratos C09/C10/C11, manifesto, verificadores, testes e documentação ativos usam web-minimum. setup:ci prepara Node/pnpm e dependências congeladas, sem Chromium/Rust/auditor. Os setups web/desktop e gates locais completos continuam aplicáveis às mudanças e à consolidação. Reavaliar cobertura remota PWA/desktop e matriz por módulos no fechamento da etapa 3. Distribuição, assinatura, instaladores e publicação têm escopo posterior próprio.
 
@@ -20,12 +22,18 @@ Caminhos relativos a .artifacts/maintenance/:
 | 2.4/final                 | Aprovada                                       | 2.4/final/2026-11-20T23-02-15.229Z-55fdabdc-c378-421d-8dbb-f8b32fb265e7/evidence.json         |
 | 2.5/provision             | Aprovada anteriormente, mise 2026.11.12        | 2.5/provision/2026-11-22T03-37-08.857Z-d3f65335-34d7-498a-a72e-f438c40886b4/evidence.json     |
 | 2.5/final                 | Aprovada anteriormente, mise 2026.11.12        | 2.5/final/2026-11-22T04-00-31.764Z-5439421f-23c7-4ae0-8b37-9edfa79dd4d1/evidence.json         |
-| 2.6/configuration         | CI mínima aprovada localmente, mise 2026.11.11 | 2.6/configuration/2026-11-22T14-12-52.231Z-929118e5-52d4-4f0d-8f01-f8121a69e227/evidence.json |
+| 2.6/configuration         | Contexto runner corrigido; aprovada localmente | 2.6/configuration/2026-11-22T15-09-04.072Z-c1da1c5d-d15f-4b2f-a90b-fd0f706f226e/evidence.json |
 | 2.6/execution/final e 2.7 | Pendentes                                      | Exigem CI mínima real e consolidação técnica local completa                                   |
 
 Recibos anteriores permanecem imutáveis. historical-gates.json ancora os predecessores sem exigir novos checks retroativamente. O último gate completo local, anterior à redução da CI, está em 2.6/configuration/2026-11-22T05-06-03.262Z-d6234a54-50f7-472a-9def-7b2646c684bf/evidence.json; aprovou 107 provas Node, 207 unitários, segurança, Cargo/AppImage e Chromium 1/3/3 nas suas fontes. Não substitui a prova do escopo atual. Detalhes e hashes dessa revisão em .artifacts/maintenance/mise-personal/final-validation.json. O perfil web local 7794227f-f77e-418f-b21c-9c7e66f353fc também é histórico, sem homologação remota.
 
 ## Gate atual e handoff
+
+Web-CI-Configuration aprovada: CONTRACT, CI-CONFIG, ARBITER, TOOLING, CI-PROVE e DIFF. 109 provas dos verificadores (38 árbitro/71 permanentes), dez checks web, 207 unitários e 25 provas dos verificadores da CI, todos sem falha/skip. A nova prova executa a exportação real em GITHUB_ENV com espaços no caminho e os casos adversos recusam contexto de job e persistência incompleta. Os 26 relatórios/arquivos foram conferidos por SHA256; 12 payloads temporários descartados automaticamente. .artifacts: aproximadamente 1,75 GiB. CI real permanece pendente para a correção.
+
+Fonte do árbitro: d7dd7404f18a88035dd85d7a3c7732b2ccb1c83bcd850b3739e80630baac916f; contratos: cce4712b74e67409d02a9b994873b174574be442531bbebcc19c4d88444c82d4. CI/PROVISION: fonte 5d1c9c6c00fa65a7a13e728ae2dd4eafd2b631f892716d53e7cafe3dfff8179b; contratos 2fba93f7142b7943bf9399d9de6cf94f4e0f64709f253c15cd47c4a7b4d500e6. Resumo verificável em .artifacts/maintenance/ci-runner-context/final-validation.json; prova limpa em .artifacts/ci/probes/f6ecd38f-5796-41dd-881d-af3941273178/evidence.json. Event=local/runId=0 não aprova homologação remota.
+
+## Gate anterior e evidências históricas
 
 Perfil Web-CI-Configuration: CONTRACT, CI-CONFIG, ARBITER, TOOLING, CI-PROVE e DIFF aprovados. 108 testes dos verificadores (38 árbitro/70 permanentes), sem falha/skip. A prova limpa executou os dez checks de web-minimum: tipos TS/Svelte e E2E, lint, formatação, fronteiras, restrições, contratos, todos os 207 unitários protegidos, 24 testes dos verificadores da CI e build web. Nenhum skip, cancelamento ou falha. Esse aceite não declara testes nativos/PWA remotos executados.
 
@@ -57,6 +65,6 @@ Na adoção inicial, rustup pessoal foi atualizado indevidamente e restaurado pa
 
 ## Próxima ação
 
-O usuário autorizou commits locais por responsabilidade. A continuidade depende do push/envio à main pelo usuário e de seu aviso. Não publicar nem disparar workflow por conta própria. Conferir a CI mínima real para as fontes atuais: um job web, todos os dez checks e proof-web do mesmo run/attempt, Ubuntu/versões/instalação limpa e hashes verificados pelo serviço. C10 exige escopo web-minimum; recibo antigo/local/de outro escopo não aprova.
+Enviar o commit local da correção do contexto runner por novo `git push origin main`, a cargo do usuário. 2.6/configuration já passou sobre essas fontes; não repetir sem mudança ou falha que justifique. O run anterior 45036217137 falhou e não pode aprovar a fase. Não publicar nem disparar workflow por conta própria. Conferir a nova CI mínima real para as fontes corrigidas: um job web, todos os dez checks e proof-web do mesmo run/attempt, Ubuntu/versões/instalação limpa e hashes verificados pelo serviço. C10 exige escopo web-minimum; recibo antigo/local/de outro escopo não aprova.
 
 Conferidor gh read-only usa API 2026-03-10, paginação explícita em gh 2.46.0, head/merge, ZIP SHA256 e manifesto de provas setup/bootstrap/checks. Após a prova remota, execution/final 2.6 e 2.7 com consolidação local completa. Depois, planejar os módulos da etapa 3 com o usuário. Reavaliar ampliação da CI no fechamento dessa etapa; distribuição permanece posterior.

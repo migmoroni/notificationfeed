@@ -55,19 +55,24 @@ export function assertWorkflow(workflow, contract) {
 	assert.deepEqual(Object.keys(workflow.on).sort(), [...contract.events].sort());
 	assert.deepEqual(workflow.on.push.branches, [contract.integrationBranch]);
 	assert.deepEqual(workflow.permissions, contract.permissions);
+	assert.equal(Object.hasOwn(workflow, 'env'), false, 'Ambiente global não contratado.');
 	assert.deepEqual(Object.keys(workflow.jobs), contract.jobs);
 	const job = workflow.jobs.web;
 	assert.equal(job['runs-on'], contract.runner);
 	for (const field of ['if', 'needs', 'continue-on-error', 'permissions', 'strategy'])
 		assert.equal(Object.hasOwn(job, field), false, `Campo não contratado: ${field}`);
-	assert.deepEqual(job.env, contract.provisioning.environment);
+	assert.equal(Object.hasOwn(job, 'env'), false, 'runner não está disponível em jobs.<job_id>.env');
 	assert.deepEqual(
 		job.steps.map((step) => step.id),
 		contract.stepOrder
 	);
 	const steps = Object.fromEntries(job.steps.map((step) => [step.id, step]));
+	assert.equal(contract.provisioning.environmentStep, 'tools');
+	assert.deepEqual(steps.tools.env, contract.provisioning.environment);
 	const actions = new Set(contract.actions.map((action) => `${action.name}@${action.revision}`));
 	for (const step of job.steps) {
+		if (step.id !== contract.provisioning.environmentStep)
+			assert.equal(Object.hasOwn(step, 'env'), false, 'Ambiente do mise não pode ser sobrescrito.');
 		assert.equal(Object.hasOwn(step, 'continue-on-error'), false);
 		if (step.id !== 'proof') assert.equal(Object.hasOwn(step, 'if'), false);
 		if (step.uses) assert.ok(actions.has(step.uses), `action/revisão não autorizada: ${step.uses}`);
@@ -87,6 +92,13 @@ export function assertWorkflow(workflow, contract) {
 		`sudo apt-get update\nsudo apt-get install -y ${contract.systemPackages.join(' ')}`
 	);
 	const bootstrap = steps.tools.run;
+	const assignments = Object.keys(contract.provisioning.environment)
+		.map((name) => `"${name}=$${name}"`)
+		.join(' ');
+	assert.ok(
+		bootstrap.startsWith(`printf '%s\\n' ${assignments} >> "$GITHUB_ENV"\n`),
+		'Ambiente do mise precisa persistir para cache, setup e verificações.'
+	);
 	for (const command of [
 		'test ! -e "$MISE_DATA_DIR"',
 		`bash ${contract.provisioning.bootstrap}`,

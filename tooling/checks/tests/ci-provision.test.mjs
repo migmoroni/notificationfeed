@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readJSON } from '../io.mjs';
-import { copyFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { copyFileSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { hash, execute } from '../io.mjs';
@@ -13,6 +13,7 @@ test('contrato CI usa mise em todos os jobs e conserva action apenas como cache 
 	assert.equal(ci.provisioning.requireFreshDependencies, true);
 	assert.equal(ci.cache.toolInstallations, false);
 	assert.equal(ci.provisioning.bootstrapInstallDirectory, '$RUNNER_TEMP/notfeed-mise/bin');
+	assert.equal(ci.provisioning.environmentStep, 'tools');
 	for (const key of ['MISE_DATA_DIR', 'MISE_CACHE_DIR', 'MISE_CONFIG_DIR', 'MISE_STATE_DIR'])
 		assert.ok(ci.provisioning.environment[key].startsWith('${{ runner.temp }}/'));
 	for (const file of [
@@ -25,6 +26,36 @@ test('contrato CI usa mise em todos os jobs e conserva action apenas como cache 
 		assert.ok(ci.cache.inputs.includes(file));
 	for (const system of ['debian', 'ubuntu'])
 		assert.ok(provision.systemRequirements[system].browser.includes('libnss3'));
+});
+
+test('runner.temp fica no passo tools e seus diretórios persistem no GITHUB_ENV', async () => {
+	const { readWorkflow } = await import('../ci-workflow.mjs');
+	const ci = readJSON('tooling/checks/contracts/ci.json');
+	const workflow = await readWorkflow(ci.workflow);
+	assert.equal(Object.hasOwn(workflow.jobs.web, 'env'), false);
+	const tools = workflow.jobs.web.steps.find((step) => step.id === 'tools');
+	assert.deepEqual(tools.env, ci.provisioning.environment);
+	const directory = mkdtempSync(path.join(tmpdir(), 'notfeed ci env '));
+	try {
+		const file = path.join(directory, 'github-env');
+		const expected = Object.fromEntries(
+			Object.entries(tools.env).map(([key, value]) => [
+				key,
+				value.replace('${{ runner.temp }}', directory)
+			])
+		);
+		const script = tools.run.split('\n').filter((line) => line.includes('>> "$GITHUB_ENV"'));
+		assert.equal(script.length, 1);
+		await execute('bash', ['-euc', script[0]], { env: { ...expected, GITHUB_ENV: file } });
+		assert.deepEqual(
+			readFileSync(file, 'utf8').trim().split('\n').sort(),
+			Object.entries(expected)
+				.map(([key, value]) => `${key}=${value}`)
+				.sort()
+		);
+	} finally {
+		rmSync(directory, { recursive: true, force: true });
+	}
 });
 
 test('runner mínimo recusa comandos removidos e desktop mesmo sem node_modules', async () => {
@@ -140,7 +171,16 @@ test('workflow exige bootstrap anterior a Node e proíbe seletor Node paralelo n
 			w.jobs.web.steps.find((s) => s.with?.cache === 'pnpm').with['node-version'] = '24.22.3';
 		},
 		(w) => {
-			w.jobs.web.env.MISE_DATA_DIR = '/shared/tools';
+			w.jobs.web.steps.find((s) => s.id === 'tools').env.MISE_DATA_DIR = '/shared/tools';
+		},
+		(w) => {
+			const tools = w.jobs.web.steps.find((s) => s.id === 'tools');
+			w.jobs.web.env = tools.env;
+			delete tools.env;
+		},
+		(w) => {
+			const tools = w.jobs.web.steps.find((s) => s.id === 'tools');
+			tools.run = tools.run.replace('"MISE_STATE_DIR=$MISE_STATE_DIR"', '');
 		},
 		(w) => {
 			const tools = w.jobs.web.steps.find((s) => s.id === 'tools');

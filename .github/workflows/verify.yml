@@ -10,11 +10,6 @@ jobs:
   web:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    env:
-      MISE_DATA_DIR: ${{ runner.temp }}/notfeed-mise/data
-      MISE_CACHE_DIR: ${{ runner.temp }}/notfeed-mise/cache
-      MISE_CONFIG_DIR: ${{ runner.temp }}/notfeed-mise/config
-      MISE_STATE_DIR: ${{ runner.temp }}/notfeed-mise/state
     steps:
       - id: checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -27,7 +22,13 @@ jobs:
           sudo apt-get install -y ca-certificates curl git tar xz-utils
       - id: tools
         name: Provisionar ferramentas com mise verificado
+        env:
+          MISE_DATA_DIR: ${{ runner.temp }}/notfeed-mise/data
+          MISE_CACHE_DIR: ${{ runner.temp }}/notfeed-mise/cache
+          MISE_CONFIG_DIR: ${{ runner.temp }}/notfeed-mise/config
+          MISE_STATE_DIR: ${{ runner.temp }}/notfeed-mise/state
         run: |
+          printf '%s\n' "MISE_DATA_DIR=$MISE_DATA_DIR" "MISE_CACHE_DIR=$MISE_CACHE_DIR" "MISE_CONFIG_DIR=$MISE_CONFIG_DIR" "MISE_STATE_DIR=$MISE_STATE_DIR" >> "$GITHUB_ENV"
           test ! -e "$MISE_DATA_DIR"
           mise_executable="$(bash tooling/setup/install-mise.sh --install-dir "$RUNNER_TEMP/notfeed-mise/bin")"
           "$mise_executable" trust "$PWD/mise.toml"

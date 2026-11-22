@@ -139,6 +139,8 @@ Inspecionar o AppImage contra o binário e os assets **do build atual**. Não co
 
 CI mínima web em GitHub Actions, Ubuntu 24.04 x86_64; desenvolvimento local Debian 13. ADR 018 substitui a matriz remota anterior: um job web sempre executado em pull_request, push à main e workflow_dispatch, com Node/pnpm/mise e actions fixados. Exigir instalação congelada, tipos, lint, formatação, fronteiras, restrições, contratos, todos os unitários do produto, testes dos verificadores da CI e build web. ci.json fixa dez checks, setup:ci e artefato proof-web. Não usar condicionais para omitir o job, pull_request_target, permissões de escrita ou continue-on-error.
 
+O contexto runner.temp é usado somente em steps.tools.env, nunca em jobs.web.env. O passo tools persiste as quatro variáveis MISE em GITHUB_ENV antes do bootstrap; os passos posteriores herdam esses diretórios sem sobrescritas. Contrato e teste de exportação real protegem essa fronteira de avaliação do serviço.
+
 Sem Chromium, Rust, auditor ou bibliotecas desktop no provisionamento remoto mínimo. setup:web/setup:desktop e os gates locais completos continuam protegidos. Reavaliar ampliação da CI no fechamento da etapa 3; distribuição e publicação têm escopo posterior próprio. O arquivo rust-toolchain.toml continua definindo o Rust local, com diagnóstico de overrides.
 
 ## C10 Evidência e handoff

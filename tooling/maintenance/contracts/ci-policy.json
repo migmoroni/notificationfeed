@@ -46,6 +46,7 @@
 		"setups": {
 			"web": "mise run setup:ci"
 		},
+		"environmentStep": "tools",
 		"environment": {
 			"MISE_DATA_DIR": "${{ runner.temp }}/notfeed-mise/data",
 			"MISE_CACHE_DIR": "${{ runner.temp }}/notfeed-mise/cache",
