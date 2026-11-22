@@ -19,6 +19,47 @@ test('provision é obrigatório no novo fechamento e usa o candidato instalado a
 	for (const unit of environment.order.slice(0, -1))
 		assert.ok(!phaseChecks('2.5', unit, process.execPath).some((item) => item.id === 'PROVISION'));
 });
+
+test('correção transitiva após mise exige requalificação pelo perfil completo atual', () => {
+	const fix = readJSON('tooling/maintenance/contracts/url-security-fix.json');
+	assert.equal(fix.validationGate.phase, '2.5');
+	assert.equal(fix.validationGate.unit, 'provision');
+	const ids = phaseChecks(fix.validationGate.phase, fix.validationGate.unit, process.execPath).map(
+		(check) => check.id
+	);
+	for (const id of [
+		'INSTALL',
+		'PROVISION',
+		'CONTRACT',
+		'ARBITER',
+		'TOOLING',
+		'ARCHITECTURE',
+		'RESTRICTIONS',
+		'PERMANENT-CONTRACTS',
+		'TYPES',
+		'E2E-TYPES',
+		'LINT',
+		'CLIPPY',
+		'FORMAT',
+		'RUST-FMT',
+		'DEV-ENV',
+		'DOCTOR-WEB',
+		'DOCTOR-DESKTOP',
+		'UNIT',
+		'SECURITY',
+		'CARGO-CHECK',
+		'CARGO-TEST',
+		'BUNDLE-BUILD',
+		'BUNDLE-INSPECT',
+		'BROWSER-DEV',
+		'BROWSER',
+		'UPGRADE',
+		'DIFF'
+	])
+		assert.ok(ids.includes(id), `requalificação incompleta: ${id}`);
+	assert.ok(ids.indexOf('BUNDLE-INSPECT') < ids.indexOf('BROWSER'));
+	assert.ok(ids.indexOf('BUNDLE-INSPECT') < ids.indexOf('UPGRADE'));
+});
 test('recibo histórico exige hash registrado e não pode aprovar fechamento novo', async () => {
 	const { receiptChecks } = await import('../receipt-lib.mjs');
 	const content = JSON.stringify({

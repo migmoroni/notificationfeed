@@ -879,9 +879,19 @@
 					"after": "0.42.0",
 					"ecosystem": "cargo",
 					"reason": "Required by plist 1.10.4; removes RUSTSEC-2026-0195 newly exposed in the current compiled graph. No forced incompatible dependency override."
+				},
+				{
+					"name": "url",
+					"before": "2.5.8",
+					"after": "2.5.9"
+				},
+				{
+					"name": "form_urlencoded",
+					"before": "1.2.2",
+					"after": "1.2.3"
 				}
 			],
-			"reason": "Update the coupled Tauri v2 JS/CLI/crate family in one atomic unit; preserve plugins, identity, features and runtime command.",
+			"reason": "Update the coupled Tauri v2 JS/CLI/crate family in one atomic unit; preserve plugins, identity, features and runtime command. Follow-up on 2026-11-22: url 2.5.9 fixes RUSTSEC-2026-0592 in the compiled desktop runtime; retain the original receipts and validate the new lock independently.",
 			"sources": [
 				"https://registry.npmjs.org/@tauri-apps/api/2.12.5",
 				"https://registry.npmjs.org/@tauri-apps/cli/2.12.6",
@@ -901,7 +911,10 @@
 				"https://crates.io/api/v1/crates/default-net",
 				"https://rustsec.org/advisories/RUSTSEC-2026-0195.html",
 				"https://crates.io/api/v1/crates/plist/1.10.4",
-				"https://crates.io/api/v1/crates/quick-xml/0.42.0"
+				"https://crates.io/api/v1/crates/quick-xml/0.42.0",
+				"https://rustsec.org/advisories/RUSTSEC-2026-0592.html",
+				"https://crates.io/api/v1/crates/url/2.5.9",
+				"https://crates.io/api/v1/crates/url/2.5.9/dependencies"
 			],
 			"advisories": ["RUSTSEC-2026-0195"],
 			"peers": "Validate selected engines/peers from official metadata; preserve a single compatible Svelte instance; graph deltas recorded by node and edge.",

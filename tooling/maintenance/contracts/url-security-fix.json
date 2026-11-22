@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"phase": "2.4",
+	"unit": "desktop-tauri",
+	"validationGate": {
+		"phase": "2.5",
+		"unit": "provision",
+		"reason": "Requalify the complete current environment after mise adoption, including the desktop dependency targets"
+	},
+	"advisory": "RUSTSEC-2026-0592",
+	"reviewedAt": "2026-11-22",
+	"dependency": "url",
+	"before": "2.5.8",
+	"after": "2.5.9",
+	"checksum": "f00cd2407bb42c0ef17be88d4cf020f5cceffd121665bac9b8b9493a369b3b1a",
+	"requiredTransitive": {
+		"dependency": "form_urlencoded",
+		"before": "1.2.2",
+		"after": "1.2.3",
+		"checksum": "afa489199eaffb1211795df1c6236ce1ad0d41a6fa45250add73e3b02420f06e",
+		"requiredBy": "url 2.5.9 requires form_urlencoded ^1.2.3"
+	},
+	"scope": "Two existing transitive Cargo dependencies; no direct dependency, feature or unrelated resolution changes",
+	"test": "apps/desktop/src-tauri/tests/url_origin_regression.rs",
+	"existingPublicType": "tauri::Url",
+	"cases": [
+		"https-origin",
+		"blob-https-origin",
+		"nested-blob-opaque",
+		"blob-websocket-opaque",
+		"10000-blob-prefixes-on-2MiB-stack"
+	],
+	"sources": [
+		"https://rustsec.org/advisories/RUSTSEC-2026-0592.html",
+		"https://github.com/servo/rust-url/pull/1186",
+		"https://crates.io/api/v1/crates/url/2.5.9"
+	]
+}

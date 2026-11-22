@@ -261,7 +261,7 @@ try {
 						assert.ok(counts.length, 'relatório Cargo test ausente');
 						receipt.nativeTestCount = counts.reduce((total, count) => total + count, 0);
 						receipt.nativeCoverage =
-							'Cargo check/test and packaging; zero Rust behavior tests is not native UI coverage';
+							'Cargo check/test and packaging; behavior test counts do not establish native UI coverage';
 					}
 					if (check.id === 'TYPES') assertTypeReport(readFileSync(result.stdoutPath, 'utf8'));
 				}
