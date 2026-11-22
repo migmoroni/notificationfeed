@@ -1,0 +1,19 @@
+# Generated outputs and lockfiles (validated by their own tools)
+.artifacts/**
+**/node_modules/**
+apps/web/.svelte-kit/**
+apps/web/build/**
+apps/desktop/src-tauri/target/**
+apps/desktop/src-tauri/gen/**
+pnpm-lock.yaml
+**/Cargo.lock
+
+# Identified immutable historical records
+docs/plans/etapa-1-migracao-estrutural/**
+tooling/migration/**
+tooling/e2e/reference/**
+tooling/maintenance/contracts/baseline.json
+tooling/maintenance/contracts/npm-before-pnpm.json
+tooling/maintenance/contracts/*-delta.json
+tooling/maintenance/contracts/rust-toolchain-adoption.json
+.mise/locks/

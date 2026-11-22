@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "group": "node-types",
+  "reviewedAt": "2026-11-20",
+  "beforeLockHash": "8ccbcd30ebf0902e17afb92302bb736189589164d8a67068b2d758d223c9442a",
+  "afterLockHash": "50332700dafbd3fb8ee99856de09ee6a379ee4cd5a2e26b6a90a00974e48a8c0",
+  "delta": {
+    "addedNodes": [
+      "@types/node@24.19.2",
+      "undici-types@7.24.6"
+    ],
+    "removedNodes": [],
+    "addedEdges": [
+      "@types/node@24.19.2>undici-types>undici-types@7.24.6",
+      "vite@7.3.2>@types/node>@types/node@24.19.2",
+      "vitest@4.0.18>@types/node>@types/node@24.19.2",
+      "workspace:.>@types/node>@types/node@24.19.2",
+      "workspace:apps/web>@types/node>@types/node@24.19.2"
+    ],
+    "removedEdges": [
+      "vite@7.3.2>@types/node>@types/node@25.6.0",
+      "vitest@4.0.18>@types/node>@types/node@25.6.0",
+      "workspace:.>@types/node>@types/node@25.6.0",
+      "workspace:apps/web>@types/node>@types/node@25.6.0"
+    ]
+  },
+  "reason": "Only direct Node declarations and their undici-types dependency; runtime verified from official archive; previous transitive Node 25 types retained when required/preferred by existing consumers."
+}

@@ -1,0 +1,883 @@
+{
+  "version": 1,
+  "purpose": "Aprova\u00e7\u00f5es hist\u00f3ricas; n\u00e3o substituem verifica\u00e7\u00f5es do c\u00f3digo atual",
+  "approvals": {
+    "P0": {
+      "version": 1,
+      "phase": "P0",
+      "contractHash": "f719d6322c6985924d15aa5244690310f21e6b9185f77706aed3e7c465e12bca",
+      "inputHash": "56586bf9958ec567da0accfb13b4c8910c7a2166680135d229058aca00040dc0",
+      "startedAt": "2026-11-19T22:32:05.058Z",
+      "finishedAt": "2026-11-19T22:32:40.049Z",
+      "commands": [
+        {
+          "id": "contracts",
+          "command": "npm",
+          "args": [
+            "run",
+            "check:contracts",
+            "--",
+            "--realized",
+            "P0"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 1630,
+          "log": ".artifacts/migration/P0/2026-11-19T22-32-05.047Z/contracts.log"
+        },
+        {
+          "id": "architecture",
+          "command": "npm",
+          "args": [
+            "run",
+            "lint:architecture",
+            "--",
+            "--phase",
+            "P0"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 2643,
+          "log": ".artifacts/migration/P0/2026-11-19T22-32-05.047Z/architecture.log"
+        },
+        {
+          "id": "arbiter",
+          "command": "npm",
+          "args": [
+            "run",
+            "test:gate"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 612,
+          "log": ".artifacts/migration/P0/2026-11-19T22-32-05.047Z/arbiter.log"
+        },
+        {
+          "id": "types",
+          "command": "npm",
+          "args": [
+            "run",
+            "check"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 7002,
+          "log": ".artifacts/migration/P0/2026-11-19T22-32-05.047Z/types.log"
+        },
+        {
+          "id": "unit",
+          "command": "npm",
+          "args": [
+            "run",
+            "test:run",
+            "--",
+            "--reporter=json",
+            "--outputFile=.artifacts/migration/unit.json"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 5129,
+          "log": ".artifacts/migration/P0/2026-11-19T22-32-05.047Z/unit.log"
+        },
+        {
+          "id": "build",
+          "command": "npm",
+          "args": [
+            "run",
+            "build"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 16345,
+          "log": ".artifacts/migration/P0/2026-11-19T22-32-05.047Z/build.log"
+        },
+        {
+          "id": "reference",
+          "command": "node",
+          "args": [
+            "tooling/migration/check.mjs",
+            "--reference",
+            "P0"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 1618,
+          "log": ".artifacts/migration/P0/2026-11-19T22-32-05.047Z/reference.log"
+        }
+      ],
+      "status": "passed",
+      "tools": {
+        "node": "22.21.1"
+      }
+    },
+    "P1": {
+      "version": 1,
+      "phase": "P1",
+      "contractHash": "f719d6322c6985924d15aa5244690310f21e6b9185f77706aed3e7c465e12bca",
+      "inputHash": "b9d5a9f2b5620c5fb81a68caeaa0ac93f5debf23f771d0c0d3e6ed0e2178056f",
+      "startedAt": "2026-11-19T22:57:45.824Z",
+      "finishedAt": "2026-11-19T22:58:36.751Z",
+      "commands": [
+        {
+          "id": "contracts",
+          "command": "npm",
+          "args": [
+            "run",
+            "check:contracts",
+            "--",
+            "--realized",
+            "P1"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 1701,
+          "log": ".artifacts/migration/P1/2026-11-19T22-57-45.805Z/contracts.log"
+        },
+        {
+          "id": "architecture",
+          "command": "npm",
+          "args": [
+            "run",
+            "lint:architecture",
+            "--",
+            "--phase",
+            "P1"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 2066,
+          "log": ".artifacts/migration/P1/2026-11-19T22-57-45.805Z/architecture.log"
+        },
+        {
+          "id": "arbiter",
+          "command": "npm",
+          "args": [
+            "run",
+            "test:gate"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 592,
+          "log": ".artifacts/migration/P1/2026-11-19T22-57-45.805Z/arbiter.log"
+        },
+        {
+          "id": "types",
+          "command": "npm",
+          "args": [
+            "run",
+            "check"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 8849,
+          "log": ".artifacts/migration/P1/2026-11-19T22-57-45.805Z/types.log"
+        },
+        {
+          "id": "unit",
+          "command": "npm",
+          "args": [
+            "run",
+            "test:run",
+            "--",
+            "--reporter=json",
+            "--outputFile=.artifacts/migration/unit.json"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 5540,
+          "log": ".artifacts/migration/P1/2026-11-19T22-57-45.805Z/unit.log"
+        },
+        {
+          "id": "build",
+          "command": "npm",
+          "args": [
+            "run",
+            "build"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 18264,
+          "log": ".artifacts/migration/P1/2026-11-19T22-57-45.805Z/build.log"
+        },
+        {
+          "id": "e2e-types",
+          "command": "npm",
+          "args": [
+            "run",
+            "check:e2e"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 2478,
+          "log": ".artifacts/migration/P1/2026-11-19T22-57-45.805Z/e2e-types.log"
+        },
+        {
+          "id": "e2e",
+          "command": "npm",
+          "args": [
+            "run",
+            "test:e2e",
+            "--",
+            "--project=chromium"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 10912,
+          "log": ".artifacts/migration/P1/2026-11-19T22-57-45.805Z/e2e.log"
+        },
+        {
+          "id": "reference-build",
+          "command": "node",
+          "args": [
+            "tooling/e2e/reference.mjs"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 494,
+          "log": ".artifacts/migration/P1/2026-11-19T22-57-45.805Z/reference-build.log"
+        }
+      ],
+      "status": "passed",
+      "tools": {
+        "node": "22.21.1"
+      }
+    },
+    "P2": {
+      "version": 1,
+      "phase": "P2",
+      "contractHash": "2ca92bbc5ce4134b5bba2f064a4f0a071de0838082b0d9d3094b8eaa5cc1781e",
+      "inputHash": "154ac45b1cc3540b756fa99a940bc77ee30825fb92c02fed7c3bb55983417d00",
+      "startedAt": "2026-11-19T23:02:50.842Z",
+      "finishedAt": "2026-11-19T23:03:37.164Z",
+      "commands": [
+        {
+          "id": "contracts",
+          "command": "npm",
+          "args": [
+            "run",
+            "check:contracts",
+            "--",
+            "--realized",
+            "P2"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 1645,
+          "log": ".artifacts/migration/P2/2026-11-19T23-02-50.829Z/contracts.log"
+        },
+        {
+          "id": "architecture",
+          "command": "npm",
+          "args": [
+            "run",
+            "lint:architecture",
+            "--",
+            "--phase",
+            "P2"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 1977,
+          "log": ".artifacts/migration/P2/2026-11-19T23-02-50.829Z/architecture.log"
+        },
+        {
+          "id": "arbiter",
+          "command": "npm",
+          "args": [
+            "run",
+            "test:gate"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 634,
+          "log": ".artifacts/migration/P2/2026-11-19T23-02-50.829Z/arbiter.log"
+        },
+        {
+          "id": "types",
+          "command": "npm",
+          "args": [
+            "run",
+            "check"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 7076,
+          "log": ".artifacts/migration/P2/2026-11-19T23-02-50.829Z/types.log"
+        },
+        {
+          "id": "unit",
+          "command": "npm",
+          "args": [
+            "run",
+            "test:run",
+            "--",
+            "--reporter=json",
+            "--outputFile=/home/miguel/Projects/proprios/notfeed/notfeed-app/.artifacts/migration/unit.json"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 4796,
+          "log": ".artifacts/migration/P2/2026-11-19T23-02-50.829Z/unit.log"
+        },
+        {
+          "id": "build",
+          "command": "npm",
+          "args": [
+            "run",
+            "build"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 15618,
+          "log": ".artifacts/migration/P2/2026-11-19T23-02-50.829Z/build.log"
+        },
+        {
+          "id": "e2e-types",
+          "command": "npm",
+          "args": [
+            "run",
+            "check:e2e"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 2477,
+          "log": ".artifacts/migration/P2/2026-11-19T23-02-50.829Z/e2e-types.log"
+        },
+        {
+          "id": "e2e",
+          "command": "npm",
+          "args": [
+            "run",
+            "test:e2e",
+            "--",
+            "--project=chromium"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 10716,
+          "log": ".artifacts/migration/P2/2026-11-19T23-02-50.829Z/e2e.log"
+        },
+        {
+          "id": "cargo-metadata",
+          "command": "cargo",
+          "args": [
+            "metadata",
+            "--locked",
+            "--no-deps",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            "apps/desktop/src-tauri/Cargo.toml"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 17,
+          "log": ".artifacts/migration/P2/2026-11-19T23-02-50.829Z/cargo-metadata.log"
+        },
+        {
+          "id": "dev-smoke",
+          "command": "node",
+          "args": [
+            "tooling/migration/dev-smoke.mjs"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 1342,
+          "log": ".artifacts/migration/P2/2026-11-19T23-02-50.829Z/dev-smoke.log"
+        }
+      ],
+      "status": "passed",
+      "tools": {
+        "node": "22.21.1"
+      }
+    },
+    "P3": {
+      "version": 1,
+      "phase": "P3",
+      "contractHash": "2ca92bbc5ce4134b5bba2f064a4f0a071de0838082b0d9d3094b8eaa5cc1781e",
+      "inputHash": "f0e58e9f68981dc58e5568f60aac8e742a6153da9dcb93c197e7db0eee231033",
+      "startedAt": "2026-11-19T23:07:46.867Z",
+      "finishedAt": "2026-11-19T23:08:34.581Z",
+      "commands": [
+        {
+          "id": "contracts",
+          "command": "npm",
+          "args": [
+            "run",
+            "check:contracts",
+            "--",
+            "--realized",
+            "P3"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 1773,
+          "log": ".artifacts/migration/P3/2026-11-19T23-07-46.851Z/contracts.log"
+        },
+        {
+          "id": "architecture",
+          "command": "npm",
+          "args": [
+            "run",
+            "lint:architecture",
+            "--",
+            "--phase",
+            "P3"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 2042,
+          "log": ".artifacts/migration/P3/2026-11-19T23-07-46.851Z/architecture.log"
+        },
+        {
+          "id": "arbiter",
+          "command": "npm",
+          "args": [
+            "run",
+            "test:gate"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 607,
+          "log": ".artifacts/migration/P3/2026-11-19T23-07-46.851Z/arbiter.log"
+        },
+        {
+          "id": "types",
+          "command": "npm",
+          "args": [
+            "run",
+            "check"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 7906,
+          "log": ".artifacts/migration/P3/2026-11-19T23-07-46.851Z/types.log"
+        },
+        {
+          "id": "unit",
+          "command": "npm",
+          "args": [
+            "run",
+            "test:run",
+            "--",
+            "--reporter=json",
+            "--outputFile=/home/miguel/Projects/proprios/notfeed/notfeed-app/.artifacts/migration/unit.json"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 5110,
+          "log": ".artifacts/migration/P3/2026-11-19T23-07-46.851Z/unit.log"
+        },
+        {
+          "id": "build",
+          "command": "npm",
+          "args": [
+            "run",
+            "build"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 16574,
+          "log": ".artifacts/migration/P3/2026-11-19T23-07-46.851Z/build.log"
+        },
+        {
+          "id": "e2e-types",
+          "command": "npm",
+          "args": [
+            "run",
+            "check:e2e"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 2385,
+          "log": ".artifacts/migration/P3/2026-11-19T23-07-46.851Z/e2e-types.log"
+        },
+        {
+          "id": "e2e",
+          "command": "npm",
+          "args": [
+            "run",
+            "test:e2e",
+            "--",
+            "--project=chromium"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 10553,
+          "log": ".artifacts/migration/P3/2026-11-19T23-07-46.851Z/e2e.log"
+        },
+        {
+          "id": "exports",
+          "command": "node",
+          "args": [
+            "tooling/migration/exports.mjs"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 731,
+          "log": ".artifacts/migration/P3/2026-11-19T23-07-46.851Z/exports.log"
+        }
+      ],
+      "status": "passed",
+      "tools": {
+        "node": "22.21.1"
+      }
+    },
+    "P4": {
+      "version": 1,
+      "phase": "P4",
+      "contractHash": "2ca92bbc5ce4134b5bba2f064a4f0a071de0838082b0d9d3094b8eaa5cc1781e",
+      "inputHash": "48cde371c74a00445ec6d8cd33c8f2a55d65238cb309df6db901af8bd41ab85d",
+      "startedAt": "2026-11-19T23:11:01.445Z",
+      "finishedAt": "2026-11-19T23:12:02.081Z",
+      "commands": [
+        {
+          "id": "contracts",
+          "command": "npm",
+          "args": [
+            "run",
+            "check:contracts",
+            "--",
+            "--realized",
+            "P4"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 1616,
+          "log": ".artifacts/migration/P4/2026-11-19T23-11-01.428Z/contracts.log"
+        },
+        {
+          "id": "architecture",
+          "command": "npm",
+          "args": [
+            "run",
+            "lint:architecture",
+            "--",
+            "--phase",
+            "P4"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 2038,
+          "log": ".artifacts/migration/P4/2026-11-19T23-11-01.428Z/architecture.log"
+        },
+        {
+          "id": "arbiter",
+          "command": "npm",
+          "args": [
+            "run",
+            "test:gate"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 611,
+          "log": ".artifacts/migration/P4/2026-11-19T23-11-01.428Z/arbiter.log"
+        },
+        {
+          "id": "types",
+          "command": "npm",
+          "args": [
+            "run",
+            "check"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 7844,
+          "log": ".artifacts/migration/P4/2026-11-19T23-11-01.428Z/types.log"
+        },
+        {
+          "id": "unit",
+          "command": "npm",
+          "args": [
+            "run",
+            "test:run",
+            "--",
+            "--reporter=json",
+            "--outputFile=/home/miguel/Projects/proprios/notfeed/notfeed-app/.artifacts/migration/unit.json"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 4879,
+          "log": ".artifacts/migration/P4/2026-11-19T23-11-01.428Z/unit.log"
+        },
+        {
+          "id": "build",
+          "command": "npm",
+          "args": [
+            "run",
+            "build"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 15376,
+          "log": ".artifacts/migration/P4/2026-11-19T23-11-01.428Z/build.log"
+        },
+        {
+          "id": "e2e-types",
+          "command": "npm",
+          "args": [
+            "run",
+            "check:e2e"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 2406,
+          "log": ".artifacts/migration/P4/2026-11-19T23-11-01.428Z/e2e-types.log"
+        },
+        {
+          "id": "e2e",
+          "command": "npm",
+          "args": [
+            "run",
+            "test:e2e",
+            "--",
+            "--project=chromium"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 11311,
+          "log": ".artifacts/migration/P4/2026-11-19T23-11-01.428Z/e2e.log"
+        },
+        {
+          "id": "upgrade",
+          "command": "node",
+          "args": [
+            "tooling/e2e/upgrade.mjs"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 14527,
+          "log": ".artifacts/migration/P4/2026-11-19T23-11-01.428Z/upgrade.log"
+        }
+      ],
+      "status": "passed",
+      "tools": {
+        "node": "22.21.1"
+      }
+    },
+    "P5": {
+      "version": 1,
+      "phase": "P5",
+      "contractHash": "2ca92bbc5ce4134b5bba2f064a4f0a071de0838082b0d9d3094b8eaa5cc1781e",
+      "inputHash": "3a6391727f0c96778990872a639db938ec9d0fac67517c7566dab2c3f62e841a",
+      "startedAt": "2026-11-19T23:24:38.238Z",
+      "finishedAt": "2026-11-19T23:27:22.300Z",
+      "commands": [
+        {
+          "id": "contracts",
+          "command": "npm",
+          "args": [
+            "run",
+            "check:contracts",
+            "--",
+            "--realized",
+            "P5"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 1680,
+          "log": ".artifacts/migration/P5/2026-11-19T23-24-38.224Z/contracts.log"
+        },
+        {
+          "id": "architecture",
+          "command": "npm",
+          "args": [
+            "run",
+            "lint:architecture",
+            "--",
+            "--phase",
+            "P5"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 1943,
+          "log": ".artifacts/migration/P5/2026-11-19T23-24-38.224Z/architecture.log"
+        },
+        {
+          "id": "arbiter",
+          "command": "npm",
+          "args": [
+            "run",
+            "test:gate"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 625,
+          "log": ".artifacts/migration/P5/2026-11-19T23-24-38.224Z/arbiter.log"
+        },
+        {
+          "id": "build",
+          "command": "npm",
+          "args": [
+            "run",
+            "build"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 15598,
+          "log": ".artifacts/migration/P5/2026-11-19T23-24-38.224Z/build.log"
+        },
+        {
+          "id": "cargo-check",
+          "command": "cargo",
+          "args": [
+            "check",
+            "--locked",
+            "--manifest-path",
+            "apps/desktop/src-tauri/Cargo.toml"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 252,
+          "log": ".artifacts/migration/P5/2026-11-19T23-24-38.224Z/cargo-check.log"
+        },
+        {
+          "id": "cargo-test",
+          "command": "cargo",
+          "args": [
+            "test",
+            "--locked",
+            "--manifest-path",
+            "apps/desktop/src-tauri/Cargo.toml"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 348,
+          "log": ".artifacts/migration/P5/2026-11-19T23-24-38.224Z/cargo-test.log"
+        },
+        {
+          "id": "appimage",
+          "command": "npm",
+          "args": [
+            "run",
+            "tauri:appimage"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 142299,
+          "log": ".artifacts/migration/P5/2026-11-19T23-24-38.224Z/appimage.log"
+        },
+        {
+          "id": "bundle",
+          "command": "node",
+          "args": [
+            "tooling/migration/bundle.mjs"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "error": null,
+          "durationMs": 1295,
+          "log": ".artifacts/migration/P5/2026-11-19T23-24-38.224Z/bundle.log"
+        }
+      ],
+      "status": "passed",
+      "tools": {
+        "node": "22.21.1"
+      },
+      "finalInputHash": "3a6391727f0c96778990872a639db938ec9d0fac67517c7566dab2c3f62e841a"
+    }
+  }
+}

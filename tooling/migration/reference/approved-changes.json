@@ -1,0 +1,22 @@
+[
+  {
+    "phase": "P1",
+    "path": "src/routes/browse/import/+page.svelte",
+    "before": "7806615057909d69493616b02f06c844a800f290b8e45478fb22d0551da9f3e8",
+    "after": "43e7627e9b85e57310f2bb05275d9c64ef29682f59e1163afe6cea610a3e3605",
+    "from": "let parsedExport = $state<TreeExport | null>(null);",
+    "to": "let parsedExport = $state.raw<TreeExport | null>(null);",
+    "authorization": "Usuário: autorizo; correção pontual de DataCloneError, 19/11/2026",
+    "adr": "003-correcao-importacao.md"
+  },
+  {
+    "phase": "P1",
+    "path": "src/lib/stores/creator.svelte.ts",
+    "before": "d0259ff80159c3aa864e0a67a327517b7df44ab819ab15d3c8e105f9aeae1d42",
+    "after": "9a385f1a2ef24142484d1b500ce9aee5fffc9c08eae39c0b1d8dddeea4d15bd6",
+    "from": "await pubRepo.save(publication);",
+    "to": "await pubRepo.save($state.snapshot(publication));",
+    "authorization": "Usuário autorizou correção pontual da publicação, 19/11/2026",
+    "adr": "004-correcao-publicacao.md"
+  }
+]

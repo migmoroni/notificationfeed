@@ -1,0 +1,44 @@
+min_version = "2026.11.11"
+
+[tool_config]
+locked = true
+
+[tools]
+node = "{{ read_file(path='.nvmrc') | trim }}"
+"npm:pnpm" = "{{ read_json(path='package.json')['packageManager'] | replace(from='pnpm@', to='') }}"
+
+[settings]
+locked_require_checksum = true
+lockfile_platforms = ["linux-x64"]
+
+[settings.npm]
+package_manager = "aube"
+
+[env]
+# Resolution errors can be warnings upstream. Fail before launching any child,
+# including when the tools were already installed. No shell or Node is needed.
+NOTFEED_TOOL_LOCK = """
+{%- set contract = read_json(path='tooling/checks/contracts/provision.json') -%}
+{%- if read_file(path='.nvmrc') | trim != contract.pins.node.version or read_json(path='package.json')['packageManager'] != 'pnpm@' ~ contract.pins.pnpm.version -%}
+{{ throw(message='Notfeed: tool pins differ from provision contract') }}
+{%- endif -%}
+{%- for item in contract.lockFiles -%}
+{%- if read_file(path=item.file) | hash != item.sha256 -%}
+{{ throw(message='Notfeed: tool lock integrity differs from provision contract') }}
+{%- endif -%}
+{%- endfor -%}
+verified
+"""
+_.path = ["{{ mise_bin | dirname }}", "{{ get_env(name='XDG_DATA_HOME', default=env.HOME ~ '/.local/share') }}/{{ read_json(path='tooling/checks/contracts/provision.json')['directories']['auditRelativePath'] }}/bin"]
+
+[tasks."setup:web"]
+description = "Prepare the exact web tools, frozen dependencies and Chromium"
+run = "node tooling/setup/setup.mjs web"
+
+[tasks."setup:desktop"]
+description = "Prepare web, Rust components, isolated auditor and native diagnosis"
+run = "node tooling/setup/setup.mjs desktop"
+
+[tasks."setup:ci"]
+description = "Prepare frozen dependencies for the minimum web CI"
+run = "node tooling/setup/setup.mjs ci"

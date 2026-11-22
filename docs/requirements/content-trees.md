@@ -32,62 +32,63 @@ TreeNode {
 
 ### NodeHeader (compartilhado)
 
-| Campo | Tipo | Obrigatório | Descrição |
-|---|---|---|---|
-| `title` | string | Sim | Nome de exibição |
-| `subtitle` | string | Não | Subtítulo |
-| `summary` | string | Não | Descrição breve |
-| `coverMediaId` | string | Não | ID do media de capa |
-| `coverEmoji` | string | Não | Emoji de capa (alternativa a media) |
-| `bannerMediaId` | string | Não | ID do media de banner |
-| `categoryAssignments` | CategoryAssignment[] | Sim | Até 3 categories por tree (5 trees) |
+| Campo                 | Tipo                 | Obrigatório | Descrição                           |
+| --------------------- | -------------------- | ----------- | ----------------------------------- |
+| `title`               | string               | Sim         | Nome de exibição                    |
+| `subtitle`            | string               | Não         | Subtítulo                           |
+| `summary`             | string               | Não         | Descrição breve                     |
+| `coverMediaId`        | string               | Não         | ID do media de capa                 |
+| `coverEmoji`          | string               | Não         | Emoji de capa (alternativa a media) |
+| `bannerMediaId`       | string               | Não         | ID do media de banner               |
+| `categoryAssignments` | CategoryAssignment[] | Sim         | Até 3 categories por tree (5 trees) |
 
 ### NodeBody (por role)
 
-| Role | Body | Campos |
-|---|---|---|
-| `profile` | `ProfileBody` | `links: ExternalLink[]` |
-| `font` | `FontBody` | `protocol: FontProtocol`, `config: FontConfig`, `defaultEnabled: boolean` |
-| `creator` | `CreatorBody` | `links: ExternalLink[]` |
-| `collection` | `CollectionBody` | _(vazio)_ |
-| `tree` | `TreeLinkBody` | `instanceTreeId: string` (referência a outra árvore) |
+| Role         | Body             | Campos                                                                    |
+| ------------ | ---------------- | ------------------------------------------------------------------------- |
+| `profile`    | `ProfileBody`    | `links: ExternalLink[]`                                                   |
+| `font`       | `FontBody`       | `protocol: FontProtocol`, `config: FontConfig`, `defaultEnabled: boolean` |
+| `creator`    | `CreatorBody`    | `links: ExternalLink[]`                                                   |
+| `collection` | `CollectionBody` | _(vazio)_                                                                 |
+| `tree`       | `TreeLinkBody`   | `instanceTreeId: string` (referência a outra árvore)                      |
 
 ### TreePaths
 
 Mapeamento de posição dos nós na árvore:
 
-| Chave | Tipo | Descrição |
-|---|---|---|
-| `'/'` | `string` | ID do nó raiz |
-| `'*'` | `string[]` | Nós sem seção (unsectioned) |
-| `[sectionId]` | `string[]` | Nós na seção identificada |
+| Chave         | Tipo       | Descrição                   |
+| ------------- | ---------- | --------------------------- |
+| `'/'`         | `string`   | ID do nó raiz               |
+| `'*'`         | `string[]` | Nós sem seção (unsectioned) |
+| `[sectionId]` | `string[]` | Nós na seção identificada   |
 
 ### TreeSection
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | string | Identificador único da seção |
-| `order` | number | Ordem de exibição |
-| `symbol` | string? | Emoji/símbolo visual |
-| `title` | string | Título da seção |
-| `hideTitle` | boolean | Se o título é oculto na UI |
-| `color` | string | Cor da seção |
+| Campo       | Tipo    | Descrição                    |
+| ----------- | ------- | ---------------------------- |
+| `id`        | string  | Identificador único da seção |
+| `order`     | number  | Ordem de exibição            |
+| `symbol`    | string? | Emoji/símbolo visual         |
+| `title`     | string  | Título da seção              |
+| `hideTitle` | boolean | Se o título é oculto na UI   |
+| `color`     | string  | Cor da seção                 |
 
 ### ContentTreeMetadata
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | string (UUID) | Identificador da árvore |
-| `versionSchema` | number | Versão do schema |
-| `createdAt` | Date | Data de criação |
-| `updatedAt` | Date | Última atualização |
-| `author` | string? | ID do UserCreator dono |
-| `authorTreeId` | string? | Referência à árvore-fonte (para imports) |
-| `removedAt` | string? | Soft-delete timestamp |
+| Campo           | Tipo          | Descrição                                |
+| --------------- | ------------- | ---------------------------------------- |
+| `id`            | string (UUID) | Identificador da árvore                  |
+| `versionSchema` | number        | Versão do schema                         |
+| `createdAt`     | Date          | Data de criação                          |
+| `updatedAt`     | Date          | Última atualização                       |
+| `author`        | string?       | ID do UserCreator dono                   |
+| `authorTreeId`  | string?       | Referência à árvore-fonte (para imports) |
+| `removedAt`     | string?       | Soft-delete timestamp                    |
 
 ## IDs compostos
 
 Nós usam IDs compostos `treeId:localUuid` para unicidade global:
+
 - `treeId` = `ContentTreeMetadata.id`
 - `localUuid` = UUID local do nó (key em `nodes`)
 - Parseado via `parseTreeId(compositeId)` → `{ treeId, localId }`
@@ -95,11 +96,11 @@ Nós usam IDs compostos `treeId:localUuid` para unicidade global:
 
 ## Stores e separação Creator / Consumer
 
-| Ação | Store Trees | Store Medias |
-|---|---|---|
-| Creator edita | `editorTrees` | `editorMedias` |
-| Creator publica | Copia para `contentTrees` | Copia para `contentMedias` |
-| Consumer importa | `contentTrees` | `contentMedias` |
+| Ação             | Store Trees               | Store Medias               |
+| ---------------- | ------------------------- | -------------------------- |
+| Creator edita    | `editorTrees`             | `editorMedias`             |
+| Creator publica  | Copia para `contentTrees` | Copia para `contentMedias` |
+| Consumer importa | `contentTrees`            | `contentMedias`            |
 
 ## Publicação
 
@@ -126,6 +127,7 @@ TreeExport {
 ## Import
 
 Dois modos:
+
 1. **TreeExport** (.notfeed.json) — `importTreeExport()`: valida JSON, checa duplicatas por `exportId`, persiste tree + medias em `contentTrees`/`contentMedias`
 2. **URLs simples** — `importSimpleUrls()`: auto-detecta RSS/Atom/JSON Feed, cria ContentTree com profile node + font nodes (uma font por URL)
 
@@ -141,28 +143,28 @@ Dois modos:
 
 ## Utilitários
 
-| Função | Descrição |
-|---|---|
-| `parseTreeId(compositeId)` | Extrai `{ treeId, localId }` |
-| `getNode(tree, localId)` | Busca nó por localId |
-| `getRootNode(tree)` | Retorna nó raiz |
-| `getRootNodeId(tree)` | Retorna ID do nó raiz |
-| `getNodesInPath(tree, path)` | Lista nós em um path (seção ou `*`) |
-| `getAllNodeIds(tree)` | Lista todos os IDs de nós |
-| `getNodesByRole(tree, role)` | Filtra nós por role |
-| `getFontNodes(tree)` | Retorna todos os nós font |
-| `getNodeSection(tree, nodeId)` | Retorna a seção de um nó |
-| `generateNodeId(treeId)` | Gera novo ID composto |
+| Função                         | Descrição                           |
+| ------------------------------ | ----------------------------------- |
+| `parseTreeId(compositeId)`     | Extrai `{ treeId, localId }`        |
+| `getNode(tree, localId)`       | Busca nó por localId                |
+| `getRootNode(tree)`            | Retorna nó raiz                     |
+| `getRootNodeId(tree)`          | Retorna ID do nó raiz               |
+| `getNodesInPath(tree, path)`   | Lista nós em um path (seção ou `*`) |
+| `getAllNodeIds(tree)`          | Lista todos os IDs de nós           |
+| `getNodesByRole(tree, role)`   | Filtra nós por role                 |
+| `getFontNodes(tree)`           | Retorna todos os nós font           |
+| `getNodeSection(tree, nodeId)` | Retorna a seção de um nó            |
+| `generateNodeId(treeId)`       | Gera novo ID composto               |
 
 ## Type Guards
 
-| Função | Role verificado |
-|---|---|
-| `isCreatorNode(node)` | `'creator'` |
-| `isProfileNode(node)` | `'profile'` |
-| `isFontNode(node)` | `'font'` |
-| `isTreeLinkNode(node)` | `'tree'` |
-| `isCollectionNode(node)` | `'collection'` |
+| Função                   | Role verificado |
+| ------------------------ | --------------- |
+| `isCreatorNode(node)`    | `'creator'`     |
+| `isProfileNode(node)`    | `'profile'`     |
+| `isFontNode(node)`       | `'font'`        |
+| `isTreeLinkNode(node)`   | `'tree'`        |
+| `isCollectionNode(node)` | `'collection'`  |
 
 ## Funcionalidades
 

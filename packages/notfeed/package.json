@@ -1,0 +1,36 @@
+{
+	"name": "@notfeed/product",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./*.js": "./src/*.ts",
+		"./*.svelte": "./src/*.svelte",
+		"./*.svg": "./src/*.svg"
+	},
+	"dependencies": {
+		"@helia/ipns": "9.2.1",
+		"@helia/unixfs": "7.2.1",
+		"@libp2p/peer-id": "6.0.18",
+		"@lucide/svelte": "0.561.0",
+		"@tauri-apps/api": "2.12.5",
+		"@tauri-apps/plugin-http": "2.9.0",
+		"@tauri-apps/plugin-notification": "2.8.1",
+		"@tauri-apps/plugin-process": "2.4.0",
+		"@tauri-apps/plugin-updater": "2.14.1",
+		"bits-ui": "2.21.0",
+		"clsx": "2.1.1",
+		"helia": "6.1.4",
+		"multiformats": "14.0.6",
+		"tailwind-merge": "3.7.1",
+		"tailwind-variants": "3.3.1"
+	},
+	"peerDependencies": {
+		"@sveltejs/kit": "^2.70.4",
+		"svelte": "^5.59.1"
+	},
+	"devDependencies": {
+		"vitest": "4.1.12"
+	}
+}

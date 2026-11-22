@@ -6,17 +6,17 @@ User é a raiz de identidade do sistema. Existe em dois papéis mutuamente exclu
 
 ## UserBase (compartilhado)
 
-| Campo | Tipo | Obrigatório | Descrição |
-|---|---|---|---|
-| `id` | string (UUID) | Sim (auto) | Identificador único |
-| `role` | `UserRole` | Sim (fixo) | `'consumer'` ou `'creator'` |
-| `displayName` | string [1..100] | Sim | Nome de exibição |
-| `profileImage` | ImageAsset \| null | Não | Avatar WEBP (≤512×512) |
-| `profileEmoji` | string \| null | Não | Emoji alternativo ao avatar |
-| `removedAt` | Date \| null | Não | Timestamp de soft-delete |
-| `language` | string | Sim | Idioma preferido (ex: `'en-US'`, `'pt-BR'`) |
-| `createdAt` | Date | Sim (auto) | Data de criação |
-| `updatedAt` | Date | Sim (auto) | Última atualização |
+| Campo          | Tipo               | Obrigatório | Descrição                                   |
+| -------------- | ------------------ | ----------- | ------------------------------------------- |
+| `id`           | string (UUID)      | Sim (auto)  | Identificador único                         |
+| `role`         | `UserRole`         | Sim (fixo)  | `'consumer'` ou `'creator'`                 |
+| `displayName`  | string [1..100]    | Sim         | Nome de exibição                            |
+| `profileImage` | ImageAsset \| null | Não         | Avatar WEBP (≤512×512)                      |
+| `profileEmoji` | string \| null     | Não         | Emoji alternativo ao avatar                 |
+| `removedAt`    | Date \| null       | Não         | Timestamp de soft-delete                    |
+| `language`     | string             | Sim         | Idioma preferido (ex: `'en-US'`, `'pt-BR'`) |
+| `createdAt`    | Date               | Sim (auto)  | Data de criação                             |
+| `updatedAt`    | Date               | Sim (auto)  | Última atualização                          |
 
 ## UserConsumer
 
@@ -24,39 +24,39 @@ Conta local de consumo. Nunca publica conteúdo.
 
 ### Propriedades adicionais
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `activateTrees` | `TreeActivation[]` | Inscrições em árvores inteiras (`{ treeId, activatedAt }`) |
-| `activateNodes` | `NodeActivation[]` | Estado local por nó (priority, favorite, enabled, libraryTabIds) |
-| `libraryTabs` | `LibraryTab[]` | Tabs custom criadas pelo usuário (tabs de sistema são constantes do app) |
-| `feedMacros` | `FeedMacro[]` | Presets salvos de filtros do feed |
+| Campo           | Tipo               | Descrição                                                                |
+| --------------- | ------------------ | ------------------------------------------------------------------------ |
+| `activateTrees` | `TreeActivation[]` | Inscrições em árvores inteiras (`{ treeId, activatedAt }`)               |
+| `activateNodes` | `NodeActivation[]` | Estado local por nó (priority, favorite, enabled, libraryTabIds)         |
+| `libraryTabs`   | `LibraryTab[]`     | Tabs custom criadas pelo usuário (tabs de sistema são constantes do app) |
+| `feedMacros`    | `FeedMacro[]`      | Presets salvos de filtros do feed                                        |
 
 ### NodeActivation (por nó)
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `nodeId` | string | ID composto (`treeId:localUuid`) |
-| `priority` | `PriorityLevel \| null` | 1=alta, 2=média, 3=baixa, null=herdar |
-| `favorite` | boolean | Se é favorito |
-| `enabled` | boolean | Se está ativo (inscrição/follow) |
-| `libraryTabIds` | `string[]` | IDs de tabs às quais pertence (many-to-many) |
+| Campo           | Tipo                    | Descrição                                    |
+| --------------- | ----------------------- | -------------------------------------------- |
+| `nodeId`        | string                  | ID composto (`treeId:localUuid`)             |
+| `priority`      | `PriorityLevel \| null` | 1=alta, 2=média, 3=baixa, null=herdar        |
+| `favorite`      | boolean                 | Se é favorito                                |
+| `enabled`       | boolean                 | Se está ativo (inscrição/follow)             |
+| `libraryTabIds` | `string[]`              | IDs de tabs às quais pertence (many-to-many) |
 
 ### TreeActivation
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `treeId` | string | ID da ContentTree inscrita |
-| `activatedAt` | Date | Quando foi inscrito |
+| Campo         | Tipo   | Descrição                  |
+| ------------- | ------ | -------------------------- |
+| `treeId`      | string | ID da ContentTree inscrita |
+| `activatedAt` | Date   | Quando foi inscrito        |
 
 ### LibraryTab
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | string | UUID |
-| `title` | string | Nome da tab |
-| `emoji` | string | Emoji visual |
-| `position` | number | Ordem de exibição |
-| `createdAt` | Date | Data de criação |
+| Campo       | Tipo   | Descrição         |
+| ----------- | ------ | ----------------- |
+| `id`        | string | UUID              |
+| `title`     | string | Nome da tab       |
+| `emoji`     | string | Emoji visual      |
+| `position`  | number | Ordem de exibição |
+| `createdAt` | Date   | Data de criação   |
 
 > **Nota**: Tabs de sistema (📚 "All Library", ⭐ "Only Favorites") são constantes do app (`SYSTEM_LIBRARY_TABS`), não persistidas no registro do usuário.
 
@@ -77,9 +77,9 @@ Conta de criação. Gerencia ContentTrees e ContentMedias.
 
 ### Propriedades adicionais
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `ownedTreeIds` | `string[]` | IDs das ContentTrees possuídas |
+| Campo           | Tipo       | Descrição                       |
+| --------------- | ---------- | ------------------------------- |
+| `ownedTreeIds`  | `string[]` | IDs das ContentTrees possuídas  |
 | `ownedMediaIds` | `string[]` | IDs dos ContentMedias possuídos |
 
 ### Capacidades do Creator
@@ -96,22 +96,22 @@ Conta de criação. Gerencia ContentTrees e ContentMedias.
 
 `activeUser.svelte.ts` gerencia a identidade ativa:
 
-| Método | Descrição |
-|---|---|
-| `init()` | Carrega usuários do IndexedDB, restaura último ativo |
-| `switchTo(userId)` | Troca identidade ativa, recarrega stores |
+| Método                 | Descrição                                                                     |
+| ---------------------- | ----------------------------------------------------------------------------- |
+| `init()`               | Carrega usuários do IndexedDB, restaura último ativo                          |
+| `switchTo(userId)`     | Troca identidade ativa, recarrega stores                                      |
 | `createConsumer(name)` | Cria novo consumer (libraryTabs inicia vazio, tabs de sistema são constantes) |
-| `createCreator(name)` | Cria novo creator |
-| `softDelete(userId)` | Marca `removedAt` (mantém no banco) |
-| `restore(userId)` | Remove `removedAt` |
-| `setActive(user)` | Define identidade ativa |
+| `createCreator(name)`  | Cria novo creator                                                             |
+| `softDelete(userId)`   | Marca `removedAt` (mantém no banco)                                           |
+| `restore(userId)`      | Remove `removedAt`                                                            |
+| `setActive(user)`      | Define identidade ativa                                                       |
 
 ### Navegação por papel
 
-| Papel | Nav Items | Ícones |
-|---|---|---|
+| Papel    | Nav Items                   | Ícones                                    |
+| -------- | --------------------------- | ----------------------------------------- |
 | Consumer | Feed, Browse, Library, User | Newspaper, Search, LibraryBig, CircleUser |
-| Creator | Pages, Preview, User | FileStack, Eye, CircleUser |
+| Creator  | Pages, Preview, User        | FileStack, Eye, CircleUser                |
 
 ## Regras de negócio
 

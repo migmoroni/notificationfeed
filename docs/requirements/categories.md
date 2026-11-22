@@ -4,37 +4,39 @@
 
 Category é o sistema taxonômico hierárquico do Notfeed. Possui cinco árvores oficiais (trees):
 
-| Árvore | Tree ID | Letra | Base | Descrição |
-|---|---|---|---|---|
-| **subject** | `'subject'` | `a` | IPTC NewsCodes Media Topics | Tema do conteúdo |
-| **content_type** | `'content_type'` | `b` | schema.org + W3C WAI | Formato/acessibilidade |
-| **media_type** | `'media_type'` | `c` | DCMI + schema.org | Tipo de mídia |
-| **region** | `'region'` | `d` | UN M49 + ISO 3166-1 | Geografia |
-| **language** | `'language'` | `e` | BCP 47 | Idioma |
+| Árvore           | Tree ID          | Letra | Base                        | Descrição              |
+| ---------------- | ---------------- | ----- | --------------------------- | ---------------------- |
+| **subject**      | `'subject'`      | `a`   | IPTC NewsCodes Media Topics | Tema do conteúdo       |
+| **content_type** | `'content_type'` | `b`   | schema.org + W3C WAI        | Formato/acessibilidade |
+| **media_type**   | `'media_type'`   | `c`   | DCMI + schema.org           | Tipo de mídia          |
+| **region**       | `'region'`       | `d`   | UN M49 + ISO 3166-1         | Geografia              |
+| **language**     | `'language'`     | `e`   | BCP 47                      | Idioma                 |
 
 Não há categories custom; toda a taxonomia é distribuída com o app.
 
 ## Propriedades
 
-| Campo | Tipo | Obrigatório | Descrição |
-|---|---|---|---|
-| `id` | string | Sim (seed) | Identificador compacto de letras (2-5 chars) |
-| `label` | string [1..100] | Sim | Nome de exibição (traduzido via i18n) |
-| `treeId` | `CategoryTreeId` | Sim | Árvore à qual pertence |
-| `parentId` | string \| null | Não | Referência ao nível pai (null = raiz) |
-| `depth` | int ≥ 0 | Sim (derivado) | Profundidade na árvore |
-| `order` | int ≥ 0 | Sim | Ordem de exibição dentro do nível |
-| `bcp47` | string | Não | Código BCP 47 (apenas árvore `language`) |
+| Campo      | Tipo             | Obrigatório    | Descrição                                    |
+| ---------- | ---------------- | -------------- | -------------------------------------------- |
+| `id`       | string           | Sim (seed)     | Identificador compacto de letras (2-5 chars) |
+| `label`    | string [1..100]  | Sim            | Nome de exibição (traduzido via i18n)        |
+| `treeId`   | `CategoryTreeId` | Sim            | Árvore à qual pertence                       |
+| `parentId` | string \| null   | Não            | Referência ao nível pai (null = raiz)        |
+| `depth`    | int ≥ 0          | Sim (derivado) | Profundidade na árvore                       |
+| `order`    | int ≥ 0          | Sim            | Ordem de exibição dentro do nível            |
+| `bcp47`    | string           | Não            | Código BCP 47 (apenas árvore `language`)     |
 
 ## Esquema de IDs
 
 IDs usam scheme compacto de letras (a-z):
+
 - **1ª letra**: árvore (`a`=subject, `b`=content_type, `c`=media_type, `d`=region, `e`=language)
 - **2ª letra**: raiz/grupo dentro da árvore
 - **3ª letra**: sub-nível (para árvores de 2 níveis) ou sub-grupo (para árvores de 3 níveis)
 - **4ª-5ª letras**: folha (para árvores de 3 níveis: region, language)
 
 Exemplos:
+
 - `aa` = raiz "Technology" (subject)
 - `aae` = sublevel "AI" (subject → Technology → AI)
 - `da` = raiz "Africa" (region)

@@ -1,0 +1,268 @@
+<script lang="ts">
+	import { onMount, onDestroy } from 'svelte';
+	import { layout } from '@notfeed/product/stores/layout.svelte.js';
+	import { sidebarSlot } from '@notfeed/product/stores/sidebar-slot.svelte.js';
+	import { activeUser } from '@notfeed/product/stores/active-user.svelte.js';
+	import { creator } from '@notfeed/product/stores/creator.svelte.js';
+	import { previewFeed } from '@notfeed/product/stores/preview-feed.svelte.js';
+	import { previewEntityFilter } from '@notfeed/product/stores/preview-entity-filter.svelte.js';
+	import type { TreeNode } from '@notfeed/product/domain/content-tree/content-tree.js';
+	import type { SortedPost } from '@notfeed/product/domain/shared/feed-sorter.js';
+	import type { CanonicalPost } from '@notfeed/product/normalization/canonical-post.js';
+	import EntityCard from '@notfeed/product/components/shared/entity/EntityCard.svelte';
+	import EntityTreeFilter from '@notfeed/product/components/shared/EntityTreeFilter.svelte';
+	import { Separator } from '@notfeed/product/components/ui/separator/index.js';
+	import PostCard from '@notfeed/product/components/feed/PostCard.svelte';
+	import * as Tabs from '@notfeed/product/components/ui/tabs/index.js';
+	import Eye from '@lucide/svelte/icons/eye';
+	import Rss from '@lucide/svelte/icons/rss';
+	import { t } from '@notfeed/product/i18n/t.js';
+	import PageHeader from '@notfeed/product/components/shared/PageHeader.svelte';
+
+	function toSortedPost(post: CanonicalPost): SortedPost<CanonicalPost> {
+		return { post, priority: 'default' };
+	}
+
+	let loading = $state(true);
+	let activeTab = $state('overview');
+	let allNodes: TreeNode[] = $state([]);
+
+	onMount(async () => {
+		await previewEntityFilter.loadNodes();
+		const trees = previewEntityFilter.getTrees?.() ?? [];
+
+		// Extract all nodes from embedded trees
+		const nodes: TreeNode[] = [];
+		for (const tree of trees) {
+			for (const node of Object.values(tree.nodes)) {
+				nodes.push(node);
+			}
+		}
+		allNodes = nodes;
+
+		if (trees.length > 0) {
+			await previewFeed.loadPreviewFeed(trees);
+		}
+		loading = false;
+		sidebarSlot.set(sidebarContent);
+	});
+
+	onDestroy(() => {
+		sidebarSlot.set(null);
+	});
+
+	// Group nodes by role
+	let collectionNodes = $derived(allNodes.filter((n) => n.role === 'collection'));
+	let profileNodes = $derived(allNodes.filter((n) => n.role === 'profile'));
+	let fontNodes = $derived(allNodes.filter((n) => n.role === 'font'));
+
+	// Apply entity filter
+	let filteredNodes = $derived.by(() => {
+		if (!previewEntityFilter.hasFilters) return allNodes;
+		const allowedFonts = previewEntityFilter.getAllowedFontNodeIds();
+		if (allowedFonts.size === 0) return allNodes;
+		return allNodes.filter((n) => {
+			if (n.role === 'font') return allowedFonts.has(n.metadata.id);
+			return true;
+		});
+	});
+
+	let filteredCollections = $derived(filteredNodes.filter((n) => n.role === 'collection'));
+	let filteredProfiles = $derived(filteredNodes.filter((n) => n.role === 'profile'));
+	let filteredFonts = $derived(filteredNodes.filter((n) => n.role === 'font'));
+
+	function nodeHref(node: TreeNode): string {
+		return `/preview/node/${node.metadata.id}`;
+	}
+</script>
+
+{#snippet sidebarContent()}
+	<div class="overflow-y-auto h-full p-3">
+		<EntityTreeFilter store={previewEntityFilter} />
+	</div>
+{/snippet}
+<svelte:head>
+	<title>{t('page_title.preview')}</title>
+</svelte:head>
+
+<Tabs.Root bind:value={activeTab}>
+	<div
+		class="mx-auto w-full h-full flex flex-col pt-4"
+		class:max-w-8xl={layout.isExpanded}
+		class:max-w-2xl={!layout.isExpanded}
+	>
+		<div class="px-4 shrink-0">
+			<PageHeader title={t('title.preview')}>
+				{#snippet bottomRow()}
+					{#if activeUser.isCreator && creator.trees.length > 0}
+						<Tabs.List
+							class="w-full justify-start rounded-none border-b border-border bg-transparent p-0"
+						>
+							<Tabs.Trigger
+								value="overview"
+								class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary"
+							>
+								{t('preview.overview')}
+							</Tabs.Trigger>
+							<Tabs.Trigger
+								value="feed"
+								class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary"
+							>
+								{t('preview.feed_tab')}
+							</Tabs.Trigger>
+						</Tabs.List>
+					{/if}
+				{/snippet}
+			</PageHeader>
+
+			{#if !activeUser.isCreator}
+				<div class="py-12 text-center">
+					<Eye class="size-12 mx-auto text-muted-foreground mb-3" />
+					<p class="text-sm text-muted-foreground mb-2">
+						{t('preview.access_creator')}
+					</p>
+					<a href="/user" class="text-sm text-primary hover:underline">
+						{t('pages.switch_user')}
+					</a>
+				</div>
+			{:else if creator.trees.length === 0}
+				<div class="py-12 text-center">
+					<Eye class="size-12 mx-auto text-muted-foreground mb-3" />
+					<p class="text-sm text-muted-foreground mb-2">
+						{t('preview.no_pages')}
+					</p>
+					<a href="/pages" class="text-sm text-primary hover:underline">
+						{t('preview.go_to_pages')}
+					</a>
+				</div>
+			{:else}
+				<div
+					class="grid flex-1 min-h-0 overflow-hidden pl-4 {layout.isExpanded
+						? ''
+						: 'gap-12 md:grid-cols-[265px_1fr]'}"
+				>
+					{#if !layout.isExpanded}
+						<!-- Sidebar only in compact mode (inline) -->
+						<aside class="overflow-y-auto relative pb-4">
+							<EntityTreeFilter store={previewEntityFilter} />
+						</aside>
+					{/if}
+
+					<!-- Main content -->
+					<div class="overflow-y-auto h-full pb-24 pr-4">
+						<Tabs.Content value="overview" class="mt-4">
+							{#if loading}
+								<div
+									class="grid gap-3 {layout.isExpanded
+										? 'grid-cols-2 lg:grid-cols-3'
+										: 'grid-cols-1'}"
+								>
+									{#each Array(4) as _}
+										<div class="h-24 rounded-lg bg-muted animate-pulse"></div>
+									{/each}
+								</div>
+							{:else if filteredNodes.length === 0}
+								<div class="py-12 text-center">
+									<p class="text-sm text-muted-foreground">{t('preview.no_filter_results')}</p>
+								</div>
+							{:else}
+								<div class="flex flex-col gap-4">
+									{#if filteredCollections.length > 0}
+										<div>
+											<h3
+												class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-1"
+											>
+												Collections ({filteredCollections.length})
+											</h3>
+											<div
+												class="grid gap-3 {layout.isExpanded
+													? 'grid-cols-2 lg:grid-cols-3'
+													: 'grid-cols-1'}"
+											>
+												{#each filteredCollections as node (node.metadata.id)}
+													<EntityCard {node} href={nodeHref(node)} />
+												{/each}
+											</div>
+										</div>
+									{/if}
+
+									{#if filteredCollections.length > 0 && (filteredProfiles.length > 0 || filteredFonts.length > 0)}
+										<Separator />
+									{/if}
+
+									{#if filteredProfiles.length > 0}
+										<div>
+											<h3
+												class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-1"
+											>
+												Profiles ({filteredProfiles.length})
+											</h3>
+											<div
+												class="grid gap-3 {layout.isExpanded
+													? 'grid-cols-2 lg:grid-cols-3'
+													: 'grid-cols-1'}"
+											>
+												{#each filteredProfiles as node (node.metadata.id)}
+													<EntityCard {node} href={nodeHref(node)} />
+												{/each}
+											</div>
+										</div>
+									{/if}
+
+									{#if filteredProfiles.length > 0 && filteredFonts.length > 0}
+										<Separator />
+									{/if}
+
+									{#if filteredFonts.length > 0}
+										<div>
+											<h3
+												class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-1"
+											>
+												Fonts ({filteredFonts.length})
+											</h3>
+											<div
+												class="grid gap-3 {layout.isExpanded
+													? 'grid-cols-2 lg:grid-cols-3'
+													: 'grid-cols-1'}"
+											>
+												{#each filteredFonts as node (node.metadata.id)}
+													<EntityCard {node} href={nodeHref(node)} />
+												{/each}
+											</div>
+										</div>
+									{/if}
+								</div>
+							{/if}
+						</Tabs.Content>
+
+						<Tabs.Content value="feed" class="mt-4">
+							{#if previewFeed.loading}
+								<div class="space-y-3">
+									{#each Array(3) as _}
+										<div class="h-24 rounded-lg bg-muted animate-pulse"></div>
+									{/each}
+								</div>
+							{:else if previewFeed.posts.length === 0}
+								<div class="py-12 text-center">
+									<Rss class="size-8 mx-auto text-muted-foreground mb-2" />
+									<p class="text-sm text-muted-foreground">
+										{t('preview.no_posts_for_fonts')}
+									</p>
+									<p class="text-xs text-muted-foreground mt-1">
+										{t('preview.fonts_need_ingestion')}
+									</p>
+								</div>
+							{:else}
+								<div class="space-y-3">
+									{#each previewFeed.posts as post (post.id)}
+										<PostCard sortedPost={toSortedPost(post)} />
+									{/each}
+								</div>
+							{/if}
+						</Tabs.Content>
+					</div>
+				</div>
+			{/if}
+		</div>
+	</div>
+</Tabs.Root>

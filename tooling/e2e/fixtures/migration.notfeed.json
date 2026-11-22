@@ -1,0 +1,56 @@
+{
+	"exportId": "migration-export",
+	"version": 1,
+	"exportedAt": "2026-11-19T12:00:00.000Z",
+	"creatorDisplayName": "Migration fixture",
+	"tree": {
+		"metadata": {
+			"id": "migration-tree",
+			"versionSchema": 1,
+			"createdAt": "2026-11-19T12:00:00.000Z",
+			"updatedAt": "2026-11-19T12:00:00.000Z"
+		},
+		"sections": [],
+		"paths": { "/": "migration-tree:root", "*": ["migration-tree:font"] },
+		"nodes": {
+			"migration-tree:root": {
+				"role": "profile",
+				"metadata": {
+					"id": "migration-tree:root",
+					"versionSchema": 1,
+					"createdAt": "2026-11-19T12:00:00.000Z",
+					"updatedAt": "2026-11-19T12:00:00.000Z"
+				},
+				"data": {
+					"header": { "title": "Migration reference", "categoryAssignments": [] },
+					"body": { "role": "profile", "links": [] }
+				}
+			},
+			"migration-tree:font": {
+				"role": "font",
+				"metadata": {
+					"id": "migration-tree:font",
+					"versionSchema": 1,
+					"createdAt": "2026-11-19T12:00:00.000Z",
+					"updatedAt": "2026-11-19T12:00:00.000Z"
+				},
+				"data": {
+					"header": { "title": "Migration local feed", "categoryAssignments": [] },
+					"body": {
+						"role": "font",
+						"defaultEnabled": true,
+						"protocols": [
+							{
+								"id": "local-json",
+								"protocol": "jsonfeed",
+								"config": { "url": "http://127.0.0.1:4173/__fixtures/feed.json" },
+								"primary": true
+							}
+						]
+					}
+				}
+			}
+		}
+	},
+	"medias": []
+}

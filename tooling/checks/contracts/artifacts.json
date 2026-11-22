@@ -1,0 +1,26 @@
+{
+	"schemaVersion": 1,
+	"candidatePayloads": [
+		"store",
+		"cache",
+		"npm-cache",
+		"source/node_modules",
+		"source/apps/web/node_modules",
+		"source/apps/desktop/node_modules",
+		"source/packages/notfeed/node_modules",
+		"source/apps/web/.svelte-kit",
+		"source/apps/web/build",
+		"source/apps/desktop/src-tauri/target",
+		"source/apps/desktop/src-tauri/gen",
+		"mise-data",
+		"mise-cache",
+		"mise-config",
+		"mise-state",
+		"bootstrap"
+	],
+	"referencePayloads": ["source", "tools", "cache", "source.tar"],
+	"nativePayloads": ["squashfs-root", "compiled", "extracted"],
+	"securityPayloads": ["rustsec", "rustsec.lock"],
+	"optionalCaches": ["maintenance/native-cache", "toolchains/cargo-audit-build"],
+	"preserve": ["receipts", "logs", "reports", "checkpoints", "toolchains", "source-copies"]
+}

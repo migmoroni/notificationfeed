@@ -1,0 +1,70 @@
+{
+	"schemaVersion": 1,
+	"runner": "ubuntu-24.04",
+	"architecture": "x64",
+	"integrationBranch": "main",
+	"events": ["pull_request", "push", "workflow_dispatch"],
+	"actions": [
+		{
+			"name": "actions/checkout",
+			"version": "v6",
+			"revision": "d23441a48e516b6c34aea4fa41551a30e30af803"
+		},
+		{
+			"name": "actions/setup-node",
+			"version": "v6",
+			"revision": "249970729cb0ef3589644e2896645e5dc5ba9c38"
+		},
+		{
+			"name": "actions/upload-artifact",
+			"version": "v6",
+			"revision": "b7c566a772e6b6bfb58ed0dc250532a479d7789f"
+		}
+	],
+	"jobs": ["web"],
+	"permissions": {
+		"contents": "read"
+	},
+	"retentionDays": 14,
+	"impact": "Single web job always runs for PR, main push and manual dispatch; no impact skip or native matrix.",
+	"sources": [
+		"https://github.com/actions/checkout",
+		"https://github.com/actions/setup-node",
+		"https://github.com/actions/upload-artifact",
+		"https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows"
+	],
+	"browser": "Not installed or executed in minimum CI; local PWA gates remain mandatory when affected.",
+	"cachePolicy": "Pinned setup-node action caches pnpm only; Node/pnpm come solely from verified mise bootstrap. Tool data/cache initially empty. Frozen dependency installation required.",
+	"publication": "Prepare all configuration/local checks before requesting missing remote authorization. No deployment.",
+	"provisioning": {
+		"contract": "tooling/checks/contracts/provision.json",
+		"bootstrap": "tooling/setup/install-mise.sh",
+		"bootstrapReceipt": ".artifacts/setup/bootstrap.json",
+		"freshDataMarker": ".artifacts/setup/mise-data-fresh.stdout",
+		"requireFreshData": true,
+		"requireFreshDependencies": true,
+		"setups": {
+			"web": "mise run setup:ci"
+		},
+		"environment": {
+			"MISE_DATA_DIR": "${{ runner.temp }}/notfeed-mise/data",
+			"MISE_CACHE_DIR": "${{ runner.temp }}/notfeed-mise/cache",
+			"MISE_CONFIG_DIR": "${{ runner.temp }}/notfeed-mise/config",
+			"MISE_STATE_DIR": "${{ runner.temp }}/notfeed-mise/state"
+		},
+		"bootstrapInstallDirectory": "$RUNNER_TEMP/notfeed-mise/bin",
+		"setupTargets": {
+			"web": "ci"
+		}
+	},
+	"scope": "web-minimum",
+	"requiredScopeFor": {
+		"2.6/execution": "web-minimum",
+		"2.7": "web-minimum"
+	},
+	"deferredUntilStage3Close": [
+		"remote-browser-and-pwa-upgrade",
+		"remote-rust-and-native-package",
+		"impact-matrix-for-final-modules"
+	]
+}

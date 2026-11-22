@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "group": "format-tools",
+  "reviewedAt": "2026-11-20",
+  "beforeLockHash": "caf6d8662f234a0b6cb31525ebdf6f033e0d257cea6fa75bbf013aac38f36628",
+  "afterLockHash": "96dbe71580c4f1081c1e2b5f699c477e5009e25f29110b6a125cfc74b0edd2d9",
+  "delta": {
+    "addedNodes": [
+      "prettier-plugin-svelte@4.2.0",
+      "prettier@3.10.1"
+    ],
+    "removedNodes": [],
+    "addedEdges": [
+      "prettier-plugin-svelte@4.2.0>prettier>prettier@3.10.1",
+      "prettier-plugin-svelte@4.2.0>svelte>svelte@5.59.1",
+      "workspace:.>prettier-plugin-svelte>prettier-plugin-svelte@4.2.0",
+      "workspace:.>prettier>prettier@3.10.1"
+    ],
+    "removedEdges": []
+  },
+  "reason": "Only the two authorized formatter dev tools; peers use existing Svelte/Prettier, no existing package version/edge removed or updated."
+}

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "name": "@notfeed/product",
+  "packageVersion": "0.0.1",
+  "exports": {".": "./src/index.ts", "./*.js": "./src/*.ts", "./*.svelte": "./src/*.svelte", "./*.svg": "./src/*.svg"},
+  "cssSource": "@source \"../../../packages/notfeed/src\";\n",
+  "checkGlobs": ["../../packages/notfeed/src/**/*.js", "../../packages/notfeed/src/**/*.ts", "../../packages/notfeed/src/**/*.svelte"],
+  "testGlobs": ["src/**/*.test.ts", "../../packages/notfeed/src/**/*.test.ts"],
+  "serviceWorkerImport": "@notfeed/product/ingestion/post-manager.js",
+  "allowedFrameworkModules": ["$app/navigation", "$app/environment"]
+}

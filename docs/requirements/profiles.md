@@ -36,12 +36,14 @@ TreeNode {
 ## ID composto
 
 O ID global de um Profile é `treeId:localUuid`:
+
 - `treeId` = ID da ContentTree que o contém
 - `localUuid` = chave no `nodes` Record da árvore
 
 ## Posição na árvore
 
 A posição do Profile dentro da ContentTree é determinada por `TreePaths`:
+
 - `paths['/']` — se o Profile é o nó raiz
 - `paths['*']` — se está na lista sem seção
 - `paths[sectionId]` — se está dentro de uma seção nomeada
@@ -67,11 +69,11 @@ A posição do Profile dentro da ContentTree é determinada por `TreePaths`:
 
 ## Navegação
 
-| Contexto | URL |
-|---|---|
-| Browse | `/browse/profile/{compositeId}` |
-| Library | `/library/profile/{compositeId}` |
-| Preview | `/preview/profile/{compositeId}` |
+| Contexto | URL                              |
+| -------- | -------------------------------- |
+| Browse   | `/browse/profile/{compositeId}`  |
+| Library  | `/library/profile/{compositeId}` |
+| Preview  | `/preview/profile/{compositeId}` |
 
 ## Funcionalidades
 

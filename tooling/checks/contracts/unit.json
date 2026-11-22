@@ -1,0 +1,835 @@
+{
+	"schemaVersion": 1,
+	"required": [
+		{
+			"file": "packages/notfeed/src/normalization/atom.normalizer.test.ts",
+			"fullName": "normalizeAtomEntry converts HTML content to plain text"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/atom.normalizer.test.ts",
+			"fullName": "normalizeAtomEntry keeps imageUrl when provided by parser"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/atom.normalizer.test.ts",
+			"fullName": "normalizeAtomEntry extracts imageUrl from content html when parser did not provide one"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/atom.normalizer.test.ts",
+			"fullName": "normalizeAtomEntry keeps videoUrl when provided by parser"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/atom.normalizer.test.ts",
+			"fullName": "normalizeAtomEntry keeps audioUrl when provided by parser"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/content-text.test.ts",
+			"fullName": "htmlToPlainText strips feed markup and decodes entities"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/content-text.test.ts",
+			"fullName": "htmlToPlainText handles escaped markup from JSON and RSS payloads"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/content-text.test.ts",
+			"fullName": "htmlToPlainText does not eat plain less-than comparisons"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/content-text.test.ts",
+			"fullName": "htmlToPlainText decodes common accented named entities"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem uses item.id as identity and emits protocol \"jsonfeed\""
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem falls back to item.url when item.id is missing"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem prefers content_html over content_text and summary"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem falls back to content_text when content_html missing"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem falls back to summary when both content fields missing"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem uses external_url when url missing"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem reads v1.1 authors[0].name"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem falls back to v1 author.name when authors missing"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem emits empty author when neither field present"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem falls back to date_modified when date_published missing"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem falls back to \"now\" when no date is present"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem falls back to \"now\" when date string is malformed"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem uses imageUrl captured by client when present"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem uses videoUrl captured by client when present"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem uses audioUrl captured by client when present"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem extracts imageUrl from content_html when no explicit image exists"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem extracts videoUrl from content_text when no explicit video exists"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/jsonfeed.normalizer.test.ts",
+			"fullName": "normalizeJsonfeedItem extracts audioUrl from content_text when no explicit audio exists"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/nostr.normalizer.test.ts",
+			"fullName": "normalizeNostrEvent uses imageUrl captured by client from nostr tags"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/nostr.normalizer.test.ts",
+			"fullName": "normalizeNostrEvent falls back to image URL present in content text"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/nostr.normalizer.test.ts",
+			"fullName": "normalizeNostrEvent uses videoUrl captured by client from nostr tags"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/nostr.normalizer.test.ts",
+			"fullName": "normalizeNostrEvent falls back to video URL in content text"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/nostr.normalizer.test.ts",
+			"fullName": "normalizeNostrEvent uses audioUrl captured by client from nostr tags"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/nostr.normalizer.test.ts",
+			"fullName": "normalizeNostrEvent falls back to audio URL in content text"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/rss.normalizer.test.ts",
+			"fullName": "normalizeRssItem converts HTML descriptions to plain text"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/rss.normalizer.test.ts",
+			"fullName": "normalizeRssItem keeps imageUrl when present in parsed item"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/rss.normalizer.test.ts",
+			"fullName": "normalizeRssItem extracts imageUrl from description html when parser hint is absent"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/rss.normalizer.test.ts",
+			"fullName": "normalizeRssItem keeps videoUrl when present in parsed item"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/rss.normalizer.test.ts",
+			"fullName": "normalizeRssItem normalizes youtube videoUrl to canonical watch URL"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/rss.normalizer.test.ts",
+			"fullName": "normalizeRssItem keeps audioUrl when present in parsed item"
+		},
+		{
+			"file": "packages/notfeed/src/normalization/rss.normalizer.test.ts",
+			"fullName": "normalizeRssItem normalizes spotify audioUrl to canonical open.spotify URL"
+		},
+		{
+			"file": "packages/notfeed/src/persistence/post.store.test.ts",
+			"fullName": "trashOldPostsForUser keeps posts with old publication dates when they were ingested recently"
+		},
+		{
+			"file": "packages/notfeed/src/persistence/post.store.test.ts",
+			"fullName": "trashOldPostsForUser trashes posts whose ingestion date is older than the cutoff"
+		},
+		{
+			"file": "packages/notfeed/src/persistence/post.store.test.ts",
+			"fullName": "savePostsForUser cross-protocol dedup skips inserting a post when an existing record has the same normalized URL"
+		},
+		{
+			"file": "packages/notfeed/src/persistence/post.store.test.ts",
+			"fullName": "savePostsForUser cross-protocol dedup inserts when URLs differ even by protocol"
+		},
+		{
+			"file": "packages/notfeed/src/persistence/post.store.test.ts",
+			"fullName": "savePostsForUser cross-protocol dedup treats trailing-slash and case differences as duplicates"
+		},
+		{
+			"file": "packages/notfeed/src/persistence/post.store.test.ts",
+			"fullName": "savePostsForUser cross-protocol dedup updates existing record when same composite id arrives again"
+		},
+		{
+			"file": "packages/notfeed/src/persistence/post.store.test.ts",
+			"fullName": "backfillPostsForUserNode media copy copies imageUrl, videoUrl and audioUrl from sibling user records"
+		},
+		{
+			"file": "packages/notfeed/src/services/image.service.test.ts",
+			"fullName": "createImagePreviewUrl returns a data URL with webp mime and base64 data"
+		},
+		{
+			"file": "packages/notfeed/src/services/image.service.test.ts",
+			"fullName": "createImagePreviewUrl handles empty data gracefully"
+		},
+		{
+			"file": "packages/notfeed/src/services/image.service.test.ts",
+			"fullName": "createImagePreviewUrl preserves long base64 strings"
+		},
+		{
+			"file": "packages/notfeed/src/utils/date.test.ts",
+			"fullName": "formatRelativeDate returns seconds-level relative for very recent dates"
+		},
+		{
+			"file": "packages/notfeed/src/utils/date.test.ts",
+			"fullName": "formatRelativeDate returns minutes-level relative for dates within an hour"
+		},
+		{
+			"file": "packages/notfeed/src/utils/date.test.ts",
+			"fullName": "formatRelativeDate returns hours-level relative for dates within a day"
+		},
+		{
+			"file": "packages/notfeed/src/utils/date.test.ts",
+			"fullName": "formatRelativeDate returns days-level relative for dates within a week"
+		},
+		{
+			"file": "packages/notfeed/src/utils/date.test.ts",
+			"fullName": "formatRelativeDate returns weeks-level relative for dates within a month"
+		},
+		{
+			"file": "packages/notfeed/src/utils/date.test.ts",
+			"fullName": "formatRelativeDate falls back to short date for dates older than a month"
+		},
+		{
+			"file": "packages/notfeed/src/utils/date.test.ts",
+			"fullName": "formatRelativeDate accepts string dates"
+		},
+		{
+			"file": "packages/notfeed/src/utils/date.test.ts",
+			"fullName": "formatShortDate formats same-year date without year"
+		},
+		{
+			"file": "packages/notfeed/src/utils/date.test.ts",
+			"fullName": "formatShortDate includes year for different-year dates"
+		},
+		{
+			"file": "packages/notfeed/src/utils/date.test.ts",
+			"fullName": "formatShortDate accepts string dates"
+		},
+		{
+			"file": "packages/notfeed/src/domain/content-tree/multiproto.test.ts",
+			"fullName": "getPrimaryProtocolEntry returns the entry flagged primary"
+		},
+		{
+			"file": "packages/notfeed/src/domain/content-tree/multiproto.test.ts",
+			"fullName": "getPrimaryProtocolEntry falls back to the first entry when no flag is set"
+		},
+		{
+			"file": "packages/notfeed/src/domain/content-tree/multiproto.test.ts",
+			"fullName": "getPrimaryProtocolEntry returns null on empty array"
+		},
+		{
+			"file": "packages/notfeed/src/domain/content-tree/multiproto.test.ts",
+			"fullName": "getProtocolEntriesByPriority orders declared primary first, then fallbacks by descending score"
+		},
+		{
+			"file": "packages/notfeed/src/domain/content-tree/multiproto.test.ts",
+			"fullName": "getProtocolEntriesByPriority uses effective primary override when provided"
+		},
+		{
+			"file": "packages/notfeed/src/domain/content-tree/multiproto.test.ts",
+			"fullName": "createProtocolEntry creates a non-primary entry by default with a unique id"
+		},
+		{
+			"file": "packages/notfeed/src/domain/ingestion/ingestion-settings.test.ts",
+			"fullName": "ingestion-settings applies General media cap for image and initial video profiles"
+		},
+		{
+			"file": "packages/notfeed/src/domain/ingestion/ingestion-settings.test.ts",
+			"fullName": "ingestion-settings forces all profiles to null when General media profile is null"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/atom/atom.client.test.ts",
+			"fullName": "fetchAtomFeed captures image from media:thumbnail"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/atom/atom.client.test.ts",
+			"fullName": "fetchAtomFeed captures video from media:content"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/atom/atom.client.test.ts",
+			"fullName": "fetchAtomFeed treats untyped media:content .mp4 as video, not image"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/atom/atom.client.test.ts",
+			"fullName": "fetchAtomFeed captures image from enclosure image link when media tags are absent"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/atom/atom.client.test.ts",
+			"fullName": "fetchAtomFeed captures video from enclosure video link when media tags are absent"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/atom/atom.client.test.ts",
+			"fullName": "fetchAtomFeed passes previous cache headers to conditional request"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/jsonfeed/jsonfeed.client.test.ts",
+			"fullName": "fetchJsonfeedFeed parses a valid JSON Feed document into posts"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/jsonfeed/jsonfeed.client.test.ts",
+			"fullName": "fetchJsonfeedFeed passes prior etag/lastModified for conditional GET"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/jsonfeed/jsonfeed.client.test.ts",
+			"fullName": "fetchJsonfeedFeed short-circuits on 304 and preserves prior cache headers"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/jsonfeed/jsonfeed.client.test.ts",
+			"fullName": "fetchJsonfeedFeed returns empty posts on malformed JSON"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/jsonfeed/jsonfeed.client.test.ts",
+			"fullName": "fetchJsonfeedFeed returns empty posts when items is missing or not an array"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/jsonfeed/jsonfeed.client.test.ts",
+			"fullName": "fetchJsonfeedFeed returns empty posts when document is not an object"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/jsonfeed/jsonfeed.client.test.ts",
+			"fullName": "fetchJsonfeedFeed captures media from JSON Feed-specific item fields"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/jsonfeed/jsonfeed.client.test.ts",
+			"fullName": "fetchJsonfeedFeed captures media from JSON Feed attachments when content has no media URLs"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/audio-capture.test.ts",
+			"fullName": "audio-capture detects known audio URLs"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/audio-capture.test.ts",
+			"fullName": "audio-capture only treats direct assets as direct playable audio"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/audio-capture.test.ts",
+			"fullName": "audio-capture extracts audio URL from html iframe"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/audio-capture.test.ts",
+			"fullName": "audio-capture extracts audio URL from plain text"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/audio-capture.test.ts",
+			"fullName": "audio-capture extracts audio URL from nostr tags"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/audio-capture.test.ts",
+			"fullName": "audio-capture picks first valid explicit candidate"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/audio-quality.test.ts",
+			"fullName": "audio-quality normalizes spotify URL to canonical open.spotify URL first"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/audio-quality.test.ts",
+			"fullName": "audio-quality normalizes soundcloud player URL to underlying soundcloud URL first"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/audio-quality.test.ts",
+			"fullName": "audio-quality keeps direct audio URL unchanged"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/audio-quality.test.ts",
+			"fullName": "audio-quality returns undefined for empty input"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/image-capture.test.ts",
+			"fullName": "image-capture detects common image URLs"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/image-capture.test.ts",
+			"fullName": "image-capture does not classify video URLs as images even under /media paths"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/image-capture.test.ts",
+			"fullName": "image-capture extracts first image URL from plain text and skips video URLs"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/image-quality.test.ts",
+			"fullName": "image-quality upgrades a numeric dimension segment in image path"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/image-quality.test.ts",
+			"fullName": "image-quality upgrades a width x height segment preserving ratio"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/image-quality.test.ts",
+			"fullName": "image-quality tries higher query width and quality, then falls back to original"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/image-quality.test.ts",
+			"fullName": "image-quality returns only original url when no upgrade rule applies"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/image-quality.test.ts",
+			"fullName": "image-quality resolves ingestion image to best candidate"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/image-quality.test.ts",
+			"fullName": "image-quality respects max width caps when generating candidates"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/image-quality.test.ts",
+			"fullName": "image-quality disables ingestion image when resolved max width is null"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/image-quality.test.ts",
+			"fullName": "image-quality applies the stricter limit between network and power contexts"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/image-quality.test.ts",
+			"fullName": "image-quality uses lowBattery profile when runtime power mode is lowBattery"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver detects media when URL is embeddable"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver detects media when imageUrl is present"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver detects media when videoUrl is present"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver detects media when audioUrl is present"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver returns false when no media data is present"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver prefers embed thumbnail over feed image"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver returns imageUrl when URL is not embeddable"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver falls back to imageUrl for embeddable providers without native thumbnail"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver falls back to imageUrl when videoUrl points to provider without native thumbnail"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver returns null thumbnail for direct videos without poster"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver falls back to imageUrl for internet archive URLs"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses youtube shorts as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses x.com status URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses twitter.com status URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses twitter i/web/status URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver does not treat x home URL as embeddable post"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses twitch VOD URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses twitch clips URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses twitch player URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver does not treat twitch directory URL as embeddable video"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses dailymotion watch URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses dailymotion short URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses dailymotion embed URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver preserves dailymotion quality and height hints into embed URL"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver does not treat dailymotion listing URL as embeddable video"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses standard vimeo URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses vimeo channel URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses vimeo player URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver preserves vimeo quality and height hints into embed URL"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses rumble watch URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses rumble embed URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver does not treat rumble channel URL as embeddable video"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver does not treat internet archive details URL as embeddable video"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver does not treat internet archive embed URL as embeddable video"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver does not treat internet archive listing URL as embeddable video"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses odysee video URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses odysee embed URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver does not treat odysee channel URL as embeddable video"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses peertube watch URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses peertube embed URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses peertube short URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver does not treat peertube browse URL as embeddable video"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses kick channel URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses kick player URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver does not treat kick categories URL as embeddable stream"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses spotify track URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses soundcloud track URL as iframe embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses direct audio URL as audio embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver does not treat spotify root URL as embeddable audio"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver parses direct video URL as video embed"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/media.resolver.test.ts",
+			"fullName": "media.resolver does not treat article pages under /videos as direct video assets"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/runtime-context.test.ts",
+			"fullName": "runtime-context resolves the strictest media definitions between general, network and power"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/runtime-context.test.ts",
+			"fullName": "runtime-context returns null definitions when any active profile disables ingestion"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/runtime-context.test.ts",
+			"fullName": "runtime-context uses general profile when runtime context is default/default"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/runtime-context.test.ts",
+			"fullName": "runtime-context detects wifi from OS connection type even with data saver enabled"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/runtime-context.test.ts",
+			"fullName": "runtime-context detects mobile from cellular generation when type is unknown"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/runtime-context.test.ts",
+			"fullName": "runtime-context falls back to mobile network and battery power when runtime APIs are unavailable"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/video-capture.test.ts",
+			"fullName": "video-capture detects known video URLs"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/video-capture.test.ts",
+			"fullName": "video-capture only treats direct assets as direct playable videos"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/video-capture.test.ts",
+			"fullName": "video-capture extracts video URL from html iframe"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/video-capture.test.ts",
+			"fullName": "video-capture extracts video URL from plain text"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/video-capture.test.ts",
+			"fullName": "video-capture extracts video URL from nostr tags"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/video-capture.test.ts",
+			"fullName": "video-capture picks first valid explicit candidate"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/video-quality.test.ts",
+			"fullName": "video-quality normalizes youtube URL to canonical watch URL first"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/video-quality.test.ts",
+			"fullName": "video-quality applies initial video resolution hint for youtube when requested"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/video-quality.test.ts",
+			"fullName": "video-quality applies initial video resolution hint for vimeo when requested"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/video-quality.test.ts",
+			"fullName": "video-quality applies initial video resolution hint for dailymotion when requested"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/video-quality.test.ts",
+			"fullName": "video-quality keeps direct video URL unchanged"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/video-quality.test.ts",
+			"fullName": "video-quality uses mediaIngestion profile to resolve runtime initial video resolution"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/video-quality.test.ts",
+			"fullName": "video-quality uses lowBattery profile when runtime power mode is lowBattery"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/media/video-quality.test.ts",
+			"fullName": "video-quality returns undefined for empty input"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/nostr/bech32.test.ts",
+			"fullName": "npubToHex decodes a known fiatjaf npub to hex"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/nostr/bech32.test.ts",
+			"fullName": "npubToHex passes through valid 64-char hex unchanged (lowercased)"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/nostr/bech32.test.ts",
+			"fullName": "npubToHex returns null for malformed input"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/feed-url.test.ts",
+			"fullName": "parseFeedTransportUrl parses regular http URL as http transport"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/feed-url.test.ts",
+			"fullName": "parseFeedTransportUrl parses ipfs:// URLs"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/feed-url.test.ts",
+			"fullName": "parseFeedTransportUrl parses ipns:// URLs and detects DNSLink names"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/feed-url.test.ts",
+			"fullName": "parseFeedTransportUrl normalizes gateway HTTP paths into ipfs/ipns transports"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/feed-url.test.ts",
+			"fullName": "resolveFeedHttpTargets resolves ipfs:// URL to gateway targets"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/feed-url.test.ts",
+			"fullName": "resolveFeedHttpTargets keeps original gateway URL as first fallback target"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/feed-url.test.ts",
+			"fullName": "resolveFeedHttpTargets returns no targets for ipfs:// when no gateways are configured"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/feed-url.test.ts",
+			"fullName": "helpers builds gateway URLs from normalized transport"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/feed-url.test.ts",
+			"fullName": "helpers joins feed paths safely"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/feed-url.test.ts",
+			"fullName": "helpers provides a heuristic hint and supports scheme validation"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/http-utils.test.ts",
+			"fullName": "createProxyTargets defaults RSS to proxy-only"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/http-utils.test.ts",
+			"fullName": "createProxyTargets defaults Atom to proxy-only"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/http-utils.test.ts",
+			"fullName": "createProxyTargets keeps JSON Feed direct-first with proxy fallback by default"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/http-utils.test.ts",
+			"fullName": "createProxyTargets allows enabling direct mode for RSS via settings"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/http-utils.test.ts",
+			"fullName": "createProxyTargets returns direct-only targets when proxy fallback is disabled"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/http-utils.test.ts",
+			"fullName": "createProxyTargets returns no targets when both direct and proxy fallback are disabled"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/http-utils.test.ts",
+			"fullName": "createProxyTargets returns no proxy targets when list is empty"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/http-utils.test.ts",
+			"fullName": "createGatewayProxyFallbackTargets keeps gateway direct target first, then proxy-wrapped fallbacks"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/http-utils.test.ts",
+			"fullName": "createGatewayProxyFallbackTargetsByPhase returns gateway-only targets when only gateway phase is enabled"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/http-utils.test.ts",
+			"fullName": "createGatewayProxyFallbackTargetsByPhase returns proxy-only targets when only proxy phase is enabled"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/net/http-utils.test.ts",
+			"fullName": "createGatewayProxyFallbackTargetsByPhase returns no targets when gateway and proxy phases are both disabled"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/rss/rss.client.test.ts",
+			"fullName": "fetchRssFeed captures image from media:content in RSS XML"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/rss/rss.client.test.ts",
+			"fullName": "fetchRssFeed captures video from media:content in RSS XML"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/rss/rss.client.test.ts",
+			"fullName": "fetchRssFeed treats untyped media:content .mp4 as video, not image"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/rss/rss.client.test.ts",
+			"fullName": "fetchRssFeed captures image from enclosure when media tags are absent"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/rss/rss.client.test.ts",
+			"fullName": "fetchRssFeed treats article links under /videos as page URLs and keeps media:thumbnail as image"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/rss/rss.client.test.ts",
+			"fullName": "fetchRssFeed captures image from rss-json content html when thumbnail is missing"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/rss/rss.client.test.ts",
+			"fullName": "fetchRssFeed captures video from rss-json content html when explicit video field is missing"
+		},
+		{
+			"file": "packages/notfeed/src/ingestion/rss/rss.client.test.ts",
+			"fullName": "fetchRssFeed passes previous cache headers to conditional request"
+		}
+	],
+	"allowAdditional": true,
+	"policy": "Permanent verification preserves required cases and permits added cases; no failed/pending/todo/duplicate identity. Stage-2 maintenance gate additionally preserves the exact entry identities."
+}

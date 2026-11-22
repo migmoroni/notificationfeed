@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"phase": "2.5",
+	"order": ["checks", "lint", "format", "dev", "doctor", "provision"],
+	"profiles": {
+		"checks": "Complete",
+		"lint": "Complete",
+		"format": "Complete",
+		"dev": "Complete",
+		"doctor": "Complete",
+		"provision": "Complete"
+	},
+	"introduced": {
+		"checks": ["ARCHITECTURE", "RESTRICTIONS", "PERMANENT-CONTRACTS"],
+		"lint": ["LINT", "CLIPPY"],
+		"format": ["FORMAT", "RUST-FMT"],
+		"dev": ["DEV-ENV"],
+		"doctor": ["DOCTOR-WEB", "DOCTOR-DESKTOP"],
+		"provision": ["PROVISION"]
+	},
+	"bundleReceipt": {
+		"status": "passed",
+		"stdout": "JSON evidence path",
+		"freshBuildVariable": "NOTFEED_BUILD_STARTED_AT"
+	},
+	"toolingIndependence": "Permanent commands must run in a copy without tooling/migration, tooling/maintenance, docs/plans or .artifacts/migration; no phase receipt is read."
+}

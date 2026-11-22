@@ -1,0 +1,317 @@
+{
+	"schemaVersion": 1,
+	"reviewedAt": "2026-11-22",
+	"mise": {
+		"version": "2026.11.11",
+		"platform": "linux-x64",
+		"url": "https://github.com/jdx/mise/releases/download/v2026.11.11/mise-v2026.11.11-linux-x64",
+		"sha256": "be6f46a4cc3d5532acf359f163cf7ce80ceb43e5718d7b9049165a340fb02e2d",
+		"checksumsUrl": "https://github.com/jdx/mise/releases/download/v2026.11.11/SHASUMS256.txt",
+		"checksumsSha256": "acae2c0d4b40125fee075065c5dfd7af82e2be16a3f3b2cbe7bea3451d50fc03",
+		"bootstrapRequirements": [
+			"bash",
+			"curl",
+			"sha256sum",
+			"mktemp",
+			"mkdir",
+			"mv",
+			"chmod",
+			"uname",
+			"ca-certificates"
+		],
+		"bootstrapModes": {
+			"development": "validate-path-only",
+			"isolated": "--install-dir <absolute directory>"
+		}
+	},
+	"sources": [
+		"https://github.com/jdx/mise/releases/tag/v2026.11.11",
+		"https://github.com/jdx/mise/blob/v2026.11.11/settings.toml",
+		"https://github.com/jdx/mise/blob/v2026.11.11/docs/configuration.md",
+		"https://mise.jdx.dev/dev-tools/mise-lock.html",
+		"https://mise.jdx.dev/dev-tools/backends/npm.html",
+		"https://github.com/jdx/mise/blob/v2026.11.11/docs/templates.md"
+	],
+	"environments": {
+		"development": {
+			"id": "debian",
+			"version": "13",
+			"arch": "x64"
+		},
+		"ci": {
+			"id": "ubuntu",
+			"version": "24.04",
+			"arch": "x64"
+		}
+	},
+	"pins": {
+		"node": {
+			"version": "24.22.3",
+			"owner": ".nvmrc",
+			"backend": "core:node"
+		},
+		"pnpm": {
+			"version": "11.28.12",
+			"owner": "package.json#packageManager",
+			"backend": "npm:pnpm"
+		},
+		"rust": {
+			"version": "1.100.0",
+			"owner": "rust-toolchain.toml",
+			"backend": "rustup",
+			"components": ["rustfmt", "clippy"]
+		},
+		"cargoAudit": {
+			"version": "0.23.0",
+			"owner": "tooling/checks/contracts/tools.json",
+			"backend": "cargo --locked"
+		}
+	},
+	"policy": {
+		"projectLocked": true,
+		"requireChecksum": true,
+		"platforms": ["linux-x64"],
+		"npmInstaller": "aube",
+		"trust": "explicit checkout configuration only",
+		"globalDefaults": false,
+		"shellEdits": false,
+		"automaticApt": false,
+		"changeHome": false,
+		"doctorInstalls": false,
+		"docker": false,
+		"lockGuard": "mise environment template validates authority pins and contracted lock/sidecar SHA256 before any child command; native locked policy controls installs",
+		"installPersonalMise": false
+	},
+	"profiles": {
+		"web": {
+			"task": "setup:web",
+			"tools": ["node", "pnpm"],
+			"doctor": "web",
+			"browser": "chromium"
+		},
+		"desktop": {
+			"task": "setup:desktop",
+			"tools": ["node", "pnpm", "rust", "cargoAudit"],
+			"doctor": "desktop",
+			"includes": "web"
+		},
+		"ci": {
+			"task": "setup:ci",
+			"tools": ["node", "pnpm"],
+			"doctor": null,
+			"browser": null,
+			"purpose": "Frozen dependencies for web-minimum CI; full web/desktop diagnosis remains separate"
+		}
+	},
+	"directories": {
+		"defaultData": "$XDG_DATA_HOME/mise or ~/.local/share/mise",
+		"auditRelativePath": "notfeed/cargo-audit/0.23.0",
+		"temporaryPayloads": [
+			"mise-data",
+			"mise-cache",
+			"mise-config",
+			"mise-state",
+			"bootstrap",
+			"audit-target",
+			"store",
+			"cache",
+			"npm-cache"
+		]
+	},
+	"systemRequirements": {
+		"debian": {
+			"web": ["ca-certificates", "curl", "git", "xz-utils"],
+			"desktop": [
+				"build-essential",
+				"pkg-config",
+				"libwebkit2gtk-4.1-dev",
+				"libgtk-3-dev",
+				"librsvg2-dev",
+				"libayatana-appindicator3-dev",
+				"libssl-dev",
+				"patchelf",
+				"binutils"
+			],
+			"browser": [
+				"xvfb",
+				"fonts-noto-color-emoji",
+				"fonts-unifont",
+				"libfontconfig1",
+				"libfreetype6",
+				"xfonts-scalable",
+				"fonts-liberation",
+				"fonts-ipafont-gothic",
+				"fonts-wqy-zenhei",
+				"fonts-tlwg-loma-otf",
+				"fonts-freefont-ttf",
+				"libasound2t64",
+				"libatk-bridge2.0-0t64",
+				"libatk1.0-0t64",
+				"libatspi2.0-0t64",
+				"libcairo2",
+				"libcups2t64",
+				"libdbus-1-3",
+				"libdrm2",
+				"libgbm1",
+				"libglib2.0-0t64",
+				"libnspr4",
+				"libnss3",
+				"libpango-1.0-0",
+				"libx11-6",
+				"libxcb1",
+				"libxcomposite1",
+				"libxdamage1",
+				"libxext6",
+				"libxfixes3",
+				"libxkbcommon0",
+				"libxrandr2"
+			]
+		},
+		"ubuntu": {
+			"web": ["ca-certificates", "curl", "git", "xz-utils"],
+			"desktop": [
+				"build-essential",
+				"pkg-config",
+				"libwebkit2gtk-4.1-dev",
+				"libgtk-3-dev",
+				"librsvg2-dev",
+				"libayatana-appindicator3-dev",
+				"libssl-dev",
+				"patchelf",
+				"binutils"
+			],
+			"browser": [
+				"xvfb",
+				"fonts-noto-color-emoji",
+				"fonts-unifont",
+				"libfontconfig1",
+				"libfreetype6",
+				"xfonts-scalable",
+				"fonts-liberation",
+				"fonts-ipafont-gothic",
+				"fonts-wqy-zenhei",
+				"fonts-tlwg-loma-otf",
+				"fonts-freefont-ttf",
+				"xfonts-cyrillic",
+				"libasound2t64",
+				"libatk-bridge2.0-0t64",
+				"libatk1.0-0t64",
+				"libatspi2.0-0t64",
+				"libcairo2",
+				"libcups2t64",
+				"libdbus-1-3",
+				"libdrm2",
+				"libgbm1",
+				"libglib2.0-0t64",
+				"libnspr4",
+				"libnss3",
+				"libpango-1.0-0",
+				"libx11-6",
+				"libxcb1",
+				"libxcomposite1",
+				"libxdamage1",
+				"libxext6",
+				"libxfixes3",
+				"libxkbcommon0",
+				"libxrandr2"
+			]
+		}
+	},
+	"cases": {
+		"web": [
+			"bootstrap-clean",
+			"setup-clean",
+			"effective-runtime",
+			"external-path",
+			"other-project",
+			"warm-repeat",
+			"missing-lock",
+			"divergent-pin",
+			"missing-platform",
+			"checksum-failure",
+			"download-failure",
+			"independent-setup",
+			"doctor",
+			"quick"
+		],
+		"desktop": [
+			"setup-desktop",
+			"effective-rust",
+			"override-failure",
+			"native-library-failure",
+			"doctor"
+		]
+	},
+	"receiptFields": [
+		"schemaVersion",
+		"status",
+		"target",
+		"environment",
+		"versions",
+		"executables",
+		"inputHash",
+		"contractsHash",
+		"locks",
+		"commands",
+		"cases",
+		"startedAt",
+		"finishedAt",
+		"cleanup"
+	],
+	"lockFiles": [
+		{
+			"file": "mise.lock",
+			"sha256": "fd772fa722cb60f80bb4d9477630f39f9c4891c02279044fd678f3ce6eb59d78"
+		},
+		{
+			"file": ".mise/locks/npm-pnpm/11.28.12/package.json",
+			"sha256": "d49310ad0ebbb1cee7312d7e629dd55cf8bf8bfe752f5b260d7f00824d34117a"
+		},
+		{
+			"file": ".mise/locks/npm-pnpm/11.28.12/aube-lock.yaml",
+			"sha256": "a2a696b1d89e5cc5e38e7c11722f721a4cddd504b32a6f449dadaa7e253b6137"
+		}
+	],
+	"caseCommands": {
+		"web": {
+			"bootstrap-clean": ["bootstrap-clean"],
+			"setup-clean": ["install-tools", "setup-clean"],
+			"effective-runtime": ["effective-runtime"],
+			"external-path": ["external-path"],
+			"other-project": ["other-project"],
+			"warm-repeat": ["warm-repeat", "offline-repeat"],
+			"missing-lock": ["missing-lock-exec", "missing-lock-run"],
+			"divergent-pin": ["divergent-pin-exec", "divergent-pin-run"],
+			"missing-platform": ["missing-platform-exec", "missing-platform-run"],
+			"checksum-failure": ["checksum-failure"],
+			"download-failure": ["download-failure"],
+			"independent-setup": ["warm-repeat", "doctor", "quick"],
+			"doctor": ["doctor"],
+			"quick": ["quick"]
+		},
+		"desktop": {
+			"setup-desktop": ["setup-desktop"],
+			"effective-rust": ["effective-rust"],
+			"override-failure": ["override-failure"],
+			"native-library-failure": ["native-library-failure"],
+			"doctor": ["desktop-doctor"]
+		}
+	},
+	"rustup": {
+		"installArguments": [
+			"toolchain",
+			"install",
+			"1.100.0",
+			"--no-self-update",
+			"--profile",
+			"minimal",
+			"--component",
+			"rustfmt",
+			"--component",
+			"clippy"
+		],
+		"selfUpdate": false,
+		"changeDefault": false
+	},
+	"systemRequirementsSource": "Playwright 1.65.1 locked package lib/coreBundle.js, nativeDeps debian13-x64 and ubuntu24.04-x64"
+}

@@ -1,5 +1,15 @@
 # Notfeed — Decisões Arquiteturais
 
+## Localização atual após a migração estrutural
+
+| Unidade | Caminho e dependência                                                                                     |
+| ------- | --------------------------------------------------------------------------------------------------------- |
+| Web/PWA | `apps/web`, consome `@notfeed/product` e gera `apps/web/build`.                                           |
+| Produto | `packages/notfeed/src`, conserva os agrupamentos anteriores de lib; não importa arquivos dos aplicativos. |
+| Desktop | `apps/desktop/src-tauri`, conserva a crate Rust e empacota `../../web/build`.                             |
+
+As decisões abaixo são registros históricos e podem citar os caminhos originais. Os [contratos da migração](plans/etapa-1-migracao-estrutural/contratos.md) e o [estado vivo](plans/etapa-1-migracao-estrutural/state.md) descrevem a estrutura vigente. A reorganização dos módulos de negócio será definida na etapa 2.
+
 ## ADR-001: Client-side first (SPA)
 
 **Contexto**: Notfeed é um agregador pessoal; não há necessidade de SEO ou SSR.  
@@ -52,6 +62,7 @@
 
 **Contexto**: Precisamos organizar conteúdo por múltiplas dimensões sem permitir criação livre pelo usuário.  
 **Decisão**: `Category` com campo `treeId: CategoryTreeId` — cinco árvores:
+
 - **subject** (a) — Temas baseados em IPTC NewsCodes Media Topics
 - **content_type** (b) — Acessibilidade baseada em schema.org + W3C WAI
 - **media_type** (c) — Tipos de mídia baseados em DCMI + schema.org
@@ -101,6 +112,7 @@ Campos da `Category`: `id`, `label`, `treeId`, `parentId`, `depth`, `order`, e `
 
 **Contexto**: Uma ContentTree precisa de nós com papéis distintos — perfis editoriais, fontes de dados, coleções, links entre árvores.  
 **Decisão**: `NodeRole = 'profile' | 'font' | 'collection' | 'tree'`. Cada papel tem um `NodeBody` discriminado:
+
 - **profile** — `ProfileBody { links: ExternalLink[] }`
 - **font** — `FontBody { protocols: FontProtocolEntry[]; defaultEnabled: boolean }` (multi-protocolo: cada entry carrega `id`, `protocol`, `config`, `primary?`)
 - **collection** — `CollectionBody { links: ExternalLink[] }`
@@ -113,6 +125,7 @@ Todos os nós compartilham `NodeHeader` (title, subtitle, summary, coverMediaId,
 
 **Contexto**: Padrões de UI repetidos em múltiplos componentes (botão de favorito, seletor de prioridade, dialogs de confirmação, dialogs de tab) geram duplicação e inconsistência.  
 **Decisão**: Camada `shared/` contém componentes reutilizáveis agnósticos de domínio:
+
 - **ConfirmDialog** — base genérica com `icon` snippet, `title`, `description`, `confirmVariant`
 - **ConfirmUnfavoriteDialog** — wrapper com ícone StarOff e texto específico
 - **TabDialog** — dialog unificado com 3 modes (`create` | `edit` | `delete`), cada um com ícone, título e comportamento próprios
@@ -187,6 +200,7 @@ Todos os nós compartilham `NodeHeader` (title, subtitle, summary, coverMediaId,
 
 **Contexto**: Inicialmente, o domínio tinha entidades separadas (CreatorPage, Profile, Font). A evolução mostrou que uma estrutura unificada com nós tipados é mais flexível e escalável.  
 **Decisão**: `ContentTree` como aggregate root central. Estrutura:
+
 - `nodes: Record<string, TreeNode>` — nós embarcados com `role`, `data.header` (NodeHeader) e `data.body` (NodeBody discriminado por role)
 - `paths: TreePaths` — mapeamento de posição: `/` (root nodeId), `*` (unsectioned nodeIds[]), `[sectionId]` (sectioned nodeIds[])
 - `sections: TreeSection[]` — divisões visuais com `id`, `order`, `symbol`, `title`, `hideTitle`, `color`
@@ -226,7 +240,6 @@ IDs de nós são compostos: `treeId:localUuid` para unicidade global. Utilitári
 **Consequência**: Adicionar SQLite no Plano C é mecânico (preencher o stub) sem tocar nas stores. As capabilities `platform`, `hasBackgroundSync` e `hasPeriodicSync` foram adicionadas ao mesmo objeto para informar UI/SW sobre features disponíveis. O alias `getDatabase()` foi mantido para back-compat. A versão atual do IndexedDB vive em `PERSISTENCE.dbSchemaVersion`.
 
 **Nota (supply-chain)**: rejeitamos `@vite-pwa/sveltekit` durante a fase AA6 por arrastar deps transitivas com avisos de segurança (e.g. `glob<11`, `source-map`, etc.) e oferecer ganho marginal sobre a infraestrutura nativa de SW do SvelteKit. O Plano AB usará `src/service-worker.ts` + Workbox direto (`workbox-precaching`, `workbox-routing`, `workbox-window`). Ver futuro ADR-034.
-
 
 ## ADR-034: Service worker via SvelteKit native + Workbox direto (Plano AB)
 
@@ -286,12 +299,14 @@ IDs de nós são compostos: `treeId:localUuid` para unicidade global. Utilitári
 
 **Contexto**: O app já tratava `rss`, `atom` e `jsonfeed` como protocolos lógicos de conteúdo, com busca via HTTP. Era necessário consumir os mesmos formatos também via `ipfs://` e `ipns://` (hipermídia), sem introduzir um novo protocolo de negócio e sem adicionar SSR. Além disso, a estratégia deveria funcionar em web/PWA/TWA e desktop Tauri, com premissa offline-first.
 **Decisão**: Manter o modelo de fonte inalterado (`FontProtocol` continua `rss | atom | jsonfeed | nostr`) e tratar IPFS/IPNS como **transporte de URL** em `config.url`. Foi criado um parser/resolvedor compartilhado (`$lib/ingestion/net/feed-url.ts`) que aceita:
+
 - `http(s)://...`
 - `ipfs://<cid>[/path]`
 - `ipns://<name>[/path]` (incluindo DNSLink)
 - URLs HTTP de gateway com `/ipfs/...` e `/ipns/...`
 
 No runtime:
+
 - **Web/PWA/TWA**: tenta Helia primeiro (`helia`, `@helia/unixfs`, `@helia/ipns`) com timeout e limite de bytes; em falha (ou bloqueio de rede/ambiente), usa a matriz IPFS/IPNS por protocolo em ordem fixa `Helia -> gateway -> proxy sobre gateway`.
 - **Tauri**: segue o mesmo fluxo, usando `@tauri-apps/plugin-http` para a etapa HTTP de fallback.
 

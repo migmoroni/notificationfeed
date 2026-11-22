@@ -1,0 +1,22 @@
+packages:
+  - apps/web
+  - apps/desktop
+  - packages/notfeed
+engineStrict: true
+strictPeerDependencies: true
+autoInstallPeers: true
+strictDepBuilds: true
+pmOnFail: error
+verifyDepsBeforeRun: error
+enableGlobalVirtualStore: false
+allowBuilds:
+  'esbuild@0.28.2': true
+  'node-datachannel@0.29.0': true
+  'fsevents@2.3.3': true
+minimumReleaseAgeExclude:
+  - svelte@5.59.1
+  - baseline-browser-mapping@2.11.39
+  - tailwind-merge@3.7.1
+overrides:
+  'source-map-js@': 1.2.4
+  'undici@': 7.30.2

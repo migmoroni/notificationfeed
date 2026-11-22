@@ -1,0 +1,810 @@
+[
+  {
+    "file": "packages/notfeed/src/components/browse/SearchBar.svelte",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/components/creator/AvatarPicker.svelte",
+    "imports": 8
+  },
+  {
+    "file": "packages/notfeed/src/components/creator/CategoryPicker.svelte",
+    "imports": 8
+  },
+  {
+    "file": "packages/notfeed/src/components/creator/CategoryTreePicker.svelte",
+    "imports": 8
+  },
+  {
+    "file": "packages/notfeed/src/components/creator/CollectionBodyForm.svelte",
+    "imports": 5
+  },
+  {
+    "file": "packages/notfeed/src/components/creator/CopyFromConsumerDialog.svelte",
+    "imports": 9
+  },
+  {
+    "file": "packages/notfeed/src/components/creator/ExportButton.svelte",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/components/creator/FontBodyForm.svelte",
+    "imports": 9
+  },
+  {
+    "file": "packages/notfeed/src/components/creator/MediaUpload.svelte",
+    "imports": 8
+  },
+  {
+    "file": "packages/notfeed/src/components/creator/NodeForm.svelte",
+    "imports": 5
+  },
+  {
+    "file": "packages/notfeed/src/components/creator/NodeHeaderForm.svelte",
+    "imports": 5
+  },
+  {
+    "file": "packages/notfeed/src/components/creator/ProfileBodyForm.svelte",
+    "imports": 5
+  },
+  {
+    "file": "packages/notfeed/src/components/creator/PublishButton.svelte",
+    "imports": 5
+  },
+  {
+    "file": "packages/notfeed/src/components/creator/TagInput.svelte",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/components/creator/TreeEditor.svelte",
+    "imports": 14
+  },
+  {
+    "file": "packages/notfeed/src/components/creator/TreeLinkBodyForm.svelte",
+    "imports": 5
+  },
+  {
+    "file": "packages/notfeed/src/components/feed/CategoryFilter.svelte",
+    "imports": 5
+  },
+  {
+    "file": "packages/notfeed/src/components/feed/FeedList.svelte",
+    "imports": 11
+  },
+  {
+    "file": "packages/notfeed/src/components/feed/FeedMacros.svelte",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/components/feed/PostCard.svelte",
+    "imports": 9
+  },
+  {
+    "file": "packages/notfeed/src/components/feed/PostMedia.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/feed/PriorityFilter.svelte",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/components/feed/ViewModeToggle.svelte",
+    "imports": 3
+  },
+  {
+    "file": "packages/notfeed/src/components/library/LibraryHome.svelte",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/components/library/LibraryItemList.svelte",
+    "imports": 7
+  },
+  {
+    "file": "packages/notfeed/src/components/library/LibrarySearchBar.svelte",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/components/library/SelectionBar.svelte",
+    "imports": 3
+  },
+  {
+    "file": "packages/notfeed/src/components/library/TabAssignmentDialog.svelte",
+    "imports": 5
+  },
+  {
+    "file": "packages/notfeed/src/components/library/TabSidebar.svelte",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/components/notifications/NotificationBell.svelte",
+    "imports": 5
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/ActiveCategoryBadges.svelte",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/ActiveLibraryTabBadges.svelte",
+    "imports": 3
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/CategoryTree.svelte",
+    "imports": 5
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/EmojiPicker.svelte",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/EntityTreeFilter.svelte",
+    "imports": 9
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/FavoriteButton.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/FilterSidebar.svelte",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/InstallButton.svelte",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/LibraryTabFilter.svelte",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/PageHeader.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/TreeSelector.svelte",
+    "imports": 5
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/activeContent/ActiveButton.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/activeContent/FollowButton.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/activeContent/SubscribeButton.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/dialog/ConfirmDeactivateDialog.svelte",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/dialog/ConfirmDeletePageDialog.svelte",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/dialog/ConfirmDialog.svelte",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/dialog/ConfirmRemoveMediaDialog.svelte",
+    "imports": 3
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/dialog/ConfirmRemoveUserDialog.svelte",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/dialog/ConfirmUnfavoriteDialog.svelte",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/dialog/ConfirmUnfollowDialog.svelte",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/dialog/ConfirmUnpinDialog.svelte",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/dialog/ConfirmUnsubscribeDialog.svelte",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/dialog/MediaPickerDialog.svelte",
+    "imports": 6
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/dialog/TabDialog.svelte",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/entity/EntityCard.svelte",
+    "imports": 10
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/entity/EntityList.svelte",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/entity/NodeDetailPage.svelte",
+    "imports": 25
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/mediaPlayer/UnifiedAudioPlayer.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/mediaPlayer/UnifiedEmbedPlayer.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/priority/PriorityBadge.svelte",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/priority/priority.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/share/ShareButtons.svelte",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/components/shared/share/ShareMenu.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/badge/badge.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/button/button.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/card/card-action.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/card/card-content.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/card/card-description.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/card/card-footer.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/card/card-header.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/card/card-title.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/card/card.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/dialog/dialog-content.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/dialog/dialog-description.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/dialog/dialog-footer.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/dialog/dialog-header.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/dialog/dialog-overlay.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/dialog/dialog-title.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/input/input.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/label/label.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/select/select-content.svelte",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/select/select-group-heading.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/select/select-item.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/select/select-label.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/select/select-scroll-down-button.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/select/select-scroll-up-button.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/select/select-separator.svelte",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/select/select-trigger.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/separator/separator.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/sheet/sheet-content.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/sheet/sheet-description.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/sheet/sheet-footer.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/sheet/sheet-header.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/sheet/sheet-overlay.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/sheet/sheet-title.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/switch/switch.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/tabs/tabs-content.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/tabs/tabs-list.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/tabs/tabs-trigger.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/tabs/tabs.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/textarea/textarea.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/toggle-group/toggle-group-item.svelte",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/toggle-group/toggle-group.svelte",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/components/ui/toggle/toggle.svelte",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/domain/feed-macro/feed-macro.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/domain/feed-macro/macro-evaluator.ts",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/domain/ingestion/ingestion-settings.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/domain/notifications/pipeline.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/domain/shared/category-aggregation.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/domain/shared/category-assignment.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/domain/shared/image-asset.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/atom/atom.client.test.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/atom/atom.client.ts",
+    "imports": 8
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/jsonfeed/jsonfeed.client.test.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/jsonfeed/jsonfeed.client.ts",
+    "imports": 8
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/media/image-quality.test.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/media/image-quality.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/media/runtime-context.test.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/media/runtime-context.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/media/video-quality.test.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/media/video-quality.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/net/feed-url.test.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/net/feed-url.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/net/helia-resolver.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/net/http-utils.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/net/index.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/net/tauri-http.adapter.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/net/web-proxy.adapter.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/nostr/nostr.client.ts",
+    "imports": 9
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/post-manager.ts",
+    "imports": 23
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/retention.ts",
+    "imports": 3
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/rss/rss.client.test.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/rss/rss.client.ts",
+    "imports": 8
+  },
+  {
+    "file": "packages/notfeed/src/ingestion/scheduler.ts",
+    "imports": 3
+  },
+  {
+    "file": "packages/notfeed/src/normalization/atom.normalizer.ts",
+    "imports": 7
+  },
+  {
+    "file": "packages/notfeed/src/normalization/canonical-post.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/normalization/jsonfeed.normalizer.ts",
+    "imports": 7
+  },
+  {
+    "file": "packages/notfeed/src/normalization/nostr.normalizer.test.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/normalization/nostr.normalizer.ts",
+    "imports": 8
+  },
+  {
+    "file": "packages/notfeed/src/normalization/rss.normalizer.ts",
+    "imports": 7
+  },
+  {
+    "file": "packages/notfeed/src/notifications/notification-engine.ts",
+    "imports": 13
+  },
+  {
+    "file": "packages/notfeed/src/notifications/pipeline-event-consumer.ts",
+    "imports": 12
+  },
+  {
+    "file": "packages/notfeed/src/persistence/activity.store.ts",
+    "imports": 3
+  },
+  {
+    "file": "packages/notfeed/src/persistence/backends/indexeddb.backend.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/persistence/category-seed.service.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/persistence/category.store.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/persistence/content-media.store.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/persistence/content-tree.store.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/persistence/db.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/persistence/editor-media.store.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/persistence/editor-tree.store.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/persistence/fetcher-state.store.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/persistence/notification-inbox.store.ts",
+    "imports": 3
+  },
+  {
+    "file": "packages/notfeed/src/persistence/notification-meta.store.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/persistence/pipeline-events.store.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/persistence/post.store.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/persistence/tree-publication.store.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/persistence/user-consumer.store.ts",
+    "imports": 7
+  },
+  {
+    "file": "packages/notfeed/src/persistence/user-creator.store.ts",
+    "imports": 3
+  },
+  {
+    "file": "packages/notfeed/src/platform/web/sw-register.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/services/activity.service.ts",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/services/copy-consumer.service.ts",
+    "imports": 6
+  },
+  {
+    "file": "packages/notfeed/src/services/export.service.ts",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/services/image.service.test.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/services/image.service.ts",
+    "imports": 3
+  },
+  {
+    "file": "packages/notfeed/src/services/import.service.ts",
+    "imports": 10
+  },
+  {
+    "file": "packages/notfeed/src/services/media.service.ts",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/stores/active-user.svelte.ts",
+    "imports": 11
+  },
+  {
+    "file": "packages/notfeed/src/stores/browse-entity-filter.svelte.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/stores/browse.svelte.ts",
+    "imports": 5
+  },
+  {
+    "file": "packages/notfeed/src/stores/category-filter.svelte.ts",
+    "imports": 3
+  },
+  {
+    "file": "packages/notfeed/src/stores/category-tree.types.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/stores/consumer.svelte.ts",
+    "imports": 7
+  },
+  {
+    "file": "packages/notfeed/src/stores/creator.svelte.ts",
+    "imports": 13
+  },
+  {
+    "file": "packages/notfeed/src/stores/entity-filter.svelte.ts",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/stores/entity-filter.types.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/stores/feed-macros.svelte.ts",
+    "imports": 5
+  },
+  {
+    "file": "packages/notfeed/src/stores/feed.svelte.ts",
+    "imports": 8
+  },
+  {
+    "file": "packages/notfeed/src/stores/layout.svelte.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/stores/library.svelte.ts",
+    "imports": 6
+  },
+  {
+    "file": "packages/notfeed/src/stores/preview-entity-filter.svelte.ts",
+    "imports": 2
+  },
+  {
+    "file": "packages/notfeed/src/stores/preview-feed.svelte.ts",
+    "imports": 4
+  },
+  {
+    "file": "packages/notfeed/src/utils/date.ts",
+    "imports": 1
+  },
+  {
+    "file": "packages/notfeed/src/utils/mock-data.ts",
+    "imports": 8
+  },
+  {
+    "file": "apps/web/src/routes/+layout.svelte",
+    "imports": 15
+  },
+  {
+    "file": "apps/web/src/routes/+page.svelte",
+    "imports": 18
+  },
+  {
+    "file": "apps/web/src/routes/browse/+page.svelte",
+    "imports": 13
+  },
+  {
+    "file": "apps/web/src/routes/browse/import/+page.svelte",
+    "imports": 10
+  },
+  {
+    "file": "apps/web/src/routes/browse/node/[nodeId]/+page.svelte",
+    "imports": 2
+  },
+  {
+    "file": "apps/web/src/routes/library/+page.svelte",
+    "imports": 8
+  },
+  {
+    "file": "apps/web/src/routes/library/node/[nodeId]/+page.svelte",
+    "imports": 2
+  },
+  {
+    "file": "apps/web/src/routes/pages/+page.svelte",
+    "imports": 9
+  },
+  {
+    "file": "apps/web/src/routes/pages/[id]/+page.svelte",
+    "imports": 18
+  },
+  {
+    "file": "apps/web/src/routes/pages/new/+page.svelte",
+    "imports": 8
+  },
+  {
+    "file": "apps/web/src/routes/preview/+page.svelte",
+    "imports": 16
+  },
+  {
+    "file": "apps/web/src/routes/preview/node/[nodeId]/+page.svelte",
+    "imports": 1
+  },
+  {
+    "file": "apps/web/src/routes/user/+page.svelte",
+    "imports": 26
+  },
+  {
+    "file": "apps/web/src/routes/user/settings/activity/+page.svelte",
+    "imports": 7
+  },
+  {
+    "file": "apps/web/src/routes/user/settings/ingestion/+page.svelte",
+    "imports": 18
+  },
+  {
+    "file": "apps/web/src/routes/user/settings/notifications/+page.svelte",
+    "imports": 13
+  },
+  {
+    "file": "apps/web/src/service-worker.ts",
+    "imports": 1
+  }
+]

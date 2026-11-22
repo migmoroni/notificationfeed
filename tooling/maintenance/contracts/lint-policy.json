@@ -1,0 +1,67 @@
+{
+	"schemaVersion": 1,
+	"files": [
+		"apps/**/*.{js,mjs,cjs,ts,svelte}",
+		"packages/**/*.{js,mjs,cjs,ts,svelte}",
+		"tooling/**/*.{js,mjs,cjs,ts,svelte}",
+		"*.{js,mjs,cjs,ts}"
+	],
+	"generatedExclusions": [
+		"**/node_modules/**",
+		"**/.svelte-kit/**",
+		"apps/web/build/**",
+		"apps/desktop/src-tauri/target/**",
+		"apps/desktop/src-tauri/gen/**",
+		".artifacts/**"
+	],
+	"historicalExclusions": [
+		"tooling/migration/** (immutable stage-1 proof, no active command dependence after 2.5a)"
+	],
+	"noInlineConfig": true,
+	"maxWarnings": 0,
+	"rules": {
+		"constructor-super": "error",
+		"for-direction": "error",
+		"no-class-assign": "error",
+		"no-debugger": "error",
+		"no-dupe-args": "error",
+		"no-dupe-class-members": "error",
+		"no-dupe-keys": "error",
+		"no-duplicate-case": "error",
+		"no-ex-assign": "error",
+		"no-func-assign": "error",
+		"no-import-assign": "error",
+		"no-invalid-regexp": "error",
+		"no-loss-of-precision": "error",
+		"no-new-symbol": "error",
+		"no-obj-calls": "error",
+		"no-setter-return": "error",
+		"no-unexpected-multiline": "error",
+		"no-unsafe-finally": "error",
+		"no-unsafe-negation": "error",
+		"no-unsafe-optional-chaining": "error",
+		"use-isnan": "error",
+		"valid-typeof": "error"
+	},
+	"jsOnlyRules": {
+		"no-undef": "error"
+	},
+	"parsers": {
+		"js": "ESLint default",
+		"ts": "typescript-eslint.parser",
+		"svelte": "eslint-plugin-svelte recommended parser with typescript-eslint.parser for scripts"
+	},
+	"environments": {
+		"node": ["tooling/**", "*.{js,mjs,cjs}", "apps/web/*config*", "apps/web/scripts/**"],
+		"browser": ["apps/web/src/routes/**", "packages/notfeed/src/**"],
+		"serviceworker": ["apps/web/src/service-worker.ts"],
+		"tests": "Vitest imports; no global test functions assumed"
+	},
+	"notAdoptedGlobally": [
+		"no-unused-vars: not part of the bounded initial contract",
+		"no-explicit-any: historical syntax debt tracked separately; no new occurrences allowed"
+	],
+	"debtInventory": "baseline.json#historicalRestrictions",
+	"suppressionPolicy": "Remove ESLint directives; enabled rules admit no errors/warnings. Existing Svelte compiler annotations are tracked separately by syntax and may not increase.",
+	"formatting": "Prettier with Svelte plugin; formatting isolated from functional edits; only generated/binary/identified immutable historical records excluded."
+}

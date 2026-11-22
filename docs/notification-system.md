@@ -10,9 +10,9 @@ Para cada post recém-ingerido sobre o qual o usuário ainda não foi
 notificado, o engine avalia três etapas em ordem, e a primeira a
 casar consome o post:
 
-1. **per_post**     — uma notificação por post que casa. O clique
+1. **per_post** — uma notificação por post que casa. O clique
    abre a URL do post.
-2. **batch_macro**  — um resumo por feed-macro casado quando novos
+2. **batch_macro** — um resumo por feed-macro casado quando novos
    posts chegam. O clique abre a página do feed com aquele macro
    selecionado.
 3. **batch_global** — catch-all: um resumo global quando qualquer
@@ -41,13 +41,13 @@ em `pipeline-event-consumer.ts`.
 
 ### Mapeamento Evento → Inbox kind
 
-| `PipelineEventType`   | `InboxEntryKind`        | Severidade |
-|-----------------------|-------------------------|------------|
-| PIPELINE_UNSTABLE     | `font_unstable`         | warning    |
-| PIPELINE_OFFLINE      | `font_offline`          | critical   |
-| PIPELINE_RECOVERED    | `font_recovered`        | info       |
-| PIPELINE_DEGRADED     | `font_degraded`         | warning    |
-| SOURCE_SWITCHED       | `font_source_switched`  | info       |
+| `PipelineEventType` | `InboxEntryKind`       | Severidade |
+| ------------------- | ---------------------- | ---------- |
+| PIPELINE_UNSTABLE   | `font_unstable`        | warning    |
+| PIPELINE_OFFLINE    | `font_offline`         | critical   |
+| PIPELINE_RECOVERED  | `font_recovered`       | info       |
+| PIPELINE_DEGRADED   | `font_degraded`        | warning    |
+| SOURCE_SWITCHED     | `font_source_switched` | info       |
 
 O sino do inbox renderiza cada kind com uma borda esquerda
 colorida: destrutivo (offline), laranja (unstable), esmeralda
@@ -80,13 +80,13 @@ Por `(fontId, eventType)`, o consumer pula um evento se já existe
 uma entrada de inbox do mesmo kind para a mesma font dentro da
 janela configurada:
 
-| Tipo de evento    | Janela |
-|-------------------|--------|
-| UNSTABLE          | 30 min |
-| OFFLINE           | 6 h    |
-| DEGRADED          | 30 min |
-| SOURCE_SWITCHED   | 6 h    |
-| RECOVERED         | 0 (nunca dedupada) |
+| Tipo de evento  | Janela             |
+| --------------- | ------------------ |
+| UNSTABLE        | 30 min             |
+| OFFLINE         | 6 h                |
+| DEGRADED        | 30 min             |
+| SOURCE_SWITCHED | 6 h                |
+| RECOVERED       | 0 (nunca dedupada) |
 
 `RECOVERED` nunca é dedupada porque os usuários sempre querem
 saber que uma font voltou a funcionar.
@@ -112,12 +112,12 @@ notifier de SO; só os lados produtores diferem.
 
 ## Layout de persistência
 
-| Store               | Propósito                                              |
-|---------------------|--------------------------------------------------------|
-| `fetcherStates`     | Estado da pipeline por font (ver docs de ingestão)     |
-| `pipelineEvents`    | Fila durável de eventos (com `consumedBy[]` por usuário)|
-| `notificationInbox` | Histórico canônico de notificações disparadas          |
-| `notificationMeta`  | `lastFiredAt` por etapa, `batchGlobalEverNotifiedNodeIds` |
+| Store               | Propósito                                                     |
+| ------------------- | ------------------------------------------------------------- |
+| `fetcherStates`     | Estado da pipeline por font (ver docs de ingestão)            |
+| `pipelineEvents`    | Fila durável de eventos (com `consumedBy[]` por usuário)      |
+| `notificationInbox` | Histórico canônico de notificações disparadas                 |
+| `notificationMeta`  | `lastFiredAt` por etapa, `batchGlobalEverNotifiedNodeIds`     |
 | `users`             | `settingsUser.notifications` (pipeline + eventos por usuário) |
 
 Eventos de pipeline são podados por `prunePipelineEvents(now,

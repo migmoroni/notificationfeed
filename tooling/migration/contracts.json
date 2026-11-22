@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "inventory": {
+    "required": ["version", "revision", "tools", "files", "dependencies", "tests", "routes", "storageKeys", "protectedFiles", "historicalRestrictions"],
+    "fileRequired": ["path", "sha256", "normalizedSha256"],
+    "testRequired": ["file", "fullName"]
+  },
+  "evidence": {
+    "required": ["version", "phase", "contractHash", "inputHash", "startedAt", "finishedAt", "commands", "status"],
+    "processRequired": ["command", "args", "exitCode", "signal", "timedOut", "durationMs", "log"],
+    "success": {"exitCode": 0, "signal": null, "timedOut": false}
+  },
+  "phases": {
+    "P0": ["contracts", "architecture", "arbiter", "types", "unit", "build", "reference"],
+    "P1": ["contracts", "architecture", "arbiter", "types", "unit", "build", "e2e-types", "e2e", "reference-build"],
+    "P2": ["contracts", "architecture", "arbiter", "types", "unit", "build", "e2e-types", "e2e", "cargo-metadata", "dev-smoke"],
+    "P3": ["contracts", "architecture", "arbiter", "types", "unit", "build", "e2e-types", "e2e", "exports"],
+    "P4": ["contracts", "architecture", "arbiter", "types", "unit", "build", "e2e-types", "e2e", "upgrade"],
+    "P5": ["contracts", "architecture", "arbiter", "build", "cargo-check", "cargo-test", "appimage", "bundle"],
+    "P6": ["install", "contracts", "architecture", "arbiter", "types", "unit", "reference-rebuild", "build", "e2e-types", "exports", "dev-e2e", "cargo-check", "cargo-test", "appimage", "bundle", "e2e", "upgrade", "diff"]
+  }
+}

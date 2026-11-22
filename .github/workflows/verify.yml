@@ -1,0 +1,69 @@
+name: Verify
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      MISE_DATA_DIR: ${{ runner.temp }}/notfeed-mise/data
+      MISE_CACHE_DIR: ${{ runner.temp }}/notfeed-mise/cache
+      MISE_CONFIG_DIR: ${{ runner.temp }}/notfeed-mise/config
+      MISE_STATE_DIR: ${{ runner.temp }}/notfeed-mise/state
+    steps:
+      - id: checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - id: system
+        name: Preparar pré-requisitos web
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates curl git tar xz-utils
+      - id: tools
+        name: Provisionar ferramentas com mise verificado
+        run: |
+          test ! -e "$MISE_DATA_DIR"
+          mise_executable="$(bash tooling/setup/install-mise.sh --install-dir "$RUNNER_TEMP/notfeed-mise/bin")"
+          "$mise_executable" trust "$PWD/mise.toml"
+          "$mise_executable" install --locked
+          mkdir -p .artifacts/setup
+          printf '%s\n' "$MISE_DATA_DIR" > .artifacts/setup/mise-data-fresh.stdout
+          "$mise_executable" exec -- node tooling/checks/provision.mjs check > .artifacts/setup/bootstrap.json
+          printf '%s\n' "$(dirname "$mise_executable")" >> "$GITHUB_PATH"
+          "$mise_executable" bin-paths >> "$GITHUB_PATH"
+      - id: cache
+        name: Cache pnpm usando o Node do mise
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          cache: pnpm
+          package-manager-cache: false
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            pnpm-workspace.yaml
+            .nvmrc
+            rust-toolchain.toml
+            apps/desktop/src-tauri/Cargo.lock
+            package.json
+            mise.toml
+            mise.lock
+            .mise/locks/**
+            tooling/setup/install-mise.sh
+            tooling/checks/contracts/provision.json
+      - id: setup
+        run: mise run setup:ci
+      - id: verify
+        run: mise exec -- node tooling/checks/ci.mjs run web
+      - id: proof
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        if: always()
+        with:
+          name: proof-web-${{ github.run_attempt }}
+          path: .artifacts/ci/web/artifact
+          retention-days: 14
+          if-no-files-found: error

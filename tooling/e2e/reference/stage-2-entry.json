@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "889802a5803e40e7feac0bceea27cf115fd5fe8a",
+  "bundle": "tooling/e2e/reference/stage-2-entry.bundle",
+  "bundleHash": "53adc0f0b3118c7799a2622ec4708ec7464bdf7ddad1c35aac89900f4af3e220",
+  "selfContained": true,
+  "node": {
+    "version": "22.21.1",
+    "platform": "linux-x64",
+    "url": "https://nodejs.org/dist/v22.21.1/node-v22.21.1-linux-x64.tar.xz",
+    "sha256": "680d3f30b24a7ff24b98db5e96f294c0070f8f9078df658da1bce1b9c9873c88"
+  },
+  "npm": {
+    "version": "11.11.1",
+    "url": "https://registry.npmjs.org/npm/-/npm-11.11.1.tgz",
+    "integrity": "sha512-asazCodkFdz1ReQzukyzS/DD77uGCIqUFeRG3gtaT8b9UR0ne1m9QOBuMgT72ij1rt7TRrOox4A1WzntMWIuEg=="
+  },
+  "build": "apps/web/build",
+  "sourceHashMethod": "sha256 of sorted tracked paths and SHA256 bytes; state.md excluded",
+  "buildDestination": ".artifacts/e2e/stage-2-entry-build",
+  "evidenceDestination": ".artifacts/e2e/stage-2-entry.json",
+  "installation": "download/checksum exact Node/npm and historical N-API artifact into fresh synthetic area/cache; npm ci with all install scripts; npm run build; no global/source/lock changes",
+  "inputHash": "8ee5da44f2b4d2c38f595a1645146c0a390c10e896e37ea74376caa0521c4cc9",
+  "nativePrebuild": {
+    "package": "node-datachannel",
+    "version": "0.29.0",
+    "platform": "linux",
+    "arch": "x64",
+    "url": "https://github.com/murat-dogan/node-datachannel/releases/download/v0.29.0/node-datachannel-v0.29.0-napi-v8-linux-x64.tar.gz",
+    "sha256": "767470521a7caf66ea5f702ecc0f6e5b91caa56d1674149c17ac535149f4953f",
+    "cacheFile": "_prebuilds/0bce67-node-datachannel-v0.29.0-napi-v8-linux-x64.tar.gz",
+    "scope": "Only historical entry reconstruction; official unchanged artifact pre-provisioned with checksum into a new isolated npm cache; npm ci and install scripts still execute."
+  }
+}

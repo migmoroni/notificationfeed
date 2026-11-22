@@ -45,6 +45,7 @@ FontProtocolEntry {
 ## FontConfig por protocolo
 
 ### Nostr (`FontNostrConfig`)
+
 ```typescript
 {
   relays: string[]    // Ex: ["wss://relay.damus.io", "wss://nos.lol"]
@@ -54,29 +55,33 @@ FontProtocolEntry {
 ```
 
 ### RSS (`FontRssConfig`)
+
 ```typescript
 {
-  url: string         // Ex: "https://example.com/feed.xml"
+	url: string; // Ex: "https://example.com/feed.xml"
 }
 ```
 
 ### Atom (`FontAtomConfig`)
+
 ```typescript
 {
-  url: string         // Ex: "https://example.com/atom.xml"
+	url: string; // Ex: "https://example.com/atom.xml"
 }
 ```
 
 ### JSON Feed (`FontJsonfeedConfig`)
+
 ```typescript
 {
-  url: string         // Ex: "https://example.com/feed.json" (JSON Feed v1.0/v1.1)
+	url: string; // Ex: "https://example.com/feed.json" (JSON Feed v1.0/v1.1)
 }
 ```
 
 ## ID composto
 
 O ID global de uma Font é `treeId:localUuid`:
+
 - `treeId` = ID da ContentTree que a contém
 - `localUuid` = chave no `nodes` Record da árvore
 
@@ -120,17 +125,18 @@ mídia. Ver `docs/ingestion-to-post-flow.md`.
 ## Detecção de protocolo (import)
 
 Na importação por URL simples, o protocolo é detectado heuristicamente:
+
 - URL termina com `.json`, contém `'feed.json'` ou `'jsonfeed'` → JSON Feed (precedência sobre XML)
 - Presença de `'atom'`, `'.xml'`, `'/feed'`, `'rss'` na URL → RSS/Atom
 - Default: RSS
 
 ## Navegação
 
-| Contexto | URL |
-|---|---|
-| Browse | `/browse/node/{compositeId}` |
-| Library | `/library/node/{compositeId}` |
-| Preview | `/preview/node/{compositeId}` |
+| Contexto | URL                           |
+| -------- | ----------------------------- |
+| Browse   | `/browse/node/{compositeId}`  |
+| Library  | `/library/node/{compositeId}` |
+| Preview  | `/preview/node/{compositeId}` |
 
 ## Funcionalidades
 

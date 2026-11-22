@@ -1,0 +1,10 @@
+{
+	"package": "node-datachannel",
+	"version": "0.29.0",
+	"platform": "linux",
+	"arch": "x64",
+	"url": "https://github.com/murat-dogan/node-datachannel/releases/download/v0.29.0/node-datachannel-v0.29.0-napi-v8-linux-x64.tar.gz",
+	"sha256": "767470521a7caf66ea5f702ecc0f6e5b91caa56d1674149c17ac535149f4953f",
+	"cacheFile": "_prebuilds/0bce67-node-datachannel-v0.29.0-napi-v8-linux-x64.tar.gz",
+	"scope": "Current clean installation and isolated historical reconstruction; unchanged official artifact provisioned with HTTPS/SHA256 into a new npm lifecycle cache; normal frozen installation and all scripts still execute."
+}

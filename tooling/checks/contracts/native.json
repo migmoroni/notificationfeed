@@ -1,0 +1,25 @@
+{
+	"version": 1,
+	"manifest": "apps/desktop/src-tauri/Cargo.toml",
+	"target": "apps/desktop/src-tauri/target",
+	"binary": "apps/desktop/src-tauri/target/release/notfeed",
+	"bundle": "apps/desktop/src-tauri/target/release/bundle/appimage/Notfeed_0.1.0_amd64.AppImage",
+	"extractedBinary": "squashfs-root/usr/bin/notfeed",
+	"desktopEntry": "squashfs-root/usr/share/applications/Notfeed.desktop",
+	"frontend": "apps/web/build",
+	"identity": "app.notfeed.desktop",
+	"payloadSections": [".text", ".rodata", ".note.gnu.build-id"],
+	"bundleMarkerBefore": "__TAURI_BUNDLE_TYPE_VAR_UNK",
+	"bundleMarkerAfter": "__TAURI_BUNDLE_TYPE_VAR_APP",
+	"rpath": "$ORIGIN/../lib",
+	"checks": [
+		"fresh-bundle",
+		"elf",
+		"payload-section-hashes",
+		"exact-tauri-bundle-marker",
+		"rpath",
+		"desktop-entry",
+		"embedded-immutable-assets",
+		"protected-rust-lock-and-permissions"
+	]
+}

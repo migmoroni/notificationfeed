@@ -1,0 +1,184 @@
+{
+	"schemaVersion": 1,
+	"workspaces": {
+		"apps/web": "@notfeed/web",
+		"apps/desktop": "@notfeed/desktop",
+		"packages/notfeed": "@notfeed/product"
+	},
+	"sources": ["apps/web/src", "packages/notfeed/src"],
+	"product": "packages/notfeed",
+	"testConfig": "apps/web/vitest.config.ts",
+	"testIncludes": ["src/**/*.test.ts", "../../packages/notfeed/src/**/*.test.ts"],
+	"exports": {
+		".": "./src/index.ts",
+		"./*.js": "./src/*.ts",
+		"./*.svelte": "./src/*.svelte",
+		"./*.svg": "./src/*.svg"
+	},
+	"virtualImports": {
+		"web": ["$app/navigation", "$app/environment", "$app/state", "$service-worker"],
+		"product": ["$app/navigation", "$app/environment"]
+	},
+	"data": {
+		"persistence": {
+			"dbName": "notfeed-v2",
+			"dbSchemaVersion": 18
+		},
+		"stores": [
+			{
+				"name": "contentTrees",
+				"keyPath": "metadata.id",
+				"indexes": [
+					{
+						"name": "author",
+						"keyPath": "metadata.author"
+					}
+				]
+			},
+			{
+				"name": "contentMedias",
+				"keyPath": "metadata.id",
+				"indexes": [
+					{
+						"name": "author",
+						"keyPath": "metadata.author"
+					}
+				]
+			},
+			{
+				"name": "editorTrees",
+				"keyPath": "metadata.id",
+				"indexes": [
+					{
+						"name": "author",
+						"keyPath": "metadata.author"
+					}
+				]
+			},
+			{
+				"name": "editorMedias",
+				"keyPath": "metadata.id",
+				"indexes": [
+					{
+						"name": "author",
+						"keyPath": "metadata.author"
+					}
+				]
+			},
+			{
+				"name": "treePublications",
+				"keyPath": "treeId"
+			},
+			{
+				"name": "users",
+				"keyPath": "id",
+				"indexes": [
+					{
+						"name": "role",
+						"keyPath": "role"
+					}
+				]
+			},
+			{
+				"name": "posts",
+				"keyPath": "_pk",
+				"indexes": [
+					{
+						"name": "byUser",
+						"keyPath": "userId"
+					},
+					{
+						"name": "byUserNode",
+						"keyPath": "_userNode"
+					}
+				]
+			},
+			{
+				"name": "fetcherStates",
+				"keyPath": "nodeId"
+			},
+			{
+				"name": "categories",
+				"keyPath": "id",
+				"indexes": [
+					{
+						"name": "parentId",
+						"keyPath": "parentId"
+					},
+					{
+						"name": "treeId",
+						"keyPath": "treeId"
+					}
+				]
+			},
+			{
+				"name": "activityData",
+				"keyPath": "userId"
+			},
+			{
+				"name": "notificationMeta",
+				"keyPath": "userId"
+			},
+			{
+				"name": "notificationInbox",
+				"keyPath": "_pk",
+				"indexes": [
+					{
+						"name": "byUser",
+						"keyPath": "userId"
+					}
+				]
+			},
+			{
+				"name": "pipelineEvents",
+				"keyPath": "id",
+				"indexes": [
+					{
+						"name": "byFont",
+						"keyPath": "fontId"
+					},
+					{
+						"name": "byTimestamp",
+						"keyPath": "timestamp"
+					}
+				]
+			}
+		],
+		"treeExport": {
+			"extension": ".notfeed.json",
+			"mime": "application/json",
+			"fields": ["exportId", "version", "exportedAt", "creatorDisplayName", "tree", "medias"]
+		}
+	},
+	"desktop": {
+		"identifier": "app.notfeed.desktop",
+		"version": "0.1.0",
+		"frontendDist": "../../web/build",
+		"capabilities": {
+			"$schema": "../gen/schemas/desktop-schema.json",
+			"identifier": "default",
+			"description": "default permissions",
+			"windows": ["main"],
+			"permissions": ["core:default", "http:default", "shell:default", "notification:default"]
+		}
+	},
+	"forbiddenActiveTooling": ["tooling/migration", "tooling/maintenance"],
+	"historicalSources": ["tooling/migration"],
+	"publicCommands": {
+		"check:architecture": "node tooling/checks/architecture.mjs",
+		"check:restrictions": "node tooling/checks/restrictions.mjs",
+		"check:contracts": "node tooling/checks/contracts.mjs",
+		"test:tooling": "node --test --test-reporter=tap --experimental-test-isolation=none tooling/checks/tests/*.test.mjs",
+		"lint": "eslint . --max-warnings 0",
+		"format:check": "prettier --check .",
+		"pwa:preview": "pnpm build && pnpm preview --host 127.0.0.1",
+		"doctor": "node tooling/checks/doctor.mjs",
+		"verify:quick": "node tooling/checks/verify.mjs quick",
+		"verify:integration": "node tooling/checks/verify.mjs integration",
+		"check:rust": "node tooling/checks/verify.mjs rust",
+		"security:collect": "node tooling/checks/security.mjs collect",
+		"security:check": "node tooling/checks/security.mjs check"
+	},
+	"typeConfigs": ["apps/web/tsconfig.json", "apps/web/tsconfig.worker.json"],
+	"typeCommand": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && tsc --project ./tsconfig.worker.json --noEmit"
+}

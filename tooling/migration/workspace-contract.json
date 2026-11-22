@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "web": "@notfeed/web",
+  "desktop": "@notfeed/desktop",
+  "product": "@notfeed/product",
+  "webBuild": "apps/web/build",
+  "desktopFrontendDist": "../../web/build",
+  "beforeDevCommand": "npm --prefix ../.. run dev --workspace @notfeed/web",
+  "beforeBuildCommand": "npm --prefix ../.. run build --workspace @notfeed/web",
+  "devUrl": "http://localhost:5173",
+  "webConfigFiles": ["svelte.config.js", "vite.config.ts", "vitest.config.ts", "tsconfig.json", "components.json"],
+  "webDirectories": ["src", "static", "scripts"],
+  "phases": {"P2": ["apps/web", "apps/desktop"], "P3": ["apps/web", "apps/desktop", "packages/notfeed"]}
+}
