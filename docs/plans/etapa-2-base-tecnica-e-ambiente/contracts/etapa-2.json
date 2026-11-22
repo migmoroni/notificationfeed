@@ -15,7 +15,7 @@
 	"fixedUnits": {
 		"2.1": ["bootstrap", "diagnosis"],
 		"2.3": [],
-		"2.5": ["checks", "lint", "format", "dev", "doctor"],
+		"2.5": ["checks", "lint", "format", "dev", "doctor", "provision"],
 		"2.6": ["configuration", "execution"],
 		"2.7": []
 	},
@@ -163,7 +163,7 @@
 	},
 	"plannedExtensions": {
 		"mise": {
-			"status": "planned-not-implemented",
+			"status": "adopted; awaiting gates",
 			"phase": "2.5",
 			"unit": "provision",
 			"document": "fases/2.5f-provisionamento-com-mise.md",
@@ -200,5 +200,7 @@
 			"docker": false,
 			"selfHostedRunner": false
 		}
-	}
+	},
+	"ciScope": "web-minimum",
+	"deferredCiReview": "stage-3-consolidation"
 }

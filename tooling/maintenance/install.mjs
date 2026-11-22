@@ -26,6 +26,7 @@ import { execute } from '../checks/io.mjs';
 import { assertSvelteSingleton } from '../checks/resolve.mjs';
 import { provisionPrebuild } from '../checks/download.mjs';
 import { currentPnpmGraph } from './manager.mjs';
+import { prepareProvisionCandidate } from '../checks/provision-probe.mjs';
 
 export async function assertLocalProduct(root) {
 	const script =
@@ -42,6 +43,26 @@ export function assertLocks(before, after) {
 	assert.deepEqual(after, before, 'instalação alterou locks');
 }
 export async function prepareCandidate(root, output) {
+	if (process.env.NOTFEED_PROVISION_ACTIVE === '1') {
+		const context = await prepareProvisionCandidate(root, output);
+		const evidence = path.join(context.area, 'installation.json');
+		writeJSON(evidence, {
+			schemaVersion: 1,
+			status: 'passed',
+			candidate: context.candidate,
+			commands: context.commands,
+			inputHash: context.inputHash,
+			locks: context.locks,
+			cacheInitiallyEmpty: context.cacheInitiallyEmpty
+		});
+		return {
+			candidate: context.candidate,
+			evidence,
+			provisionContext: path.join(context.area, 'context.json'),
+			unsetKeys: context.unsetKeys,
+			env: context.env
+		};
+	}
 	const before = snapshot(root);
 	mkdirSync(output, { recursive: true });
 	const area = mkdtempSync(path.join(output, 'candidate-'));

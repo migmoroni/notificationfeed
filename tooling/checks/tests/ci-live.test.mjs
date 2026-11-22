@@ -17,7 +17,7 @@ test('serviço CI precisa confirmar workflow/run/attempt e todos os jobs reais',
 		repository: { full_name: 'migmoroni/notificationfeed' }
 	};
 	const workflow = { path: '.github/workflows/verify.yml', name: 'Verify' };
-	const jobs = ['impact', 'web', 'desktop', 'integration'].map((name, index) => ({
+	const jobs = ['web'].map((name, index) => ({
 		id: index + 1,
 		run_id: 12,
 		name,
@@ -36,7 +36,7 @@ test('serviço CI precisa confirmar workflow/run/attempt e todos os jobs reais',
 	);
 	assert.throws(() => assertServiceRun(run, workflow, jobs.slice(1), { runId: 12 }));
 	assert.throws(() =>
-		assertServiceRun(run, workflow, [...jobs.slice(0, 3), { ...jobs[3], conclusion: 'skipped' }], {
+		assertServiceRun(run, workflow, [{ ...jobs[0], conclusion: 'skipped' }], {
 			runId: 12
 		})
 	);

@@ -84,7 +84,9 @@ test('checks permanentes entram em 2.5 antes de lint e bundle produz recibo veri
 test('configuração CI exige prova local e não aprova execução remota ou consolidação', () => {
 	const checks = phaseChecks('2.6', 'configuration', process.execPath);
 	assert.ok(checks.some((check) => check.id === 'CI-CONFIG'));
-	assert.ok(checks.some((check) => check.id === 'INSTALL'));
+	const proof = checks.find((check) => check.id === 'CI-PROVE');
+	assert.ok(proof?.jsonReceipt);
+	assert.deepEqual(proof.args, ['tooling/checks/ci.mjs', 'prove', 'web']);
 	assert.ok(!checks.some((check) => check.id === 'CI-REMOTE'));
 	assert.ok(
 		phaseChecks('2.6', 'execution', process.execPath).some((check) => check.id === 'CI-REMOTE')

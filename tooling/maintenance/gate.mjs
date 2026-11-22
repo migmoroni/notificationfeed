@@ -21,9 +21,18 @@ import {
 } from './lib.mjs';
 import { phaseChecks } from './phases.mjs';
 import { assertUnitReport } from '../checks/unit-lib.mjs';
+import { receiptChecks } from './receipt-lib.mjs';
+import {
+	assertProvisionReceipt,
+	executablePath,
+	provisionEnvironment
+} from '../checks/provision-lib.mjs';
+import { assertCIProof, ciFingerprint } from '../checks/ci-lib.mjs';
+import { verifyProofFiles } from '../checks/ci-live.mjs';
 
 const root = process.cwd();
 const manifest = readJSON(`${plan}/contracts/etapa-2.json`);
+const historical = readJSON('tooling/maintenance/contracts/historical-gates.json');
 const groups = readJSON('tooling/maintenance/contracts/updates.json').groups;
 const request = parseRequest(
 	process.argv.slice(2),
@@ -45,6 +54,8 @@ const directory = path.resolve(
 );
 mkdirSync(directory, { recursive: true });
 let candidate = root,
+	candidateEnv = {},
+	provisionContext,
 	finalReceipt;
 try {
 	finalReceipt = await artifactScope(
@@ -62,7 +73,12 @@ try {
 				schemaVersion: 1,
 				...request,
 				status: 'running',
-				profile: request.unit === 'bootstrap' ? 'Bootstrap' : 'Complete',
+				profile:
+					request.unit === 'bootstrap'
+						? 'Bootstrap'
+						: request.phase === '2.6' && request.unit === 'configuration'
+							? 'Web-CI-Configuration'
+							: 'Complete',
 				revision,
 				inputHash: before.hash,
 				contractsHash: contractsHash(root),
@@ -92,7 +108,13 @@ try {
 					unit,
 					inputHash: previous.inputHash,
 					contractsHash: previous.contractsHash,
-					checks: phaseChecks(request.phase, unit, process.execPath).map((check) => check.id)
+					checks: receiptChecks(
+						previous,
+						readFileSync(pointer.evidence, 'utf8'),
+						phaseChecks(request.phase, unit, process.execPath).map((check) => check.id),
+						historical,
+						request.phase === '2.5' && unit !== 'provision'
+					)
 				});
 				return previous;
 			}
@@ -116,17 +138,23 @@ try {
 				}
 				if (request.phase !== '2.1') {
 					const previousPhase = manifest.phasePredecessors[request.phase];
-					const previous = readJSON(
-						readJSON(path.resolve(manifest.evidenceRoot, previousPhase, 'final/latest.json'))
-							.evidence
-					);
+					const previousFile = readJSON(
+						path.resolve(manifest.evidenceRoot, previousPhase, 'final/latest.json')
+					).evidence;
+					const previous = readJSON(previousFile);
 					assertPredecessor(request.phase, previous, manifest);
 					assertEvidence(previous, {
 						phase: previousPhase,
 						unit: null,
 						inputHash: previous.inputHash,
 						contractsHash: previous.contractsHash,
-						checks: phaseChecks(previousPhase, null, process.execPath).map((check) => check.id)
+						checks: receiptChecks(
+							previous,
+							readFileSync(previousFile, 'utf8'),
+							phaseChecks(previousPhase, null, process.execPath).map((check) => check.id),
+							historical,
+							previousPhase !== '2.5'
+						)
 					});
 					const phaseUnits =
 						manifest.fixedUnits[request.phase] ??
@@ -138,11 +166,19 @@ try {
 				}
 				for (const check of checks) {
 					console.log(`Executando ${check.id}${candidate === root ? '' : ' no candidato isolado'}`);
-					const result = await runProcess(check.command, check.args, {
+					const command =
+						provisionContext && check.command === process.execPath
+							? executablePath('node', candidateEnv.PATH)
+							: check.command;
+					const result = await runProcess(command, check.args, {
 						cwd: candidate,
 						log: path.join(directory, `${check.id}.log`),
 						timeoutMs: check.timeoutMs ?? 240000,
 						env: {
+							...candidateEnv,
+							...check.env,
+							NOTFEED_PROVISION_ACTIVE: checks.some((item) => item.id === 'PROVISION') ? '1' : '0',
+							NOTFEED_PROVISION_CONTEXT: provisionContext,
 							NOTFEED_GATE_STARTED_AT: startedAt,
 							NOTFEED_ARTIFACT_ROOT: artifactRoot(),
 							NOTFEED_BUILD_STARTED_AT: startedAt,
@@ -155,6 +191,10 @@ try {
 					if (check.installsCandidate) {
 						const installed = JSON.parse(readFileSync(result.stdoutPath, 'utf8'));
 						candidate = installed.candidate;
+						if (installed.provisionContext) {
+							provisionContext = installed.provisionContext;
+							candidateEnv = provisionEnvironment(installed);
+						}
 						assertStable(before, snapshot(candidate));
 						receipt.candidate = candidate;
 						report(installed.evidence);
@@ -186,6 +226,33 @@ try {
 						const child = JSON.parse(readFileSync(result.stdoutPath, 'utf8'));
 						assert.equal(readJSON(child.evidence).status, 'passed');
 						report(child.evidence);
+						if (check.id === 'CI-PROVE') {
+							const proof = readJSON(child.evidence);
+							assert.equal(proof.scope, 'web-minimum');
+							assert.equal(proof.inputHash, ciFingerprint(candidate).inputHash);
+							assert.equal(proof.cleanup.status, 'passed');
+							assert.equal(hash(readFileSync(proof.proof)), proof.proofSha256);
+							const artifact = readJSON(proof.proof);
+							assertCIProof(artifact);
+							for (const file of verifyProofFiles(path.dirname(proof.proof), artifact))
+								report(path.join(path.dirname(proof.proof), file.path));
+						}
+						if (check.id === 'PROVISION') {
+							const aggregate = readJSON(child.evidence),
+								fingerprint = ciFingerprint(candidate);
+							assert.equal(aggregate.proofs.length, 2);
+							for (const [index, target] of ['web', 'desktop'].entries()) {
+								const file = aggregate.proofs[index];
+								assertProvisionReceipt(readJSON(file), {
+									target,
+									inputHash: fingerprint.inputHash,
+									contractsHash: fingerprint.contractsHash,
+									notBefore: startedAt
+								});
+								report(file);
+							}
+							candidateEnv = provisionEnvironment(readJSON(provisionContext));
+						}
 					}
 					if (check.id === 'CARGO-TEST') {
 						const counts = [

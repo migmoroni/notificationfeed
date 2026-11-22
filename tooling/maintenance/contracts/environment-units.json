@@ -1,20 +1,22 @@
 {
 	"schemaVersion": 1,
 	"phase": "2.5",
-	"order": ["checks", "lint", "format", "dev", "doctor"],
+	"order": ["checks", "lint", "format", "dev", "doctor", "provision"],
 	"profiles": {
 		"checks": "Complete",
 		"lint": "Complete",
 		"format": "Complete",
 		"dev": "Complete",
-		"doctor": "Complete"
+		"doctor": "Complete",
+		"provision": "Complete"
 	},
 	"introduced": {
 		"checks": ["ARCHITECTURE", "RESTRICTIONS", "PERMANENT-CONTRACTS"],
 		"lint": ["LINT", "CLIPPY"],
 		"format": ["FORMAT", "RUST-FMT"],
 		"dev": ["DEV-ENV"],
-		"doctor": ["DOCTOR-WEB", "DOCTOR-DESKTOP"]
+		"doctor": ["DOCTOR-WEB", "DOCTOR-DESKTOP"],
+		"provision": ["PROVISION"]
 	},
 	"bundleReceipt": {
 		"status": "passed",

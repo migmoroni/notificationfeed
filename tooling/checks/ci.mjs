@@ -2,18 +2,17 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import {
-	appendFileSync,
 	copyFileSync,
 	cpSync,
 	rmSync,
 	existsSync,
 	mkdirSync,
 	readFileSync,
-	statSync,
 	writeFileSync
 } from 'node:fs';
 import { execute, filesUnder, hash, readJSON, writeJSON } from './io.mjs';
-import { ciFingerprint, classifyImpact, assertCIJobs } from './ci-lib.mjs';
+import { ciFingerprint, assertCIProof, assertPreparedSetup } from './ci-lib.mjs';
+import { inspectProvision, provisionContract } from './provision-lib.mjs';
 import { runSteps } from './verify-lib.mjs';
 import { assertTapReport } from './tap-lib.mjs';
 
@@ -40,72 +39,102 @@ if (command === 'check') {
 	const { readWorkflow, assertWorkflow } = await import('./ci-workflow.mjs');
 	assertWorkflow(await readWorkflow(contract.workflow), contract);
 	console.log('Contrato e YAML da CI aprovados.');
-} else if (command === 'impact') {
-	assert.equal(args.length, 1);
-	const event = eventData(),
-		info = await identity();
-	const base = event.pull_request?.base.sha ?? event.before;
-	let files = [],
-		historyAvailable =
-			typeof base === 'string' && /^[a-f0-9]{40}$/.test(base) && !/^0+$/.test(base);
-	if (historyAvailable) {
-		try {
-			files = (await execute('git', ['diff', '--name-only', '-z', base, info.checkoutSha])).stdout
-				.split('\0')
-				.filter(Boolean);
-		} catch {
-			historyAvailable = false;
-		}
-	}
-	const forceFull =
-		event.inputs?.full === true ||
-		event.inputs?.full === 'true' ||
-		Boolean(event.pull_request?.body?.includes(contract.fullRequestMarker));
-	const impact = classifyImpact(files, { historyAvailable, forceFull });
-	for (const file of files.filter(
-		(file) => /\.md$/i.test(file) && existsSync(file) && !file.startsWith('docs/plans/etapa-1-')
-	)) {
-		const text = readFileSync(file, 'utf8').replace(/```[\s\S]*?```/g, '');
-		for (const match of text.matchAll(/\[[^\]]*\]\(([^\s)]+)(?:\s+"[^"]*")?\)/g)) {
-			const href = match[1].replace(/^<|>$/g, '');
-			if (/^(?:[a-z][a-z0-9+.-]*:|#|\/)/i.test(href)) continue;
-			const target = decodeURIComponent(href.split('#')[0]);
-			if (target)
-				assert.ok(
-					existsSync(path.resolve(path.dirname(file), target)),
-					`link local ausente: ${file} -> ${href}`
+} else if (command === 'prove' && args.length === 2 && args[1] === 'web') {
+	const { artifactRoot, artifactScope, candidateCleanup, pruneArtifactPayloads } =
+		await import('./artifacts-lib.mjs');
+	const { prepareProvisionCandidate } = await import('./provision-probe.mjs');
+	const { provisionEnvironment } = await import('./provision-lib.mjs');
+	const { verifyProofFiles } = await import('./ci-live.mjs');
+	const area = path.resolve('.artifacts/ci/probes', randomUUID());
+	mkdirSync(area, { recursive: true });
+	const before = ciFingerprint();
+	let context, proofFile, cleanup;
+	const evidence = path.join(area, 'evidence.json');
+	try {
+		await artifactScope(
+			artifactRoot(),
+			area,
+			async () => {
+				context = await prepareProvisionCandidate(process.cwd(), area, { target: 'ci' });
+				const result = await execute(
+					context.mise,
+					['exec', '--', 'node', 'tooling/checks/ci.mjs', 'run', 'web'],
+					{
+						cwd: context.candidate,
+						env: {
+							...provisionEnvironment(context),
+							GITHUB_EVENT_NAME: 'local',
+							GITHUB_EVENT_PATH: undefined,
+							GITHUB_RUN_ID: undefined,
+							GITHUB_RUN_ATTEMPT: undefined
+						},
+						timeoutMs: 1800000
+					}
 				);
-		}
+				writeJSON(path.join(area, 'run.json'), result);
+				proofFile = JSON.parse(result.stdout).evidence;
+				const proof = readJSON(proofFile);
+				assertCIProof(proof);
+				assert.equal(proof.inputHash, before.inputHash);
+				assert.equal(proof.provision.dependenciesInitiallyAbsent, true);
+				assert.equal(
+					existsSync(context.env.PLAYWRIGHT_BROWSERS_PATH),
+					false,
+					'Minimum CI installed Chromium.'
+				);
+				verifyProofFiles(path.dirname(proofFile), proof);
+				for (const [file, digest] of Object.entries(context.personalBefore))
+					assert.equal(existsSync(file) ? hash(readFileSync(file)) : null, digest, file);
+				assert.equal(ciFingerprint().inputHash, before.inputHash);
+			},
+			() => {
+				const removed = context
+					? [
+							...candidateCleanup(artifactRoot(), context.area),
+							...pruneArtifactPayloads(
+								artifactRoot(),
+								context.area,
+								provisionContract().directories.temporaryPayloads
+							)
+						]
+					: [];
+				cleanup = { status: 'passed', removed };
+				return removed;
+			}
+		);
+		writeJSON(evidence, {
+			schemaVersion: 1,
+			status: 'passed',
+			scope: contract.scope,
+			inputHash: before.inputHash,
+			contractsHash: before.contractsHash,
+			proof: proofFile,
+			proofSha256: hash(readFileSync(proofFile)),
+			cleanup
+		});
+	} catch (error) {
+		writeJSON(evidence, {
+			schemaVersion: 1,
+			status: 'failed',
+			scope: contract.scope,
+			error: error.message,
+			cleanup
+		});
+		throw error;
 	}
-	await execute('git', ['diff', '--check']);
-	if (process.env.GITHUB_OUTPUT)
-		appendFileSync(process.env.GITHUB_OUTPUT, `profile=${impact.profile}\n`);
-	writeJSON('.artifacts/ci/impact.json', {
-		...impact,
-		...info,
-		...ciFingerprint(),
-		status: 'passed'
-	});
-	console.log(JSON.stringify(impact));
-} else if (command === 'aggregate') {
-	assert.equal(args.length, 1);
-	const needs = JSON.parse(process.env.NEEDS_JSON ?? 'null');
-	assert.ok(needs);
-	assertCIJobs(needs, needs.impact?.outputs?.profile);
-	console.log('Jobs obrigatórios aprovados.');
-} else if (command === 'run') {
-	assert.ok(args.length === 2 && ['web', 'desktop'].includes(args[1]));
-	const startedAt = Date.now();
+	console.log(JSON.stringify({ evidence }));
+} else if (command === 'run' && args.length === 2 && args[1] === 'web') {
 	const job = args[1],
 		directory = path.resolve('.artifacts/ci', job, 'runs', randomUUID()),
 		artifact = path.join(directory, 'artifact');
 	mkdirSync(artifact, { recursive: true });
 	const fingerprint = ciFingerprint(),
 		info = await identity();
-	assert.equal(fingerprint.locks.length, 2);
+	assert.equal(fingerprint.locks.length, 2 + provisionContract().lockFiles.length);
 	const receipt = {
 		schemaVersion: 1,
 		status: 'running',
+		scope: contract.scope,
 		job,
 		...info,
 		inputHash: fingerprint.inputHash,
@@ -119,48 +148,90 @@ if (command === 'check') {
 			version: process.env.ImageVersion
 		}
 	};
+	const preparationFiles = [];
 	try {
-		const steps =
-			job === 'web'
-				? [
-						{ id: 'QUICK', command: 'pnpm', args: ['verify:quick'], jsonReceipt: true },
-						{ id: 'TOOLING', command: 'pnpm', args: ['test:tooling'] }
-					]
-				: [{ id: 'INTEGRATION', command: 'pnpm', args: ['verify:integration'], jsonReceipt: true }];
-		await runSteps(steps, { directory, records: receipt.commands });
-		if (job === 'web') {
-			const { expectedNodeTests } = await import('./source-lib.mjs');
-			const tests = filesUnder('tooling/checks/tests').filter((file) => file.endsWith('.test.mjs'));
-			const output = receipt.commands.find((item) => item.id === 'TOOLING').stdout;
-			receipt.tooling = assertTapReport(output, expectedNodeTests(tests));
+		const current = await inspectProvision();
+		const setups = filesUnder(path.resolve('.artifacts/setup'))
+			.filter((file) => path.basename(file) === 'evidence.json')
+			.map((file) => ({ file, value: readJSON(file) }))
+			.filter(
+				({ value }) =>
+					value.target === contract.provisioning.setupTargets[job] &&
+					value.inputHash === fingerprint.inputHash
+			)
+			.sort((a, b) => Date.parse(b.value.finishedAt) - Date.parse(a.value.finishedAt));
+		assert.ok(setups.length, 'Setup atual ausente: execute ' + contract.provisioning.setups[job]);
+		const prepared = setups[0],
+			remote = info.event !== 'local';
+		assertPreparedSetup(prepared.value, {
+			target: contract.provisioning.setupTargets[job],
+			inputHash: fingerprint.inputHash,
+			locks: fingerprint.locks,
+			remote
+		});
+		preparationFiles.push(prepared.file);
+		receipt.provision = {
+			environment: current.environment,
+			versions: current.versions,
+			executables: current.executables,
+			dependenciesInitiallyAbsent: prepared.value.initial.dependenciesAbsent,
+			setupSha256: hash(readFileSync(prepared.file)),
+			setupPath: path.join('reports', path.relative(path.resolve('.artifacts'), prepared.file)),
+			bootstrapSha256: null,
+			bootstrapPath: null,
+			markerPath: null
+		};
+		if (remote) {
+			const bootstrap = path.resolve(contract.provisioning.bootstrapReceipt);
+			const proof = readJSON(bootstrap);
+			assert.equal(proof.status, 'passed');
+			assert.deepEqual(proof.versions, current.versions);
+			assert.deepEqual(proof.environment, current.environment);
+			assert.equal(
+				readFileSync(contract.provisioning.freshDataMarker, 'utf8').trim(),
+				process.env.MISE_DATA_DIR
+			);
+			receipt.provision.bootstrapSha256 = hash(readFileSync(bootstrap));
+			receipt.provision.bootstrapPath = path.join(
+				'reports',
+				path.relative(path.resolve('.artifacts'), bootstrap)
+			);
+			receipt.provision.markerPath = path.join(
+				'reports',
+				path.relative(
+					path.resolve('.artifacts'),
+					path.resolve(contract.provisioning.freshDataMarker)
+				)
+			);
+			preparationFiles.push(bootstrap, path.resolve(contract.provisioning.freshDataMarker));
 		}
+		await runSteps(contract.checks, { directory, records: receipt.commands });
+		const { expectedNodeTests } = await import('./source-lib.mjs');
+		receipt.tooling = assertTapReport(
+			receipt.commands.find((item) => item.id === 'CI-TOOLING').stdout,
+			expectedNodeTests(contract.toolingTests)
+		);
 		assert.equal(
 			ciFingerprint().inputHash,
 			fingerprint.inputHash,
 			'CI alterou fontes/contratos/locks'
 		);
-		const aggregate = readJSON(JSON.parse(receipt.commands[0].stdout).evidence);
-		receipt.versions = JSON.parse(
-			aggregate.commands.find((item) => item.id === 'DOCTOR').stdout
-		).versions;
+		receipt.versions = current.versions;
 		receipt.status = 'passed';
+		assertCIProof(receipt);
 	} catch (error) {
 		receipt.status = 'failed';
 		receipt.error = error.message;
 		throw error;
 	} finally {
-		const candidates = ['checks', 'e2e', 'security', 'native']
-			.flatMap((name) => filesUnder(path.resolve('.artifacts', name)))
-			.filter((file) => {
-				const relative = path.relative(path.resolve('.artifacts'), file);
-				return (
-					/^(?:checks\/|e2e\/results\/|e2e\/(?:report|dev-report|upgrade-report)\.json$|security\/current-[^/]+\/(?:evidence|collection)\.json$|native\/current-[^/]+\/evidence\.json$)/.test(
-						relative
-					) &&
-					/\.(?:json|stdout|stderr|failure|zip|png)$/.test(file) &&
-					statSync(file).mtimeMs >= startedAt
-				);
-			});
+		const candidates = [
+			...preparationFiles,
+			...filesUnder(directory).filter(
+				(file) =>
+					!file.startsWith(`${artifact}${path.sep}`) &&
+					/\.(?:json|stdout|stderr|failure)$/.test(file)
+			)
+		];
 		const files = [];
 		for (const file of candidates) {
 			const relative = path.join('reports', path.relative(path.resolve('.artifacts'), file));
@@ -176,4 +247,4 @@ if (command === 'check') {
 		cpSync(artifact, published, { recursive: true });
 		console.log(JSON.stringify({ evidence: path.join(artifact, 'evidence.json') }));
 	}
-} else throw new Error('uso: ci.mjs check|impact|aggregate|run web|run desktop');
+} else throw new Error('uso: ci.mjs check|prove web|run web');

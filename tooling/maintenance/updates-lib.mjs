@@ -1,8 +1,12 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const environment = JSON.parse(
+	readFileSync(new URL('./contracts/environment-units.json', import.meta.url), 'utf8')
+);
 
 export function updateGroups(groups, phase, unit) {
 	if (Number(phase) >= 2.5) {
-		const order = ['checks', 'lint', 'format', 'dev', 'doctor'];
+		const order = environment.order;
 		if (phase === '2.5' && unit !== null)
 			assert.ok(order.includes(unit), `unidade não registrada: ${phase}/${unit}`);
 		return groups.filter(

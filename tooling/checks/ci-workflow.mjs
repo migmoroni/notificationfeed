@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as yaml from 'prettier/plugins/yaml';
-import { readJSON } from './io.mjs';
 
 export async function readWorkflow(file) {
 	const ast = await yaml.parsers.yaml.parse(readFileSync(file, 'utf8'));
@@ -51,91 +50,69 @@ export async function readWorkflow(file) {
 	return value(ast);
 }
 export function assertWorkflow(workflow, contract) {
-	const tools = readJSON(new URL('./contracts/tools.json', import.meta.url));
 	assert.equal(workflow.name, contract.name);
-	assert.ok(
-		!JSON.stringify(workflow).includes('${{ secrets.'),
-		'segredos não são usados neste workflow'
-	);
+	assert.ok(!JSON.stringify(workflow).includes('${{ secrets.'));
 	assert.deepEqual(Object.keys(workflow.on).sort(), [...contract.events].sort());
 	assert.deepEqual(workflow.on.push.branches, [contract.integrationBranch]);
 	assert.deepEqual(workflow.permissions, contract.permissions);
-	assert.deepEqual(Object.keys(workflow.jobs).sort(), [...contract.jobs].sort());
+	assert.deepEqual(Object.keys(workflow.jobs), contract.jobs);
+	const job = workflow.jobs.web;
+	assert.equal(job['runs-on'], contract.runner);
+	for (const field of ['if', 'needs', 'continue-on-error', 'permissions', 'strategy'])
+		assert.equal(Object.hasOwn(job, field), false, `Campo não contratado: ${field}`);
+	assert.deepEqual(job.env, contract.provisioning.environment);
+	assert.deepEqual(
+		job.steps.map((step) => step.id),
+		contract.stepOrder
+	);
+	const steps = Object.fromEntries(job.steps.map((step) => [step.id, step]));
 	const actions = new Set(contract.actions.map((action) => `${action.name}@${action.revision}`));
-	for (const [name, job] of Object.entries(workflow.jobs)) {
-		assert.equal(job['runs-on'], contract.runner);
-		assert.equal(Object.hasOwn(job, 'continue-on-error'), false);
-		assert.equal(Object.hasOwn(job, 'permissions'), false);
-		assert.ok(job.steps.length);
-		for (const step of job.steps) {
-			assert.equal(Object.hasOwn(step, 'continue-on-error'), false);
-			if (step.uses) {
-				assert.ok(actions.has(step.uses), `action/revisão não autorizada: ${step.uses}`);
-				if (step.uses.startsWith('actions/checkout@'))
-					assert.equal(step.with['persist-credentials'], false);
-				if (step.uses.startsWith('actions/setup-node@'))
-					assert.equal(String(step.with['node-version']), tools.node);
-			}
-			if (step.run) {
-				assert.ok(
-					!/continue-on-error|\|\|\s*true|--if-present|--passWithNoTests|--ignore-scripts|pull_request_target/.test(
-						step.run
-					)
-				);
-				assert.ok(
-					!/\$\{\{\s*(?:github\.event|secrets\.)/.test(step.run),
-					'interpolar eventos/segredos no shell é proibido'
-				);
-			}
-		}
-		if (['web', 'desktop'].includes(name)) {
-			assert.equal(job.if, "needs.impact.outputs.profile == 'complete'");
-			const commands = job.steps
-				.filter((step) => step.run)
-				.map((step) => step.run)
-				.join('\n');
-			assert.ok(commands.includes(`pnpm@${tools.pnpm}`));
-			assert.ok(commands.includes('pnpm install --frozen-lockfile'));
-			assert.ok(commands.includes('node tooling/checks/prebuild.mjs'));
-			assert.ok(commands.includes('playwright install --with-deps chromium'));
-			assert.ok(commands.includes(`node tooling/checks/ci.mjs run ${name}`));
-			const cache = job.steps.find((step) => step.with?.cache === 'pnpm');
-			assert.ok(cache, 'cache pnpm sem política');
-			assert.deepEqual(
-				cache.with['cache-dependency-path'].trim().split('\n'),
-				contract.cache.inputs
-			);
-			const upload = job.steps.find((step) => step.uses?.startsWith('actions/upload-artifact@'));
-			assert.equal(upload.with.name, `proof-${name}-` + '${{ github.run_attempt }}');
-			assert.equal(upload.with.path, `.artifacts/ci/${name}/artifact`);
-			assert.equal(upload.with['retention-days'], contract.retentionDays);
-			assert.equal(upload.with['if-no-files-found'], 'error');
-			if (name === 'desktop') {
-				for (const [key, value] of Object.entries(contract.nativeEnvironment))
-					assert.equal(job.env[key], value);
-				assert.ok(
-					commands.includes(
-						`rustup toolchain install ${tools.rust} --profile minimal --component rustfmt --component clippy`
-					)
-				);
-				assert.ok(
-					commands.includes(`cargo install cargo-audit --version ${tools.cargoAudit} --locked`)
-				);
-				for (const systemPackage of contract.nativePackages)
-					assert.ok(commands.includes(systemPackage));
-			}
+	for (const step of job.steps) {
+		assert.equal(Object.hasOwn(step, 'continue-on-error'), false);
+		if (step.id !== 'proof') assert.equal(Object.hasOwn(step, 'if'), false);
+		if (step.uses) assert.ok(actions.has(step.uses), `action/revisão não autorizada: ${step.uses}`);
+		if (step.run) {
 			assert.ok(
-				job.steps.some(
-					(step) => step.uses?.startsWith('actions/upload-artifact@') && step.if === 'always()'
+				!/continue-on-error|\|\|\s*true|--if-present|--passWithNoTests|--ignore-scripts|pull_request_target|\b(?:cargo|rustup|corepack)\b|playwright|AppImage/.test(
+					step.run
 				)
 			);
+			assert.ok(!/\$\{\{\s*(?:github\.event|secrets\.)/.test(step.run));
 		}
 	}
-	assert.equal(workflow.jobs.integration.if, 'always()');
-	assert.deepEqual([...workflow.jobs.integration.needs].sort(), ['desktop', 'impact', 'web']);
-	assert.ok(
-		workflow.jobs.integration.steps.some(
-			(step) => step.run === 'node tooling/checks/ci.mjs aggregate'
-		)
+	assert.ok(steps.checkout.uses.startsWith('actions/checkout@'));
+	assert.equal(steps.checkout.with['persist-credentials'], false);
+	assert.equal(
+		steps.system.run.trim(),
+		`sudo apt-get update\nsudo apt-get install -y ${contract.systemPackages.join(' ')}`
 	);
+	const bootstrap = steps.tools.run;
+	for (const command of [
+		'test ! -e "$MISE_DATA_DIR"',
+		`bash ${contract.provisioning.bootstrap}`,
+		`--install-dir "${contract.provisioning.bootstrapInstallDirectory}"`,
+		'install --locked',
+		'trust "$PWD/mise.toml"',
+		'bin-paths >> "$GITHUB_PATH"',
+		'node tooling/checks/provision.mjs check'
+	])
+		assert.ok(bootstrap.includes(command), `Bootstrap incompleto: ${command}`);
+	assert.ok(steps.cache.uses.startsWith('actions/setup-node@'));
+	for (const field of ['node-version', 'node-version-file'])
+		assert.equal(Object.hasOwn(steps.cache.with, field), false);
+	assert.equal(steps.cache.with.cache, 'pnpm');
+	assert.deepEqual(
+		steps.cache.with['cache-dependency-path'].trim().split('\n'),
+		contract.cache.inputs
+	);
+	assert.equal(steps.setup.run, contract.provisioning.setups.web);
+	assert.equal(steps.verify.run, 'mise exec -- node tooling/checks/ci.mjs run web');
+	assert.ok(steps.proof.uses.startsWith('actions/upload-artifact@'));
+	assert.equal(steps.proof.if, 'always()');
+	assert.deepEqual(steps.proof.with, {
+		name: 'proof-web-${{ github.run_attempt }}',
+		path: '.artifacts/ci/web/artifact',
+		'retention-days': contract.retentionDays,
+		'if-no-files-found': 'error'
+	});
 }

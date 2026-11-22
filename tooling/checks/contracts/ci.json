@@ -21,30 +21,15 @@
 			"revision": "b7c566a772e6b6bfb58ed0dc250532a479d7789f"
 		}
 	],
-	"jobs": ["impact", "web", "desktop", "integration"],
+	"jobs": ["web"],
 	"permissions": {
 		"contents": "read"
 	},
 	"retentionDays": 14,
-	"nativePackages": [
-		"libwebkit2gtk-4.1-dev",
-		"libgtk-3-dev",
-		"librsvg2-dev",
-		"libayatana-appindicator3-dev",
-		"libssl-dev",
-		"pkg-config",
-		"patchelf",
-		"binutils"
-	],
 	"workflow": ".github/workflows/verify.yml",
 	"name": "Verify",
 	"repository": "migmoroni/notificationfeed",
-	"fullRequestMarker": "<!-- notfeed-ci:full -->",
 	"mutableDocumentation": ["docs/**/state.md"],
-	"profiles": {
-		"docs": ["impact", "integration"],
-		"complete": ["impact", "web", "desktop", "integration"]
-	},
 	"cache": {
 		"manager": "pnpm",
 		"inputs": [
@@ -52,16 +37,18 @@
 			"pnpm-workspace.yaml",
 			".nvmrc",
 			"rust-toolchain.toml",
-			"apps/desktop/src-tauri/Cargo.lock"
+			"apps/desktop/src-tauri/Cargo.lock",
+			"package.json",
+			"mise.toml",
+			"mise.lock",
+			".mise/locks/**",
+			"tooling/setup/install-mise.sh",
+			"tooling/checks/contracts/provision.json"
 		],
 		"nativeTarget": false,
-		"frozenInstallRequired": true
-	},
-	"nativeEnvironment": {
-		"CARGO_BUILD_JOBS": "2",
-		"CARGO_INCREMENTAL": "0",
-		"CARGO_PROFILE_DEV_DEBUG": "0",
-		"CARGO_PROFILE_TEST_DEBUG": "0"
+		"frozenInstallRequired": true,
+		"toolInstallations": false,
+		"setupNodePurpose": "pnpm cache only; no node-version or node-version-file inputs"
 	},
 	"receipt": {
 		"schemaVersion": 1,
@@ -78,16 +65,120 @@
 			"jobs",
 			"artifacts"
 		],
-		"fullRequiredForQualification": true,
-		"artifactNames": ["proof-web", "proof-desktop"],
-		"publishedAppImage": false
+		"artifactNames": ["proof-web"],
+		"publishedAppImage": false,
+		"scopeRequiredForQualification": "web-minimum"
 	},
-	"impact": "Documentation-only gets links/diff. Runtime, shared, contracts, locks, toolchains, CI, native or unknown gets full consumers. Missing comparison history or explicit full request gets complete.",
 	"service": {
 		"apiVersion": "2026-03-10",
 		"mode": "read-only verification",
 		"headRelation": "PR checkout equals head or has exactly base/head parents; other events checkout equals head",
 		"download": "Fresh metadata plus ZIP SHA256 and extracted proof manifests; no manual status acceptance",
-		"requiredAttempt": "All required jobs and both artifacts from the same complete run attempt"
-	}
+		"requiredAttempt": "The web job and its proof artifact from the same successful run attempt"
+	},
+	"provisioning": {
+		"contract": "tooling/checks/contracts/provision.json",
+		"bootstrap": "tooling/setup/install-mise.sh",
+		"bootstrapReceipt": ".artifacts/setup/bootstrap.json",
+		"freshDataMarker": ".artifacts/setup/mise-data-fresh.stdout",
+		"requireFreshData": true,
+		"requireFreshDependencies": true,
+		"setups": {
+			"web": "mise run setup:ci"
+		},
+		"environment": {
+			"MISE_DATA_DIR": "${{ runner.temp }}/notfeed-mise/data",
+			"MISE_CACHE_DIR": "${{ runner.temp }}/notfeed-mise/cache",
+			"MISE_CONFIG_DIR": "${{ runner.temp }}/notfeed-mise/config",
+			"MISE_STATE_DIR": "${{ runner.temp }}/notfeed-mise/state"
+		},
+		"bootstrapInstallDirectory": "$RUNNER_TEMP/notfeed-mise/bin",
+		"setupTargets": {
+			"web": "ci"
+		}
+	},
+	"sources": [
+		"https://github.com/actions/setup-node/blob/249970729cb0ef3589644e2896645e5dc5ba9c38/src/main.ts",
+		"https://github.com/actions/setup-node/blob/249970729cb0ef3589644e2896645e5dc5ba9c38/action.yml"
+	],
+	"scope": "web-minimum",
+	"toolingTests": [
+		"tooling/checks/tests/ci-contract.test.mjs",
+		"tooling/checks/tests/ci.test.mjs",
+		"tooling/checks/tests/ci-live.test.mjs",
+		"tooling/checks/tests/ci-provision.test.mjs",
+		"tooling/checks/tests/provision-contract.test.mjs",
+		"tooling/checks/tests/provision.test.mjs"
+	],
+	"checks": [
+		{
+			"id": "TYPES",
+			"command": "pnpm",
+			"args": ["check"],
+			"typeReport": true
+		},
+		{
+			"id": "E2E-TYPES",
+			"command": "pnpm",
+			"args": ["check:e2e"]
+		},
+		{
+			"id": "LINT",
+			"command": "pnpm",
+			"args": ["lint"]
+		},
+		{
+			"id": "FORMAT",
+			"command": "pnpm",
+			"args": ["format:check"]
+		},
+		{
+			"id": "ARCHITECTURE",
+			"command": "pnpm",
+			"args": ["check:architecture"]
+		},
+		{
+			"id": "RESTRICTIONS",
+			"command": "pnpm",
+			"args": ["check:restrictions"]
+		},
+		{
+			"id": "CONTRACTS",
+			"command": "pnpm",
+			"args": ["check:contracts"]
+		},
+		{
+			"id": "UNIT",
+			"command": "pnpm",
+			"args": ["test:run"],
+			"unitReport": true
+		},
+		{
+			"id": "CI-TOOLING",
+			"command": "node",
+			"args": [
+				"--test",
+				"--test-reporter=tap",
+				"--experimental-test-isolation=none",
+				"tooling/checks/tests/ci-contract.test.mjs",
+				"tooling/checks/tests/ci.test.mjs",
+				"tooling/checks/tests/ci-live.test.mjs",
+				"tooling/checks/tests/ci-provision.test.mjs",
+				"tooling/checks/tests/provision-contract.test.mjs",
+				"tooling/checks/tests/provision.test.mjs"
+			]
+		},
+		{
+			"id": "BUILD",
+			"command": "pnpm",
+			"args": ["build"]
+		}
+	],
+	"deferredUntilStage3Close": [
+		"remote-browser-and-pwa-upgrade",
+		"remote-rust-and-native-package",
+		"impact-matrix-for-final-modules"
+	],
+	"stepOrder": ["checkout", "system", "tools", "cache", "setup", "verify", "proof"],
+	"systemPackages": ["ca-certificates", "curl", "git", "tar", "xz-utils"]
 }

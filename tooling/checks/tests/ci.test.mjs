@@ -7,46 +7,58 @@ import { readJSON } from '../io.mjs';
 
 test('contrato CI fixa jobs, revisões completas, permissões e instalação congelada', () => {
 	const contract = readJSON('tooling/checks/contracts/ci.json');
-	assert.deepEqual(contract.jobs, ['impact', 'web', 'desktop', 'integration']);
+	assert.deepEqual(contract.jobs, ['web']);
 	assert.deepEqual(contract.permissions, { contents: 'read' });
 	for (const action of contract.actions) assert.match(action.revision, /^[a-f0-9]{40}$/);
 	assert.equal(contract.cache.frozenInstallRequired, true);
 	assert.equal(contract.receipt.publishedAppImage, false);
 });
-test('impacto desconhecido, contratos, locks e pedido explícito nunca viram somente docs', async () => {
-	const { classifyImpact } = await import('../ci-lib.mjs');
-	assert.equal(classifyImpact(['docs/development.md']).profile, 'docs');
-	for (const file of [
-		'apps/web/src/routes/+page.svelte',
-		'apps/desktop/src-tauri/Cargo.lock',
-		'pnpm-lock.yaml',
-		'rust-toolchain.toml',
-		'tooling/checks/contracts/ci.json',
-		'.github/workflows/verify.yml',
-		'docs/plans/etapa-x/contratos.md',
-		'unknown.file'
-	])
-		assert.equal(classifyImpact([file]).profile, 'complete');
-	assert.equal(classifyImpact(['README.md'], { historyAvailable: false }).profile, 'complete');
-	assert.equal(classifyImpact(['README.md'], { forceFull: true }).profile, 'complete');
-});
-test('agregador CI recusa falha, cancelamento e skip obrigatório mesmo sendo always', async () => {
-	const { assertCIJobs } = await import('../ci-lib.mjs');
-	const jobs = {
-		impact: { result: 'success' },
-		web: { result: 'success' },
-		desktop: { result: 'success' }
+test('prova mínima recusa check ausente, falha, skip, build removido e outro escopo', async () => {
+	const { assertCIProof } = await import('../ci-lib.mjs');
+	const contract = readJSON('tooling/checks/contracts/ci.json');
+	const proof = {
+		status: 'passed',
+		scope: contract.scope,
+		job: 'web',
+		commands: contract.checks.map((step) => ({
+			id: step.id,
+			command: step.command,
+			args: [
+				...step.args,
+				...(step.unitReport ? ['--reporter=json', '--outputFile=/fixture/unit.json'] : [])
+			],
+			code: 0,
+			signal: null,
+			timedOut: false,
+			error: null
+		}))
 	};
-	assert.doesNotThrow(() => assertCIJobs(jobs, 'complete'));
-	for (const result of ['failure', 'cancelled', 'skipped'])
-		assert.throws(() => assertCIJobs({ ...jobs, desktop: { result } }, 'complete'));
-	assert.throws(() => assertCIJobs({ impact: jobs.impact, web: jobs.web }, 'complete'));
-	assert.doesNotThrow(() =>
-		assertCIJobs(
-			{ impact: jobs.impact, web: { result: 'skipped' }, desktop: { result: 'skipped' } },
-			'docs'
-		)
-	);
+	assert.doesNotThrow(() => assertCIProof(proof));
+	for (const mutate of [
+		(value) => value.commands.pop(),
+		(value) => {
+			value.commands[0].code = 1;
+		},
+		(value) => {
+			value.commands[0].timedOut = true;
+		},
+		(value) => {
+			value.commands[0].args = [];
+		},
+		(value) => {
+			value.scope = 'desktop';
+		},
+		(value) => {
+			value.status = 'skipped';
+		},
+		(value) => {
+			value.commands.push(value.commands[0]);
+		}
+	]) {
+		const changed = structuredClone(proof);
+		mutate(changed);
+		assert.throws(() => assertCIProof(changed));
+	}
 });
 test('impressão digital muda com fontes/contratos e conserva somente ledger mutável', async () => {
 	const { ciFingerprint } = await import('../ci-lib.mjs');
@@ -80,10 +92,10 @@ test('workflow real é parseado e recusa action flutuante, permissões e falha m
 			value.jobs.web['continue-on-error'] = true;
 		},
 		(value) => {
-			value.jobs.integration.if = 'success()';
+			value.jobs.web.if = 'false';
 		},
 		(value) => {
-			delete value.jobs.desktop;
+			delete value.jobs.web;
 		}
 	]) {
 		const value = structuredClone(workflow);
@@ -93,6 +105,12 @@ test('workflow real é parseado e recusa action flutuante, permissões e falha m
 });
 test('recibo CI não aprova run errado, job ausente ou artefato divergente', async () => {
 	const { validateCIReceipt } = await import('../ci-lib.mjs');
+	const pv = readJSON('tooling/checks/contracts/provision.json');
+	const coreVersions = {
+		mise: pv.mise.version,
+		node: pv.pins.node.version,
+		pnpm: pv.pins.pnpm.version
+	};
 	const expected = {
 		runId: 12,
 		attempt: 1,
@@ -110,16 +128,50 @@ test('recibo CI não aprova run errado, job ausente ou artefato divergente', asy
 		url: 'https://github.com/migmoroni/notificationfeed/actions/runs/12',
 		event: 'pull_request',
 		...expected,
-		jobs: ['impact', 'web', 'desktop', 'integration'].map((name) => ({
+		scope: 'web-minimum',
+		jobs: ['web'].map((name) => ({
 			name,
 			conclusion: 'success'
 		})),
-		artifacts: ['web', 'desktop'].map((job) => ({
-			id: job === 'web' ? 1 : 2,
+		artifacts: ['web'].map((job) => ({
+			id: 1,
 			name: `proof-${job}-1`,
 			digest: `sha256:${'f'.repeat(64)}`,
-			proof: { status: 'passed', job, ...expected },
-			files: [{ path: 'evidence.json', sha256: 'f'.repeat(64) }]
+			proof: {
+				status: 'passed',
+				job,
+				...expected,
+				scope: 'web-minimum',
+				commands: readJSON('tooling/checks/contracts/ci.json').checks.map((step) => ({
+					id: step.id,
+					command: step.command,
+					args: [
+						...step.args,
+						...(step.unitReport ? ['--reporter=json', '--outputFile=/fixture/unit.json'] : [])
+					],
+					code: 0,
+					signal: null,
+					timedOut: false,
+					error: null
+				})),
+				versions: coreVersions,
+				provision: {
+					environment: { ...pv.environments.ci, platform: 'linux' },
+					versions: coreVersions,
+					dependenciesInitiallyAbsent: true,
+					setupPath: 'reports/setup/run/evidence.json',
+					setupSha256: '1'.repeat(64),
+					bootstrapPath: 'reports/setup/bootstrap.json',
+					bootstrapSha256: '2'.repeat(64),
+					markerPath: 'reports/setup/mise-data-fresh.stdout'
+				}
+			},
+			files: [
+				{ path: 'evidence.json', sha256: 'f'.repeat(64) },
+				{ path: 'reports/setup/run/evidence.json', sha256: '1'.repeat(64) },
+				{ path: 'reports/setup/bootstrap.json', sha256: '2'.repeat(64) },
+				{ path: 'reports/setup/mise-data-fresh.stdout', sha256: '3'.repeat(64) }
+			]
 		}))
 	};
 	assert.doesNotThrow(() => validateCIReceipt(receipt, expected));
@@ -131,13 +183,25 @@ test('recibo CI não aprova run errado, job ausente ou artefato divergente', asy
 			value.jobs.pop();
 		},
 		(value) => {
-			value.jobs[1].conclusion = 'skipped';
+			value.jobs[0].conclusion = 'skipped';
 		},
 		(value) => {
 			value.artifacts[0].proof.inputHash = '0'.repeat(64);
 		},
 		(value) => {
 			value.artifacts[0].digest = 'missing';
+		},
+		(value) => {
+			value.artifacts[0].proof.provision.environment.id = 'debian';
+		},
+		(value) => {
+			value.artifacts[0].proof.provision.versions = { ...coreVersions, pnpm: '11.28.13' };
+		},
+		(value) => {
+			value.artifacts[0].proof.provision.dependenciesInitiallyAbsent = false;
+		},
+		(value) => {
+			value.artifacts[0].files.pop();
 		}
 	]) {
 		const value = structuredClone(receipt);

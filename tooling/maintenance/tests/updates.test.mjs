@@ -19,6 +19,7 @@ test('ferramentas entram apenas na unidade consumidora de lint e formatação', 
 	);
 	assert.equal(updateGroups(tools, '2.5', 'lint').at(-1).id, 'lint-tools');
 	assert.equal(updateGroups(tools, '2.5', 'format').at(-1).id, 'format-tools');
+	assert.deepEqual(updateGroups(tools, '2.5', 'provision'), tools);
 	assert.equal(updateGroups(tools, '2.6', 'configuration').length, tools.length);
 	assert.throws(() => updateGroups(tools, '2.5', 'unknown'));
 });

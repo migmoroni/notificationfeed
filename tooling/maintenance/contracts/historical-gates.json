@@ -1,0 +1,72 @@
+{
+	"schemaVersion": 1,
+	"approvals": [
+		{
+			"sha256": "58e631bb2fb3c38c22cdb8139b3c014e0dd8ae2de71d49cf1e1bff520fbd11f4",
+			"phase": "2.5",
+			"unit": null,
+			"checks": [
+				"INSTALL",
+				"CONTRACT",
+				"ARBITER",
+				"TOOLING",
+				"ARCHITECTURE",
+				"RESTRICTIONS",
+				"PERMANENT-CONTRACTS",
+				"TYPES",
+				"E2E-TYPES",
+				"LINT",
+				"CLIPPY",
+				"FORMAT",
+				"RUST-FMT",
+				"DEV-ENV",
+				"DOCTOR-WEB",
+				"DOCTOR-DESKTOP",
+				"UNIT",
+				"SECURITY",
+				"CARGO-CHECK",
+				"CARGO-TEST",
+				"BUNDLE-BUILD",
+				"BUNDLE-INSPECT",
+				"BROWSER-DEV",
+				"BROWSER",
+				"UPGRADE",
+				"DIFF"
+			]
+		},
+		{
+			"sha256": "e9eda8cc5f342387288622a5c54476e84811c7046efe8276d2398d51c1415912",
+			"phase": "2.6",
+			"unit": "configuration",
+			"checks": [
+				"INSTALL",
+				"CONTRACT",
+				"CI-CONFIG",
+				"ARBITER",
+				"TOOLING",
+				"ARCHITECTURE",
+				"RESTRICTIONS",
+				"PERMANENT-CONTRACTS",
+				"TYPES",
+				"E2E-TYPES",
+				"LINT",
+				"CLIPPY",
+				"FORMAT",
+				"RUST-FMT",
+				"DEV-ENV",
+				"DOCTOR-WEB",
+				"DOCTOR-DESKTOP",
+				"UNIT",
+				"SECURITY",
+				"CARGO-CHECK",
+				"CARGO-TEST",
+				"BUNDLE-BUILD",
+				"BUNDLE-INSPECT",
+				"BROWSER-DEV",
+				"BROWSER",
+				"UPGRADE",
+				"DIFF"
+			]
+		}
+	]
+}

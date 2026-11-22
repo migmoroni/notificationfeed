@@ -45,11 +45,32 @@ export function phaseChecks(phase, unit, node) {
 			expectedTests: expectedNodeTests(files)
 		};
 	};
-	return [
+	if (phase === '2.6' && unit === 'configuration')
+		return [
+			script('CONTRACT', 'tooling/maintenance/check.mjs', ['--phase', phase, '--unit', unit]),
+			script('CI-CONFIG', 'tooling/checks/ci.mjs', ['check']),
+			nodeTests('ARBITER', 'tooling/maintenance/tests'),
+			nodeTests('TOOLING', 'tooling/checks/tests'),
+			script('CI-PROVE', 'tooling/checks/ci.mjs', ['prove', 'web'], {
+				timeoutMs: 1800000,
+				jsonReceipt: true
+			}),
+			{ id: 'DIFF', command: 'git', args: ['diff', '--check'] }
+		];
+
+	const checks = [
 		script('INSTALL', 'tooling/maintenance/install.mjs', [], {
 			installsCandidate: true,
 			timeoutMs: 900000
 		}),
+		...(active('provision')
+			? [
+					script('PROVISION', 'tooling/checks/provision.mjs', ['prove', '--target', 'desktop'], {
+						timeoutMs: 3600000,
+						jsonReceipt: true
+					})
+				]
+			: []),
 		script('CONTRACT', 'tooling/maintenance/check.mjs', [
 			'--phase',
 			phase,
@@ -172,4 +193,10 @@ export function phaseChecks(phase, unit, node) {
 			: []),
 		{ id: 'DIFF', command: 'git', args: ['diff', '--check'] }
 	];
+	const native = readJSON('tooling/checks/contracts/tools.json').nativeEnvironment;
+	return checks.map((check) =>
+		['CLIPPY', 'CARGO-CHECK', 'CARGO-TEST', 'BUNDLE-BUILD'].includes(check.id)
+			? { ...check, env: native }
+			: check
+	);
 }

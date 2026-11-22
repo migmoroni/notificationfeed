@@ -11,7 +11,7 @@ import {
 } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { execute, hash, readJSON, writeJSON } from './io.mjs';
-import { validateCIReceipt } from './ci-lib.mjs';
+import { validateCIReceipt, assertPreparedSetup } from './ci-lib.mjs';
 
 const configuration = () => readJSON(new URL('./contracts/ci.json', import.meta.url));
 export function assertServiceRun(run, workflow, jobs, { runId }) {
@@ -66,6 +66,32 @@ export function verifyProofFiles(directory, proof) {
 			file.sha256,
 			`hash divergente: ${file.path}`
 		);
+	}
+	if (proof.provision) {
+		const p = proof.provision,
+			remote = proof.event !== 'local';
+		function listed(name, digest) {
+			const entry = proof.files.find((file) => file.path === name);
+			assert.ok(entry, 'Referência fora do manifesto de arquivos.');
+			if (digest) assert.equal(entry.sha256, digest);
+			return path.join(directory, name);
+		}
+		const prepared = readJSON(listed(p.setupPath, p.setupSha256));
+		assertPreparedSetup(prepared, {
+			target: configuration().provisioning.setupTargets[proof.job],
+			inputHash: proof.inputHash,
+			locks: proof.locks,
+			remote
+		});
+		if (remote) {
+			const bootstrap = readJSON(listed(p.bootstrapPath, p.bootstrapSha256));
+			assert.equal(bootstrap.status, 'passed');
+			assert.deepEqual(bootstrap.environment, p.environment);
+			assert.deepEqual(bootstrap.versions, p.versions);
+			const data = readFileSync(listed(p.markerPath), 'utf8').trim();
+			for (const name of ['node', 'pnpm'])
+				assert.ok(bootstrap.executables[name].startsWith(`${data}/installs/`));
+		}
 	}
 	return expected.map((file) => ({
 		path: file,
@@ -235,6 +261,7 @@ export async function collectLiveCI(runId, expected) {
 	const receipt = {
 		schemaVersion: 1,
 		status: 'passed',
+		scope: contract.scope,
 		verifiedAt: new Date().toISOString(),
 		runId,
 		attempt: run.run_attempt,
