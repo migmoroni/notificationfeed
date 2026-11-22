@@ -11,20 +11,19 @@ O repositório mantém web/PWA e Tauri Linux x86_64 AppImage, consumindo o mesmo
 
 ## Web/PWA
 
-Node 24.22.3 e pnpm 11.28.12 são exatos. Use `pnpm install --frozen-lockfile` e instale o Chromium do Playwright fixado com `pnpm exec playwright install chromium`. `pnpm run doctor --target web` diagnostica o ambiente sem instalar ferramentas e sem exigir Rust/GTK.
+Node 24.22.3 e pnpm 11.28.12 são selecionados pelo mise 2026.11.11 e seu lock. Após o bootstrap descrito em development.md, use `mise run setup:web`. `mise exec -- pnpm run doctor --target web` diagnostica o ambiente sem instalar ferramentas e sem exigir Rust/GTK. As versões são comuns ao desenvolvimento Debian 13 e à CI Ubuntu 24.04, ambos x86_64.
 
 ## Tauri Linux x86_64
 
-Instale o toolchain fixado e o auditor:
+Com rustup e os pacotes de sistema disponíveis, prepare o toolchain fixado e o auditor em prefixo próprio:
 
 ```sh
-rustup toolchain install 1.100.0 --profile minimal --component rustfmt --component clippy
-cargo install cargo-audit --version 0.23.0 --locked
+mise run setup:desktop
 ```
 
 rust-toolchain.toml seleciona Rust 1.100.0; o mínimo declarado da crate é 1.95, já validado no Linux com o lock adotado. O default global do rustup não precisa mudar. Confira overrides com `pnpm run doctor --target desktop`.
 
-Em Ubuntu/Debian, os requisitos de compilação/inspeção são:
+Em Debian 13 e Ubuntu 24.04, os requisitos de compilação/inspeção são os mesmos nomes de pacotes. A instalação local é explícita:
 
 ```sh
 sudo apt install build-essential pkg-config libwebkit2gtk-4.1-dev libgtk-3-dev \
@@ -32,6 +31,8 @@ sudo apt install build-essential pkg-config libwebkit2gtk-4.1-dev libgtk-3-dev \
 ```
 
 A execução de AppImage pelo usuário pode exigir o suporte FUSE da distribuição. A inspeção automatizada extrai o bundle e não abre janela nativa.
+
+O desktop é validado no Debian 13 local. A CI mínima atual valida somente web no Ubuntu 24.04, sem comprovar o pacote desktop nessa distribuição. Um AppImage construído no Debian 13 não garante compatibilidade com versões mais antigas da glibc. Docker e outros sistemas não fazem parte do ambiente adotado nesta etapa.
 
 A CLI Tauri executa em apps/desktop. Seus hooks usam pnpm na raiz, constroem apps/web e consomem frontendDist ../../web/build a partir de src-tauri. `CARGO_TARGET_DIR`, quando definido, muda o diretório de saída e é respeitado pela inspeção.
 

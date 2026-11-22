@@ -87,11 +87,15 @@ Independente do modo, todo post novo entra na **inbox in-app** (ninguém fica pa
 
 ## Começando
 
-Use Node 24.22.3 (`.nvmrc`) e pnpm 11.28.12 (`packageManager`). Com nvm: `nvm install && nvm use`. Se o gerenciador ainda não estiver disponível, instale-o uma vez com `npm install --global pnpm@11.28.12`; as dependências do projeto usam pnpm.
+O ambiente de referência é Debian 13 x86_64, com mise 2026.11.11 selecionando Node 24.22.3 (`.nvmrc`) e pnpm 11.28.12 (`packageManager`). Instale o mise no seu usuário e disponibilize-o no PATH; o bootstrap local apenas verifica essa instalação; confira os [pré-requisitos e a ativação opcional do shell](docs/development.md).
+
+A CI mínima executa um único job web no Ubuntu 24.04: instalação congelada, tipos, lint, fronteiras, contratos, unitários e build. `mise run setup:ci` prepara esse perfil sem navegador ou Rust; desenvolvimento web/desktop usa os setups próprios. PWA e desktop continuam nos gates locais conforme impacto. A ampliação remota será reavaliada no fechamento da etapa 3.
 
 ```sh
-pnpm install --frozen-lockfile
-pnpm dev
+mise_executable="$(bash tooling/setup/install-mise.sh)"
+"$mise_executable" trust "$PWD/mise.toml"
+"$mise_executable" run setup:web
+"$mise_executable" exec -- pnpm dev
 ```
 
 Abra <http://localhost:5173>, crie um Consumer em `/user`, vá em `/browse/import` e cole uma URL de feed. Ou pegue um `.notfeed.json` qualquer e arraste pra mesma página.
@@ -140,7 +144,7 @@ Em produção, o navegador detecta `manifest.webmanifest` + service worker e ofe
 
 Pré-requisitos de sistema (GTK, WebKit2GTK, libfuse2 em runtime): veja [docs/build-targets.md](docs/build-targets.md).
 
-O desktop usa Rust 1.100.0, fixado em `rust-toolchain.toml`, com rustfmt e Clippy. Instale com `rustup toolchain install 1.100.0 --profile minimal --component rustfmt --component clippy`; o arquivo seleciona a versão no repositório sem mudar o default global. O mínimo declarado do crate é Rust 1.95, validado no alvo Linux com o lock atual. Para a auditoria, use `cargo install cargo-audit --version 0.23.0 --locked`.
+O desktop usa Rust 1.100.0, fixado em `rust-toolchain.toml`, com rustfmt e Clippy. Use `mise run setup:desktop` para preparar a toolchain sem atualizar o rustup pessoal e instalar cargo-audit 0.23.0 em prefixo próprio. O default global do rustup permanece sob controle do usuário. O mínimo declarado da crate é Rust 1.95, validado no alvo Linux com o lock atual.
 
 ```sh
 pnpm tauri:dev          # janela nativa com HMR

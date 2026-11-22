@@ -28,8 +28,8 @@ notfeed-app/
 ├── pnpm-lock.yaml                # substitui package-lock.json em 2.3
 ├── .nvmrc                       # versão de referência Node
 ├── rust-toolchain.toml           # versão exata e componentes Rust
-├── mise.toml                    # previsto em 2.5/provision: seleção e tarefas por alvo
-├── mise.lock                    # previsto: resoluções de ferramentas, distinto dos locks de dependências
+├── mise.toml                    # seleção e tarefas por alvo
+├── mise.lock                    # resoluções de ferramentas, distinto dos locks de dependências
 ├── eslint.config.js              # configuração acordada em 2.1
 ├── .prettierrc.json
 ├── .prettierignore               # somente gerados, binários e histórico identificado
@@ -40,7 +40,7 @@ notfeed-app/
 │   ├── migration/               # provas históricas da etapa 1
 │   ├── maintenance/             # árbitro, contratos realizados e evidências da etapa 2
 │   ├── checks/                  # verificações permanentes e execução de comandos
-│   ├── setup/                   # previsto: bootstrap mise e preparação mínima por alvo
+│   ├── setup/                   # bootstrap mise e preparação mínima por alvo
 │   └── e2e/                     # cenários atuais, adaptados sem perder assertions
 ├── .github/workflows/            # CI prevista para o remoto GitHub existente
 └── docs/plans/etapa-2-base-tecnica-e-ambiente/

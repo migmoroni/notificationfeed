@@ -61,21 +61,21 @@ O baseline PWA novo e os comandos de atualização são preparados em 2.1b. Em 2
 | Desktop  | Base + BUILD, NATIVE, BUNDLE; inspeção do frontend e smoke web quando houver regeneração dele            |
 | Completo | Base + INSTALL, SECURITY, NATIVE, BUNDLE, BROWSER, UPGRADE; LINT/FORMAT/ENV após suas unidades de adoção |
 
-Após a adoção de 2.5/provision, o perfil Completo acrescenta PROVISION; checks rápidos cotidianos validam a coerência/versões sem reinstalar o ambiente. As provas limpas de provisionamento são executadas pelo gate completo e pelos perfis correspondentes da CI, sem repetição por caso de teste.
+Após a adoção de 2.5/provision, o perfil Completo acrescenta PROVISION; checks rápidos cotidianos validam a coerência/versões sem reinstalar o ambiente. As provas completas de provisionamento são locais; a CI mínima possui sua própria preparação limpa para os checks web, sem repetir stack desktop/PWA.
 
 Até 2.5, a implantação gradual de lint/formatação/diagnóstico é explícita no manifesto; não é dispensa de uma regra já obrigatória. A referência funcional da etapa 2 é estabelecida antes de atualizar o produto.
 
-| Mudança                                                                                                | Perfil mínimo obrigatório                                                         |
-| ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| Lock JS/TS, gerenciador, runtime Node, build compartilhado, contrato de gates ou dependência do pacote | Completo                                                                          |
-| mise.toml, mise.lock, bootstrap/setup, contrato C11 ou seleção de ferramentas                          | Completo + PROVISION após adoção; CI deve executar todos os consumidores          |
-| App web, rotas, SW, Workbox, UI ou dados locais                                                        | Web; Desktop também se alterar artefato consumido pelo Tauri                      |
-| Cargo.lock/crates/toolchain, CLI/plugin Tauri, permissões/configuração desktop                         | Desktop + SECURITY; Web se alterar build ou consumidor JS compartilhado           |
-| Regras de lint/formatação, utilidade de teste ou tooling                                               | Base + testes adversos dessa ferramenta; acrescentar consumidores que ela executa |
-| Documentação sem efeito executável                                                                     | Links, manifesto quando afetado e DIFF                                            |
-| Impacto desconhecido ou múltiplas categorias                                                           | União dos perfis; se a fronteira for ambígua, Stop & Ask                          |
+| Mudança                                                                                                | Perfil mínimo obrigatório                                                                                 |
+| ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| Lock JS/TS, gerenciador, runtime Node, build compartilhado, contrato de gates ou dependência do pacote | Completo                                                                                                  |
+| mise.toml, mise.lock, bootstrap/setup, contrato C11 ou seleção de ferramentas                          | Completo + PROVISION após adoção; CI mínima web sempre executada; consumidores completos continuam locais |
+| App web, rotas, SW, Workbox, UI ou dados locais                                                        | Web; Desktop também se alterar artefato consumido pelo Tauri                                              |
+| Cargo.lock/crates/toolchain, CLI/plugin Tauri, permissões/configuração desktop                         | Desktop + SECURITY; Web se alterar build ou consumidor JS compartilhado                                   |
+| Regras de lint/formatação, utilidade de teste ou tooling                                               | Base + testes adversos dessa ferramenta; acrescentar consumidores que ela executa                         |
+| Documentação sem efeito executável                                                                     | Links, manifesto quando afetado e DIFF                                                                    |
+| Impacto desconhecido ou múltiplas categorias                                                           | União dos perfis; se a fronteira for ambígua, Stop & Ask                                                  |
 
-Critérios são fixados em 2.1b. Mudanças nas regras de CI, lockfiles, ambiente, contratos ou código compartilhado nunca recebem classificação de “somente documentação”. Na CI, o job de decisão produz a lista esperada e um agregador final verifica cada job necessário. Cancelado, omitido ou pulado quando necessário reprova. Para a etapa 2, 2.6b e 2.7 sempre exigem o conjunto completo.
+A matriz acima orienta os gates locais. Pela revisão de escopo da ADR 018, a CI remota executa sempre um único job web com todos os dez checks de web-minimum, sem filtro de impacto/agregador. Cancelado, omitido, pulado ou falho reprova. 2.6/execution e 2.7 exigem a CI mínima real; o conjunto local completo permanece nos fechamentos aplicáveis. Revisar a CI ampliada no fechamento da etapa 3.
 
 ## Gates de saída das fases
 
@@ -86,8 +86,8 @@ Critérios são fixados em 2.1b. Mudanças nas regras de CI, lockfiles, ambiente
 | 2.3  | `node tooling/maintenance/gate.mjs 2.3` | Completo com pnpm; comparação de resolução sem delta inexplicado; apenas pnpm-lock ativo                                               |
 | 2.4  | `node tooling/maintenance/gate.mjs 2.4` | Todos os grupos aprovados, perfil Completo e política final de segurança                                                               |
 | 2.5  | `node tooling/maintenance/gate.mjs 2.5` | Todas as unidades aprovadas, incluindo provision após adoção; Completo + PROVISION e independência dos gates antigos                   |
-| 2.6  | `node tooling/maintenance/gate.mjs 2.6` | Configuração validada e CI real completa, contrato/commit/hashes equivalentes                                                          |
-| 2.7  | `node tooling/maintenance/gate.mjs 2.7` | Completo + CI, documentação coerente, checkpoint reconstruível e handoff                                                               |
+| 2.6  | `node tooling/maintenance/gate.mjs 2.6` | Configuração validada e CI mínima web real, contrato/commit/hashes equivalentes                                                        |
+| 2.7  | `node tooling/maintenance/gate.mjs 2.7` | Completo local + CI mínima web, documentação coerente, checkpoint reconstruível e handoff                                              |
 
 Em 2.4 cada grupo executa `node tooling/maintenance/gate.mjs 2.4 --unit <id-registrado>`. O fechamento exige resultados de todos os grupos, sem reutilizar testes antigos como prova de fontes alteradas. Unidades seguintes podem usar um predecessor histórico aprovado; o fechamento testa a integração atual. Evitar repetições adicionais sem alteração, falha ou dúvida concreta além dos gates exigidos.
 
@@ -113,3 +113,5 @@ Fixtures inválidas não entram no build do produto. Não escrever testes que ap
 ## Limites da aprovação
 
 Chromium prova web/PWA. Cargo, Clippy e inspeção AppImage provam compilação, regras e empacotamento do alvo Linux existente; não provam WebView, notificações do SO ou novos alvos. XML via DOMParser no SW e as questões históricas de chaves de usuário continuam fora das correções declaradas, salvo decisão explícita. Uma falha em fluxo **coberto** continua bloqueante, mesmo se preexistente.
+
+O gate 2.6/configuration da revisão mínima executa contrato/YAML, verificadores locais e CI-PROVE (checkout limpo com os dez checks). O gate técnico local completo permanece em 2.5/2.7 e nas mudanças que o exigirem; validar apenas o workflow não exige reconstruir o desktop.

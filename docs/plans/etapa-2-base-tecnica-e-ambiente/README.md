@@ -1,6 +1,6 @@
 # Plano de engenharia da etapa 2
 
-**Data:** 20 de novembro de 2026; ampliação em 21/11/2026. **Situação:** unidade 2.5/provision com mise planejada; as aprovações anteriores de 2.5 e 2.6/configuration permanecem históricas. CI real e consolidação pendentes. Acompanhar [state.md](state.md).
+**Data:** 20 de novembro de 2026; revisão de CI mínima em 22/11/2026. **Situação:** base técnica/mise implementados localmente; configuração CI em requalificação para web-minimum. CI real e consolidação pendentes. Acompanhar [state.md](state.md).
 
 ## Invariantes e fronteiras primeiro
 
@@ -39,12 +39,12 @@ Os comandos permanentes originais da fase 2.5 estão implementados e suas cinco 
 | [2.3 pnpm](fases/2.3-pnpm.md)                                       | Uma migração coerente do gerenciador                                                                           | Lock único JS/TS, resolução local e consumidores validados                       |
 | [2.4 Atualizações](fases/2.4-atualizacoes.md)                       | Uma unidade por grupo de compatibilidade                                                                       | Versões mantidas, critérios de segurança atendidos e ambiente fixado             |
 | [2.5 Ambiente e checks](fases/2.5-ambiente-e-checks.md)             | Checks, lint, formatação, testes/servidores, diagnóstico e [2.5f mise](fases/2.5f-provisionamento-com-mise.md) | Rotina e preparação por alvo independentes da cadeia histórica                   |
-| [2.6 CI](fases/2.6-ci.md)                                           | 2.6a configuração; 2.6b execução real                                                                          | Jobs obrigatórios executados e aprovados para a revisão auditada                 |
+| [2.6 CI](fases/2.6-ci.md)                                           | 2.6a configuração mínima web; 2.6b execução real                                                               | Job web e checks mínimos executados e aprovados para a revisão auditada          |
 | [2.7 Consolidação](fases/2.7-consolidacao.md)                       | Gate completo e handoff                                                                                        | Referência reproduzível para a etapa 3                                           |
 
 Cada unidade percorre **Especificação → Contrato/Schema → Teste → Implementação Mínima → Quality Gate**. Passar uma unidade não aprova automaticamente sua fase. Não iniciar a fase dependente até concluir todas as unidades e o gate de saída da anterior.
 
-A retomada agora começa em `2.5/provision`, seguida do novo fechamento 2.5 e da revalidação de `2.6/configuration`. Depois da publicação feita pelo usuário, conferir CI real em 2.6/execution/final e consolidar 2.7. Não reexecutar as implementações já concluídas nem reutilizar seus recibos como prova do mise. O manifesto registra a ampliação em `plannedExtensions`; habilitar a unidade no executor exige contrato e testes prévios.
+A revisão atual segue a ADR 018: requalificar 2.6/configuration com CI mínima web. Após a publicação feita pelo usuário, conferir o job web real em 2.6/execution/final e consolidar 2.7 com os gates locais completos. CI PWA/desktop e matriz por módulos serão reavaliadas no fechamento da etapa 3; distribuição/publicação têm escopo posterior próprio. Preservar as provas históricas sem tratá-las como aprovação desta revisão.
 
 As versões exatas e os grupos de atualização foram registrados em 2.1b, com fontes e data de consulta. O plano fixa o processo e os critérios; não transforma a fotografia de versões ou alertas de novembro em uma escolha permanente sem nova verificação.
 
